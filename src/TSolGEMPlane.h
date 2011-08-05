@@ -20,8 +20,9 @@ class TSolGEMPlane : public THaDetector {
 	GEMDir_t GetDirection(){ return fDir; }
 	TSolGEMPlane *GetPairedPlane() { return fPairPlane; }
 
+
     private:
-	TClonesArray *fClusters; // Clusters
+	TClonesArray  *fClusters; // Clusters
 	GEMDir_t fDir;		 // Plane orientation
 	TSolGEMPlane *fPairPlane; // Paired plane
 

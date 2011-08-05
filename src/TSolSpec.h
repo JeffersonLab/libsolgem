@@ -20,9 +20,16 @@ class TSolSpec : public THaSpectrometer {
 	Int_t TrackCalc() { return 0; }
 
 	Int_t FindVertices(TClonesArray &);
+//	void MakePrefix(){ return; }
 
-	void MakePrefix(){ return; }
+	UInt_t GetNplanes(){ return fNplanes; }
+	TSolGEMPlane *GetPlane(Int_t i){ return fPlanes[i]; }
+
     private:
+	UInt_t         fNplanes;
+	TSolGEMPlane **fPlanes;
+
+	Int_t ReadDatabase( const TDatime& date );
 
     public:
 	ClassDef(TSolSpec,1)
