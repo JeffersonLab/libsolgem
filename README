@@ -1,0 +1,68 @@
+========================================================
+| SoLID GEMC Tracking Library
+| Based on the Hall A Analyzer
+========================================================
+
+This software is designed to interface EVIO output from
+GEMC to the Hall A analyzer.  It requires:
+
+EVIO 
+https://clas12svn.jlab.org/repos/trunk/clas12/evio/
+
+Hall A Analyzer
+http://hallaweb.jlab.org/podd/index.html
+
+** Environment variables EVIO and ANALYZER must be
+   set to point to these packages **
+
+This is designed to act as an extension of the analyzer
+with modifications mainly due to the fact the input
+files are different.  It will cast the data from
+EVIO into a THaEvData object based on the EVIO
+identifier numbers.
+
+The flow goes
+
+EVIO -> SBS digitization -> THaEvData (basically plane/
+wire/time + plane/wire/amplitude tuples) -> Decode
+-> Clustering -> Tracking Analysis
+
+Clustering I'm guessing will be constant so a separate
+"clustering" algorithm will be employed
+
+========================================================
+For users:
+
+To build this, you should just be able to run make
+and libsolgem.so shoudl be built
+
+src/
+All the source files for this library
+
+example/
+Example of how to load and run this library
+
+========================================================
+For developers:
+
+There are two basic ideas building on the analyzer.  
+
+1)  The input files are different and are pure EVIO.
+    We can ignore everything like EPICS, etc in the data
+    stream.  To keep from rewriting a lot of the raw
+    data code, we'll cast the EVIO output into 
+    THaEvData.  I'll need to specify this exactly, but
+    the 'crate' will probably be fixed, the slot will
+    be based on the manual identifier number, and the
+    channel will be just the wire number.
+
+2)  We use the analysis flow of the analyzer and it's
+    nice output facilities for the rest.  This presumably
+    will make everything easier in the end for mashing
+    code from several projects together.
+
+========================================================
+
+Modified August 5, 2011
+Seamus Riordan
+riordan@jlab.org
