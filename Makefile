@@ -28,7 +28,7 @@ CXXFLAGS += $(SOLINCLUDE)
 
 DICT	= $(NAME)_dict
 SRC	= src/TSolGEMCluster.cxx src/TSolGEMPlane.cxx src/TSolSpec.cxx \
-	  src/TSolAnalyzer.cxx src/TSolEVIOFile.cxx
+	  src/TSolAnalyzer.cxx #src/TSolEVIOFile.cxx
 OBJS	= $(SRC:.$(SrcSuf)=.$(ObjSuf)) $(DICT).o
 HDR	= $(SRC:.$(SrcSuf)=.h) src/Linkdef.h
 

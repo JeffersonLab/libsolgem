@@ -15,6 +15,9 @@ class TSolEVIOFile : public TObject {
 
 	void SetFilename( const char *name );
 	Int_t Open();
+
+	Int_t ReadNextEvent();
+
     private:
 	char fFilename[255];
 	evio::evioFileChannel *fChan;

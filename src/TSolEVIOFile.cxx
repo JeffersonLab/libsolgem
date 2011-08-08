@@ -38,7 +38,7 @@ Int_t TSolEVIOFile::ReadNextEvent(){
 	return 0;
     }
 
-    evio::evioDOMTree EDT(chan);
+    evio::evioDOMTree EDT(fChan);
 
     // Read in header info
     evio::evioDOMNodeListP evntNl = EDT.getNodeList(evio::tagNumEquals(1, 1));
