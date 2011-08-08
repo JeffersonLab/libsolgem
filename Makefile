@@ -27,10 +27,12 @@ LDFLAGS  += -L$(EVIO)/lib -levio -levioxx -lz -lexpat
 CXXFLAGS += $(SOLINCLUDE)
 
 DICT	= $(NAME)_dict
-SRC	= src/TSolGEMCluster.cxx src/TSolGEMPlane.cxx src/TSolSpec.cxx \
-	  src/TSolAnalyzer.cxx #src/TSolEVIOFile.cxx
+ROSRC   = src/TSolGEMCluster.cxx src/TSolGEMPlane.cxx src/TSolSpec.cxx \
+	  src/TSolAnalyzer.cxx src/TSolEvData.cxx
+SRC	= $(ROSRC)  src/TSolEVIOFile.cxx
 OBJS	= $(SRC:.$(SrcSuf)=.$(ObjSuf)) $(DICT).o
 HDR	= $(SRC:.$(SrcSuf)=.h) src/Linkdef.h
+ROHDR	= $(ROSRC:.$(SrcSuf)=.h) src/Linkdef.h
 
 LIBSOLGEM	= libsolgem.so
 
@@ -44,7 +46,7 @@ $(LIBSOLGEM):	$(OBJS)
 clean:
 	@rm -f $(OBJS) $(PROGRAMS) *dict.*
 
-$(DICT).cxx: $(HDR) 
+$(DICT).cxx: $(ROHDR) 
 	$(ROOTCINT) -f $@ -c $(SOLINCLUDE) $^ 
 
 %.$(ObjSuf): %.$(SrcSuf)

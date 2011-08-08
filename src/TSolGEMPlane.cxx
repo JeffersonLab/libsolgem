@@ -14,7 +14,7 @@ TSolGEMPlane::TSolGEMPlane( const char *name, const char *desc ){
 Int_t TSolGEMPlane::Decode( const THaEvData &d ){
     // Clusters get made as so
 
-    int i;
+    int i = 0;
 
     new ((*fClusters)[i]) TSolGEMCluster();
 

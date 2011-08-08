@@ -30,6 +30,8 @@ Int_t TSolSpec::ReadDatabase( const TDatime& date ){
 Int_t TSolSpec::CoarseTrack(){
     int i,j;
 
+    i = j = 0;
+
     // Assume decoding is done.  You can get the clustered hits with
     // calles like
 
