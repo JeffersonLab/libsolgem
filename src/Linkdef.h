@@ -8,5 +8,6 @@
 #pragma link C++ defined_in "src/TSolSpec.h";
 #pragma link C++ defined_in "src/TSolGEMPlane.h";
 #pragma link C++ defined_in "src/TSolGEMCluster.h";
+#pragma link C++ defined_in "src/TSolEVIOFile.h";
 
 #endif
