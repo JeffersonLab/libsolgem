@@ -20,7 +20,7 @@ SOLINCLUDE += -I$(ANALYZER)/src -I$(ANALYZER)/hana_decode
 EVIO ?= /dev/null
 
 SOLINCLUDE += -I$(EVIO)/src/libsrc -I$(EVIO)/src/libsrc++
-LDFLAGS  += -L$(EVIO)/lib -levio -levioxx -lz -lexpat
+LDFLAGS  += -L$(EVIO)/lib -levioxx -levio -lz -lexpat
 
 #------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ CXXFLAGS += $(SOLINCLUDE)
 
 DICT	= $(NAME)_dict
 ROSRC   = src/TSolGEMCluster.cxx src/TSolGEMPlane.cxx src/TSolSpec.cxx \
-	  src/TSolAnalyzer.cxx src/TSolEvData.cxx
+	  src/TSolAnalyzer.cxx src/TSolEvData.cxx 
 SRC	= $(ROSRC)  src/TSolEVIOFile.cxx
 OBJS	= $(SRC:.$(SrcSuf)=.$(ObjSuf)) $(DICT).o
 HDR	= $(SRC:.$(SrcSuf)=.h) src/Linkdef.h
@@ -41,7 +41,7 @@ PROGRAMS	= $(LIBSOLGEM)
 all:	$(PROGRAMS)
 
 $(LIBSOLGEM):	$(OBJS)
-	$(LD) $(SOFLAGS) $(LDFLAGS) $^ -o $@ 
+	$(LD) $(SOFLAGS) $^ -o $@ $(LDFLAGS) 
 
 clean:
 	@rm -f $(OBJS) $(PROGRAMS) *dict.*
