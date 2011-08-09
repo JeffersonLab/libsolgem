@@ -1,8 +1,22 @@
 #ifndef __TSOLEVIOFILE_H
 #define __TSOLEVIOFILE_H
 
+// Put prototypes here first so that it doens't freak out
+// over the hidden code
+
+#ifdef  __CINT__
+namespace evio {
+    class evioFileChannel;
+    class evioDOMNodeList;
+}
+#endif//__CINT__
+
+// Hide these from the ROOT interpreter
+// we don't need them anyways
+#ifndef __CINT__
 #include "evioUtil.hxx"
 #include "evioFileChannel.hxx"
+#endif//__CINT__
 
 #include "TROOT.h"
 
@@ -50,6 +64,8 @@ class TSolEVIOFile {
 	void  Clear();
 	Int_t Open();
 	Int_t Close();
+
+	const char* GetFileName() { return fFilename; }
 
 	Int_t ReadNextEvent();
 	void  ExtractDetIDs( evio::evioDOMNodeList *, int );

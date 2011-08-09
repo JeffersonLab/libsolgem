@@ -5,19 +5,27 @@
 
 #include "gemc_types.h"
 
+#ifndef __CINT__
+
 TSolEVIOFile::TSolEVIOFile(){
     fFilename[0] = '\0';
     fChan = NULL;
+
+    printf("Hi, I'm an EVIO file!\n");
 
     return;
 }
 
 TSolEVIOFile::TSolEVIOFile(const char *f){
+    printf("Hi, I'm an EVIO file for %s!\n", f);
     SetFilename(f);
     return;
 }
 
-TSolEVIOFile::~TSolEVIOFile(){ return; }
+TSolEVIOFile::~TSolEVIOFile(){
+    printf("Goodbye, cruel world\n");
+    return; 
+}
 
 void TSolEVIOFile::SetFilename( const char *f ){
    strcpy( fFilename, f );
@@ -239,6 +247,7 @@ hitdata::~hitdata(){
 
 
 
+#endif//__CINT__
 
 
 

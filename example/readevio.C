@@ -17,4 +17,11 @@ void readevio(){
     // These will be called elsewhere, this is just demonstratory
     TSolGEMCluster *c = new TSolGEMCluster();
 
+    printf("Making evio file\n");
+    TSolEVIOFile *f = new TSolEVIOFile("name");
+    printf("The filename returned is %s\n", f->GetFileName());
+    printf("Deleting evio file\n");
+    delete f;
+    printf("Deleted\n");
+
 }
