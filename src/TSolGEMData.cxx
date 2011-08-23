@@ -4,7 +4,7 @@
 
 using namespace std;
 
-TSolGEMData::TSolGEMData (Int_t h)
+TSolGEMData::TSolGEMData (UInt_t h)
 {
   if (h > 0) InitHit (h);
 }
@@ -23,7 +23,7 @@ TSolGEMData::ClearHit()
     delete[] fEdep;
     delete[] fPID;
     
-    for (Int_t k = 0; k < fNHit; k++) 
+    for (UInt_t k = 0; k < fNHit; k++) 
     {
       delete fXi[k];
       delete fXo[k];
@@ -43,7 +43,7 @@ TSolGEMData::ClearHit()
 };
 
 void
-TSolGEMData::InitHit (Int_t h)
+TSolGEMData::InitHit (UInt_t h)
 {
   if (h <= 0)
     return;
@@ -52,15 +52,15 @@ TSolGEMData::InitHit (Int_t h)
 
   // Hits
 
-  fGem = new Int_t[h]; // chamber with hit
+  fGem = new UInt_t[h]; // chamber with hit
   fEdep = new Double_t[h]; // energy lost in drift
-  fIdxV = new Int_t[h]; // entry number
-  fPID = new Int_t[h]; // particle ID
+  fIdxV = new UInt_t[h]; // entry number
+  fPID = new UInt_t[h]; // particle ID
   fXi = new TVector3*[h];
   fXo = new TVector3*[h];
   fXr = new TVector3*[h];
   fMom = new TVector3*[h];
-  for (Int_t k = 0; k < fNHit; k++) 
+  for (UInt_t k = 0; k < fNHit; k++) 
   {
   	fXi[k] = new TVector3;
   	fXo[k] = new TVector3;
