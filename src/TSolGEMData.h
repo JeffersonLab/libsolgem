@@ -11,48 +11,51 @@ class TSolGEMData
 {
  public:
 
-  TSolGEMData (Int_t h = 0);
+  TSolGEMData (UInt_t h = 0);
   virtual ~TSolGEMData();
 
   void ClearHit();
-  void InitHit (Int_t h);
+  void InitHit (UInt_t h);
   
-  void SetNHit (Int_t h) {fNHit = h;};
-  void SetEvent (Int_t id) {fEvtID = id;};
-  void SetRun (Int_t r) {fRunID = r;};
-  void SetMomentum (Int_t k, const TVector3 p);
-  void SetHitEntrance (Int_t k, const TVector3 xEnt);
-  void SetHitExit (Int_t k, const TVector3 xExit);
-  void SetHitReadout (Int_t k, const TVector3 xRead);
-  void SetHitEnergy (Int_t k, Double_t e) {fEdep[k] = e;};
-  void SetHitChamber (Int_t k, Int_t c) {fGem[k] = c;};
-  void SetEntryNumber (Int_t k, Int_t eno) {fIdxV[k] = eno;};
-  void SetParticleID (Int_t k, Int_t pid) {fPID[k] = pid;};
+  void SetNHit (UInt_t h) {fNHit = h;};
+  void SetEvent (UInt_t id) {fEvtID = id;};
+  void SetRun (UInt_t r) {fRunID = r;};
+  void SetMomentum (UInt_t k, const TVector3 p);
+  void SetHitEntrance (UInt_t k, const TVector3 xEnt);
+  void SetHitExit (UInt_t k, const TVector3 xExit);
+  void SetHitReadout (UInt_t k, const TVector3 xRead);
+  void SetHitEnergy (UInt_t k, Double_t e) {fEdep[k] = e;};
+  void SetHitChamber (UInt_t k, UInt_t c) {fGem[k] = c;};
+  void SetEntryNumber (UInt_t k, UInt_t eno) {fIdxV[k] = eno;};
+  void SetParticleID (UInt_t k, UInt_t pid) {fPID[k] = pid;};
+  void SetParticleType (UInt_t k, UInt_t type) {fType[k] = type;};
 
-  Int_t GetNHit() const {return fNHit;};
-  Int_t GetEvent() const {return fEvtID;};
-  Int_t GetRun() const {return fRunID;};
-  TVector3 *GetMomentum (Int_t k) const {return fMom[k];};
-  TVector3 *GetHitEntrance (Int_t k) const {return fXi[k];};
-  TVector3 *GetHitExit (Int_t k) const {return fXo[k];};
-  TVector3 *GetHitReadout (Int_t k) const {return fXr[k];};
-  Double_t GetHitEnergy (Int_t k) const {return fEdep[k];};
-  Int_t GetHitChamber (Int_t k) const {return fGem[k];};
-  Int_t GetEntryNumber (Int_t k) const {return fIdxV[k];};
-  Int_t GetParticleID (Int_t k) const {return fPID[k];};
+  UInt_t GetNHit() const {return fNHit;};
+  UInt_t GetEvent() const {return fEvtID;};
+  UInt_t GetRun() const {return fRunID;};
+  TVector3 *GetMomentum (UInt_t k) const {return fMom[k];};
+  TVector3 *GetHitEntrance (UInt_t k) const {return fXi[k];};
+  TVector3 *GetHitExit (UInt_t k) const {return fXo[k];};
+  TVector3 *GetHitReadout (UInt_t k) const {return fXr[k];};
+  Double_t GetHitEnergy (UInt_t k) const {return fEdep[k];};
+  UInt_t GetHitChamber (UInt_t k) const {return fGem[k];};
+  UInt_t GetEntryNumber (UInt_t k) const {return fIdxV[k];};
+  UInt_t GetParticleID (UInt_t k) const {return fPID[k];};
+  UInt_t GetParticleType (UInt_t k) const {return fType[k];};
 
  private:
 
-  Int_t fNHit; // number of hits in event
+  UInt_t fNHit; // number of hits in event
 
-  Int_t fRunID, fEvtID;
+  UInt_t fRunID, fEvtID;
 
   // Hits
 
-  Int_t *fGem; // chamber with hit
+  UInt_t *fGem; // chamber with hit
   Double_t *fEdep; // energy lost in drift
-  Int_t *fIdxV; // entry number
-  Int_t *fPID; // particle ID
+  UInt_t *fIdxV; // entry number
+  UInt_t *fPID; // particle ID
+  UInt_t *fType;  // 0 for signal, >0 for backgrounds
   TVector3 **fXi; // entrance point in drift
   TVector3 **fXo; // exit point in drift
   TVector3 **fXr; // entrance point in readout
