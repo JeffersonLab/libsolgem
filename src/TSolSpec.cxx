@@ -1,6 +1,6 @@
 #include "TSolSpec.h"
 #include "TSolGEMCluster.h"
-#include "TSolGEMPlane.h"
+#include "TSolGEMChamber.h"
 #include <stdio.h>
 
 TSolSpec::TSolSpec(const char* name, const char* desc )
@@ -15,12 +15,12 @@ TSolSpec::TSolSpec(const char* name, const char* desc )
 }
 
 Int_t TSolSpec::ReadDatabase( const TDatime& date ){
-	// Make a bunch of planes based on a database specification
+	// Make a bunch of chambers based on a database specification
 	// (simple interface is written in the analyzer, just need
 	// to implement it)
 
-    fNplanes = 0;
-    fPlanes = new  TSolGEMPlane *[fNplanes];
+    fNChambers = 0;
+    fChambers = new  TSolGEMChamber *[fNChambers];
 
     // ...
 
@@ -28,24 +28,27 @@ Int_t TSolSpec::ReadDatabase( const TDatime& date ){
 }
 
 Int_t TSolSpec::CoarseTrack(){
-    int i,j;
+    // Needs work
 
-    i = j = 0;
 
-    // Assume decoding is done.  You can get the clustered hits with
-    // calles like
+//     int i,j;
 
-    TSolGEMCluster *c;
-    Double_t z;
+//     i = j = 0;
 
-    // loop over X planes
-    if( GetPlane(i)->GetDirection() == kGEMX ){
-	c = (TSolGEMCluster *) GetPlane(i)->GetClusters()->AddrAt(j);
-	z = GetPlane(i)->GetOrigin().Z();
+//     // Assume decoding is done.  You can get the clustered hits with
+//     // calles like
+
+//     TSolGEMCluster *c;
+//     Double_t z;
+
+//     // loop over X planes
+//     if( GetPlane(i)->GetDirection() == kGEMX ){
+// 	c = (TSolGEMCluster *) GetPlane(i)->GetClusters()->AddrAt(j);
+// 	z = GetPlane(i)->GetOrigin().Z();
 	
-	c->GetPos();
-	c->GetE();
-    }
+// 	c->GetPos();
+// 	c->GetE();
+//     }
 
     return 0;
 }

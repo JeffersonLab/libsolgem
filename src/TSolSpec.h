@@ -5,7 +5,7 @@
 #include "THaSpectrometer.h"
 #include "types.h"
 
-class TSolGEMPlane;
+class TSolGEMChamber;
 
 class TSolSpec : public THaSpectrometer {
     public:
@@ -22,12 +22,12 @@ class TSolSpec : public THaSpectrometer {
 	Int_t FindVertices(TClonesArray &);
 //	void MakePrefix(){ return; }
 
-	UInt_t GetNplanes(){ return fNplanes; }
-	TSolGEMPlane *GetPlane(Int_t i){ return fPlanes[i]; }
+	UInt_t GetNChambers() const { return fNChambers; }
+	TSolGEMChamber &GetChamber(Int_t i) const { return *fChambers[i]; }
 
     private:
-	UInt_t         fNplanes;
-	TSolGEMPlane **fPlanes;
+	UInt_t         fNChambers;
+	TSolGEMChamber **fChambers;
 
 	Int_t ReadDatabase( const TDatime& date );
 
