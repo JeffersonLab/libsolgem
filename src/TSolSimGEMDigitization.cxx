@@ -15,14 +15,108 @@
 
 using namespace std;
 
-TSolSimGEMDigitization::TSolSimGEMDigitization()
+// Auxiliary class
+
+TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
+					Short_t nsample) 
 {
-  Initialize ();
+  fNOT = 0;
+  fNsample = nsample;
+  fNstrip = nstrip;
+
+  fOverThr = new Short_t[nstrip];
+  fType = new Short_t[nstrip];
+  fCharge = new Float_t[nstrip];
+  fTime = new Float_t[nstrip];
+  fTotADC = new Short_t[nstrip];
+  
+  for (Int_t i=0;i<nstrip;i++) {
+    fTotADC[i]=0.;
+    fType[i]=0;
+    fCharge[i] = 0.;
+    fTime[i] = 9999.;
+  }
+  
+  fPStripADC = new TArrayS(fNsample*nstrip);
+  
+  fPStripADC->Reset();
+  
+  if (fPStripADC==0) {
+    cerr << __FUNCTION__ << " allocation failed" << endl;
+  }
+};
+
+TSolDigitizedPlane::~TSolDigitizedPlane() 
+{
+  delete fPStripADC;
+  delete[] fOverThr;
+  delete[] fType;
+  delete[] fCharge;
+  delete[] fTime;
+  delete[] fTotADC;
+};
+
+void 
+TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
+{
+  
+  Int_t j,k;
+  Int_t idx;
+
+  Short_t ooo,nnn;
+
+  if (vv) {
+    for (j=0;j<vv->GetSize();j++) {
+      idx = vv->GetIdx(j);
+      fType[idx] |= (Short_t) type;
+      fTime[idx] = (fTime[idx] < vv->GetTime()) ? fTime[idx] : vv->GetTime();
+      fCharge[idx] += vv->GetCharge(j);
+      for (k=0;k<fNsample;k++) {
+	ooo=fPStripADC->At(idx*fNsample+k);
+	nnn=vv->GetADC(j,k);
+	fPStripADC->AddAt(ooo+nnn, idx*fNsample+k);
+	fTotADC[idx] += nnn;
+      }
+    }
+  }
+};
+
+
+
+TSolSimGEMDigitization::TSolSimGEMDigitization(const TSolSpec& spect)
+{
+  Initialize (spect);
+}
+
+
+TSolSimGEMDigitization::~TSolSimGEMDigitization()
+{
+  UInt_t nc = fSpect->GetNChambers();
+  for (UInt_t ic = 0; ic < nc; ++ic)
+    {
+      UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
+      for (UInt_t ip = 0; ip < np; ++ip)
+	delete fDP[ic][ip];
+      delete[] fDP[ic];
+    }
+  delete[] fDP;
 }
 
 void 
-TSolSimGEMDigitization::Initialize()
+TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 {
+  fSpect = &spect;
+
+  UInt_t nc = fSpect->GetNChambers();
+  fDP = new TSolDigitizedPlane**[nc];
+  for (UInt_t ic = 0; ic < nc; ++ic)
+    {
+      UInt_t np = fSpect->GetChamber(ic).GetNPlanes();
+      fDP[ic] = new TSolDigitizedPlane*[np];
+      for (UInt_t ip = 0; ip < np; ++ip)
+	fDP[ic][ip] = new TSolDigitizedPlane (fSpect->GetChamber(ic).GetPlane(ip).GetNStrips());
+    }
+
   SetGasParams();
   SetEleParams();
   SetPulseShaping();
@@ -83,12 +177,9 @@ TSolSimGEMDigitization::SetPulseShaping (Double_t tau0, // [ns] GEM model; = 50.
 
 void 
 TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata,
-				  const TSolSpec& spect)
+				  const TSolSpec& spect) // digitize event 
 {
-  fSpect = &spect;
-
   UInt_t nh = gdata.GetNHit();
-  TSolGEMVStrip ***dh = new TSolGEMVStrip **[nh];
 
   for (UInt_t ih = 0; ih < nh; ++ih)
     {
@@ -110,66 +201,17 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata,
       if (ionModel (igem, vv1, vv2, gdata.GetHitEnergy(ih), vv3) > 0) 
 	{
 	  Double_t time_zero = 
-	    (itype == 0) ? 0.
+	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
-	  dh[ih] = avaModel (igem, vv1, vv2, time_zero);
-	}
-      else
-	dh[ih] = 0;
-    }
-      
-  // -- cumulate hits on chamber planes
-
-  // This needs rethinking! ===============================
-      
-//   for (ic = 0; ic < nchamb; ic++) 
-//     { // chamber
-
-//       for (j = 0; j < 2; j++) 
-// 	{ // axis
-// 	  gPlane[j] = 0;
-// 	}
-
-//       for (UInt_t ih = 0; ih < nh; ih++) 
-// 	{ 
-// 	  // hits
-// 	  Int_t igem = gdata.GetHitChamber (ih);
-// 	  if (igem >= (Int_t) fSpect->GetNChambers())
-// 	    continue;
-// 	  if (dh[ih]) 
-// 	    {
-// 	      if (igem == ic) 
-// 		{
-// 		  if (gPlane[0] == 0) { // first time of chamber ic
-// 		    gPlane[0] = new TSolGEMPlane (fSpect->GetChamber(igem).GetPlane(0).GetNStrips(), fEleSamplingPoints);
-// 		    gPlane[1] = new TSolGEMPlane (fSpect->GetChamber(igem).GetPlane(1).GetNStrips(), fEleSamplingPoints);
-// 		  }
-	      
-// 		  for (j = 0; j < 2; j++) 
-// 		    {
-// 		      gPlane[j]->Cumulate (dh[ih][j], itype);
-// 		    }
-
-// 		}
-
-// 	    }
-
-// 	}
-		
-//     } // end loop on chamber
-
-  for (UInt_t ih = 0; ih < nh; ih++) 
-    {
-      if (dh[ih]) 
-	{
+	  TSolGEMVStrip **dh = avaModel (igem, vv1, vv2, time_zero);
 	  for (UInt_t j = 0; j < 2; j++) 
-	    delete dh[ih][j];
-	  delete dh[ih];
-	  dh[ih] = 0;
-	}
+	    {
+	      fDP[igem][j]->Cumulate (dh[j], itype);
+	      delete dh[j];
+	    }
+	  delete[] dh;
+	}      
     }
-      
-  delete[] dh;
 }
 
 
@@ -379,7 +421,7 @@ TSolSimGEMDigitization::avaModel(Int_t ic,
 
   TH2F *fsum = 0;
   
-  for (Int_t i=0;i<fRNIon;i++) { // define gaussian functions (for spatial distribution)
+  for (UInt_t i=0;i<fRNIon;i++) { // define gaussian functions (for spatial distribution)
 
     sgaus[i] = TF2(Form("sgaus%d",i),TSolSimAux::SimpleCircle,xl,xr,yb,yt,4);
 
@@ -446,11 +488,11 @@ TSolSimGEMDigitization::avaModel(Int_t ic,
   virs[0] = new TSolGEMVStrip(nx,fEleSamplingPoints);
   virs[1] = new TSolGEMVStrip(js,fEleSamplingPoints);
 
-  virs[0]->setTime(t0);
-  virs[0]->setHitCharge(fRTotalCharge);
+  virs[0]->SetTime(t0);
+  virs[0]->SetHitCharge(fRTotalCharge);
 
-  virs[1]->setTime(t0);
-  virs[1]->setHitCharge(fRTotalCharge);
+  virs[1]->SetTime(t0);
+  virs[1]->SetHitCharge(fRTotalCharge);
 
   Double_t pulse=0.;
   Double_t noisy_pulse;
@@ -492,7 +534,7 @@ TSolSimGEMDigitization::avaModel(Int_t ic,
   // y
   cccsssy=0.;
 
-  virs[0]->setSize(ai);
+  virs[0]->SetSize(ai);
 
   ai=0;
   for (Int_t j=0;j<js;j++) {
@@ -523,7 +565,7 @@ TSolSimGEMDigitization::avaModel(Int_t ic,
     }
   }
 
-  virs[1]->setSize(ai);
+  virs[1]->SetSize(ai);
 
   //
 

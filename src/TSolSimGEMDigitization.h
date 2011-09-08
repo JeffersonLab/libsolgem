@@ -6,18 +6,62 @@
 #include "Rtypes.h"
 #include "TRandom3.h"
 #include "TVector3.h"
+#include "TArrayS.h"
 
 class TSolGEMData;
 class TSolGEMVStrip;
 class TSolSpec;
 
+// First an auxiliary class
+
+// The whole strip plane; used to cumulate virtual strips charges
+// and generate real strips
+
+class TSolDigitizedPlane 
+{
+ private:
+  // ADC sampled value of strip array of each axis
+
+  Short_t fNOT;
+  Short_t *fOverThr;
+
+  TArrayS *fPStripADC;
+  Short_t *fType;
+  Short_t *fTotADC;
+
+  Float_t *fCharge;
+  Float_t *fTime;
+
+  Short_t fNsample;
+  Short_t fNstrip;
+
+ public:
+  // init and reset physics strips arrays
+  TSolDigitizedPlane (Short_t nstrip,
+		      Short_t nsample = 10);
+  ~TSolDigitizedPlane();
+
+  // cumulate hits (strips signals)
+  void Cumulate (TSolGEMVStrip *vv, Int_t type) const;
+
+  Float_t GetTime (Int_t n) const {return fTime[n];};
+  Float_t GetCharge (Int_t n) const {return fCharge[n];};
+  Short_t GetIdxOverThr (Int_t n) const {return fOverThr[n];};
+  Short_t GetTypeOverThr (Int_t n) const {return fType[fOverThr[n]];};
+  Short_t GetADCOverThr (Int_t ks, Int_t n) const {return fPStripADC->At(fOverThr[n]*fNsample+ks);};
+  Float_t GetChargeOverThr (Int_t n) const {return fCharge[fOverThr[n]];};
+  Float_t GetTimeOverThr (Int_t n) const {return fTime[fOverThr[n]];};
+};
+
+
+
 class TSolSimGEMDigitization
 {
  public:
-  TSolSimGEMDigitization();
-  virtual ~TSolSimGEMDigitization() {};
+  TSolSimGEMDigitization(const TSolSpec& spect);
+  virtual ~TSolSimGEMDigitization();
 
-  void Initialize();
+  void Initialize(const TSolSpec& spect);
   void SetGasParams (Double_t wion = 26., // eV 
 		     Double_t diff = 250.,  // cm2/s
 		     Double_t vDrift = 5.5*1e6, // cm/s
@@ -43,7 +87,7 @@ class TSolSimGEMDigitization
 
   void Digitize (const TSolGEMData& gdata,
 		 const TSolSpec& spect); // digitize event 
-
+  const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
 
  private:
 
@@ -57,6 +101,8 @@ class TSolSimGEMDigitization
 			     TVector3 *xi, 
 			     TVector3 *xo,
 			     Double_t time_off);
+
+  
 
   // Gas parameters
   Double_t fGasWion;
@@ -85,6 +131,7 @@ class TSolSimGEMDigitization
 
   //
   const TSolSpec* fSpect; // the spectrometer
+  TSolDigitizedPlane*** fDP; // 2D array of plane pointers indexed by chamber, plane #
 
   TRandom3 fTrnd;   // time randomizer
   UInt_t   fRNIon;  // number of ions
