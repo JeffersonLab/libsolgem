@@ -6,7 +6,8 @@ TSolGEMChamber::TSolGEMChamber( const char *name, const char *desc )
 {
     printf("I'm a GEM chamber named %s\n", name );
 
-    fPlanes = new TClonesArray("TSolGEMPlane", 2);
+    fNPlanes = 2;
+    fPlanes = new TClonesArray("TSolGEMPlane", fNPlanes);
 
     return;
 }

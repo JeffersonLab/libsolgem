@@ -1,12 +1,13 @@
 #ifndef __TSOLGEMCHAMBER_H
 #define __TSOLGEMCHAMBER_H
 
+#include "TClonesArray.h"
+
 #include "THaDetector.h"
 
 #include "types.h"
 
 class TSolGEMPlane;
-class TClonesArray;
 
 class TSolGEMChamber : public THaDetector {
  public:
@@ -19,10 +20,12 @@ class TSolGEMChamber : public THaDetector {
   Double_t GetLowerEdgeY() const {return (GetOrigin())[1] - (GetSize())[1];}
   Double_t GetUpperEdgeX() const {return (GetOrigin())[0] + (GetSize())[0];}
   Double_t GetUpperEdgeY() const {return (GetOrigin())[1] + (GetSize())[1];}
+  Double_t GetNPlanes() const {return fNPlanes;};
   TSolGEMPlane& GetPlane (UInt_t i) const {return *((TSolGEMPlane*)((*fPlanes)[i]));};
 
  private:
   TClonesArray *fPlanes; // List of chambers
+  UInt_t fNPlanes;
 
  public:
   ClassDef(TSolGEMChamber,1)
