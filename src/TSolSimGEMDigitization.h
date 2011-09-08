@@ -86,7 +86,7 @@ class TSolSimGEMDigitization
 			);
 
   void Digitize (const TSolGEMData& gdata,
-		 const TSolSpec& spect); // digitize event 
+		 const TSolSpec& spect); // digitize event  
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
 
  private:
