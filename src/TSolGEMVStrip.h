@@ -33,16 +33,16 @@ class TSolGEMVStrip {
   void AddStripAt(Short_t idx, Short_t n) {fIdx->AddAt(idx,n);};
   void AddChargeAt(Double_t val, Short_t n) {fCharge->AddAt(val,n);};
   void AddSampleAt(Short_t val, Short_t sample, Short_t n) {fADC->AddAt(val,n*fNsample+sample);};
-  void setTime(Double_t val) {fTime = val;};
-  void setHitCharge(Float_t val) { fHitCharge = val; }; // total charge of the avalanche
-  void setSize(Short_t n) { fSize = n; };
+  void SetTime(Double_t val) {fTime = val;};
+  void SetHitCharge(Float_t val) { fHitCharge = val; }; // total charge of the avalanche
+  void SetSize(Short_t n) { fSize = n; };
 
-  Short_t getSize() { return fSize; };
-  Short_t getIdx(Short_t n) { return fIdx->At(n); }; 
-  Short_t getADC(Short_t n, Short_t sample) { return fADC->At(n*fNsample+sample); }; 
-  Double_t getCharge(Short_t n) { return fCharge->At(n); };
-  Float_t getTime() { return fTime; };
-  Double_t getHitCharge() { return fHitCharge; };
+  Short_t GetSize() { return fSize; };
+  Short_t GetIdx(Short_t n) { return fIdx->At(n); }; 
+  Short_t GetADC(Short_t n, Short_t sample) { return fADC->At(n*fNsample+sample); }; 
+  Double_t GetCharge(Short_t n) { return fCharge->At(n); };
+  Float_t GetTime() { return fTime; };
+  Double_t GetHitCharge() { return fHitCharge; };
 
   void Print();
 };

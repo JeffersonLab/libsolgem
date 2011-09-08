@@ -25,15 +25,15 @@ void
 TSolGEMVStrip::Print() {
   Int_t i,k;
   
-  cerr << "Virtual strips sampled starting at " << getTime() << endl;
+  cerr << "Virtual strips sampled starting at " << GetTime() << endl;
   
-  for (i=0;i<getSize();i++) {
+  for (i=0;i<GetSize();i++) {
     
-    cerr << i << ") " << getIdx(i) << " : ";
-    cerr << getCharge(i) << " = ";
+    cerr << i << ") " << GetIdx(i) << " : ";
+    cerr << GetCharge(i) << " = ";
     
     for (k=0;k<fNsample;k++) {
-      cerr << getADC(i,k) << " ";
+      cerr << GetADC(i,k) << " ";
     }
     
     cerr << endl;
