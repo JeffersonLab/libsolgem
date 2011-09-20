@@ -8,6 +8,8 @@
 #include "TVector3.h"
 #include "TArrayS.h"
 
+#include "THaAnalysisObject.h"
+
 class TSolGEMData;
 class TSolGEMVStrip;
 class TSolSpec;
@@ -55,7 +57,7 @@ class TSolDigitizedPlane
 
 
 
-class TSolSimGEMDigitization
+class TSolSimGEMDigitization: public THaAnalysisObject
 {
  public:
   TSolSimGEMDigitization(const TSolSpec& spect);
@@ -84,6 +86,7 @@ class TSolSimGEMDigitization
   void SetPulseShaping (Double_t tau0=38.3, // [ns] GEM model; = 50. in SiD model 
 			Double_t tau1=129. // [ns] GEM model only; if negative assume SiD model
 			);
+  Int_t ReadDatabase (const TDatime& date);
 
   void Digitize (const TSolGEMData& gdata,
 		 const TSolSpec& spect); // digitize event  
@@ -126,7 +129,6 @@ class TSolSimGEMDigitization
   // Electronics parameters
   Double_t fTriggerOffset;    // trigger offset (ns)
   Double_t fTriggerJitter;       // trigger sigma jitter
-  Int_t    fEleThr;       // threshold for sparse readout
   Int_t    fEleSamplingPoints;   
   Double_t fEleSamplingPeriod;    // ns    
   Double_t fPulseNoiseSigma;  // sigma of the gaussian noise distribution on each sample
@@ -152,6 +154,9 @@ class TSolSimGEMDigitization
   Double_t fRSMax;
   Double_t fRTotalCharge;
   Double_t fRTime0;
+
+    public:
+	ClassDef (TSolSimGEMDigitization, 1)
 };
 
 #endif

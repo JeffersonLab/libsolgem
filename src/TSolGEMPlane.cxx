@@ -8,18 +8,56 @@
 
 using namespace std;
 
-TSolGEMPlane::TSolGEMPlane( const char *name, const char *desc )
-  : fDir (kGEMX),
-    fNStrips (100), // some dummy values for now, will be filled from database
-    fSBeg (-1.0),
-    fSPitch (0.0001),
-    fPixelFactor (2)
+TSolGEMPlane::TSolGEMPlane()
+  : THaSubDetector()
 {
-    printf("I'm a GEM plane named %s\n", name );
+  fClusters = new TClonesArray("TSolGEMCluster", 100);  
+  return;
+}
 
-    fClusters = new TClonesArray("TSolGEMCluster", 100);
+TSolGEMPlane::TSolGEMPlane( const char *name, const char *desc,
+			    THaDetectorBase* parent )
+  : THaSubDetector (name, desc, parent)
+{
+  fClusters = new TClonesArray("TSolGEMCluster", 100);  
+  return;
+}
 
-    return;
+Int_t 
+TSolGEMPlane::ReadDatabase (const TDatime& date)
+{
+  FILE* file = OpenFile (date);
+  if (!file) return kFileError;
+
+  Int_t err = ReadGeometry (file, date, false);
+
+  if (err)
+    return err;
+
+  return kOK;
+}
+
+Int_t 
+TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
+			    Bool_t required)
+{
+  THaSubDetector::ReadGeometry (file, date, false);
+
+  const DBRequest request[] = 
+    {
+      {"direction",   &fDir,         kInt,    0, 1},
+      {"nstrips",     &fNStrips,     kInt,    0, 1},
+      {"stripbegin",  &fSBeg,        kDouble, 0, 1},
+      {"strippitch",  &fSPitch,      kDouble, 0, 1},
+      {"pixelfactor", &fPixelFactor, kInt,    0, 1},
+      {0}
+    };
+  Int_t err = LoadDB( file, date, request, fPrefix );
+
+  if (err)
+    return err;
+
+  return kOK;
 }
 
 Int_t TSolGEMPlane::Decode( const THaEvData &d ){
@@ -46,4 +84,17 @@ TSolGEMPlane::GetSAngle()   const
     }
 }
 
+void 
+TSolGEMPlane::Print() const
+{
+  cout << "I'm a GEM plane named " << GetName() << endl;
 
+  TVector3 o (GetOrigin());
+  cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2) << endl;
+
+  const Float_t* s = GetSize();
+  cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
+  cout << "  " << GetNStrips() << " strips, pitch " << GetSPitch() << endl;
+  cout << "  " << GetNPixels() << " pixels, pitch " << GetPPitch() << endl;
+  cout << "  Strips begin at " << GetSBeg() << ", angle is " << GetSAngle() << endl;
+}

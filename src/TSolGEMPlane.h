@@ -10,9 +10,14 @@ class TClonesArray;
 
 class TSolGEMPlane : public THaSubDetector {
     public:
-	TSolGEMPlane(const char *name, const char *desc);
+        TSolGEMPlane ();
+	TSolGEMPlane(const char *name, const char *desc,
+		     THaDetectorBase* parent);
 	virtual ~TSolGEMPlane() {;}
 
+	Int_t ReadDatabase (const TDatime& date);
+	Int_t ReadGeometry (FILE* file, const TDatime& date,
+			    Bool_t required = kFALSE);
 	TClonesArray *GetClusters() { return fClusters; }
 
 	Int_t Decode( const THaEvData &);
@@ -21,7 +26,7 @@ class TSolGEMPlane : public THaSubDetector {
 
 	Int_t    GetNStrips()  const { return fNStrips; }
 	Double_t GetPPitch()   const { return fSPitch/fPixelFactor;} // Pixel pitch
-	Int_t    GetNPixels()  const { return fNStrips * fPixelFactor; }
+	Int_t    GetNPixels()  const { return GetNStrips() * fPixelFactor; }
 
 	// Following assumes parallel strips, later we may
 	// need to generalize this
@@ -34,12 +39,14 @@ class TSolGEMPlane : public THaSubDetector {
 	Double_t GetSAngleComp() const { return 3.14159/2 - GetSAngle(); }
 	Double_t GetPixelLocation (UInt_t i) const { return GetSBeg() + i * GetPPitch();} // Lower left corner of pixel i
 
+	void Print() const;
+
     private:
 	TClonesArray  *fClusters; // Clusters
 	GEMDir_t fDir;		 // Plane orientation
 	TSolGEMPlane *fPairPlane; // Paired plane
 
-	Int_t fNStrips;     // Number of strips
+	Int_t    fNStrips;  // Number of strips
 	Double_t fSBeg;     // Position of 1st strip (low edge) (m)
                             // i.e. distance to detector origin normal to strip
 	Double_t fSPitch;   // Strip pitch (m)

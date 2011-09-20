@@ -156,7 +156,6 @@ TSolSimGEMDigitization::SetEleParams (Double_t off,  // trigger offset [ns]
 {
   fTriggerOffset = off;
   fTriggerJitter = jit;
-  fEleThr = thr;
   fEleSamplingPoints = samplePoints;
   fEleSamplingPeriod = sampleTime;
   fPulseNoiseSigma = pulseNoiseSigma;
@@ -173,6 +172,43 @@ TSolSimGEMDigitization::SetPulseShaping (Double_t tau0, // [ns] GEM model; = 50.
 {
   fPulseShapeTau0 = tau0;
   fPulseShapeTau1 = tau1;
+}
+
+Int_t 
+TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
+{
+  FILE* file = OpenFile (date);
+  if (!file) return kFileError;
+
+  const DBRequest request[] = 
+    {
+      {"gasionwidth",               &fGasWion,                   kDouble, 0, 1, 0},
+      {"gasdiffusion",              &fGasDiffusion,              kDouble, 0, 1, 0},
+      {"gasdriftvelocity",          &fGasDriftVelocity,          kDouble, 0, 1, 0},
+      {"avalanchefiducialband",     &fAvalancheFiducialBand,     kDouble, 0, 1, 0},
+      {"avalanchechargestatistics", &fAvalancheChargeStatistics, kInt,    0, 1, 0},
+      {"gainmean",                  &fGainMean,                  kDouble, 0, 1, 0},
+      {"gain0",                     &fGain0,                     kDouble, 0, 1, 0},
+      {"triggeroffset",             &fTriggerOffset,             kDouble, 0, 1, 0},
+      {"triggerjitter",             &fTriggerJitter,             kDouble, 0, 1, 0},
+      {"elesamplingpoints",         &fEleSamplingPoints,         kInt,    0, 1, 0},
+      {"elesamplingperiod",         &fEleSamplingPeriod,         kDouble, 0, 1, 0},
+      {"pulsenoisesigma",           &fPulseNoiseSigma,           kDouble, 0, 1, 0},
+      {"adcoffset",                 &fADCoffset,                 kDouble, 0, 1, 0},
+      {"adcgain",                   &fADCgain,                   kDouble, 0, 1, 0},
+      {"adcbits",                   &fADCbits,                   kInt,    0, 1, 0},
+      {"gatewidth",                 &fGateWidth,                 kDouble, 0, 1, 0},
+      {"pulseshapetau0",            &fPulseShapeTau0,            kDouble, 0, 1, 0},
+      {"pulseshapetau1",            &fPulseShapeTau1,            kDouble, 0, 1, 0},
+      {0}
+    };
+
+  Int_t err = LoadDB (file, date, request, fPrefix);
+  fclose(file);
+  if (err)
+    return kInitError;
+
+  return kOK;
 }
 
 void 
