@@ -2,29 +2,27 @@
 #include "TSolGEMCluster.h"
 #include "TSolGEMChamber.h"
 #include <stdio.h>
+#include <iostream>
+
+using namespace std;
 
 TSolSpec::TSolSpec(const char* name, const char* desc )
     :THaSpectrometer(name,desc) {
 
-	printf("Hello, I'm a spectrometer named %s\n", name);
-	
-
-
-
-	return;
+  // We don't need run db (not yet at least)
+  fProperties &= ~kNeedsRunDB;
+  return;
 }
 
-Int_t TSolSpec::ReadDatabase( const TDatime& date ){
-	// Make a bunch of chambers based on a database specification
-	// (simple interface is written in the analyzer, just need
-	// to implement it)
+Int_t 
+TSolSpec::AddGEM (TSolGEMChamber& pdet)
+{
+  // Add a detector to the internal lists of spectrometer detectors.
+  // The detector object must be allocated and deleted by the caller.
+  // Duplicate detector names are not allowed.
 
-    fNChambers = 0;
-    fChambers = new  TSolGEMChamber *[fNChambers];
-
-    // ...
-
-    return 0;
+  fChambers.Add (&pdet);
+  return 0;
 }
 
 Int_t TSolSpec::CoarseTrack(){
@@ -68,4 +66,15 @@ Int_t TSolSpec::Reconstruct(){
 
 Int_t TSolSpec::FindVertices(TClonesArray &a){
     return 0;
+}
+
+void
+TSolSpec::Print()
+{
+  cout << "Hello, I'm a spectrometer named " << GetName() << endl;
+	
+  TIter next (&fChambers);
+  while (TSolGEMChamber* theChamber =
+	 static_cast<TSolGEMChamber*>(next()))
+    theChamber->Print();
 }

@@ -212,8 +212,7 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
 }
 
 void 
-TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata,
-				  const TSolSpec& spect) // digitize event 
+TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event 
 {
   UInt_t nh = gdata.GetNHit();
 
@@ -225,14 +224,14 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata,
       
       Short_t itype = (1 << gdata.GetParticleType(ih)); // signal = 1, bck = 2, 4, 8 ...
 	
-      TVector3 *vv1 = gdata.GetHitEntrance (ih);
-      TVector3 *vv2 = gdata.GetHitExit (ih);
-      TVector3 *vv3 = gdata.GetHitReadout (ih);
+      TVector3 vv1 = gdata.GetHitEntrance (ih);
+      TVector3 vv2 = gdata.GetHitExit (ih);
+      TVector3 vv3 = gdata.GetHitReadout (ih);
 
       Double_t angle = fSpect->GetChamber(igem).GetPlane(0).GetSAngleComp();
-      vv1->RotateZ (angle);
-      vv2->RotateZ (angle);
-      vv3->RotateZ (angle);
+      vv1.RotateZ (angle);
+      vv2.RotateZ (angle);
+      vv3.RotateZ (angle);
 	
       if (ionModel (igem, vv1, vv2, gdata.GetHitEnergy(ih), vv3) > 0) 
 	{
@@ -257,21 +256,17 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata,
 //
 
 Int_t 
-TSolSimGEMDigitization::ionModel(Int_t ic,
-				 TVector3 *xi, 
-				 TVector3 *xo, 
-				 Double_t elost, 
-				 TVector3 *xrout)   // used only to calculate distance drift-readout (to be removed in future version)
+TSolSimGEMDigitization::ionModel(const Int_t ic,
+				 const TVector3& xi, 
+				 const TVector3& xo, 
+				 const Double_t elost, 
+				 const TVector3& xrout)   // used only to calculate distance drift-readout (to be removed in future version)
 {
-
-  if ((xi==0) || (xo==0) || (xrout==0)) {
-    return 0;
-  }
 
   Double_t LL;
   Double_t deltaE=elost; // eV  MC
 
-  TVector3 vseg = *xo-*xi;
+  TVector3 vseg = xo-xi;
 
   // DEBUG  TRandom3 rnd(0);
   TRandom3 rnd;
@@ -308,10 +303,10 @@ TSolSimGEMDigitization::ionModel(Int_t ic,
 
     lion  = rnd.Uniform(0.,1.); // position of the hit along the track segment (fraction)
 
-    fRX[i]=vseg.X()*lion+xi->X(); 
-    fRY[i]=vseg.Y()*lion+xi->Y();
+    fRX[i]=vseg.X()*lion+xi.X(); 
+    fRY[i]=vseg.Y()*lion+xi.Y();
 
-    LL = TMath::Abs(xrout->Z() - (vseg.Z()*lion+xi->Z()));
+    LL = TMath::Abs(xrout.Z() - (vseg.Z()*lion+xi.Z()));
 
     ttime = LL/fGasDriftVelocity; // traveling time from the drift gap to the readout
 
@@ -345,10 +340,10 @@ TSolSimGEMDigitization::ionModel(Int_t ic,
 //
 
 TSolGEMVStrip **
-TSolSimGEMDigitization::avaModel(Int_t ic,
-				 TVector3 *xi, 
-				 TVector3 *xo,
-				 Double_t time_off)
+TSolSimGEMDigitization::avaModel(const Int_t ic,
+				 const TVector3& xi, 
+				 const TVector3& xo,
+				 const Double_t time_off)
 {
   Double_t nsigma = fAvalancheFiducialBand; // coverage factor
 
@@ -359,20 +354,20 @@ TSolSimGEMDigitization::avaModel(Int_t ic,
 
   // check if track is in the active area of the sector
 
-  if (xi->X()<xo->X()) {
-    x0 = xi->X()-nsigma*fRSMax;
-    x1 = xo->X()+nsigma*fRSMax;
+  if (xi.X()<xo.X()) {
+    x0 = xi.X()-nsigma*fRSMax;
+    x1 = xo.X()+nsigma*fRSMax;
   } else {
-    x1 = xi->X()+nsigma*fRSMax;
-    x0 = xo->X()-nsigma*fRSMax;
+    x1 = xi.X()+nsigma*fRSMax;
+    x0 = xo.X()-nsigma*fRSMax;
   }
 
-  if (xi->Y()< xo->Y()) {
-    y0 = xi->Y()-nsigma*fRSMax;
-    y1 = xo->Y()+nsigma*fRSMax;
+  if (xi.Y()< xo.Y()) {
+    y0 = xi.Y()-nsigma*fRSMax;
+    y1 = xo.Y()+nsigma*fRSMax;
   } else {
-    y1 = xi->Y()+nsigma*fRSMax;
-    y0 = xo->Y()-nsigma*fRSMax;
+    y1 = xi.Y()+nsigma*fRSMax;
+    y0 = xo.Y()-nsigma*fRSMax;
   }
 
   // --- loop on sectors 
@@ -622,3 +617,31 @@ TSolSimGEMDigitization::avaModel(Int_t ic,
 
 }
 
+void 
+TSolSimGEMDigitization::Print() const
+{
+  cout << "GEM digitization:" << endl;
+  cout << "  Gas parameters:" << endl;
+  cout << "    Gas ion width: " << fGasWion << endl;
+  cout << "    Gas diffusion: " << fGasDiffusion << endl;
+  cout << "    Gas drift velocity: " << fGasDriftVelocity << endl;
+  cout << "    Avalanche fiducial band: " << fAvalancheFiducialBand << endl;
+  cout << "    Avalanche charge statistics: " << fAvalancheChargeStatistics << endl;
+  cout << "    Gain mean: " << fGainMean << endl;
+  cout << "    Gain 0: " << fGain0 << endl;
+  
+  cout << "  Electronics parameters:" << endl;
+  cout << "    Trigger offset: " << fTriggerOffset << endl;
+  cout << "    Trigger jitter: " << fTriggerJitter << endl;
+  cout << "    Sampling Period: " << fEleSamplingPeriod << endl;
+  cout << "    Sampling Points: " << fEleSamplingPoints   << endl;
+  cout << "    Pulse Noise width: " << fPulseNoiseSigma << endl;
+  cout << "    ADC offset: " << fADCoffset << endl;
+  cout << "    ADC gain: " << fADCgain << endl;
+  cout << "    ADC bits: " << fADCbits << endl;
+  cout << "    Gate width: " << fGateWidth << endl;
+  
+  cout << "  Pulse shaping parameters:" << endl;
+  cout << "    Pulse shape tau0: " << fPulseShapeTau0 << endl;
+  cout << "    Pulse shape tau1: " << fPulseShapeTau1 << endl;
+}

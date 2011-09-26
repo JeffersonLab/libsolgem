@@ -31,6 +31,7 @@ TSolGEMPlane::ReadDatabase (const TDatime& date)
 
   Int_t err = ReadGeometry (file, date, false);
 
+  fclose(file);
   if (err)
     return err;
 

@@ -60,6 +60,7 @@ class TSolDigitizedPlane
 class TSolSimGEMDigitization: public THaAnalysisObject
 {
  public:
+  void Foo() {};
   TSolSimGEMDigitization(const TSolSpec& spect);
   virtual ~TSolSimGEMDigitization();
 
@@ -88,9 +89,9 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 			);
   Int_t ReadDatabase (const TDatime& date);
 
-  void Digitize (const TSolGEMData& gdata,
-		 const TSolSpec& spect); // digitize event  
+  void Digitize (const TSolGEMData& gdata); // digitize event  
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
+  void Print() const;
 
   // Access to results
   Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);};
@@ -104,16 +105,17 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
  private:
 
-  Int_t ionModel (Int_t ic,
-		  TVector3 *xi, 
-		  TVector3 *xo, 
-		  Double_t elost, 
-		  TVector3 *xrout);   // used only to calculate distance drift-readout (to be removed in future version)
+  void MakePrefix() {THaAnalysisObject::MakePrefix (NULL);}
+  Int_t ionModel (const Int_t ic,
+		  const TVector3& xi, 
+		  const TVector3& xo, 
+		  const Double_t elost, 
+		  const TVector3& xrout);   // used only to calculate distance drift-readout (to be removed in future version)
   
-  TSolGEMVStrip ** avaModel (Int_t ic,
-			     TVector3 *xi, 
-			     TVector3 *xo,
-			     Double_t time_off);
+  TSolGEMVStrip ** avaModel (const Int_t ic,
+			     const TVector3& xi, 
+			     const TVector3& xo,
+			     const Double_t time_off);
 
   
 

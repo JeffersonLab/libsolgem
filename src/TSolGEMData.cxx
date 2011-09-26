@@ -22,6 +22,7 @@ TSolGEMData::ClearHit()
     delete[] fGem;
     delete[] fEdep;
     delete[] fPID;
+    delete[] fType;
     
     for (UInt_t k = 0; k < fNHit; k++) 
     {
@@ -56,6 +57,7 @@ TSolGEMData::InitHit (UInt_t h)
   fEdep = new Double_t[h]; // energy lost in drift
   fIdxV = new UInt_t[h]; // entry number
   fPID = new UInt_t[h]; // particle ID
+  fType = new UInt_t[h]; // particle type
   fXi = new TVector3*[h];
   fXo = new TVector3*[h];
   fXr = new TVector3*[h];
@@ -69,4 +71,37 @@ TSolGEMData::InitHit (UInt_t h)
   }	  		
 
   cerr << __FUNCTION__ << "fGEM initialized with length " << h << endl;
+}
+
+void 
+TSolGEMData::Print()
+{
+  cout << "Run " << GetRun() << " Event " << GetEvent() << " " << GetNHit() << " hits" << endl;
+}
+
+void 
+TSolGEMData::PrintHit (UInt_t k)
+{
+  cout << "  Event " << GetEvent() << ":" << endl;
+  cout << "    Momentum: " << GetMomentum(k).X()
+       << " " << GetMomentum(k).Y() 
+       << " " << GetMomentum(k).Z() 
+       << endl;
+  cout << "    Hit entrance pos.: " << GetHitEntrance(k).X()
+       << " " << GetHitEntrance(k).Y() 
+       << " " << GetHitEntrance(k).Z() 
+       << endl;
+  cout << "    Hit exit pos.: " << GetHitExit(k).X()
+       << " " << GetHitExit(k).Y() 
+       << " " << GetHitExit(k).Z() 
+       << endl;
+  cout << "    Hit readout pos.: " << GetHitReadout(k).X()
+       << " " << GetHitReadout(k).Y() 
+       << " " << GetHitReadout(k).Z() 
+       << endl;
+  cout << "    Hit energy: " << GetHitEnergy(k) << endl;
+  cout << "    Hit chamber: " << GetHitChamber(k) << endl;
+  cout << "    Entry number: " << GetEntryNumber(k) << endl;
+  cout << "    Particle ID: " << GetParticleID(k) << endl;
+  cout << "    Particle type: " << GetParticleType(k) << endl;
 }
