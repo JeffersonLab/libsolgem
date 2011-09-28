@@ -3,6 +3,8 @@
 #include <iostream>
 
 #include "TClonesArray.h"
+
+#include "TSolGEMChamber.h"
 #include "TSolGEMCluster.h"
 #include "THaEvData.h"
 
@@ -42,13 +44,23 @@ Int_t
 TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 			    Bool_t required)
 {
-  THaSubDetector::ReadGeometry (file, date, false);
+  // Get position and size from database if and only if parent is null
+  // otherwise copy from parent
+
+  TSolGEMChamber* parent = (TSolGEMChamber*) GetParent();
+  if (parent == NULL)
+    THaSubDetector::ReadGeometry (file, date, false);
+  else
+    {
+      fOrigin = parent->GetOrigin();
+      fSize[0] = (parent->GetSize())[0];
+      fSize[1] = (parent->GetSize())[1];
+      fSize[2] = (parent->GetSize())[2];
+    }
 
   const DBRequest request[] = 
     {
       {"direction",   &fDir,         kInt,    0, 1},
-      {"nstrips",     &fNStrips,     kInt,    0, 1},
-      {"stripbegin",  &fSBeg,        kDouble, 0, 1},
       {"strippitch",  &fSPitch,      kDouble, 0, 1},
       {"pixelfactor", &fPixelFactor, kInt,    0, 1},
       {0}
@@ -57,6 +69,11 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 
   if (err)
     return err;
+
+  fNStrips = 2 * (GetSize())[fDir] / fSPitch;
+  if (2 * (GetSize())[fDir] - fNStrips * fSPitch > 1E-9) 
+    fNStrips++;
+  fSBeg = fDir == 0 ? parent->GetLowerEdgeX() : parent->GetLowerEdgeY();
 
   return kOK;
 }

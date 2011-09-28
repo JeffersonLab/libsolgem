@@ -218,7 +218,9 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
 
   for (UInt_t ih = 0; ih < nh; ++ih)
     {
+      cerr << ">> hit " << ih << endl;
       Int_t igem = gdata.GetHitChamber (ih);
+      cerr << ">> igem " << igem << " of " << fSpect->GetNChambers() << endl;
       if (igem >= (Int_t) fSpect->GetNChambers())
 	continue;
       
@@ -233,19 +235,23 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
       vv2.RotateZ (angle);
       vv3.RotateZ (angle);
 	
+      cerr << ">> ionModel" << endl;
       if (ionModel (igem, vv1, vv2, gdata.GetHitEnergy(ih), vv3) > 0) 
 	{
+	  cerr << ">> >0, avaModel" << endl;
 	  Double_t time_zero = 
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
 	  TSolGEMVStrip **dh = avaModel (igem, vv1, vv2, time_zero);
 	  for (UInt_t j = 0; j < 2; j++) 
 	    {
+	      cerr << ">> Cumulate " << j << endl;
 	      fDP[igem][j]->Cumulate (dh[j], itype);
 	      delete dh[j];
 	    }
 	  delete[] dh;
-	}      
+	} 
+      cerr << ">> end hit " << ih << endl;
     }
 }
  
