@@ -18,7 +18,6 @@ TSolGEMData::ClearHit()
 {
   if (fGem)
   {
-    delete[] fIdxV;
     delete[] fGem;
     delete[] fEdep;
     delete[] fPID;
@@ -55,7 +54,6 @@ TSolGEMData::InitHit (UInt_t h)
 
   fGem = new UInt_t[h]; // chamber with hit
   fEdep = new Double_t[h]; // energy lost in drift
-  fIdxV = new UInt_t[h]; // entry number
   fPID = new UInt_t[h]; // particle ID
   fType = new UInt_t[h]; // particle type
   fXi = new TVector3*[h];
@@ -101,7 +99,6 @@ TSolGEMData::PrintHit (UInt_t k)
        << endl;
   cout << "    Hit energy: " << GetHitEnergy(k) << endl;
   cout << "    Hit chamber: " << GetHitChamber(k) << endl;
-  cout << "    Entry number: " << GetEntryNumber(k) << endl;
   cout << "    Particle ID: " << GetParticleID(k) << endl;
   cout << "    Particle type: " << GetParticleType(k) << endl;
 }

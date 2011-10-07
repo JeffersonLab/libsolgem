@@ -44,28 +44,51 @@ Int_t
 TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 			    Bool_t required)
 {
-  // Get position and size from database if and only if parent is null
-  // otherwise copy from parent
+  // Get x/y position, size, and frame angle from database if and only
+  // if parent is null otherwise copy from parent
 
+  // Note that origin is in lab frame, size is in chamber frame
+
+  Int_t err;
   TSolGEMChamber* parent = (TSolGEMChamber*) GetParent();
   if (parent == NULL)
-    THaSubDetector::ReadGeometry (file, date, false);
+    {
+      THaSubDetector::ReadGeometry (file, date, false);
+      const DBRequest request[] = 
+	{
+	  {"angle",       &fAngle,       kDouble,    0, 1},
+	  {0}
+	};
+      err = LoadDB( file, date, request, fPrefix );
+      if (err)
+	return err;
+    }
   else
     {
       fOrigin = parent->GetOrigin();
       fSize[0] = (parent->GetSize())[0];
       fSize[1] = (parent->GetSize())[1];
       fSize[2] = (parent->GetSize())[2];
+      fAngle = (parent->GetAngle());
+      Double_t z0 = fOrigin[2];
+      const DBRequest request[] = 
+	{
+	  {"z0",          &z0,           kDouble, 0, 1},
+	  {0}
+	};
+      err = LoadDB( file, date, request, fPrefix );
+      if (err)
+	return err;
+      fOrigin[2] = z0;
     }
 
   const DBRequest request[] = 
     {
       {"direction",   &fDir,         kInt,    0, 1},
-      {"strippitch",  &fSPitch,      kDouble, 0, 1},
-      {"pixelfactor", &fPixelFactor, kInt,    0, 1},
+      {"pitch",       &fSPitch,      kDouble, 0, 1},
       {0}
     };
-  Int_t err = LoadDB( file, date, request, fPrefix );
+  err = LoadDB( file, date, request, fPrefix );
 
   if (err)
     return err;
@@ -73,7 +96,7 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   fNStrips = 2 * (GetSize())[fDir] / fSPitch;
   if (2 * (GetSize())[fDir] - fNStrips * fSPitch > 1E-9) 
     fNStrips++;
-  fSBeg = fDir == 0 ? parent->GetLowerEdgeX() : parent->GetLowerEdgeY();
+  fSBeg = -(GetSize())[fDir];
 
   return kOK;
 }
@@ -102,6 +125,71 @@ TSolGEMPlane::GetSAngle()   const
     }
 }
 
+TVector3  
+TSolGEMPlane::LabToChamber (TVector3 v) const
+{
+  v -= GetOrigin();
+  v.RotateZ (GetAngle());
+  return v;
+}
+
+TVector3  
+TSolGEMPlane::ChamberToStrip (TVector3 v) const
+{
+  v.RotateZ (GetSAngleComp());
+  return v;
+}
+
+TVector3  
+TSolGEMPlane::StripToChamber (TVector3 v) const
+{
+  v.RotateZ (-GetSAngleComp());
+  return v;
+}
+
+TVector3  
+TSolGEMPlane::ChamberToLab (TVector3 v) const
+{
+  v.RotateZ (-GetAngle());
+  v += GetOrigin();
+  return v;
+}
+
+Int_t
+TSolGEMPlane::GetStrip (Double_t x, Double_t y) const
+{
+  // Strip number corresponding to coordinates x, y in 
+  // strip frame, or -1 if outside (2-d) bounds
+
+  // For now strips are either horizontal or vertical, so this is easy
+
+  Double_t xc, yc; // chamber frame
+  if (fDir == kGEMX)
+    {
+      xc = x;
+      yc = y;
+    }
+  else if (fDir == kGEMY)
+    {
+      xc = y;
+      yc = -x;
+    }
+  else
+    {
+      cerr << __FUNCTION__ << " Strip angle undefined" << endl;
+      return -1;
+    }
+
+  // Check if in bounds (with a grace margin)
+
+  if (xc < GetLowerEdgeX()-1e-3 || xc > GetUpperEdgeX()+1e-3 ||
+      yc < GetLowerEdgeY()-1e-3 || yc > GetUpperEdgeY()+1e-3)
+    return -1;
+
+  Int_t s = (Int_t) ((x - fSBeg) / GetSPitch());
+  return s >= 0 ? s : 0;
+}
+
 void 
 TSolGEMPlane::Print() const
 {
@@ -113,6 +201,4 @@ TSolGEMPlane::Print() const
   const Float_t* s = GetSize();
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
   cout << "  " << GetNStrips() << " strips, pitch " << GetSPitch() << endl;
-  cout << "  " << GetNPixels() << " pixels, pitch " << GetPPitch() << endl;
-  cout << "  Strips begin at " << GetSBeg() << ", angle is " << GetSAngle() << endl;
 }

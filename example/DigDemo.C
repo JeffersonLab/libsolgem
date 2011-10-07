@@ -20,16 +20,17 @@ void DigDemo()
 
   ddgd = new TSolGEMData (1); // 1 hit wonder
   ddgd->SetRun (1000);
-  ddgd->SetEvent (1);
+  ddgd->SetEvent (0);
   ddgd->SetMomentum (0, TVector3 (0.01, 0.02, 3.00));
   ddgd->SetHitEntrance (0, TVector3 (-0.01, 0.003, 1.55));
   ddgd->SetHitExit (0, TVector3 (-0.02, 0.001, 1.58));
   ddgd->SetHitEntrance (0, TVector3 (-0.022, 0.0008, 1.59));
   ddgd->SetHitEnergy (0, 3.1);
-  ddgd->SetHitChamber (0, 1);
-  ddgd->SetEntryNumber (0, 2);
+  ddgd->SetHitChamber (0, 0);
   ddgd->SetParticleID (0, 1);
   ddgd->SetParticleType (0, 0);
   ddgd->Print();
   ddgd->PrintHit (0);
+
+  ddd->Digitize (*ddgd);
 }

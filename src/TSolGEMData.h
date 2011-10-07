@@ -26,7 +26,6 @@ class TSolGEMData
   void SetHitReadout (UInt_t k, const TVector3& xRead) {*(fXr[k]) = xRead;};
   void SetHitEnergy (UInt_t k, Double_t e) {fEdep[k] = e;};
   void SetHitChamber (UInt_t k, UInt_t c) {fGem[k] = c;};
-  void SetEntryNumber (UInt_t k, UInt_t eno) {fIdxV[k] = eno;};
   void SetParticleID (UInt_t k, UInt_t pid) {fPID[k] = pid;};
   void SetParticleType (UInt_t k, UInt_t type) {fType[k] = type;};
 
@@ -39,7 +38,6 @@ class TSolGEMData
   TVector3& GetHitReadout (UInt_t k) const {return *(fXr[k]);};
   Double_t GetHitEnergy (UInt_t k) const {return fEdep[k];};
   UInt_t GetHitChamber (UInt_t k) const {return fGem[k];};
-  UInt_t GetEntryNumber (UInt_t k) const {return fIdxV[k];};
   UInt_t GetParticleID (UInt_t k) const {return fPID[k];};
   UInt_t GetParticleType (UInt_t k) const {return fType[k];};
 
@@ -56,7 +54,6 @@ class TSolGEMData
 
   UInt_t *fGem; // chamber with hit
   Double_t *fEdep; // energy lost in drift
-  UInt_t *fIdxV; // entry number
   UInt_t *fPID; // particle ID
   UInt_t *fType;  // 0 for signal, >0 for backgrounds
   TVector3 **fXi; // entrance point in drift

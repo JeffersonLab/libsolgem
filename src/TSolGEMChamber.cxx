@@ -10,6 +10,7 @@ TSolGEMChamber::TSolGEMChamber( const char *name, const char *desc )
   // For now at least we just hard wire two chambers
     fNPlanes = 2;
     fPlanes = new TSolGEMPlane*[fNPlanes];
+    fAngle = 0.0;
 
     return;
 }
@@ -29,12 +30,19 @@ TSolGEMChamber::ReadDatabase (const TDatime& date)
 
   Int_t err = ReadGeometry (file, date, false);
 
+  if (!err)
+    {
+      const DBRequest request[] = 
+	{
+	  {"angle",       &fAngle,       kDouble,    0, 1},
+	  {0}
+	};
+      err = LoadDB( file, date, request, fPrefix );
+    }
+
   fclose(file);
   if (err)
     return err;
-
-  Print(kFALSE);
-  cout << "^^^^^" << endl;
 
   InitPlane (0, TString (GetName()) + "x", TString (GetTitle()) +" x");
   InitPlane (1, TString (GetName()) + "y", TString (GetTitle()) +" y");

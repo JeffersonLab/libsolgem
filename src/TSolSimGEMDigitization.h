@@ -25,7 +25,7 @@ class TSolDigitizedPlane
   // ADC sampled value of strip array of each axis
 
   Short_t fNOT;
-  Short_t *fOverThr;
+/*   Short_t *fOverThr; */
 
   TArrayS *fPStripADC;
   Short_t *fType;
@@ -34,8 +34,8 @@ class TSolDigitizedPlane
   Float_t *fCharge;
   Float_t *fTime;
 
-  Short_t fNsample;
-  Short_t fNstrip;
+  Short_t fNSample;
+  Short_t fNStrip;
 
  public:
   // init and reset physics strips arrays
@@ -46,13 +46,15 @@ class TSolDigitizedPlane
   // cumulate hits (strips signals)
   void Cumulate (TSolGEMVStrip *vv, Int_t type) const;
 
+  Short_t GetType (Int_t n) const {return fType[n];}
+  Short_t GetTotADC (Int_t n) const {return fTotADC[n];}
   Float_t GetTime (Int_t n) const {return fTime[n];};
   Float_t GetCharge (Int_t n) const {return fCharge[n];};
-  Short_t GetIdxOverThr (Int_t n) const {return fOverThr[n];};
-  Short_t GetTypeOverThr (Int_t n) const {return fType[fOverThr[n]];};
-  Short_t GetADCOverThr (Int_t ks, Int_t n) const {return fPStripADC->At(fOverThr[n]*fNsample+ks);};
-  Float_t GetChargeOverThr (Int_t n) const {return fCharge[fOverThr[n]];};
-  Float_t GetTimeOverThr (Int_t n) const {return fTime[fOverThr[n]];};
+/*   Short_t GetIdxOverThr (Int_t n) const {return fOverThr[n];}; */
+/*   Short_t GetTypeOverThr (Int_t n) const {return fType[fOverThr[n]];}; */
+/*   Short_t GetADCOverThr (Int_t ks, Int_t n) const {return fPStripADC->At(fOverThr[n]*fNSample+ks);}; */
+/*   Float_t GetChargeOverThr (Int_t n) const {return fCharge[fOverThr[n]];}; */
+/*   Float_t GetTimeOverThr (Int_t n) const {return fTime[fOverThr[n]];}; */
 };
 
 
@@ -92,31 +94,30 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   void Digitize (const TSolGEMData& gdata); // digitize event  
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
   void Print() const;
+  void PrintResults() const;
 
   // Access to results
   Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);};
   Float_t GetCharge (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetCharge (n);};
-  Short_t GetIdxOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);};
-  Short_t GetTypeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTypeOverThr (n);};
-  Short_t GetADCOverThr (Int_t ks, UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetADCOverThr (ks, n);};
-  Float_t GetChargeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetChargeOverThr (n);};
-  Float_t GetTimeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTimeOverThr (n);};
+/*   Short_t GetIdxOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; */
+/*   Short_t GetTypeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTypeOverThr (n);}; */
+/*   Short_t GetADCOverThr (Int_t ks, UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetADCOverThr (ks, n);}; */
+/*   Float_t GetChargeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetChargeOverThr (n);}; */
+/*   Float_t GetTimeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTimeOverThr (n);}; */
 
 
  private:
 
   void MakePrefix() {THaAnalysisObject::MakePrefix (NULL);}
-  Int_t ionModel (const Int_t ic,
-		  const TVector3& xi, 
-		  const TVector3& xo, 
-		  const Double_t elost, 
-		  const TVector3& xrout);   // used only to calculate distance drift-readout (to be removed in future version)
+  void IonModel (const TVector3& xi, 
+		 const TVector3& xo, 
+		 const Double_t elost, 
+		 const TVector3& xrout);   // used only to calculate distance drift-readout (to be removed in future version)
   
-  TSolGEMVStrip ** avaModel (const Int_t ic,
+  TSolGEMVStrip ** AvaModel (const Int_t ic,
 			     const TVector3& xi, 
 			     const TVector3& xo,
 			     const Double_t time_off);
-
   
 
   // Gas parameters

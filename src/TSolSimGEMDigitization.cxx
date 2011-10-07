@@ -3,8 +3,10 @@
 #include <cmath>
 #include <iostream>
 
+#include "TCanvas.h"
 #include "TF2.h"
 #include "TH2F.h"
+#include "TMath.h"
 
 #include "TSolGEMData.h"
 #include "TSolGEMVStrip.h"
@@ -21,10 +23,9 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
 					Short_t nsample) 
 {
   fNOT = 0;
-  fNsample = nsample;
-  fNstrip = nstrip;
+  fNSample = nsample;
+  fNStrip = nstrip;
 
-  fOverThr = new Short_t[nstrip];
   fType = new Short_t[nstrip];
   fCharge = new Float_t[nstrip];
   fTime = new Float_t[nstrip];
@@ -37,7 +38,7 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
     fTime[i] = 9999.;
   }
   
-  fPStripADC = new TArrayS(fNsample*nstrip);
+  fPStripADC = new TArrayS(fNSample*nstrip);
   
   fPStripADC->Reset();
   
@@ -49,7 +50,6 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
 TSolDigitizedPlane::~TSolDigitizedPlane() 
 {
   delete fPStripADC;
-  delete[] fOverThr;
   delete[] fType;
   delete[] fCharge;
   delete[] fTime;
@@ -71,10 +71,10 @@ TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
       fType[idx] |= (Short_t) type;
       fTime[idx] = (fTime[idx] < vv->GetTime()) ? fTime[idx] : vv->GetTime();
       fCharge[idx] += vv->GetCharge(j);
-      for (k=0;k<fNsample;k++) {
-	ooo=fPStripADC->At(idx*fNsample+k);
+      for (k=0;k<fNSample;k++) {
+	ooo=fPStripADC->At(idx*fNSample+k);
 	nnn=vv->GetADC(j,k);
-	fPStripADC->AddAt(ooo+nnn, idx*fNsample+k);
+	fPStripADC->AddAt(ooo+nnn, idx*fNSample+k);
 	fTotADC[idx] += nnn;
       }
     }
@@ -230,28 +230,32 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
       TVector3 vv2 = gdata.GetHitExit (ih);
       TVector3 vv3 = gdata.GetHitReadout (ih);
 
-      Double_t angle = fSpect->GetChamber(igem).GetPlane(0).GetSAngleComp();
+      // These vectors are in the lab frame, we need them in the chamber frame
+
+      TVector3 offset = fSpect->GetChamber(igem).GetOrigin();
+      Double_t angle = fSpect->GetChamber(igem).GetAngle();
+      vv1 -= offset;
+      vv2 -= offset;
+      vv3 -= offset;
       vv1.RotateZ (angle);
       vv2.RotateZ (angle);
       vv3.RotateZ (angle);
 	
-      cerr << ">> ionModel" << endl;
-      if (ionModel (igem, vv1, vv2, gdata.GetHitEnergy(ih), vv3) > 0) 
+      IonModel (vv1, vv2, gdata.GetHitEnergy(ih), vv3);
+      if (fRNIon > 0) 
 	{
-	  cerr << ">> >0, avaModel" << endl;
 	  Double_t time_zero = 
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
-	  TSolGEMVStrip **dh = avaModel (igem, vv1, vv2, time_zero);
+	  TSolGEMVStrip **dh = AvaModel (igem, vv1, vv2, time_zero);
+	  cerr << "Returned" << endl;
 	  for (UInt_t j = 0; j < 2; j++) 
 	    {
-	      cerr << ">> Cumulate " << j << endl;
 	      fDP[igem][j]->Cumulate (dh[j], itype);
 	      delete dh[j];
 	    }
 	  delete[] dh;
 	} 
-      cerr << ">> end hit " << ih << endl;
     }
 }
  
@@ -261,9 +265,8 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
 // ionization Model
 //
 
-Int_t 
-TSolSimGEMDigitization::ionModel(const Int_t ic,
-				 const TVector3& xi, 
+void
+TSolSimGEMDigitization::IonModel(const TVector3& xi, 
 				 const TVector3& xo, 
 				 const Double_t elost, 
 				 const TVector3& xrout)   // used only to calculate distance drift-readout (to be removed in future version)
@@ -281,9 +284,8 @@ TSolSimGEMDigitization::ionModel(const Int_t ic,
 
   fRNIon = rnd.Poisson(deltaE/fGasWion);
 
-  if (fRNIon <=0) {
-    return 0;
-  }
+  if (fRNIon <=0)
+    return;
 
   if (fRNIon > 200) {
     cerr << __FUNCTION__ << ": WARNING: too many primary ions " << fRNIon << " limit to 200" << endl;
@@ -337,8 +339,6 @@ TSolSimGEMDigitization::ionModel(const Int_t ic,
 
   }
 
-  return fRNIon;
-
 }
 
 //.......................................................
@@ -346,7 +346,7 @@ TSolSimGEMDigitization::ionModel(const Int_t ic,
 //
 
 TSolGEMVStrip **
-TSolSimGEMDigitization::avaModel(const Int_t ic,
+TSolSimGEMDigitization::AvaModel(const Int_t ic,
 				 const TVector3& xi, 
 				 const TVector3& xo,
 				 const Double_t time_off)
@@ -397,228 +397,167 @@ TSolSimGEMDigitization::avaModel(const Int_t ic,
   if(x1>gux) x1=gux;
   if(y1>guy) y1=guy;
 
+  // Loop over chamber planes
 
-  // Compute strips affected by the avalanche
-
-  Int_t iL;
-  Int_t iU;
-  Int_t jB;
-  Int_t jT;
-  Double_t dxl;
-  Double_t dxu;
-  Double_t dyb;
-  Double_t dyt;
-
-  //
-
-  Double_t ppx = fSpect->GetChamber(ic).GetPlane(0).GetPPitch();
-  Double_t ppy = fSpect->GetChamber(ic).GetPlane(1).GetPPitch();
-  UInt_t npx = fSpect->GetChamber(ic).GetPlane(0).GetNPixels();
-  UInt_t npy = fSpect->GetChamber(ic).GetPlane(1).GetNPixels();
-  dxl=TMath::Abs(x0-glx) / ppx;
-  iL=floor(dxl);
-
-  dxu=TMath::Abs(x1-glx) / ppx;
-  iU = (ceil(dxu) >= npx) ? (npx-1) : ceil(dxu);
-
-  dyb=TMath::Abs(y0-gly) / ppy;
-  jB=floor(dyb);
-
-  dyt=TMath::Abs(y1-gly) / ppy;
-  jT = (ceil(dyt) >= npy) ? (npy-1) : ceil(dyt);
-
-  //
-  // new integration domain
-  //
-
-  Double_t xl;
-  Double_t xr;
-  Double_t yb;
-  Double_t yt;
-
-  xl=fSpect->GetChamber(ic).GetPlane(0).GetPixelLocation(iL); // Left-Lower corner of the pixel
-  xr=fSpect->GetChamber(ic).GetPlane(0).GetPixelLocation(iU)+fSpect->GetChamber(ic).GetPlane(0).GetPPitch();
-  yb=fSpect->GetChamber(ic).GetPlane(1).GetPixelLocation(jB);
-  yt=fSpect->GetChamber(ic).GetPlane(1).GetPixelLocation(jT)+fSpect->GetChamber(ic).GetPlane(0).GetPPitch();
-
-  Int_t nx=0;
-  Int_t ny=0;
-
-  Int_t nnx, nny; // bins for the function, which must be >=4!
-
-  nx = iU-iL+1;
-  ny = jT-jB+1;
-
-  nnx = (nx<20) ? nx*4 : nx; // TF2 bins cannot be <4 !!! and high precision with higher bins
-  nny = (ny<20) ? ny*4 : ny;
-
-  // define function, gaussian and sum of gaussian
-
-  TF2 *sgaus = new TF2[fRNIon];
-
-  TH2F *fsum = 0;
-  
-  for (UInt_t i=0;i<fRNIon;i++) { // define gaussian functions (for spatial distribution)
-
-    sgaus[i] = TF2(Form("sgaus%d",i),TSolSimAux::SimpleCircle,xl,xr,yb,yt,4);
-
-    sgaus[i].SetParNames("Const","X_{0}","Y_{0}","#sigma");
-    Double_t ggnorm = fRCharge[i]/3.14/9./fRSNorm[i]/fRSNorm[i]; // normalized to charge
-
-    sgaus[i].SetParameters(ggnorm,fRX[i],fRY[i],3.*fRSNorm[i]);
-
-    sgaus[i].SetNpx(nnx); 
-    sgaus[i].SetNpy(nny);
-
-    if (i==0) {
-      fsum=(TH2F*) sgaus[i].CreateHistogram(); // on first loop, create histo
-    } else {
-      fsum->Add(&sgaus[i],1.0); 
-    }
-
-  }
-
-  Double_t scale = ((Double_t) nnx)/((Double_t) nx) * ((Double_t) nny)/((Double_t) ny);
-
-  fsum->Rebin2D(nnx/nx,nny/ny); // rebin (fix problem on TF2 that cannot have nbin<4) ; warning rebin does not rescale width
-
-  Double_t *us = new Double_t[nx];
-  Double_t *vs = new Double_t[ny];
-  
-  for (Int_t j=0;j<nx;j++) {
-    us[j]=0;
-  }
-
-  for (Int_t j=0;j<ny;j++) {
-    vs[j]=0;
-  }
-
-  Int_t c1, c2;
-
-  c1=0;
-  c2=0;
-
-  Int_t js=0;
-
-  for (Int_t j=jB;j<=jT;j++) {
-  
-    Int_t mm=j-jB;
-    
-    if ((j%2)==1) {
-      vs[js] = fsum->Integral(1,nx,mm+1,mm+1,"width")/scale; 
-      js++;
-      c1++;
-    } else {
-      for (Int_t i=iL;i<=iU;i++){
-	Int_t kk=i-iL;
-	us[kk] += fsum->Integral(kk+1,kk+1,mm+1,mm+1,"width")/scale;
-      }
-      c2++;
-    }  
-
-  }
-
-  Float_t t0 = time_off + fRTime0+rnd.Gaus(fTriggerOffset, fTriggerJitter); // ... NEED Time of fly from GEANT4
-
+  UInt_t np = fSpect->GetChamber(ic).GetNPlanes();
   TSolGEMVStrip **virs;
-  virs = new TSolGEMVStrip *[2];
-  virs[0] = new TSolGEMVStrip(nx,fEleSamplingPoints);
-  virs[1] = new TSolGEMVStrip(js,fEleSamplingPoints);
+  virs = new TSolGEMVStrip *[np];
+  for (UInt_t ipl = 0; ipl < np; ++ipl)
+    {
+      // Compute strips affected by the avalanche
 
-  virs[0]->SetTime(t0);
-  virs[0]->SetHitCharge(fRTotalCharge);
+      TSolGEMPlane* pl = &(fSpect->GetChamber(ic).GetPlane(ipl)); 
+      Double_t z = (pl->GetOrigin())[2];
 
-  virs[1]->SetTime(t0);
-  virs[1]->SetHitCharge(fRTotalCharge);
+      // Positions in strip frame
+      TVector3 v0 = pl->LabToStrip (TVector3 (x0, y0, z));
+      TVector3 v1 = pl->LabToStrip (TVector3 (x1, y1, z));
+      Int_t iL = fSpect->GetChamber(ic).GetPlane(ipl).GetStrip (v0[0], v0[1]);
+      Int_t iU = fSpect->GetChamber(ic).GetPlane(ipl).GetStrip (v1[0], v1[1]);
+      if (iL > iU)
+	{
+	  Int_t t = iL;
+	  iL = iU;
+	  iU = t;
+	}
 
-  Double_t pulse=0.;
-  Double_t noisy_pulse;
+      //
+      // Bounds of rectangular avalanche region, in strip frame
+      //
 
-  Short_t *dadc = new Short_t[fEleSamplingPoints];
-  Int_t ai=0;
-  Int_t posflag=0;
+      // Limits in x are low edge of first strip to high edge of last
+      Double_t xl = fSpect->GetChamber(ic).GetPlane(ipl).GetStripLowerEdge (iL);
+      Double_t xr = fSpect->GetChamber(ic).GetPlane(ipl).GetStripUpperEdge (iU);
 
-  Double_t cccsssx, cccsssy;
-  cccsssx=0.;
+      // Limits in y are y limits of track plus some reasonable margin
+      // We do this in units of strip pitch for convenience (even though
+      // this is the direction orthogonal to the pitch direction)
 
-  for (Int_t i=iL;i<=iU;i++) {
-    posflag = 0;
+      Double_t pitch = fSpect->GetChamber(ic).GetPlane(ipl).GetSPitch();
+      Double_t yb = v0[1] - 10 * pitch;
+      yb = pitch * TMath::Floor (yb / pitch);
+      Double_t yt = v1[1] + 10 * pitch;
+      yt = pitch * TMath::Floor (yt / pitch);
+      if (yb > yt)
+	{
+	  Double_t t = yb;
+	  yb = yt;
+	  yt = t;
+	}
 
-    for (Int_t b=0;b<fEleSamplingPoints;b++) { // sampling
+      // # of coarse histogram bins: 1 per pitch each direction
 
-      pulse = TSolSimAux::PulseShape(t0+fEleSamplingPeriod*b, us[i-iL], fPulseShapeTau0, fPulseShapeTau1);
-      noisy_pulse = rnd.Gaus(pulse, fPulseNoiseSigma); 
-      dadc[b] = TSolSimAux::ADCConvert(noisy_pulse, fADCoffset, fADCgain, fADCbits);
-      posflag += (Int_t) dadc[b];
+      Int_t nx = iU - iL + 1;
+      Int_t ny = (Int_t) ((yt - yb) / pitch + 0.5);
+
+      // # of fine histogram bins
+      Int_t nnx = (nx < 20) ? nx * 4 : nx; // TF2 bins cannot be <4 !!! and high precision with higher bins
+      Int_t nny = (ny < 20) ? ny * 4 : ny;
+
+      // define function, gaussian and sum of gaussian
+
+      TF2 *sgaus = new TF2[fRNIon];
+      TH2F *fsum = 0;
+  
+      for (UInt_t i = 0; i < fRNIon; i++) 
+	{ 
+	  // define gaussian functions (for spatial distribution)
+	  sgaus[i] = TF2 (Form ("sgaus%d", i),
+			  TSolSimAux::SimpleCircle,
+			  xl, xr, yb, yt, 4);
+	  sgaus[i].SetParNames ("Const", "X_{0}", "Y_{0}", "#sigma");
+	  Double_t ggnorm = fRCharge[i] / 3.14 / 9. / fRSNorm[i] / fRSNorm[i]; // normalized to charge
+	  sgaus[i].SetParameters (ggnorm, fRX[i], fRY[i], 3. * fRSNorm[i]);
+	  sgaus[i].SetNpx (nnx); 
+	  sgaus[i].SetNpy (nny);
+	  if (i == 0)
+	    fsum = (TH2F*) sgaus[i].CreateHistogram(); // on first loop, create histo
+	  else
+	    fsum->Add (&sgaus[i], 1.0); 
+	}
+
+      Double_t scale = ((Double_t) nnx)/((Double_t) nx) * ((Double_t) nny)/((Double_t) ny);
+
+      fsum->Rebin2D (nnx/nx, nny/ny); // rebin (fix problem on TF2 that cannot have nbin<4) ; warning rebin does not rescale width
+
+      Double_t *us = new Double_t[nx];
+      for (Int_t j = 0; j < nx; j++) 
+	us[j] = 0;
+
+      for (Int_t i = iL; i <= iU; i++)
+	{
+	  Int_t kk = i - iL;
+	  us[kk] += fsum->Integral (kk+1, kk+1, 1, ny, "width") / scale;
+	}
+
+      Float_t t0 = time_off + fRTime0
+	+ rnd.Gaus(fTriggerOffset, fTriggerJitter); // ... NEED Time of flight from GEANT4
+
+      virs[ipl] = new TSolGEMVStrip(nx,fEleSamplingPoints);
+
+      virs[ipl]->SetTime(t0);
+      virs[ipl]->SetHitCharge(fRTotalCharge);
+
+      Double_t pulse=0.;
+      Double_t noisy_pulse;
+
+      Short_t *dadc = new Short_t[fEleSamplingPoints];
+      Int_t ai=0;
+      Int_t posflag=0;
+
+      Double_t cccsssx = 0.0;
+
+      for (Int_t i = iL; i <= iU; i++) 
+	{
+	  posflag = 0;
+	  for (Int_t b = 0; b < fEleSamplingPoints; b++) 
+	    { // sampling
+	      pulse = TSolSimAux::PulseShape (t0 + fEleSamplingPeriod * b, 
+					      us[i-iL], 
+					      fPulseShapeTau0, 
+					      fPulseShapeTau1);
+	      noisy_pulse = rnd.Gaus (pulse, fPulseNoiseSigma); 
+	      dadc[b] = TSolSimAux::ADCConvert (noisy_pulse, 
+						fADCoffset, 
+						fADCgain, 
+						fADCbits);
+	      posflag += (Int_t) dadc[b];
+	    }
+
+	  if (posflag > 0) 
+	    { // store only strip with signal -- do not work yet
+	      for (Int_t b = 0; b < fEleSamplingPoints; b++)
+		virs[ipl]->AddSampleAt (dadc[b], b, ai);
+	      virs[ipl]->AddStripAt (i, ai);
+	      virs[ipl]->AddChargeAt (us[i-iL], ai);
+	      cccsssx += us[i-iL];
+	      ai++;
+	    }
+	}
+      virs[ipl]->SetSize(ai);
+
+      //
+
+      delete fsum;
+//       if (ipl == 0)
+// 	{
+// 	  fsum->SetName ("fsum");
+// 	  TCanvas* c1;
+// 	  fsum->DrawCopy();
+// 	}
+      
+      delete[] dadc;
+      delete[] us;
+      
+      delete[] sgaus;
     }
-
-    if (posflag > 0) { // store only strip with signal -- do not work yet
-      for (Int_t b=0;b<fEleSamplingPoints;b++) {
-	virs[0]->AddSampleAt(dadc[b], b, ai);
-      }
-
-      virs[0]->AddStripAt(i,ai);
-
-      virs[0]->AddChargeAt(us[i-iL], ai);
-
-      cccsssx += us[i-iL];
-
-      ai++;
-    }
-
-  }
-
-  // y
-  cccsssy=0.;
-
-  virs[0]->SetSize(ai);
-
-  ai=0;
-  for (Int_t j=0;j<js;j++) {
-    posflag = 0;
-    for (Int_t b=0;b<fEleSamplingPoints;b++) { // sampling
-
-      pulse = TSolSimAux::PulseShape(t0+fEleSamplingPeriod*b, vs[j], fPulseShapeTau0, fPulseShapeTau1);
-      noisy_pulse = rnd.Gaus(pulse, fPulseNoiseSigma); 
-      dadc[b] = TSolSimAux::ADCConvert(noisy_pulse,fADCoffset, fADCgain, fADCbits);
-
-      posflag += (Int_t) dadc[b];
-
-    }
-
-    if (posflag > 0) { // store only strip with signal -- do not work yet
-      for (Int_t b=0;b<fEleSamplingPoints;b++) {
-	virs[1]->AddSampleAt(dadc[b], b, ai);
-      }
-
-      virs[1]->AddStripAt(j+(Short_t) jB/2,ai);
-
-      virs[1]->AddChargeAt(vs[j], ai);
-
-      cccsssy += vs[j];
-
-      ai++;
-
-    }
-  }
-
-  virs[1]->SetSize(ai);
-
-  //
-
-  delete fsum;
-
-  delete[] dadc;
-  delete[] us;
-  delete[] vs;
 
   delete[] fRSNorm;
   delete[] fRCharge;
   delete[] fRX; 
   delete[] fRY;
- 
-  delete[] sgaus;
-
+      
+  cerr << "returning" << endl;
   return virs;
 
 }
@@ -650,4 +589,28 @@ TSolSimGEMDigitization::Print() const
   cout << "  Pulse shaping parameters:" << endl;
   cout << "    Pulse shape tau0: " << fPulseShapeTau0 << endl;
   cout << "    Pulse shape tau1: " << fPulseShapeTau1 << endl;
+}
+
+
+void
+TSolSimGEMDigitization::PrintResults() const
+{
+  UInt_t nc = fSpect->GetNChambers();
+  for (UInt_t ic = 0; ic < nc; ++ic)
+    {
+      UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
+      for (UInt_t ip = 0; ip < np; ++ip)
+	for (UInt_t ist = 0; ist < (UInt_t) fSpect->GetChamber (ic).GetPlane (ip).GetNStrips(); ++ist)
+	  {
+	    if (fDP[ic][ip]->GetCharge (ist) > 0)
+	      cout << ic
+		   << " " << ip
+		   << " " << ist
+		   << " " << fDP[ic][ip]->GetType (ist)
+		   << " " << fDP[ic][ip]->GetTotADC (ist)
+		   << " " << fDP[ic][ip]->GetCharge (ist)
+		   << " " << fDP[ic][ip]->GetTime (ist)
+		   << endl;
+	  }
+    }
 }
