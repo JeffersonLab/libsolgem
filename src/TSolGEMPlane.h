@@ -52,30 +52,30 @@ class TSolGEMPlane : public THaSubDetector {
 	TSolGEMPlane *GetPairedPlane() { return fPairPlane; }
 
 	Int_t    GetNStrips()  const { return fNStrips; }
-	Double_t GetSPitch()   const { return fSPitch; }
+	Double_t GetSPitch()   const { return fSPitch; } // in meters
 	Double_t GetSAngle()   const; // Angle (rad) between horizontal axis
                                       // and normal to strips in dir of
 	                              // increasing strip position
 	Double_t GetSAngleComp() const { return 3.14159/2 - GetSAngle(); }
 
 	// Frame conversions
-	TVector3 LabToChamber (TVector3 v) const;
-	TVector3 ChamberToStrip (TVector3 v) const;
-	TVector3 LabToStrip (TVector3 v) const {return ChamberToStrip (LabToChamber (v));}
-	TVector3 StripToLab (TVector3 v) const {return ChamberToLab (StripToChamber (v));}
-	TVector3 StripToChamber (TVector3 v) const;
-	TVector3 ChamberToLab (TVector3 v) const;
+	TVector3 LabToChamber (TVector3 v) const;  // input and output in meters
+	TVector3 ChamberToStrip (TVector3 v) const; // input and output in meters
+	TVector3 LabToStrip (TVector3 v) const {return ChamberToStrip (LabToChamber (v));}  // input and output in meters
+	TVector3 StripToLab (TVector3 v) const {return ChamberToLab (StripToChamber (v));}  // input and output in meters
+	TVector3 StripToChamber (TVector3 v) const;  // input and output in meters
+	TVector3 ChamberToLab (TVector3 v) const;  // input and output in meters
 
-	// Return positions of plane edges, in chamber frame
+	// Return positions of plane edges, in chamber frame, in meters
 	Double_t GetLowerEdgeX() const {return (GetOrigin())[0] - (GetSize())[0];}
 	Double_t GetLowerEdgeY() const {return (GetOrigin())[1] - (GetSize())[1];}
 	Double_t GetUpperEdgeX() const {return (GetOrigin())[0] + (GetSize())[0];}
 	Double_t GetUpperEdgeY() const {return (GetOrigin())[1] + (GetSize())[1];}
 
-	// Edges of strip, in strip frame
+	// Edges of strip, in strip frame, in meters
 	Double_t GetStripLowerEdge (UInt_t is) const {return (-(GetSize())[fDir] + is * GetSPitch());}
 	Double_t GetStripUpperEdge (UInt_t is) const {return GetStripLowerEdge (is) + GetSPitch();}
-	// Ends of strip, in strip frame
+	// Ends of strip, in strip frame, in meters
 	Double_t GetStripLeftEdge (UInt_t is) const {return -(GetSize())[1-fDir];}
 	Double_t GetStripRightEdge (UInt_t is) const {return (GetSize())[1-fDir];}
 

@@ -22,10 +22,10 @@ void DigDemo()
   ddgd->SetRun (1000);
   ddgd->SetEvent (0);
   ddgd->SetMomentum (0, TVector3 (0.01, 0.02, 3.00));
-  ddgd->SetHitEntrance (0, TVector3 (-0.01, 0.003, 1.55));
-  ddgd->SetHitExit (0, TVector3 (-0.02, 0.001, 1.58));
-  ddgd->SetHitEntrance (0, TVector3 (-0.022, 0.0008, 1.59));
-  ddgd->SetHitEnergy (0, 3.1);
+  ddgd->SetHitEntrance (0, TVector3 (-0.01, 0.003, 1.55) * 1000.0); // mm
+  ddgd->SetHitExit (0, TVector3 (-0.02, 0.001, 1.58) * 1000.0);
+  ddgd->SetHitReadout (0, TVector3 (-0.022, 0.0008, 1.59) * 1000.0);
+  ddgd->SetHitEnergy (0, 1e3); // eV
   ddgd->SetHitChamber (0, 0);
   ddgd->SetParticleID (0, 1);
   ddgd->SetParticleType (0, 0);

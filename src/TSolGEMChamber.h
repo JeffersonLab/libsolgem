@@ -24,7 +24,7 @@ class TSolGEMChamber : public THaDetector {
 
   Int_t Decode( const THaEvData & );
 
-  // Return positions of chamber edges, in its own reference frame
+  // Return positions of chamber edges, in its own reference frame, in meters
   Double_t GetLowerEdgeX() const {return (GetOrigin())[0] - (GetSize())[0];}
   Double_t GetLowerEdgeY() const {return (GetOrigin())[1] - (GetSize())[1];}
   Double_t GetUpperEdgeX() const {return (GetOrigin())[0] + (GetSize())[0];}

@@ -21,9 +21,11 @@ class TSolGEMData
   void SetEvent (UInt_t id) {fEvtID = id;};
   void SetRun (UInt_t r) {fRunID = r;};
   void SetMomentum (UInt_t k, const TVector3& p) {*(fMom[k]) = p;};
+  // Positions are in mm
   void SetHitEntrance (UInt_t k, const TVector3& xEnt) {*(fXi[k]) = xEnt;};
   void SetHitExit (UInt_t k, const TVector3& xExit) {*(fXo[k]) = xExit;};
   void SetHitReadout (UInt_t k, const TVector3& xRead) {*(fXr[k]) = xRead;};
+  // Energy lost is in eV
   void SetHitEnergy (UInt_t k, Double_t e) {fEdep[k] = e;};
   void SetHitChamber (UInt_t k, UInt_t c) {fGem[k] = c;};
   void SetParticleID (UInt_t k, UInt_t pid) {fPID[k] = pid;};

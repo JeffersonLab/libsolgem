@@ -1,6 +1,7 @@
 #include "TSolSimGEMDigitization.h"
 
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 
 #include "TCanvas.h"
@@ -218,9 +219,7 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
 
   for (UInt_t ih = 0; ih < nh; ++ih)
     {
-      cerr << ">> hit " << ih << endl;
       Int_t igem = gdata.GetHitChamber (ih);
-      cerr << ">> igem " << igem << " of " << fSpect->GetNChambers() << endl;
       if (igem >= (Int_t) fSpect->GetNChambers())
 	continue;
       
@@ -231,8 +230,9 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
       TVector3 vv3 = gdata.GetHitReadout (ih);
 
       // These vectors are in the lab frame, we need them in the chamber frame
+      // Also convert to mm
 
-      TVector3 offset = fSpect->GetChamber(igem).GetOrigin();
+      TVector3 offset = fSpect->GetChamber(igem).GetOrigin() * 1000.0;
       Double_t angle = fSpect->GetChamber(igem).GetAngle();
       vv1 -= offset;
       vv2 -= offset;
@@ -248,7 +248,6 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
 	  TSolGEMVStrip **dh = AvaModel (igem, vv1, vv2, time_zero);
-	  cerr << "Returned" << endl;
 	  for (UInt_t j = 0; j < 2; j++) 
 	    {
 	      fDP[igem][j]->Cumulate (dh[j], itype);
@@ -378,10 +377,10 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
   // --- loop on sectors 
 
-  Double_t glx = fSpect->GetChamber(ic).GetLowerEdgeX();
-  Double_t gly = fSpect->GetChamber(ic).GetLowerEdgeY();
-  Double_t gux = fSpect->GetChamber(ic).GetUpperEdgeX();
-  Double_t guy = fSpect->GetChamber(ic).GetUpperEdgeY();
+  Double_t glx = fSpect->GetChamber(ic).GetLowerEdgeX() * 1000.0;
+  Double_t gly = fSpect->GetChamber(ic).GetLowerEdgeY() * 1000.0;
+  Double_t gux = fSpect->GetChamber(ic).GetUpperEdgeX() * 1000.0;
+  Double_t guy = fSpect->GetChamber(ic).GetUpperEdgeY() * 1000.0;
 
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of active area of the sector
@@ -407,13 +406,13 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       // Compute strips affected by the avalanche
 
       TSolGEMPlane* pl = &(fSpect->GetChamber(ic).GetPlane(ipl)); 
-      Double_t z = (pl->GetOrigin())[2];
+      Double_t z = (pl->GetOrigin())[2] * 1000.0;
 
       // Positions in strip frame
-      TVector3 v0 = pl->LabToStrip (TVector3 (x0, y0, z));
-      TVector3 v1 = pl->LabToStrip (TVector3 (x1, y1, z));
-      Int_t iL = fSpect->GetChamber(ic).GetPlane(ipl).GetStrip (v0[0], v0[1]);
-      Int_t iU = fSpect->GetChamber(ic).GetPlane(ipl).GetStrip (v1[0], v1[1]);
+      TVector3 v0 = pl->LabToStrip (TVector3 (x0, y0, z) * 1e-3) * 1000.0;
+      TVector3 v1 = pl->LabToStrip (TVector3 (x1, y1, z) * 1e-3) * 1000.0;
+      Int_t iL = pl->GetStrip (v0[0] * 1e-3, v0[1] * 1e-3);
+      Int_t iU = pl->GetStrip (v1[0] * 1e-3, v1[1] * 1e-3);
       if (iL > iU)
 	{
 	  Int_t t = iL;
@@ -426,14 +425,14 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       //
 
       // Limits in x are low edge of first strip to high edge of last
-      Double_t xl = fSpect->GetChamber(ic).GetPlane(ipl).GetStripLowerEdge (iL);
-      Double_t xr = fSpect->GetChamber(ic).GetPlane(ipl).GetStripUpperEdge (iU);
+      Double_t xl = pl->GetStripLowerEdge (iL) * 1000.0;
+      Double_t xr = pl->GetStripUpperEdge (iU) * 1000.0;
 
       // Limits in y are y limits of track plus some reasonable margin
       // We do this in units of strip pitch for convenience (even though
       // this is the direction orthogonal to the pitch direction)
 
-      Double_t pitch = fSpect->GetChamber(ic).GetPlane(ipl).GetSPitch();
+      Double_t pitch = pl->GetSPitch() * 1000.0;
       Double_t yb = v0[1] - 10 * pitch;
       yb = pitch * TMath::Floor (yb / pitch);
       Double_t yt = v1[1] + 10 * pitch;
@@ -467,14 +466,20 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 			  xl, xr, yb, yt, 4);
 	  sgaus[i].SetParNames ("Const", "X_{0}", "Y_{0}", "#sigma");
 	  Double_t ggnorm = fRCharge[i] / 3.14 / 9. / fRSNorm[i] / fRSNorm[i]; // normalized to charge
-	  sgaus[i].SetParameters (ggnorm, fRX[i], fRY[i], 3. * fRSNorm[i]);
+	  TVector3 fr = pl->LabToStrip (TVector3 (fRX[i], fRY[i], z) * 1e-3) * 1000.0;
+	  sgaus[i].SetParameters (ggnorm, fr.X(), fr.Y(), 3. * fRSNorm[i]);
 	  sgaus[i].SetNpx (nnx); 
 	  sgaus[i].SetNpy (nny);
 	  if (i == 0)
-	    fsum = (TH2F*) sgaus[i].CreateHistogram(); // on first loop, create histo
+	    {
+	      fsum = (TH2F*) sgaus[i].CreateHistogram(); // on first loop, create histo
+	    }
 	  else
-	    fsum->Add (&sgaus[i], 1.0); 
+	    {
+	      fsum->Add (&sgaus[i], 1.0); 
+	    }
 	}
+
 
       Double_t scale = ((Double_t) nnx)/((Double_t) nx) * ((Double_t) nny)/((Double_t) ny);
 
@@ -523,7 +528,6 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 						fADCbits);
 	      posflag += (Int_t) dadc[b];
 	    }
-
 	  if (posflag > 0) 
 	    { // store only strip with signal -- do not work yet
 	      for (Int_t b = 0; b < fEleSamplingPoints; b++)
@@ -557,7 +561,6 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
   delete[] fRX; 
   delete[] fRY;
       
-  cerr << "returning" << endl;
   return virs;
 
 }
@@ -595,6 +598,7 @@ TSolSimGEMDigitization::Print() const
 void
 TSolSimGEMDigitization::PrintResults() const
 {
+  cout << " Chb  Pln  Strip  Typ    ADC    Charge      Time\n";
   UInt_t nc = fSpect->GetNChambers();
   for (UInt_t ic = 0; ic < nc; ++ic)
     {
@@ -603,13 +607,15 @@ TSolSimGEMDigitization::PrintResults() const
 	for (UInt_t ist = 0; ist < (UInt_t) fSpect->GetChamber (ic).GetPlane (ip).GetNStrips(); ++ist)
 	  {
 	    if (fDP[ic][ip]->GetCharge (ist) > 0)
-	      cout << ic
-		   << " " << ip
-		   << " " << ist
-		   << " " << fDP[ic][ip]->GetType (ist)
-		   << " " << fDP[ic][ip]->GetTotADC (ist)
-		   << " " << fDP[ic][ip]->GetCharge (ist)
-		   << " " << fDP[ic][ip]->GetTime (ist)
+	      cout << setw(4) << ic
+		   << " " << setw(4) << ip
+		   << " " << setw(6) << ist
+		   << " " << setw(4) << fDP[ic][ip]->GetType (ist)
+		   << " " << setw(6) << fDP[ic][ip]->GetTotADC (ist)
+		   << fixed << setprecision(1)
+		   << " " << setw(9) << fDP[ic][ip]->GetCharge (ist)
+		   << fixed << setprecision(3)
+		   << " " << setw(9) << fDP[ic][ip]->GetTime (ist)
 		   << endl;
 	  }
     }
