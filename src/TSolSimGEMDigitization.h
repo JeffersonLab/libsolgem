@@ -34,8 +34,8 @@ class TSolDigitizedPlane
   Float_t *fCharge;
   Float_t *fTime;
 
-  Short_t fNSample;
-  Short_t fNStrip;
+  Short_t fNSamples;
+  Short_t fNStrips;
 
  public:
   // init and reset physics strips arrays
@@ -50,9 +50,12 @@ class TSolDigitizedPlane
   Short_t GetTotADC (Int_t n) const {return fTotADC[n];}
   Float_t GetTime (Int_t n) const {return fTime[n];};
   Float_t GetCharge (Int_t n) const {return fCharge[n];};
+  Short_t GetNSamples() const {return fNSamples;}
+  Short_t GetNStrips() const {return fNStrips;}
+
 /*   Short_t GetIdxOverThr (Int_t n) const {return fOverThr[n];}; */
 /*   Short_t GetTypeOverThr (Int_t n) const {return fType[fOverThr[n]];}; */
-/*   Short_t GetADCOverThr (Int_t ks, Int_t n) const {return fPStripADC->At(fOverThr[n]*fNSample+ks);}; */
+/*   Short_t GetADCOverThr (Int_t ks, Int_t n) const {return fPStripADC->At(fOverThr[n]*fNSamples+ks);}; */
 /*   Float_t GetChargeOverThr (Int_t n) const {return fCharge[fOverThr[n]];}; */
 /*   Float_t GetTimeOverThr (Int_t n) const {return fTime[fOverThr[n]];}; */
 };
@@ -99,6 +102,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   // Access to results
   Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);};
   Float_t GetCharge (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetCharge (n);};
+  Short_t GetNSamples (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNSamples();}
+  Short_t GetNStrips (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNStrips();}
 /*   Short_t GetIdxOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; */
 /*   Short_t GetTypeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTypeOverThr (n);}; */
 /*   Short_t GetADCOverThr (Int_t ks, UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetADCOverThr (ks, n);}; */

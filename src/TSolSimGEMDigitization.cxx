@@ -24,8 +24,8 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
 					Short_t nsample) 
 {
   fNOT = 0;
-  fNSample = nsample;
-  fNStrip = nstrip;
+  fNSamples = nsample;
+  fNStrips = nstrip;
 
   fType = new Short_t[nstrip];
   fCharge = new Float_t[nstrip];
@@ -39,7 +39,7 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
     fTime[i] = 9999.;
   }
   
-  fPStripADC = new TArrayS(fNSample*nstrip);
+  fPStripADC = new TArrayS(fNSamples*nstrip);
   
   fPStripADC->Reset();
   
@@ -72,10 +72,10 @@ TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
       fType[idx] |= (Short_t) type;
       fTime[idx] = (fTime[idx] < vv->GetTime()) ? fTime[idx] : vv->GetTime();
       fCharge[idx] += vv->GetCharge(j);
-      for (k=0;k<fNSample;k++) {
-	ooo=fPStripADC->At(idx*fNSample+k);
+      for (k=0;k<fNSamples;k++) {
+	ooo=fPStripADC->At(idx*fNSamples+k);
 	nnn=vv->GetADC(j,k);
-	fPStripADC->AddAt(ooo+nnn, idx*fNSample+k);
+	fPStripADC->AddAt(ooo+nnn, idx*fNSamples+k);
 	fTotADC[idx] += nnn;
       }
     }
@@ -433,10 +433,9 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       // this is the direction orthogonal to the pitch direction)
 
       Double_t pitch = pl->GetSPitch() * 1000.0;
-      Double_t yb = v0[1] - 10 * pitch;
-      yb = pitch * TMath::Floor (yb / pitch);
-      Double_t yt = v1[1] + 10 * pitch;
-      yt = pitch * TMath::Floor (yt / pitch);
+      Double_t yq = pitch;
+      Double_t yb = yq * TMath::Floor (v0[1] / yq);
+      Double_t yt = yq * TMath::Floor (v1[1] / yq);
       if (yb > yt)
 	{
 	  Double_t t = yb;
@@ -447,11 +446,11 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       // # of coarse histogram bins: 1 per pitch each direction
 
       Int_t nx = iU - iL + 1;
-      Int_t ny = (Int_t) ((yt - yb) / pitch + 0.5);
+      Int_t ny = (Int_t) ((yt - yb) / yq + 0.5);
 
       // # of fine histogram bins
-      Int_t nnx = (nx < 20) ? nx * 4 : nx; // TF2 bins cannot be <4 !!! and high precision with higher bins
-      Int_t nny = (ny < 20) ? ny * 4 : ny;
+      Int_t nnx = (nx < 2000) ? nx * 4 : nx; // TF2 bins cannot be <4 !!! and high precision with higher bins
+      Int_t nny = (ny < 2000) ? ny * 4 : ny;
 
       // define function, gaussian and sum of gaussian
 
@@ -543,12 +542,6 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       //
 
       delete fsum;
-//       if (ipl == 0)
-// 	{
-// 	  fsum->SetName ("fsum");
-// 	  TCanvas* c1;
-// 	  fsum->DrawCopy();
-// 	}
       
       delete[] dadc;
       delete[] us;
