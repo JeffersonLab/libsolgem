@@ -13,10 +13,10 @@ void DigDemo()
   ddy->Init();
 
   dds->AddGEM (*ddy);
-  dds->Print();
+  //  dds->Print();
 
   ddd = new TSolSimGEMDigitization (*dds);
-  ddd->Print();
+  //  ddd->Print();
 
   ddgd = new TSolGEMData (1); // 1 hit wonder
   ddgd->SetRun (1000);
@@ -29,8 +29,9 @@ void DigDemo()
   ddgd->SetHitChamber (0, 0);
   ddgd->SetParticleID (0, 1);
   ddgd->SetParticleType (0, 0);
-  ddgd->Print();
-  ddgd->PrintHit (0);
+  //  ddgd->Print();
+  //  ddgd->PrintHit (0);
 
   ddd->Digitize (*ddgd);
+  ddd->PrintCharges();
 }

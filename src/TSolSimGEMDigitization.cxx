@@ -433,7 +433,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       // this is the direction orthogonal to the pitch direction)
 
       Double_t pitch = pl->GetSPitch() * 1000.0;
-      Double_t yq = pitch;
+      Double_t yq = pitch * .1;
       Double_t yb = yq * TMath::Floor (v0[1] / yq);
       Double_t yt = yq * TMath::Floor (v1[1] / yq);
       if (yb > yt)
@@ -587,9 +587,8 @@ TSolSimGEMDigitization::Print() const
   cout << "    Pulse shape tau1: " << fPulseShapeTau1 << endl;
 }
 
-
 void
-TSolSimGEMDigitization::PrintResults() const
+TSolSimGEMDigitization::PrintCharges() const
 {
   cout << " Chb  Pln  Strip  Typ    ADC    Charge      Time\n";
   UInt_t nc = fSpect->GetNChambers();
@@ -597,19 +596,43 @@ TSolSimGEMDigitization::PrintResults() const
     {
       UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
       for (UInt_t ip = 0; ip < np; ++ip)
-	for (UInt_t ist = 0; ist < (UInt_t) fSpect->GetChamber (ic).GetPlane (ip).GetNStrips(); ++ist)
+	for (UInt_t ist = 0; ist < (UInt_t) GetNStrips(ic, ip); ++ist)
 	  {
 	    if (fDP[ic][ip]->GetCharge (ist) > 0)
 	      cout << setw(4) << ic
 		   << " " << setw(4) << ip
 		   << " " << setw(6) << ist
-		   << " " << setw(4) << fDP[ic][ip]->GetType (ist)
-		   << " " << setw(6) << fDP[ic][ip]->GetTotADC (ist)
+		   << " " << setw(4) << GetType (ic, ip, ist)
+		   << " " << setw(6) << GetTotADC (ic, ip, ist)
 		   << fixed << setprecision(1)
-		   << " " << setw(9) << fDP[ic][ip]->GetCharge (ist)
+		   << " " << setw(9) << GetCharge (ic, ip, ist)
 		   << fixed << setprecision(3)
-		   << " " << setw(9) << fDP[ic][ip]->GetTime (ist)
+		   << " " << setw(9) << GetTime (ic, ip, ist)
 		   << endl;
 	  }
+    }
+}
+
+
+void
+TSolSimGEMDigitization::PrintSamples() const
+{
+  cout << " Chb  Pln  Strip  Typ    ADC samples \n";
+  UInt_t nc = fSpect->GetNChambers();
+  for (UInt_t ic = 0; ic < nc; ++ic)
+    {
+      UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
+      for (UInt_t ip = 0; ip < np; ++ip)
+	for (UInt_t ist = 0; ist < (UInt_t) GetNStrips (ic, ip); ++ist)
+	  if (GetCharge (ic, ip, ist) > 0)
+	    {
+	      cout << setw(4) << ic
+		   << " " << setw(4) << ip
+		   << " " << setw(6) << ist
+		   << " " << setw(4) << GetType (ic, ip, ist);
+	      for (UInt_t is = 0; is < (UInt_t) GetNSamples (ic, ip); ++is)
+		cout << " " << setw(6) << GetADC (ic, ip, ist, is);
+	      cout << endl;
+	    }
     }
 }

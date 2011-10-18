@@ -50,6 +50,7 @@ class TSolDigitizedPlane
   Short_t GetTotADC (Int_t n) const {return fTotADC[n];}
   Float_t GetTime (Int_t n) const {return fTime[n];};
   Float_t GetCharge (Int_t n) const {return fCharge[n];};
+  Short_t GetADC (Int_t n, Int_t ks) const {return fPStripADC->At(n*fNSamples+ks);};
   Short_t GetNSamples() const {return fNSamples;}
   Short_t GetNStrips() const {return fNStrips;}
 
@@ -97,11 +98,15 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   void Digitize (const TSolGEMData& gdata); // digitize event  
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
   void Print() const;
-  void PrintResults() const;
+  void PrintCharges() const;
+  void PrintSamples() const;
 
   // Access to results
+  Short_t GetType (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetType (n);};
+  Short_t GetTotADC (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetTotADC (n);};
   Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);};
   Float_t GetCharge (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetCharge (n);};
+  Short_t GetADC (UInt_t ich, UInt_t ip, Int_t n, Int_t ks) const {return fDP[ich][ip]->GetADC (n, ks);};
   Short_t GetNSamples (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNSamples();}
   Short_t GetNStrips (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNStrips();}
 /*   Short_t GetIdxOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; */
