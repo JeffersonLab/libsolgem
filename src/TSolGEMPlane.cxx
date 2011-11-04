@@ -13,7 +13,7 @@ using namespace std;
 TSolGEMPlane::TSolGEMPlane()
   : THaSubDetector()
 {
-  fClusters = new TClonesArray("TSolGEMCluster", 100);  
+//   fClusters = new TClonesArray("TSolGEMCluster", 100);  
   return;
 }
 
@@ -21,7 +21,7 @@ TSolGEMPlane::TSolGEMPlane( const char *name, const char *desc,
 			    THaDetectorBase* parent )
   : THaSubDetector (name, desc, parent)
 {
-  fClusters = new TClonesArray("TSolGEMCluster", 100);  
+//   fClusters = new TClonesArray("TSolGEMCluster", 100);  
   return;
 }
 
@@ -49,7 +49,7 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 
   // Note that origin is in lab frame, size is in chamber frame
 
-  Int_t err;
+  Int_t err = kOK;
   TSolGEMChamber* parent = (TSolGEMChamber*) GetParent();
   if (parent == NULL)
     {
@@ -93,6 +93,8 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   if (err)
     return err;
 
+  SetRotations();
+
   fNStrips = 2 * (GetSize())[fDir] / fSPitch;
   if (2 * (GetSize())[fDir] - fNStrips * fSPitch > 1E-9) 
     fNStrips++;
@@ -106,7 +108,7 @@ Int_t TSolGEMPlane::Decode( const THaEvData &d ){
 
     int i = 0;
 
-    new ((*fClusters)[i]) TSolGEMCluster();
+//     new ((*fClusters)[i]) TSolGEMCluster();
 
     return 0;
 }
@@ -125,34 +127,66 @@ TSolGEMPlane::GetSAngle()   const
     }
 }
 
-TVector3  
-TSolGEMPlane::LabToChamber (TVector3 v) const
+void
+TSolGEMPlane::LabToChamber (Double_t& x, Double_t& y) const
 {
-  v -= GetOrigin();
-  v.RotateZ (GetAngle());
-  return v;
+  x -= (GetOrigin())[0];
+  y -= (GetOrigin())[1];
+  Double_t temp = x;
+  x = fCLC * x - fSLC * y;
+  y = fSLC * temp + fCLC * y;
+  return;
 }
 
-TVector3  
-TSolGEMPlane::ChamberToStrip (TVector3 v) const
+void
+TSolGEMPlane::ChamberToStrip (Double_t& x, Double_t& y) const
 {
-  v.RotateZ (GetSAngleComp());
-  return v;
+  Double_t temp = x;
+  x = fCCS * x - fSCS * y;
+  y = fSCS * temp + fCCS * y;
+  return;
 }
 
-TVector3  
-TSolGEMPlane::StripToChamber (TVector3 v) const
+void
+TSolGEMPlane::LabToStrip (Double_t& x, Double_t& y) const
 {
-  v.RotateZ (-GetSAngleComp());
-  return v;
+  x -= (GetOrigin())[0];
+  y -= (GetOrigin())[1];
+  Double_t temp = x;
+  x = fCLS * x - fSLS * y;
+  y = fSLS * temp + fCLS * y;
+  return;
 }
 
-TVector3  
-TSolGEMPlane::ChamberToLab (TVector3 v) const
+void
+TSolGEMPlane::StripToChamber (Double_t& x, Double_t& y) const
 {
-  v.RotateZ (-GetAngle());
-  v += GetOrigin();
-  return v;
+  Double_t temp = x;
+  x = fCCS * x + fSCS * y;
+  y = -fSCS * temp + fCCS * y;
+  return;
+}
+
+void
+TSolGEMPlane::ChamberToLab (Double_t& x, Double_t& y) const
+{
+  Double_t temp = x;
+  x = fCLC * x + fSLC * y;
+  y = -fSLC * temp + fCLC * y;
+  x += (GetOrigin())[0];
+  y += (GetOrigin())[1];
+  return;
+}
+
+void
+TSolGEMPlane::StripToLab (Double_t& x, Double_t& y) const
+{
+  Double_t temp = x;
+  x = fCLS * x + fSLS * y;
+  y = -fSLS * temp + fCLS * y;
+  x += (GetOrigin())[0];
+  y += (GetOrigin())[1];
+  return;
 }
 
 Int_t
@@ -201,4 +235,18 @@ TSolGEMPlane::Print() const
   const Float_t* s = GetSize();
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
   cout << "  " << GetNStrips() << " strips, pitch " << GetSPitch() << endl;
+}
+
+void
+TSolGEMPlane::SetRotations()
+{
+  // Set rotation angle trig functions
+
+  fCLC = -0.157;
+  fCLC = cos (-GetAngle());
+  fCCS = cos (-GetSAngle());
+  fCLS = cos (-GetAngle()-GetSAngle());
+  fSLC = sin (-GetAngle());
+  fSCS = sin (-GetSAngle());
+  fSLS = sin (-GetAngle()-GetSAngle());
 }

@@ -1,6 +1,8 @@
 #ifndef __TSOLGEMPLANE_H
 #define __TSOLGEMPLANE_H
 
+#include <cmath>
+
 #include "THaSubDetector.h"
 
 #include "types.h"
@@ -44,12 +46,12 @@ class TSolGEMPlane : public THaSubDetector {
 	Int_t ReadDatabase (const TDatime& date);
 	Int_t ReadGeometry (FILE* file, const TDatime& date,
 			    Bool_t required = kFALSE);
-	TClonesArray *GetClusters() { return fClusters; }
+/* 	TClonesArray *GetClusters() { return fClusters; } */
 
 	Int_t Decode( const THaEvData &);
 	Double_t GetAngle() const {return fAngle;};
 	GEMDir_t GetDirection() const { return fDir; }
-	TSolGEMPlane *GetPairedPlane() { return fPairPlane; }
+/* 	TSolGEMPlane *GetPairedPlane() { return fPairPlane; } */
 
 	Int_t    GetNStrips()  const { return fNStrips; }
 	Double_t GetSPitch()   const { return fSPitch; } // in meters
@@ -59,12 +61,12 @@ class TSolGEMPlane : public THaSubDetector {
 	Double_t GetSAngleComp() const { return 3.14159/2 - GetSAngle(); }
 
 	// Frame conversions
-	TVector3 LabToChamber (TVector3 v) const;  // input and output in meters
-	TVector3 ChamberToStrip (TVector3 v) const; // input and output in meters
-	TVector3 LabToStrip (TVector3 v) const {return ChamberToStrip (LabToChamber (v));}  // input and output in meters
-	TVector3 StripToLab (TVector3 v) const {return ChamberToLab (StripToChamber (v));}  // input and output in meters
-	TVector3 StripToChamber (TVector3 v) const;  // input and output in meters
-	TVector3 ChamberToLab (TVector3 v) const;  // input and output in meters
+	void LabToChamber (Double_t& x, Double_t& y) const;  // input and output in meters
+	void ChamberToStrip (Double_t& x, Double_t& y) const; // input and output in meters
+	void LabToStrip (Double_t& x, Double_t& y) const;  // input and output in meters
+	void StripToLab (Double_t& x, Double_t& y) const;  // input and output in meters
+	void StripToChamber (Double_t& x, Double_t& y) const;  // input and output in meters
+	void ChamberToLab (Double_t& x, Double_t& y) const;  // input and output in meters
 
 	// Return positions of plane edges, in chamber frame, in meters
 	Double_t GetLowerEdgeX() const {return (GetOrigin())[0] - (GetSize())[0];}
@@ -84,17 +86,26 @@ class TSolGEMPlane : public THaSubDetector {
 	Int_t GetStrip (Double_t x, Double_t y) const;
 
 	void Print() const;
+	void SetRotations();
 
     private:
-	TClonesArray  *fClusters; // Clusters
+/* 	TClonesArray  *fClusters; // Clusters */
 	Double_t fAngle;         // Angle of orientation (of frame)
 	GEMDir_t fDir;		 // Strip orientation, x or y
-	TSolGEMPlane *fPairPlane; // Paired plane
+/* 	TSolGEMPlane *fPairPlane; // Paired plane */
 
 	Int_t    fNStrips;  // Number of strips
 	Double_t fSPitch;   // Strip pitch (m)
 	Double_t fSBeg;     // X coordinate of lower edge of first strip
 
+	// Trig functions for rotations
+	Double_t fCLC; // cos (lab to chamber angle)
+	Double_t fCLS; // ... lab to strip
+	Double_t fCCS; // ... chamber to strip
+	Double_t fSLC; // sin...
+	Double_t fSLS;
+	Double_t fSCS;
+	
     public:
 	ClassDef(TSolGEMPlane,1)
 
