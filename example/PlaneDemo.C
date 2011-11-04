@@ -1,6 +1,5 @@
 void PlaneDemo()
 {
-  gROOT->LoadMacro("libsolgem.so");
   TSolGEMChamber y("testchamber","Test chamber");
   y.SetName("testchamber");
   y.Init();
