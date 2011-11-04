@@ -37,12 +37,12 @@ class TSolGEMVStrip {
   void SetHitCharge(Float_t val) { fHitCharge = val; }; // total charge of the avalanche
   void SetSize(Short_t n) { fSize = n; };
 
-  Short_t GetSize() { return fSize; };
-  Short_t GetIdx(Short_t n) { return fIdx->At(n); }; 
-  Short_t GetADC(Short_t n, Short_t sample) { return fADC->At(n*fNsample+sample); }; 
-  Double_t GetCharge(Short_t n) { return fCharge->At(n); };
-  Float_t GetTime() { return fTime; };
-  Double_t GetHitCharge() { return fHitCharge; };
+  Short_t GetSize() const { return fSize; };
+  Short_t GetIdx(Short_t n) const { return fIdx->At(n); }; 
+  Short_t GetADC(Short_t n, Short_t sample) const { return fADC->At(n*fNsample+sample); }; 
+  Double_t GetCharge(Short_t n) const { return fCharge->At(n); };
+  Float_t GetTime() const { return fTime; };
+  Double_t GetHitCharge() const { return fHitCharge; };
 
   void Print();
 };
