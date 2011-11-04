@@ -6,7 +6,7 @@ using namespace std;
 
 TSolGEMData::TSolGEMData (UInt_t h)
 {
-  if (h > 0) InitHit (h);
+  if (h > 0) InitEvent (h);
 }
 
 TSolGEMData::~TSolGEMData()
@@ -14,7 +14,7 @@ TSolGEMData::~TSolGEMData()
 }
 
 void 
-TSolGEMData::ClearHit() 
+TSolGEMData::ClearEvent() 
 {
   if (fGem)
   {
@@ -22,6 +22,7 @@ TSolGEMData::ClearHit()
     delete[] fEdep;
     delete[] fPID;
     delete[] fType;
+    delete[] fEntryNumber;
     
     for (UInt_t k = 0; k < fNHit; k++) 
     {
@@ -43,7 +44,7 @@ TSolGEMData::ClearHit()
 };
 
 void
-TSolGEMData::InitHit (UInt_t h)
+TSolGEMData::InitEvent (UInt_t h)
 {
   if (h <= 0)
     return;
@@ -56,6 +57,7 @@ TSolGEMData::InitHit (UInt_t h)
   fEdep = new Double_t[h]; // energy lost in drift
   fPID = new UInt_t[h]; // particle ID
   fType = new UInt_t[h]; // particle type
+  fEntryNumber = new UInt_t[h]; // entry in file
   fXi = new TVector3*[h];
   fXo = new TVector3*[h];
   fXr = new TVector3*[h];
@@ -67,8 +69,6 @@ TSolGEMData::InitHit (UInt_t h)
   	fXr[k] = new TVector3;
   	fMom[k] = new TVector3;
   }	  		
-
-  cerr << __FUNCTION__ << "fGEM initialized with length " << h << endl;
 }
 
 void 
