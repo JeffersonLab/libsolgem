@@ -5,9 +5,11 @@
 #include <iostream>
 
 #include "TCanvas.h"
+#include "TFile.h"
 #include "TF2.h"
 #include "TH2F.h"
 #include "TMath.h"
+#include "TTree.h"
 
 #include "TSolGEMData.h"
 #include "TSolGEMVStrip.h"
@@ -31,6 +33,7 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
   fCharge = new Float_t[nstrip];
   fTime = new Float_t[nstrip];
   fTotADC = new Short_t[nstrip];
+  fOverThr = new UInt_t[nstrip];
   
   for (Int_t i=0;i<nstrip;i++) {
     fTotADC[i]=0.;
@@ -46,6 +49,7 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
   if (fPStripADC==0) {
     cerr << __FUNCTION__ << " allocation failed" << endl;
   }
+
 };
 
 TSolDigitizedPlane::~TSolDigitizedPlane() 
@@ -55,12 +59,12 @@ TSolDigitizedPlane::~TSolDigitizedPlane()
   delete[] fCharge;
   delete[] fTime;
   delete[] fTotADC;
+  delete[] fOverThr;
 };
 
 void 
 TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
 {
-  
   Int_t j,k;
   Int_t idx;
 
@@ -83,6 +87,24 @@ TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
 };
 
 
+UInt_t 
+TSolDigitizedPlane::Threshold (Short_t thr) 
+{
+
+  fNOT = 0;
+
+  for (UInt_t j = 0; j < (UInt_t) fNStrips; j++) 
+    {
+      if (fTotADC[j] > thr) 
+	{
+	  fOverThr[fNOT] = j;
+	  fNOT++;	
+	}
+    }
+
+  return fNOT;  
+};
+
 
 TSolSimGEMDigitization::TSolSimGEMDigitization(const TSolSpec& spect)
 {
@@ -92,35 +114,37 @@ TSolSimGEMDigitization::TSolSimGEMDigitization(const TSolSpec& spect)
 
 TSolSimGEMDigitization::~TSolSimGEMDigitization()
 {
-  UInt_t nc = fSpect->GetNChambers();
-  for (UInt_t ic = 0; ic < nc; ++ic)
+  for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
-      UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
-      for (UInt_t ip = 0; ip < np; ++ip)
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
 	delete fDP[ic][ip];
       delete[] fDP[ic];
     }
   delete[] fDP;
+  delete[] fNPlanes;
 }
 
 void 
 TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 {
-  fSpect = &spect;
-
-  UInt_t nc = fSpect->GetNChambers();
-  fDP = new TSolDigitizedPlane**[nc];
-  for (UInt_t ic = 0; ic < nc; ++ic)
+  fNChambers = spect.GetNChambers();
+  fDP = new TSolDigitizedPlane**[fNChambers];
+  fNPlanes = new UInt_t[fNChambers];
+  for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
-      UInt_t np = fSpect->GetChamber(ic).GetNPlanes();
-      fDP[ic] = new TSolDigitizedPlane*[np];
-      for (UInt_t ip = 0; ip < np; ++ip)
-	fDP[ic][ip] = new TSolDigitizedPlane (fSpect->GetChamber(ic).GetPlane(ip).GetNStrips());
+      fNPlanes[ic] = spect.GetChamber(ic).GetNPlanes();
+      fDP[ic] = new TSolDigitizedPlane*[fNPlanes[ic]];
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
+	fDP[ic][ip] = new TSolDigitizedPlane (spect.GetChamber(ic).GetPlane(ip).GetNStrips());
     }
 
   SetGasParams();
   SetEleParams();
   SetPulseShaping();
+
+  fOFile = NULL;
+  fOTree = NULL;
+  fNTreeHits = 0;
 }
 
 void 
@@ -213,14 +237,14 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
 }
 
 void 
-TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event 
+TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spect) // digitize event 
 {
   UInt_t nh = gdata.GetNHit();
 
   for (UInt_t ih = 0; ih < nh; ++ih)
     {
-      Int_t igem = gdata.GetHitChamber (ih);
-      if (igem >= (Int_t) fSpect->GetNChambers())
+      UInt_t igem = gdata.GetHitChamber (ih);
+      if (igem >= fNChambers)
 	continue;
       
       Short_t itype = (1 << gdata.GetParticleType(ih)); // signal = 1, bck = 2, 4, 8 ...
@@ -232,8 +256,8 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
       // These vectors are in the lab frame, we need them in the chamber frame
       // Also convert to mm
 
-      TVector3 offset = fSpect->GetChamber(igem).GetOrigin() * 1000.0;
-      Double_t angle = fSpect->GetChamber(igem).GetAngle();
+      TVector3 offset = spect.GetChamber(igem).GetOrigin() * 1000.0;
+      Double_t angle = spect.GetChamber(igem).GetAngle();
       vv1 -= offset;
       vv2 -= offset;
       vv3 -= offset;
@@ -247,15 +271,18 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata) // digitize event
 	  Double_t time_zero = 
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
-	  TSolGEMVStrip **dh = AvaModel (igem, vv1, vv2, time_zero);
+	  TSolGEMVStrip **dh = AvaModel (igem, spect, vv1, vv2, time_zero);
 	  for (UInt_t j = 0; j < 2; j++) 
 	    {
 	      fDP[igem][j]->Cumulate (dh[j], itype);
-	      delete dh[j];
 	    }
+	  if (fOTree != NULL) FillTreeHit (ih, igem, dh, gdata);
+	  delete dh[0];
+	  delete dh[1];
 	  delete[] dh;
 	} 
     }
+  if (fOTree != NULL) FillTreeEvent (gdata);
 }
  
 
@@ -346,6 +373,7 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
 
 TSolGEMVStrip **
 TSolSimGEMDigitization::AvaModel(const Int_t ic,
+				 const TSolSpec& spect,
 				 const TVector3& xi, 
 				 const TVector3& xo,
 				 const Double_t time_off)
@@ -377,10 +405,10 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
   // --- loop on sectors 
 
-  Double_t glx = fSpect->GetChamber(ic).GetLowerEdgeX() * 1000.0;
-  Double_t gly = fSpect->GetChamber(ic).GetLowerEdgeY() * 1000.0;
-  Double_t gux = fSpect->GetChamber(ic).GetUpperEdgeX() * 1000.0;
-  Double_t guy = fSpect->GetChamber(ic).GetUpperEdgeY() * 1000.0;
+  Double_t glx = spect.GetChamber(ic).GetLowerEdgeX() * 1000.0;
+  Double_t gly = spect.GetChamber(ic).GetLowerEdgeY() * 1000.0;
+  Double_t gux = spect.GetChamber(ic).GetUpperEdgeX() * 1000.0;
+  Double_t guy = spect.GetChamber(ic).GetUpperEdgeY() * 1000.0;
 
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of active area of the sector
@@ -388,6 +416,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
     delete[] fRCharge;
     delete[] fRX; 
     delete[] fRY; 
+    cerr << "out of sector" << endl;
     return 0;
   }
 
@@ -398,21 +427,23 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
   // Loop over chamber planes
 
-  UInt_t np = fSpect->GetChamber(ic).GetNPlanes();
   TSolGEMVStrip **virs;
-  virs = new TSolGEMVStrip *[np];
-  for (UInt_t ipl = 0; ipl < np; ++ipl)
+  virs = new TSolGEMVStrip *[fNPlanes[ic]];
+  for (UInt_t ipl = 0; ipl < fNPlanes[ic]; ++ipl)
     {
       // Compute strips affected by the avalanche
 
-      TSolGEMPlane* pl = &(fSpect->GetChamber(ic).GetPlane(ipl)); 
-      Double_t z = (pl->GetOrigin())[2] * 1000.0;
+      TSolGEMPlane* pl = &(spect.GetChamber(ic).GetPlane(ipl)); 
 
       // Positions in strip frame
-      TVector3 v0 = pl->LabToStrip (TVector3 (x0, y0, z) * 1e-3) * 1000.0;
-      TVector3 v1 = pl->LabToStrip (TVector3 (x1, y1, z) * 1e-3) * 1000.0;
-      Int_t iL = pl->GetStrip (v0[0] * 1e-3, v0[1] * 1e-3);
-      Int_t iU = pl->GetStrip (v1[0] * 1e-3, v1[1] * 1e-3);
+      Double_t xs0 = x0 * 1e-3; Double_t ys0 = y0 * 1e-3;
+      pl->LabToStrip (xs0, ys0);
+      xs0 *= 1e3; ys0 *= 1e3;
+      Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
+      pl->LabToStrip (xs1, ys1);
+      xs1 *= 1e3; ys1 *= 1e3;
+      Int_t iL = pl->GetStrip (xs0 * 1e-3, ys0 * 1e-3);
+      Int_t iU = pl->GetStrip (xs1 * 1e-3, ys1 * 1e-3);
       if (iL > iU)
 	{
 	  Int_t t = iL;
@@ -434,8 +465,8 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
       Double_t pitch = pl->GetSPitch() * 1000.0;
       Double_t yq = pitch * .1;
-      Double_t yb = yq * TMath::Floor (v0[1] / yq);
-      Double_t yt = yq * TMath::Floor (v1[1] / yq);
+      Double_t yb = yq * TMath::Floor (ys0 / yq);
+      Double_t yt = yq * TMath::Floor (ys1 / yq);
       if (yb > yt)
 	{
 	  Double_t t = yb;
@@ -446,7 +477,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       // # of coarse histogram bins: 1 per pitch each direction
 
       Int_t nx = iU - iL + 1;
-      Int_t ny = (Int_t) ((yt - yb) / yq + 0.5);
+      Int_t ny = (Int_t) ((yt - yb + 1) / yq + 0.5);
 
       // # of fine histogram bins
       Int_t nnx = (nx < 2000) ? nx * 4 : nx; // TF2 bins cannot be <4 !!! and high precision with higher bins
@@ -465,8 +496,10 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 			  xl, xr, yb, yt, 4);
 	  sgaus[i].SetParNames ("Const", "X_{0}", "Y_{0}", "#sigma");
 	  Double_t ggnorm = fRCharge[i] / 3.14 / 9. / fRSNorm[i] / fRSNorm[i]; // normalized to charge
-	  TVector3 fr = pl->LabToStrip (TVector3 (fRX[i], fRY[i], z) * 1e-3) * 1000.0;
-	  sgaus[i].SetParameters (ggnorm, fr.X(), fr.Y(), 3. * fRSNorm[i]);
+	  Double_t frxs = fRX[i] * 1e-3; Double_t frys = fRY[i] * 1e-3;
+	  pl->LabToStrip (frxs, frys);
+	  frxs *= 1e3; frys *= 1e3;
+	  sgaus[i].SetParameters (ggnorm, frxs, frys, 3. * fRSNorm[i]);
 	  sgaus[i].SetNpx (nnx); 
 	  sgaus[i].SetNpy (nny);
 	  if (i == 0)
@@ -554,6 +587,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
   delete[] fRX; 
   delete[] fRY;
       
+  cerr << "returning virs" << endl;
   return virs;
 
 }
@@ -591,11 +625,9 @@ void
 TSolSimGEMDigitization::PrintCharges() const
 {
   cout << " Chb  Pln  Strip  Typ    ADC    Charge      Time\n";
-  UInt_t nc = fSpect->GetNChambers();
-  for (UInt_t ic = 0; ic < nc; ++ic)
+  for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
-      UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
-      for (UInt_t ip = 0; ip < np; ++ip)
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
 	for (UInt_t ist = 0; ist < (UInt_t) GetNStrips(ic, ip); ++ist)
 	  {
 	    if (fDP[ic][ip]->GetCharge (ist) > 0)
@@ -618,11 +650,9 @@ void
 TSolSimGEMDigitization::PrintSamples() const
 {
   cout << " Chb  Pln  Strip  Typ    ADC samples \n";
-  UInt_t nc = fSpect->GetNChambers();
-  for (UInt_t ic = 0; ic < nc; ++ic)
+  for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
-      UInt_t np = fSpect->GetChamber (ic).GetNPlanes();
-      for (UInt_t ip = 0; ip < np; ++ip)
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
 	for (UInt_t ist = 0; ist < (UInt_t) GetNStrips (ic, ip); ++ist)
 	  if (GetCharge (ic, ip, ist) > 0)
 	    {
@@ -636,3 +666,144 @@ TSolSimGEMDigitization::PrintSamples() const
 	    }
     }
 }
+
+  // Tree methodss
+void 
+TSolSimGEMDigitization::InitTree (const TSolSpec& spect, const TString& ofile)
+{
+  fOFileName = ofile;
+  
+  fOFile = new TFile (fOFileName, "RECREATE");
+
+  if (fOFile == 0) 
+    {
+      cerr << "Error: cannot open output file " << fOFileName << endl;
+      return;
+    } 
+
+  fOTree = new TTree ("digtree", "Tree of digitized values");
+
+  // create the tree variables
+
+  fOTree->Branch ("RunID", &fRunID, "RunID/I");
+  fOTree->Branch ("EvtID", &fEvtID, "EvtID/I");
+
+  // ttree output variables
+
+  // "true-montecarlo" information
+  fOTree->Branch ("digi.gem.nhit", &fNTreeHits, "digi.gem.nhit/I");
+  fOTree->Branch ("digi.gem.nsignal", &fNSignal, "digi.gem.nsignal/I");
+
+  fOTree->Branch ("digi.gem.hit.chamber", fClsChamber, "digi.gem.hit.chamber[digi.gem.nhit]/S");
+
+  fOTree->Branch ("digi.gem.hit.charge", fClsCharge, "digi.gem.hit.charge[digi.gem.nhit]/F");
+
+  fOTree->Branch ("digi.gem.hit.mcentry", fClsRefEntry, "digi.gem.hit.mcentry[digi.gem.nhit]/I");
+  fOTree->Branch ("digi.gem.hit.mcfile", fClsRefFile, "digi.gem.hit.mcfile[digi.gem.nhit]/I");
+
+  fOTree->Branch ("digi.gem.hit.time", fClsTime, "digi.gem.hit.time[digi.gem.nhit]/F");
+
+  fOTree->Branch ("digi.gem.hit.mx", fClsMx, "digi.gem.hit.mx[digi.gem.nhit]/F");
+  fOTree->Branch ("digi.gem.hit.my", fClsMy, "digi.gem.hit.my[digi.gem.nhit]/F");
+  fOTree->Branch ("digi.gem.hit.mz", fClsMz, "digi.gem.hit.mz[digi.gem.nhit]/F");
+ 
+  fOTree->Branch ("digi.gem.hit.pID", fClsPID, "digi.gem.hit.pID[digi.gem.nhit]/I");
+
+  fOTree->Branch ("digi.gem.hit.size0", fClsSize[0], Form ("digi.gem.hit.size0[digi.gem.nhit]/I"));
+  fOTree->Branch ("digi.gem.hit.size1", fClsSize[1], Form ("digi.gem.hit.size1[digi.gem.nhit]/I"));
+  fOTree->Branch ("digi.gem.hit.strip0", fClsFirstStrip[0], Form ("digi.gem.hit.strip0[digi.gem.nhit]/I"));
+  fOTree->Branch ("digi.gem.hit.strip1", fClsFirstStrip[1], Form ("digi.gem.hit.strip1[digi.gem.nhit]/I"));
+
+  // "real-digitized" information 
+  fOTree->Branch ("digi.gem.nch", &fDNCh, "digi.gem.nch/I");
+  fOTree->Branch ("digi.gem.chamber", fDGEM, "digi.gem.chamber[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.plane", fDPlane, "digi.gem.plane[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.strip", fDStrip, "digi.gem.strip[digi.gem.nch]/S");
+
+  fOTree->Branch ("digi.gem.adc0", fDSADC[0], "digi.gem.adc0[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc1", fDSADC[1], "digi.gem.adc1[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc2", fDSADC[2], "digi.gem.adc2[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc3", fDSADC[3], "digi.gem.adc3[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc4", fDSADC[4], "digi.gem.adc4[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc5", fDSADC[5], "digi.gem.adc5[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc6", fDSADC[6], "digi.gem.adc6[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc7", fDSADC[7], "digi.gem.adc7[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc8", fDSADC[8], "digi.gem.adc8[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.adc9", fDSADC[9], "digi.gem.adc9[digi.gem.nch]/S");
+  fOTree->Branch ("digi.gem.type", fType, "digi.gem.type[digi.gem.nch]/S");
+
+  // extra info
+  fOTree->Branch ("digi.gem.charge", fCharge, "digi.gem.charge[digi.gem.nch]/F");
+  fOTree->Branch ("digi.gem.time1", fTime1, "digi.gem.time1[digi.gem.nch]/F");
+ }
+
+void
+TSolSimGEMDigitization::FillTreeHit (const UInt_t ih, 
+				     const UInt_t igem, 
+				     TSolGEMVStrip** dh,
+				     const TSolGEMData& tsgd)
+{
+  fClsChamber[fNTreeHits] = igem;
+  fClsRefEntry[fNTreeHits] = tsgd.GetEntryNumber(ih);
+  fClsPID[fNTreeHits] = tsgd.GetParticleID(ih);
+	    
+  fClsCharge[fNTreeHits] = dh[0]->GetHitCharge();
+  for (UInt_t j = 0; j < 2; j++) 
+    { // warning to be generalized
+      fClsSize[j][fNTreeHits] = dh[j]->GetSize();
+      fClsFirstStrip[j][fNTreeHits] = dh[j]->GetIdx(0);
+    }
+  fClsTime[fNTreeHits]=dh[0]->GetTime();
+  
+  fClsMx[fNTreeHits] = tsgd.GetMomentum (ih).X();
+  fClsMy[fNTreeHits] = tsgd.GetMomentum (ih).Y();
+  fClsMz[fNTreeHits] = tsgd.GetMomentum (ih).Z();
+  fClsRefFile[fNTreeHits] = tsgd.GetParticleType (ih); 
+  fNTreeHits++;
+  if (tsgd.GetParticleType (ih) == 0) fNSignal++;
+}
+
+void
+TSolSimGEMDigitization::FillTreeEvent (const TSolGEMData& tsgd)
+{
+  fRunID = tsgd.GetRun();
+  fEvtID = tsgd.GetEvent();
+  fDNCh = 0;
+  
+  for (UInt_t ich = 0; ich < GetNChambers(); ++ich)
+    {
+      for (UInt_t ip = 0; ip < GetNPlanes (ich); ++ip)
+	{
+	  UInt_t nover = Threshold (ich, ip, 0); // threshold is zero for now
+	  for (UInt_t iover = 0; iover < nover; iover++) 
+	    {
+	      fDGEM[fDNCh] = (Short_t) ich; 
+	      fDPlane[fDNCh] = (Short_t) ip; 
+	      fDStrip[fDNCh] = (Short_t) GetIdxOverThr (ich, ip, iover);
+	      UInt_t idx = GetIdxOverThr (ich, ip, iover);
+	      for (UInt_t ss = 0; ss < (UInt_t) GetNSamples (ich, ip); ++ss)
+		fDSADC[ss][fDNCh] = (Short_t) GetADC (ich, ip, idx, ss);
+	      fCharge[fDNCh] = GetCharge (ich, ip, idx);
+	      fTime1[fDNCh] = GetTime (ich, ip, idx);
+	      fType[fDNCh] = (Short_t) GetType (ich, ip, idx);		   
+	      fDNCh++;
+	    }
+	} 
+    }
+
+  fOFile->cd();
+  fOTree->Fill();
+}
+
+void 
+TSolSimGEMDigitization::WriteTree () const
+{
+  fOTree->Write();
+}
+
+void 
+TSolSimGEMDigitization::CloseTree () const
+{
+  fOFile->Close();
+}
+

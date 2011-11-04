@@ -11,13 +11,12 @@ void DigDemo()
   ddy = new TSolGEMChamber ("testchamber","Test chamber");
   ddy->SetName("testchamber");
   ddy->Init();
+  
 
   dds->AddGEM (*ddy);
-  //  dds->Print();
 
   ddd = new TSolSimGEMDigitization (*dds);
-  //  ddd->Print();
-
+  
   ddgd = new TSolGEMData (1); // 1 hit wonder
   ddgd->SetRun (1000);
   ddgd->SetEvent (0);
@@ -32,6 +31,9 @@ void DigDemo()
   //  ddgd->Print();
   //  ddgd->PrintHit (0);
 
-  ddd->Digitize (*ddgd);
+  ddd->InitTree (*dds, "digdemo.root");
+  ddd->Digitize (*ddgd, *dds);
   ddd->PrintCharges();
+  ddd->WriteTree();
+  ddd->CloseTree();
 }

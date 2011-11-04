@@ -10,6 +10,9 @@
 
 #include "THaAnalysisObject.h"
 
+class TFile;
+class TTree;
+
 class TSolGEMData;
 class TSolGEMVStrip;
 class TSolSpec;
@@ -24,9 +27,6 @@ class TSolDigitizedPlane
  private:
   // ADC sampled value of strip array of each axis
 
-  Short_t fNOT;
-/*   Short_t *fOverThr; */
-
   TArrayS *fPStripADC;
   Short_t *fType;
   Short_t *fTotADC;
@@ -36,6 +36,9 @@ class TSolDigitizedPlane
 
   Short_t fNSamples;
   Short_t fNStrips;
+
+  UInt_t fNOT;   // # strips over threshold
+  UInt_t* fOverThr;  // # list of strips over threshold
 
  public:
   // init and reset physics strips arrays
@@ -54,11 +57,10 @@ class TSolDigitizedPlane
   Short_t GetNSamples() const {return fNSamples;}
   Short_t GetNStrips() const {return fNStrips;}
 
-/*   Short_t GetIdxOverThr (Int_t n) const {return fOverThr[n];}; */
-/*   Short_t GetTypeOverThr (Int_t n) const {return fType[fOverThr[n]];}; */
-/*   Short_t GetADCOverThr (Int_t ks, Int_t n) const {return fPStripADC->At(fOverThr[n]*fNSamples+ks);}; */
-/*   Float_t GetChargeOverThr (Int_t n) const {return fCharge[fOverThr[n]];}; */
-/*   Float_t GetTimeOverThr (Int_t n) const {return fTime[fOverThr[n]];}; */
+  UInt_t Threshold (Short_t thr);
+
+  UInt_t GetNOverThr() const {return fNOT;};
+  UInt_t GetIdxOverThr (Int_t n) const {return fOverThr[n];}; 
 };
 
 
@@ -66,7 +68,6 @@ class TSolDigitizedPlane
 class TSolSimGEMDigitization: public THaAnalysisObject
 {
  public:
-  void Foo() {};
   TSolSimGEMDigitization(const TSolSpec& spect);
   virtual ~TSolSimGEMDigitization();
 
@@ -95,11 +96,22 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 			);
   Int_t ReadDatabase (const TDatime& date);
 
-  void Digitize (const TSolGEMData& gdata); // digitize event  
+  void Digitize (const TSolGEMData& gdata, const TSolSpec& spect); // digitize event  
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
   void Print() const;
   void PrintCharges() const;
   void PrintSamples() const;
+
+  // Tree methodss
+  void InitTree (const TSolSpec& spect, const TString& ofile);
+  void FillTreeHit (const UInt_t ih, 
+		    const UInt_t igem, 
+		    TSolGEMVStrip** dh,
+		    const TSolGEMData& tsgd);
+  void FillTreeHit (const TSolGEMData& gdata);
+  void FillTreeEvent (const TSolGEMData& gdata);
+  void WriteTree () const;
+  void CloseTree () const;
 
   // Access to results
   Short_t GetType (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetType (n);};
@@ -107,13 +119,13 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);};
   Float_t GetCharge (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetCharge (n);};
   Short_t GetADC (UInt_t ich, UInt_t ip, Int_t n, Int_t ks) const {return fDP[ich][ip]->GetADC (n, ks);};
+  UInt_t GetNChambers() const {return fNChambers;};
+  UInt_t GetNPlanes (const UInt_t i) const {return fNPlanes[i];};
   Short_t GetNSamples (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNSamples();}
   Short_t GetNStrips (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNStrips();}
-/*   Short_t GetIdxOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; */
-/*   Short_t GetTypeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTypeOverThr (n);}; */
-/*   Short_t GetADCOverThr (Int_t ks, UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetADCOverThr (ks, n);}; */
-/*   Float_t GetChargeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetChargeOverThr (n);}; */
-/*   Float_t GetTimeOverThr (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTimeOverThr (n);}; */
+  UInt_t Threshold (UInt_t ich, UInt_t ip, Short_t thr) {return fDP[ich][ip]->Threshold (thr);};
+  UInt_t GetNOverThr (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNOverThr();};
+  UInt_t GetIdxOverThr (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; 
 
 
  private:
@@ -125,6 +137,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 		 const TVector3& xrout);   // used only to calculate distance drift-readout (to be removed in future version)
   
   TSolGEMVStrip ** AvaModel (const Int_t ic,
+			     const TSolSpec& spect,
 			     const TVector3& xi, 
 			     const TVector3& xo,
 			     const Double_t time_off);
@@ -155,9 +168,10 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Double_t fPulseShapeTau1;   // [ns] GEM model only; if negative assume SiD model
 
   //
-  const TSolSpec* fSpect; // the spectrometer
   TSolDigitizedPlane*** fDP; // 2D array of plane pointers indexed by chamber, plane #
 
+  UInt_t fNChambers;  // # chambers
+  UInt_t* fNPlanes;   // # planes in each chamber
   TRandom3 fTrnd;   // time randomizer
   UInt_t   fRNIon;  // number of ions
   Double_t *fRX;
@@ -167,6 +181,43 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Double_t fRSMax;
   Double_t fRTotalCharge;
   Double_t fRTime0;
+
+  // Tree
+
+  TString fOFileName;  // Name of output ROOT file
+  TFile* fOFile;       // Output ROOT file
+  TTree* fOTree;
+
+  Int_t fRunID;  // Run number
+  Int_t fEvtID;  // Event number
+
+  // cluster (hit) variables  
+  Int_t fNTreeHits;   // total number of hits for tree
+  Int_t fNSignal;    // number of hits of signal 
+
+  static const Int_t gMAX_CHANNELS = 10000;
+  
+  Short_t fClsChamber[gMAX_CHANNELS]; // chamber/module index from 0 to 5 (or total number of chambers)
+  Float_t fClsCharge[gMAX_CHANNELS]; // charge of the hits avalanche
+  Int_t fClsRefEntry[gMAX_CHANNELS]; // reference entry in mc 
+  Int_t fClsRefFile[gMAX_CHANNELS]; // reference file in mc (combined with the above can be used to lok at the Montecarlo raw data)
+  Float_t fClsTime[gMAX_CHANNELS]; // time of arrival of the signal into the electronics (time of flight not included yet)
+  Float_t fClsMx[gMAX_CHANNELS]; // momentum particle generating the hit (x component)
+  Float_t fClsMy[gMAX_CHANNELS]; // momentum particle generating the hit (y component)
+  Float_t fClsMz[gMAX_CHANNELS]; // momentum particle generating the hit (z component)
+  Int_t fClsPID[gMAX_CHANNELS]; // particle ID (PDG code) generating the hit
+
+  Int_t fClsSize[2][gMAX_CHANNELS];   // number of strips in cluster/hit on each axis
+  Int_t fClsFirstStrip[2][gMAX_CHANNELS]; // address of first strip of the cluster on each axis
+  
+  Int_t fDNCh; // number of strips (channels) firing in event
+  Short_t fDGEM[gMAX_CHANNELS]; // chamber[7,15] | module[3-6]] | axis[0-2] 
+  Short_t fDPlane[gMAX_CHANNELS]; // axis or more generally a readout plane
+  Short_t fDStrip[gMAX_CHANNELS]; // strip address 
+  Short_t fDSADC[10][gMAX_CHANNELS]; // adc values of the strip
+  Short_t fType[gMAX_CHANNELS]; // type of strip hit (0=signal or signal+bck, 1=bck)
+  Float_t fCharge[gMAX_CHANNELS]; // total charge in strip
+  Float_t fTime1[gMAX_CHANNELS]; // time of first sample since event started in target (TBC)
 
     public:
 	ClassDef (TSolSimGEMDigitization, 1)
