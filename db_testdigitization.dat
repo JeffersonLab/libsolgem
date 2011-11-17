@@ -1,0 +1,22 @@
+950101
+# Gas parameters:
+testdigitization.gasionwidth = 26.  # ev
+testdigitization.gasdiffusion = 25000.  # mm2/s
+testdigitization.gasdriftvelocity = 5.5*1e7 # mm/s
+testdigitization.avalanchefiducialband = 10.0 # n sigma
+testdigitization.avalanchechargestatatistics = 0 # 0 Furry, 1 Gaussian
+testdigitization.gainmean = 8000.0
+testdigitization.gain0 = 20.0
+# Electronics parameters:
+testdigitization.triggeroffset = 10. # ns
+testdigitization.triggerjitter = 5.  # ns
+testdigitization.elesamplingpoints = 10
+testdigitization.elesamplingperiod = 25.
+testdigitization.pulsenoisesigma = 100.0
+testdigitization.adcoffset = 0.
+testdigitization.adcgainain = 1.
+testdigitization.adcbits = 12
+testdigitization.gatewidth = 100.
+# Pulse shaping parameters:
+testdigitization.pulseshapetau0 = 38.3 # ns
+testdigitization.pulseshapetau1 = 129. #ns

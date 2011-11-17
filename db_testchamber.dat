@@ -1,0 +1,13 @@
+950101
+testchamber.position = 0.0 0.0 1.3
+testchamber.size = 1.0 1.5 0.3
+testchamber.r0 = 0.10
+testchamber.r1 = 0.90
+testchamber.phi0 = -5
+testchamber.dphi = 10
+testchamber.z0 = 5.0
+testchamber.depth = 0.05
+testchamber.testchamberx.stripangle = -5
+testchamber.testchamberx.pitch = 0.001
+testchamber.testchambery.stripangle = 5
+testchamber.testchambery.pitch = 0.001
