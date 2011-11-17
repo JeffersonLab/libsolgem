@@ -37,6 +37,7 @@ SRC   = src/TSolAnalyzer.cxx \
         src/TSolGEMVStrip.cxx \
         src/TSolSimAux.cxx \
         src/TSolSimGEMDigitization.cxx \
+        src/TSolWedge.cxx \
         src/TSolSpec.cxx 
         OBJS	= $(SRC:.$(SrcSuf)=.$(ObjSuf)) $(DICT).o
 HDR	= $(SRC:.$(SrcSuf)=.h) src/Linkdef.h

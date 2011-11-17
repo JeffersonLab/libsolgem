@@ -2,9 +2,12 @@
 #define __TSOLGEMCHAMBER_H
 
 #include "THaDetector.h"
-#include "THaEvData.h"
+#include "TSolWedge.h"
 
+#include "THaEvData.h"
 #include "TSolGEMPlane.h"
+
+class TSolWedge;
 
 // A chamber contains one or more (currently hardwired at two) GEM planes.
 // It is rectangular, and oriented within a geometric plane of constant Z
@@ -21,6 +24,7 @@ class TSolGEMChamber : public THaDetector {
   virtual ~TSolGEMChamber();
 
   Int_t ReadDatabase (const TDatime& date);
+  Int_t ReadGeometry (FILE* file, const TDatime& date, Bool_t required);
 
   Int_t Decode( const THaEvData & );
 
@@ -30,8 +34,10 @@ class TSolGEMChamber : public THaDetector {
   Double_t GetUpperEdgeX() const {return +(GetSize())[0];}
   Double_t GetUpperEdgeY() const {return +(GetSize())[1];}
 
+  TSolWedge& GetWedge() const {return *fWedge;};
+  Double_t GetAngle() const {return fWedge->GetAngle();}; // rotation angle between lab and wedge frame
+
   UInt_t GetNPlanes() const {return fNPlanes;};
-  Double_t GetAngle() const {return fAngle;};
 
   TSolGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};
   void InitPlane (const UInt_t i, const char* name, const char* desc);
@@ -40,7 +46,7 @@ class TSolGEMChamber : public THaDetector {
  private:
   TSolGEMPlane** fPlanes; // List of chambers
   UInt_t fNPlanes;
-  Double_t fAngle;        // Angle of orientation
+  TSolWedge* fWedge;  // Wedge geometry
 
  public:
   ClassDef(TSolGEMChamber,0)

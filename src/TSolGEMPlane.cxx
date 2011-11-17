@@ -6,6 +6,7 @@
 
 #include "TSolGEMChamber.h"
 #include "TSolGEMCluster.h"
+#include "TSolWedge.h"
 #include "THaEvData.h"
 
 using namespace std;
@@ -13,7 +14,8 @@ using namespace std;
 TSolGEMPlane::TSolGEMPlane()
   : THaSubDetector()
 {
-//   fClusters = new TClonesArray("TSolGEMCluster", 100);  
+  //  fClusters = new TClonesArray("TSolGEMCluster", 100);  
+  fWedge = new TSolWedge;
   return;
 }
 
@@ -21,8 +23,15 @@ TSolGEMPlane::TSolGEMPlane( const char *name, const char *desc,
 			    THaDetectorBase* parent )
   : THaSubDetector (name, desc, parent)
 {
-//   fClusters = new TClonesArray("TSolGEMCluster", 100);  
+  //  fClusters = new TClonesArray("TSolGEMCluster", 100);  
+  fWedge = new TSolWedge;
   return;
+}
+
+TSolGEMPlane::~TSolGEMPlane()
+{
+  //  delete fClusters;
+  delete fWedge;
 }
 
 Int_t 
@@ -44,48 +53,71 @@ Int_t
 TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 			    Bool_t required)
 {
-  // Get x/y position, size, and frame angle from database if and only
+  // Get x/y position, size, and angles from database if and only
   // if parent is null otherwise copy from parent
 
-  // Note that origin is in lab frame, size is in chamber frame
+  // Note that origin is in lab frame, size is in wedge frame.
 
-  Int_t err = kOK;
+  Int_t err;
+  Double_t torad = atan(1) / 45.0;
+
   TSolGEMChamber* parent = (TSolGEMChamber*) GetParent();
-  if (parent == NULL)
-    {
-      THaSubDetector::ReadGeometry (file, date, false);
-      const DBRequest request[] = 
-	{
-	  {"angle",       &fAngle,       kDouble,    0, 1},
-	  {0}
-	};
-      err = LoadDB( file, date, request, fPrefix );
-      if (err)
-	return err;
-    }
-  else
+  Double_t z0;
+  Double_t depth;
+  if (parent != NULL)
     {
       fOrigin = parent->GetOrigin();
       fSize[0] = (parent->GetSize())[0];
       fSize[1] = (parent->GetSize())[1];
       fSize[2] = (parent->GetSize())[2];
-      fAngle = (parent->GetAngle());
-      Double_t z0 = fOrigin[2];
+      fWedge->SetGeometry (parent->GetWedge().GetR0(),
+			   parent->GetWedge().GetR1(),
+			   parent->GetWedge().GetPhi0(),
+			   parent->GetWedge().GetDPhi());
+      SetRotations();
+
+      z0 = fOrigin[2];
+      depth = fSize[2];
+    }
+  else
+    {
+      Double_t r0 = -999.0;
+      Double_t r1 = -999.0;
+      Double_t phi0 = -999.0;
+      Double_t dphi = -999.0;
       const DBRequest request[] = 
 	{
-	  {"z0",          &z0,           kDouble, 0, 1},
+	  {"r0",          &r0,           kDouble, 0, 1},
+	  {"r1",          &r1,           kDouble, 0, 1},
+	  {"phi0",        &phi0,         kDouble, 0, 1},
+	  {"dphi",        &dphi,         kDouble, 0, 1},
 	  {0}
 	};
       err = LoadDB( file, date, request, fPrefix );
+      
       if (err)
 	return err;
-      fOrigin[2] = z0;
+
+      // Database specifies angles in degrees, convert to radians
+      phi0 *= torad;
+      dphi *= torad;
+      
+      fWedge->SetGeometry (r0, r1, phi0, dphi);
+
+      fOrigin[0] = (fWedge->GetOrigin())[0];
+      fOrigin[1] = (fWedge->GetOrigin())[1];
+      fSize[0] = (fWedge->GetSize())[0];
+      fSize[1] = (fWedge->GetSize())[1];
+      z0 = -999.0;
+      depth = -999.0;
     }
 
   const DBRequest request[] = 
     {
-      {"direction",   &fDir,         kInt,    0, 1},
+      {"stripangle",  &fSAngle,      kDouble, 0, 1},
       {"pitch",       &fSPitch,      kDouble, 0, 1},
+      {"z0",          &z0,           kDouble, 0, 1},
+      {"depth",       &depth,        kDouble, 0, 1},
       {0}
     };
   err = LoadDB( file, date, request, fPrefix );
@@ -93,12 +125,30 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   if (err)
     return err;
 
-  SetRotations();
+  fSAngle *= torad;
 
-  fNStrips = 2 * (GetSize())[fDir] / fSPitch;
-  if (2 * (GetSize())[fDir] - fNStrips * fSPitch > 1E-9) 
-    fNStrips++;
-  fSBeg = -(GetSize())[fDir];
+  SetRotations();
+  fOrigin[2] = z0;
+  fSize[2] = depth;
+  
+  // Get numbers of strips
+
+  Double_t xs0 = (GetSize())[0];
+  Double_t ys0 = (GetSize())[1];
+  Double_t xs[4] = {xs0, xs0, -xs0, -xs0};
+  Double_t ys[4] = {ys0, -ys0, ys0, -ys0};
+
+  Int_t smin = 1e9;
+  Int_t smax = 1e-9;
+  for (UInt_t i = 0; i < 4; ++i)
+    {
+      PlaneToStrip (xs[i], ys[i]);
+      Int_t s = (Int_t) (xs[i] / GetSPitch());
+      if (s < smin) smin = s;
+      if (s > smax) smax = s;
+    }
+  fNStrips = smax - smin + 1;
+  fSBeg = -fNStrips * fSPitch * 0.5;
 
   return kOK;
 }
@@ -106,9 +156,9 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 Int_t TSolGEMPlane::Decode( const THaEvData &d ){
     // Clusters get made as so
 
-    int i = 0;
+  //    int i = 0;
 
-//     new ((*fClusters)[i]) TSolGEMCluster();
+    //    new ((*fClusters)[i]) TSolGEMCluster();
 
     return 0;
 }
@@ -116,34 +166,15 @@ Int_t TSolGEMPlane::Decode( const THaEvData &d ){
 Double_t 
 TSolGEMPlane::GetSAngle()   const
 {
-  if (fDir == kGEMX)
-    return 3.14159/2;
-  else if (fDir == kGEMY)
-    return 0.0;
-  else
-    {
-      cerr << __FUNCTION__ << " Strip angle undefined" << endl;
-      return 9999.0;
-    }
+  return fSAngle;
 }
 
 void
-TSolGEMPlane::LabToChamber (Double_t& x, Double_t& y) const
-{
-  x -= (GetOrigin())[0];
-  y -= (GetOrigin())[1];
-  Double_t temp = x;
-  x = fCLC * x - fSLC * y;
-  y = fSLC * temp + fCLC * y;
-  return;
-}
-
-void
-TSolGEMPlane::ChamberToStrip (Double_t& x, Double_t& y) const
+TSolGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
 {
   Double_t temp = x;
-  x = fCCS * x - fSCS * y;
-  y = fSCS * temp + fCCS * y;
+  x = fCWS * x - fSWS * y;
+  y = fSWS * temp + fCWS * y;
   return;
 }
 
@@ -159,22 +190,11 @@ TSolGEMPlane::LabToStrip (Double_t& x, Double_t& y) const
 }
 
 void
-TSolGEMPlane::StripToChamber (Double_t& x, Double_t& y) const
+TSolGEMPlane::StripToPlane (Double_t& x, Double_t& y) const
 {
   Double_t temp = x;
-  x = fCCS * x + fSCS * y;
-  y = -fSCS * temp + fCCS * y;
-  return;
-}
-
-void
-TSolGEMPlane::ChamberToLab (Double_t& x, Double_t& y) const
-{
-  Double_t temp = x;
-  x = fCLC * x + fSLC * y;
-  y = -fSLC * temp + fCLC * y;
-  x += (GetOrigin())[0];
-  y += (GetOrigin())[1];
+  x = fCWS * x + fSWS * y;
+  y = -fSWS * temp + fCWS * y;
   return;
 }
 
@@ -189,35 +209,23 @@ TSolGEMPlane::StripToLab (Double_t& x, Double_t& y) const
   return;
 }
 
+Double_t 
+TSolGEMPlane::GetStripLowerEdge (UInt_t is) const {return (fSBeg + is * GetSPitch());}
+
+Double_t 
+TSolGEMPlane::GetStripUpperEdge (UInt_t is) const {return GetStripLowerEdge (is) + GetSPitch();}
+
 Int_t
 TSolGEMPlane::GetStrip (Double_t x, Double_t y) const
 {
   // Strip number corresponding to coordinates x, y in 
   // strip frame, or -1 if outside (2-d) bounds
 
-  // For now strips are either horizontal or vertical, so this is easy
+  Double_t xc = x;
+  Double_t yc = y;
+  StripToLab (xc, yc);
 
-  Double_t xc, yc; // chamber frame
-  if (fDir == kGEMX)
-    {
-      xc = x;
-      yc = y;
-    }
-  else if (fDir == kGEMY)
-    {
-      xc = y;
-      yc = -x;
-    }
-  else
-    {
-      cerr << __FUNCTION__ << " Strip angle undefined" << endl;
-      return -1;
-    }
-
-  // Check if in bounds (with a grace margin)
-
-  if (xc < GetLowerEdgeX()-1e-3 || xc > GetUpperEdgeX()+1e-3 ||
-      yc < GetLowerEdgeY()-1e-3 || yc > GetUpperEdgeY()+1e-3)
+  if (!fWedge->Contains (xc, yc))
     return -1;
 
   Int_t s = (Int_t) ((x - fSBeg) / GetSPitch());
@@ -234,7 +242,15 @@ TSolGEMPlane::Print() const
 
   const Float_t* s = GetSize();
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
-  cout << "  " << GetNStrips() << " strips, pitch " << GetSPitch() << endl;
+
+  cout << "  Wedge geometry: r0: " << fWedge->GetR0()
+       << " r1: " << fWedge->GetR1()
+       << " phi0: " << fWedge->GetPhi0()
+       << " dphi: " << fWedge->GetDPhi() << endl;
+
+  cout << "  " << GetNStrips() << " strips, angle "
+       << GetSAngle() << ", pitch " 
+       << GetSPitch() << endl;
 }
 
 void
@@ -242,11 +258,8 @@ TSolGEMPlane::SetRotations()
 {
   // Set rotation angle trig functions
 
-  fCLC = -0.157;
-  fCLC = cos (-GetAngle());
-  fCCS = cos (-GetSAngle());
+  fCWS = cos (-GetSAngle());
   fCLS = cos (-GetAngle()-GetSAngle());
-  fSLC = sin (-GetAngle());
-  fSCS = sin (-GetSAngle());
+  fSWS = sin (-GetSAngle());
   fSLS = sin (-GetAngle()-GetSAngle());
 }
