@@ -272,14 +272,17 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
 	  TSolGEMVStrip **dh = AvaModel (igem, spect, vv1, vv2, time_zero);
-	  for (UInt_t j = 0; j < 2; j++) 
+	  if (dh != NULL)
 	    {
-	      fDP[igem][j]->Cumulate (dh[j], itype);
+	      for (UInt_t j = 0; j < 2; j++) 
+		{
+		  fDP[igem][j]->Cumulate (dh[j], itype);
+		}
+	      if (fOTree != NULL) FillTreeHit (ih, igem, dh, gdata);
+	      delete dh[0];
+	      delete dh[1];
+	      delete[] dh;
 	    }
-	  if (fOTree != NULL) FillTreeHit (ih, igem, dh, gdata);
-	  delete dh[0];
-	  delete dh[1];
-	  delete[] dh;
 	} 
     }
   if (fOTree != NULL) FillTreeEvent (gdata);
@@ -378,6 +381,8 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 				 const TVector3& xo,
 				 const Double_t time_off)
 {
+  // xi, xo are in chamber frame, in mm
+
   Double_t nsigma = fAvalancheFiducialBand; // coverage factor
 
   // DEBUG TRandom3 rnd(0);
@@ -412,6 +417,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of active area of the sector
+
     delete[] fRSNorm;
     delete[] fRCharge;
     delete[] fRX; 
@@ -437,11 +443,12 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
       // Positions in strip frame
       Double_t xs0 = x0 * 1e-3; Double_t ys0 = y0 * 1e-3;
-      pl->LabToStrip (xs0, ys0);
+      pl->PlaneToStrip (xs0, ys0);
       xs0 *= 1e3; ys0 *= 1e3;
       Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
-      pl->LabToStrip (xs1, ys1);
+      pl->PlaneToStrip (xs1, ys1);
       xs1 *= 1e3; ys1 *= 1e3;
+
       Int_t iL = pl->GetStrip (xs0 * 1e-3, ys0 * 1e-3);
       Int_t iU = pl->GetStrip (xs1 * 1e-3, ys1 * 1e-3);
       if (iL > iU)
@@ -497,7 +504,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 	  sgaus[i].SetParNames ("Const", "X_{0}", "Y_{0}", "#sigma");
 	  Double_t ggnorm = fRCharge[i] / 3.14 / 9. / fRSNorm[i] / fRSNorm[i]; // normalized to charge
 	  Double_t frxs = fRX[i] * 1e-3; Double_t frys = fRY[i] * 1e-3;
-	  pl->LabToStrip (frxs, frys);
+	  pl->PlaneToStrip (frxs, frys);
 	  frxs *= 1e3; frys *= 1e3;
 	  sgaus[i].SetParameters (ggnorm, frxs, frys, 3. * fRSNorm[i]);
 	  sgaus[i].SetNpx (nnx); 
@@ -534,7 +541,6 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
       virs[ipl]->SetTime(t0);
       virs[ipl]->SetHitCharge(fRTotalCharge);
-
       Double_t pulse=0.;
       Double_t noisy_pulse;
 
@@ -587,9 +593,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
   delete[] fRX; 
   delete[] fRY;
       
-  cerr << "returning virs" << endl;
   return virs;
-
 }
 
 void 
