@@ -84,20 +84,20 @@ TSolGEMData::PrintHit (UInt_t k)
   cout << "    Momentum: " << GetMomentum(k).X()
        << " " << GetMomentum(k).Y() 
        << " " << GetMomentum(k).Z() 
-       << endl;
+       << " MeV" << endl;
   cout << "    Hit entrance pos.: " << GetHitEntrance(k).X()
        << " " << GetHitEntrance(k).Y() 
        << " " << GetHitEntrance(k).Z() 
-       << endl;
+       << " mm" << endl;
   cout << "    Hit exit pos.: " << GetHitExit(k).X()
        << " " << GetHitExit(k).Y() 
        << " " << GetHitExit(k).Z() 
-       << endl;
+       << " mm" << endl;
   cout << "    Hit readout pos.: " << GetHitReadout(k).X()
        << " " << GetHitReadout(k).Y() 
        << " " << GetHitReadout(k).Z() 
-       << endl;
-  cout << "    Hit energy: " << GetHitEnergy(k) << endl;
+       << " mm" << endl;
+  cout << "    Hit energy: " << GetHitEnergy(k) << " eV" << endl;
   cout << "    Hit chamber: " << GetHitChamber(k) << endl;
   cout << "    Particle ID: " << GetParticleID(k) << endl;
   cout << "    Particle type: " << GetParticleType(k) << endl;

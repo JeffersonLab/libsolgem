@@ -20,32 +20,35 @@ namespace evio {
 
 #include "TROOT.h"
 
+#include "TSolGEMData.h"
+
+#define __DEFAULT_DATA_SIZE 32
+
 ////////////////////////////////////////////////////////////////////////////
 // Auxilliary class for storing hit data
 //
+// Stores an arbitrary double data in dynamically allocated
+// arrays.  Allows us to add in data as we get it and then check
+// to make sure all entries in the array are filled
 
 class hitdata {
     public:
-	hitdata(int crate, int slot, unsigned int size);
-	virtual ~hitdata();
+	hitdata( int detid, int size = __DEFAULT_DATA_SIZE );
+	~hitdata();
 
-	void AddDatum( int chan, double data );
-	vector <double> GetDataArray( int chan ){ return fData[chan];}
+	int     GetDetID(){ return fDetID;}
 
-	bool IsFilled();
-	int GetSlot(){ return fSlot; }
-	int GetCrate(){ return fCrate; }
-	unsigned int GetSize(){ return fSize; }
+	void    SetData( int, double );
+	double  GetData( int );
+	double *GetData(){ return fData; }
 
-	void Clear();
+	bool    IsFilled();
 
-	unsigned int GetNHits();
     private:
-	unsigned int fSize;
-	int fSlot;
-	int fCrate;
-
-	vector <double> *fData;
+	int     fDetID;
+	unsigned int     fSize;
+	long long int fFillbits;
+	double *fData;
 };
 
 
@@ -69,7 +72,7 @@ class TSolEVIOFile {
 
 	Int_t ReadNextEvent();
 	void  ExtractDetIDs( evio::evioDOMNodeList *, int );
-	void  BuildData( evio::evioDOMNodeList *, int, int );
+	void  BuildData( evio::evioDOMNodeList * );
 	void  AddDatum(int crate, int slot, int chan, double data );
 
 	UInt_t GetNData(){ return fHitData.size(); }
@@ -77,11 +80,13 @@ class TSolEVIOFile {
 	UInt_t GetEvNum(){ return fEvNum; }
 
 	hitdata *GetHitData(Int_t i){ return fHitData[i]; }
+
+	TSolGEMData *GetGEMData();
+
     private:
 	char  fFilename[255];
 	evio::evioFileChannel *fChan;
 
-	vector<int> fDetID;
 	vector<hitdata *> fHitData;
 
 	unsigned int fEvNum;

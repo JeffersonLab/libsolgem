@@ -18,7 +18,7 @@ class TSolGEMData
   void InitEvent (UInt_t h);
   
   void SetNHit (UInt_t h) {fNHit = h;};
-  void SetEvent (UInt_t id) {fEvtID = id;};
+  void SetEvent (UInt_t id) {fEvtID = id; };
   void SetRun (UInt_t r) {fRunID = r;};
 
   void SetMomentum (UInt_t k, const TVector3& p) {*(fMom[k]) = p;};

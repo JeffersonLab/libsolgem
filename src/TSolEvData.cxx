@@ -58,6 +58,7 @@ int TSolEvData::LoadEvent( TSolEVIOFile *f, THaCrateMap *map ){
     Int_t raw;
     Float_t fraw;
 
+    /*
     for( i = 0; i < f->GetNData(); i++ ){
 	data  = f->GetHitData(i);
 	crate = data->GetCrate();
@@ -81,6 +82,7 @@ int TSolEvData::LoadEvent( TSolEVIOFile *f, THaCrateMap *map ){
 	    }
 	}
     }
+    */
 
     // Et, viola!
 
