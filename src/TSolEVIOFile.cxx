@@ -85,7 +85,7 @@ Int_t TSolEVIOFile::ReadNextEvent(){
 
     Clear();
 
-    bool res;
+    bool res = false;
 
     try {
 	res = fChan->read(); 
@@ -116,8 +116,8 @@ Int_t TSolEVIOFile::ReadNextEvent(){
 
     //  Loop over these to get number of events
     for( iter = eHdrNodeList->begin(); iter != eHdrNodeList->end(); iter++ ){
-	const evio::evioDOMNodeP ev = *iter;
-	const vector<int> *vec = ev->getVector<int>();
+	//const evio::evioDOMNodeP ev = *iter;
+	//const vector<int> *vec = ev->getVector<int>();
 	// Event number should be (*vec)[0];
     }
 
@@ -139,8 +139,6 @@ Int_t TSolEVIOFile::ReadNextEvent(){
 
     // Raw events
     evio::evioDOMNodeListP eRawNodeList = EDT.getNodeList(evio::tagNumEquals(__GEM_TAG, 200));
-
-    unsigned int i = 0;
 
     for( iter = eRawNodeList->begin(); iter != eRawNodeList->end(); iter++ ){
 #ifdef  DEBUG
@@ -260,36 +258,86 @@ void TSolEVIOFile::Clear(){
 TSolGEMData *TSolEVIOFile::GetGEMData(){
     // Pack data into TSolGEMData
    
-    unsigned int i;
+    unsigned int i,j;
 
-    hitdata *h;
+    hitdata *h, *hs;
 
+    bool matchedstrip;
+
+    // Upper limit of what we need.  Probably only a 
+    // factor of 2 high
     TSolGEMData *gd = new TSolGEMData(GetNData());
     gd->SetEvent(fEvNum);
     gd->SetRun(0);
 
+    int ngdata = 0;
+
     for( i = 0; i < GetNData(); i++ ){
 	h = GetHitData(i);
 
-	// Vector information
-	TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
-	gd->SetMomentum(i, p);
+	// Chamber IDs are tagged as 
+	// xxyy  where xx is the chamber num and yy is the 
+	// plane num  we find the drift planes and then
+	// match them to the corresponding readout hits
+	
+	if( h->GetDetID()%100 == __GEM_DRIFT_ID ){
+	    // Vector information
+	    TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
+	    gd->SetMomentum(ngdata, p);
 
-	TVector3 li(h->GetData(5), h->GetData(6), h->GetData(7));
-	gd->SetHitEntrance(i, li);
+	    TVector3 li(h->GetData(5), h->GetData(6), h->GetData(7));
+	    gd->SetHitEntrance(ngdata, li);
 
-	TVector3 lo(h->GetData(9), h->GetData(10), h->GetData(11));
-	gd->SetHitExit(i, lo);
+	    TVector3 lo(h->GetData(9), h->GetData(10), h->GetData(11));
+	    gd->SetHitExit(ngdata, lo);
 
-	TVector3 lr(h->GetData(2), h->GetData(3), h->GetData(4));
-	gd->SetHitReadout(i, lr);
+	    gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
+	    gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
+	    gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
 
-	///////////////////////////////
+	    gd->SetHitChamber(ngdata, h->GetDetID()/100 );
 
-	gd->SetHitEnergy( i, h->GetData(1)*1e6 ); // Gives eV
-	gd->SetHitChamber( i, h->GetDetID() );
-	gd->SetParticleID( i, (UInt_t) h->GetData(18) );
-	gd->SetParticleType( i, (UInt_t) h->GetData(13) );
+	    ////////////////////////////////////////////
+	    // Search other hits for the corresponding 
+	    // it on the strip
+
+	    matchedstrip = false;
+	    for( j = 0; j < GetNData(); j++ ){
+		hs = GetHitData(j);
+
+		if( hs->GetDetID()%100 == __GEM_STRIP_ID &&    // is strip plane
+		    hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
+		    ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
+		 ){
+		    if( !matchedstrip ){
+			// This is the truth information
+			TVector3 lr(hs->GetData(2), hs->GetData(3), hs->GetData(4));
+			gd->SetHitReadout(ngdata, lr);
+			matchedstrip = true;
+		    } else {
+			fprintf(stderr, "%s %s line %d: Found multiple readout plane hits matching drift hit.  Truth information may be inaccurate\n",
+				__FILE__, __FUNCTION__, __LINE__);
+		    }
+		} 
+	    }
+
+	    if( !matchedstrip && (UInt_t) h->GetData(18) == 1 ){
+		// FIXME
+		// SPR 12/2/2011
+		// This isn't the greatest way to do this but we're usually intersted in 
+		// Particle 1 when we're looking at doing tracking.  Not all things depositing
+		// energy leave a corresponding hit in the cathode plane.  Maybe we can look at
+		// the mother IDs or something later.  
+
+		fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
+			__FILE__, __FUNCTION__, __LINE__);
+		TVector3 lr(-1e9, -1e9, -1e9);
+		gd->SetHitReadout(ngdata, lr);
+	    }
+
+	    ngdata++;
+	}
+	gd->SetNHit(ngdata);
     }
 
     return gd;
@@ -299,7 +347,7 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
 ///////////////////////////////////////////////////////////////
 // hitdata classes
 
-hitdata::hitdata(int detid, int size ){
+hitdata::hitdata(int detid, unsigned int size ){
     fDetID = detid;
     fData  = new double[size];
     fSize  = size;
@@ -319,8 +367,8 @@ hitdata::hitdata(int detid, int size ){
     fData[0] = 3.1415927;
 }
 
-void hitdata::SetData(int idx, double data ){
-    if( idx < 0 || idx >= fSize ){
+void hitdata::SetData(unsigned int idx, double data ){
+    if( idx >= fSize ){
 	fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
 	return;
 
@@ -332,8 +380,8 @@ void hitdata::SetData(int idx, double data ){
     return;
 }
 
-double hitdata::GetData(int idx){
-    if( idx < 0 || idx >= fSize ){
+double hitdata::GetData(unsigned int idx){
+    if( idx >= fSize ){
 	fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
 	return 1e9;
     }

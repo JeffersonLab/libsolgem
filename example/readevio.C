@@ -28,15 +28,14 @@ void readevio(){
     
     while( f->ReadNextEvent() ){
 	printf("Event %d\n", f->GetEvNum());
-	ndata = f->GetNData();
 
 	gd = f->GetGEMData();
 
 	printf("ndata = %d\n", (int) gd->GetNHit() );
+	ndata = gd->GetNHit();
 	for( i = 0; i < ndata; i++ ){
 	    gd->PrintHit(i);
 	}
 	printf("\n");
-	exit(1);
     }
 }

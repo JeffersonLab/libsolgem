@@ -33,13 +33,13 @@ namespace evio {
 
 class hitdata {
     public:
-	hitdata( int detid, int size = __DEFAULT_DATA_SIZE );
+	hitdata( int detid, unsigned int size = __DEFAULT_DATA_SIZE );
 	~hitdata();
 
 	int     GetDetID(){ return fDetID;}
 
-	void    SetData( int, double );
-	double  GetData( int );
+	void    SetData( unsigned int, double );
+	double  GetData( unsigned int );
 	double *GetData(){ return fData; }
 
 	bool    IsFilled();

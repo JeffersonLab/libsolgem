@@ -17,6 +17,9 @@
 #define __GEM_TAG  110
 #define __FLUX_TAG 800
 
+#define __GEM_DRIFT_ID 6
+#define __GEM_STRIP_ID 19
+
 int __gemc_types_datasize[NBANKS] = {23,21};
 int __gemc_types_detidnum[NBANKS] = {23,21};
 
