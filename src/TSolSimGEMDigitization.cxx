@@ -415,6 +415,8 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
   Double_t gux = spect.GetChamber(ic).GetUpperEdgeX() * 1000.0;
   Double_t guy = spect.GetChamber(ic).GetUpperEdgeY() * 1000.0;
 
+//    fprintf(stderr, "%s %s:  out of sector, chamber %d\nFollowing relations should hold:\n(x1 %f>glx %f) (x0 %f<gux %f)\n(y1 %f>gly %f) (y0 %f<guy %f)\n\n", __FILE__,  __FUNCTION__, ic, x1, glx, x0, gux, y1, gly, y0, guy );
+
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of active area of the sector
 
@@ -423,6 +425,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
     delete[] fRX; 
     delete[] fRY; 
     cerr << "out of sector" << endl;
+    fprintf(stderr, "%s %s:  out of sector, chamber %d\nFollowing relations should hold:\n(x1 %f>glx %f) (x0 %f<gux %f)\n(y1 %f>gly %f) (y0 %f<guy %f)\n\n", __FILE__,  __FUNCTION__, ic, x1, glx, x0, gux, y1, gly, y0, guy );
     return 0;
   }
 

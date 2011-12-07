@@ -12,19 +12,15 @@ TSolEVIOFile::TSolEVIOFile(){
     fFilename[0] = '\0';
     fChan = NULL;
 
-    printf("Hi, I'm an EVIO file!\n");
-
     return;
 }
 
 TSolEVIOFile::TSolEVIOFile(const char *f){
-    printf("Hi, I'm an EVIO file for %s!\n", f);
     SetFilename(f);
     return;
 }
 
 TSolEVIOFile::~TSolEVIOFile(){
-    printf("Goodbye, cruel world\n");
     return; 
 }
 
@@ -223,7 +219,7 @@ void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits  ){
 	vnum = v->num;
 	vector<double> *vec = v->getVector<double>();
 
-	// Build hit event using extracted detector IDs 
+	// Build hit event 
 	for(  i = 0; i < vec->size(); i++ ){
 	   fHitData[i]->SetData(vnum, (*vec)[i]); 
 	}
@@ -295,7 +291,9 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
 	    gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
 	    gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
 
-	    gd->SetHitChamber(ngdata, h->GetDetID()/100 );
+	    // Chamber ID starts indexing a 0 whereas we start conventionally
+	    // at 1 
+	    gd->SetHitChamber(ngdata, h->GetDetID()/100 - 1 );
 
 	    ////////////////////////////////////////////
 	    // Search other hits for the corresponding 
@@ -387,7 +385,7 @@ double hitdata::GetData(unsigned int idx){
     }
 
     if( !(fFillbits & (1<<idx)) ){
-	fprintf(stderr, "%s %s line %d:  Error:  Accessing unset data (idx %d of 0x%08x) val: %f\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, (int) this, fData[idx] );
+	fprintf(stderr, "%s %s line %d:  Error:  Accessing unset data (idx %d) val: %f\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fData[idx] );
 	return 1e9;
     }
 
