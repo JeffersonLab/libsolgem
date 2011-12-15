@@ -1,6 +1,4 @@
 950101
-gemccham1.position = 0.0 0.0 1.55
-gemccham1.size = 0.61 0.25 0.3
 gemccham1.r0 = 0.55
 gemccham1.r1 = 1.15
 gemccham1.phi0 = -6
@@ -12,8 +10,6 @@ gemccham1.gemccham1x.pitch = 0.001
 gemccham1.gemccham1y.stripangle = 5
 gemccham1.gemccham1y.pitch = 0.001
 
-gemccham2.position = 0.0 0.0 1.85
-gemccham2.size = 0.76 0.30 0.3
 gemccham2.r0 = 0.65
 gemccham2.r1 = 1.45
 gemccham2.phi0 = -6
@@ -25,8 +21,6 @@ gemccham2.gemccham2x.pitch = 0.001
 gemccham2.gemccham2y.stripangle = 5
 gemccham2.gemccham2y.pitch = 0.001
 
-gemccham3.position = 0.0 0.0 3.06
-gemccham3.size = 0.96 0.42 0.3
 gemccham3.r0 = 1.05
 gemccham3.r1 = 2.00
 gemccham3.phi0 = -6
@@ -38,8 +32,6 @@ gemccham3.gemccham3x.pitch = 0.001
 gemccham3.gemccham3y.stripangle = 5
 gemccham3.gemccham3y.pitch = 0.001
 
-gemccham4.position = 0.0 0.0 3.21
-gemccham4.size = 1.01 0.45 0.3
 gemccham4.r0 = 1.15
 gemccham4.r1 = 2.15
 gemccham4.phi0 = -6
