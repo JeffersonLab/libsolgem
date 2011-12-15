@@ -17,34 +17,28 @@ void DigDemo2(){
     dds->Init();
 
     ddy = new TSolGEMChamber ("gemccham1","Test chamber");
-    ddy->SetName("gemccham1");
     ddy->Init();
-    ddy->Print();
     dds->AddGEM (*ddy);
 
     printf("\n");
 
     ddy = new TSolGEMChamber ("gemccham2","Test chamber");
-    ddy->SetName("gemccham2");
     ddy->Init();
-    ddy->Print();
     dds->AddGEM (*ddy);
 
     printf("\n");
 
     ddy = new TSolGEMChamber ("gemccham3","Test chamber");
-    ddy->SetName("gemccham3");
     ddy->Init();
-    ddy->Print();
     dds->AddGEM (*ddy);
 
     printf("\n");
 
     ddy = new TSolGEMChamber ("gemccham4","Test chamber");
-    ddy->SetName("gemccham4");
     ddy->Init();
-    ddy->Print();
     dds->AddGEM (*ddy);
+
+    dds->Print();
 
     ddd = new TSolSimGEMDigitization (*dds);
 
@@ -76,6 +70,7 @@ void DigDemo2(){
 
 	ddd->Digitize(*gd, *dds);
 	ndata++;
+	delete gd;
     }
     printf("Completed %d events\n", ndata);
 

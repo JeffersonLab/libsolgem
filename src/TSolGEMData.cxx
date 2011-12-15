@@ -11,6 +11,7 @@ TSolGEMData::TSolGEMData (UInt_t h)
 
 TSolGEMData::~TSolGEMData()
 {
+  ClearEvent();
 }
 
 void 
@@ -36,7 +37,7 @@ TSolGEMData::ClearEvent()
     delete[] fXr;
     delete[] fMom;
     
-    cerr << __FUNCTION__ << "fGEM deleted " << endl;
+    //    cerr << __FUNCTION__ << "fGEM deleted " << endl;
     
     fGem = 0;
     fNHit = 0;    
