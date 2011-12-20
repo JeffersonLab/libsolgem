@@ -45,6 +45,7 @@ class TSolDigitizedPlane
   TSolDigitizedPlane (Short_t nstrip,
 		      Short_t nsample = 10);
   ~TSolDigitizedPlane();
+  void Init();
 
   // cumulate hits (strips signals)
   void Cumulate (TSolGEMVStrip *vv, Int_t type) const;

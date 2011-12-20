@@ -35,21 +35,13 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
   fTotADC = new Short_t[nstrip];
   fOverThr = new UInt_t[nstrip];
   
-  for (Int_t i=0;i<nstrip;i++) {
-    fTotADC[i]=0.;
-    fType[i]=0;
-    fCharge[i] = 0.;
-    fTime[i] = 9999.;
-  }
-  
   fPStripADC = new TArrayS(fNSamples*nstrip);
-  
-  fPStripADC->Reset();
   
   if (fPStripADC==0) {
     cerr << __FUNCTION__ << " allocation failed" << endl;
+    return;
   }
-
+  Init();
 };
 
 TSolDigitizedPlane::~TSolDigitizedPlane() 
@@ -61,6 +53,19 @@ TSolDigitizedPlane::~TSolDigitizedPlane()
   delete[] fTotADC;
   delete[] fOverThr;
 };
+
+void
+TSolDigitizedPlane::Init()
+{
+  for (Int_t i = 0; i < fNStrips; i++) 
+    {
+      fTotADC[i]=0.;
+      fType[i]=0;
+      fCharge[i] = 0.;
+      fTime[i] = 9999.;
+    }
+  fPStripADC->Reset();
+}
 
 void 
 TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
@@ -239,7 +244,14 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
 void 
 TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spect) // digitize event 
 {
+  fNTreeHits = 0;
   UInt_t nh = gdata.GetNHit();
+
+  for (UInt_t ic = 0; ic < fNChambers; ++ic)
+    {
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
+	fDP[ic][ip]->Init();
+    }
 
   for (UInt_t ih = 0; ih < nh; ++ih)
     {
