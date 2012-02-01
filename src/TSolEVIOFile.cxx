@@ -266,17 +266,20 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
     gd->SetEvent(fEvNum);
     gd->SetRun(0);
 
-    int ngdata = 0;
+    if (GetNData() == 0)
+      gd->SetNHit (0);
+    else
+      {
+	int ngdata = 0;
+	for( i = 0; i < GetNData(); i++ ){
+	  h = GetHitData(i);
 
-    for( i = 0; i < GetNData(); i++ ){
-	h = GetHitData(i);
-
-	// Chamber IDs are tagged as 
-	// xxyy  where xx is the chamber num and yy is the 
-	// plane num  we find the drift planes and then
-	// match them to the corresponding readout hits
+	  // Chamber IDs are tagged as 
+	  // xxyy  where xx is the chamber num and yy is the 
+	  // plane num  we find the drift planes and then
+	  // match them to the corresponding readout hits
 	
-	if( h->GetDetID()%100 == __GEM_DRIFT_ID ){
+	  if( h->GetDetID()%100 == __GEM_DRIFT_ID ){
 	    // Vector information
 	    TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
 	    gd->SetMomentum(ngdata, p);
@@ -301,42 +304,43 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
 
 	    matchedstrip = false;
 	    for( j = 0; j < GetNData(); j++ ){
-		hs = GetHitData(j);
+	      hs = GetHitData(j);
 
-		if( hs->GetDetID()%100 == __GEM_STRIP_ID &&    // is strip plane
-		    hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
-		    ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
-		 ){
-		    if( !matchedstrip ){
-			// This is the truth information
-			TVector3 lr(hs->GetData(2), hs->GetData(3), hs->GetData(4));
-			gd->SetHitReadout(ngdata, lr);
-			matchedstrip = true;
-		    } else {
-			fprintf(stderr, "%s %s line %d: Found multiple readout plane hits matching drift hit.  Truth information may be inaccurate\n",
-				__FILE__, __FUNCTION__, __LINE__);
-		    }
-		} 
+	      if( hs->GetDetID()%100 == __GEM_STRIP_ID &&    // is strip plane
+		  hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
+		  ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
+		  ){
+		if( !matchedstrip ){
+		  // This is the truth information
+		  TVector3 lr(hs->GetData(2), hs->GetData(3), hs->GetData(4));
+		  gd->SetHitReadout(ngdata, lr);
+		  matchedstrip = true;
+		} else {
+		  fprintf(stderr, "%s %s line %d: Found multiple readout plane hits matching drift hit.  Truth information may be inaccurate\n",
+			  __FILE__, __FUNCTION__, __LINE__);
+		}
+	      } 
 	    }
 
 	    if( !matchedstrip && (UInt_t) h->GetData(18) == 1 ){
-		// FIXME
-		// SPR 12/2/2011
-		// This isn't the greatest way to do this but we're usually intersted in 
-		// Particle 1 when we're looking at doing tracking.  Not all things depositing
-		// energy leave a corresponding hit in the cathode plane.  Maybe we can look at
-		// the mother IDs or something later.  
+	      // FIXME
+	      // SPR 12/2/2011
+	      // This isn't the greatest way to do this but we're usually intersted in 
+	      // Particle 1 when we're looking at doing tracking.  Not all things depositing
+	      // energy leave a corresponding hit in the cathode plane.  Maybe we can look at
+	      // the mother IDs or something later.  
 
-		fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
-			__FILE__, __FUNCTION__, __LINE__);
-		TVector3 lr(-1e9, -1e9, -1e9);
-		gd->SetHitReadout(ngdata, lr);
+	      fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
+		      __FILE__, __FUNCTION__, __LINE__);
+	      TVector3 lr(-1e9, -1e9, -1e9);
+	      gd->SetHitReadout(ngdata, lr);
 	    }
 
 	    ngdata++;
+	  }
+	  gd->SetNHit(ngdata);
 	}
-	gd->SetNHit(ngdata);
-    }
+      }
 
     return gd;
 }
