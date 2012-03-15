@@ -70,10 +70,9 @@ void DigDemo2(){
 	gd = f->GetGEMData();
 	gen = f->GetGenData(0);
 
-	printf("Generated p: ");
-	gen[0]->GetP().Print();
-	printf("Generated v: ");
-	gen[0]->GetV().Print();
+	// Access to generated vertex and momentum
+	gen->GetV();
+	gen->GetP();
 
 	ddd->Digitize(*gd, *dds);
 	ndata++;
