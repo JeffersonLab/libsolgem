@@ -117,7 +117,21 @@ Int_t TSolEVIOFile::ReadNextEvent(){
 	// Event number should be (*vec)[0];
     }
 
+    // Extract generated data
+    evio::evioDOMNodeListP eGenNodeList = EDT.getNodeList(evio::tagNumEquals(__GENERATED_TAG, 200));
 
+    for( iter = eGenNodeList->begin(); iter != eGenNodeList->end(); iter++ ){
+#ifdef  DEBUG
+	fprintf(stderr, "%s %s line %d: Processing raw (float data) generated tracks\n",
+		__FILE__, __FUNCTION__, __LINE__ );
+#endif//DEBUG
+
+	/////////////////////////////////////////////////////////////////////
+	// Add events to data arrays
+	if( (*iter)->isContainer() ){
+	    BuildGenerated( (*iter)->getChildList() );
+	}
+    }
     
     // Extract Detector IDs
     evio::evioDOMNodeListP eDigNodeList = EDT.getNodeList(evio::tagNumEquals(__GEM_TAG, 100));
@@ -131,7 +145,6 @@ Int_t TSolEVIOFile::ReadNextEvent(){
 	    ExtractDetIDs( (*iter)->getChildList(), __GEM_TAG  );
 	}
     }
-
 
     // Raw events
     evio::evioDOMNodeListP eRawNodeList = EDT.getNodeList(evio::tagNumEquals(__GEM_TAG, 200));
@@ -199,6 +212,41 @@ void TSolEVIOFile::ExtractDetIDs( evio::evioDOMNodeList *hits, int tag  ){
     return;
 }
 
+void TSolEVIOFile::BuildGenerated( evio::evioDOMNodeList *hits  ){
+    evio::evioDOMNodeList::const_iterator iter;
+    int vnum;
+    unsigned int i;
+
+    // Loop through everything with this tag
+    for( iter = hits->begin(); iter != hits->end(); iter++ ){
+	// Extract node
+
+	const evio::evioDOMNodeP v = *iter;
+
+	// Make sure this child leaf is actually data
+	if( !v->isLeaf() ){
+	    continue;
+	}
+
+	// vnum is the variable number
+	vector<double> *vec = v->getVector<double>();
+
+	if( fGenData.size() < vec->size() ){
+	    for(  i = 0; i < vec->size(); i++ ){
+		fGenData.push_back( new gendata() );
+	    }
+	}
+
+	vnum = v->num;
+	// Build hit event 
+	for(  i = 0; i < vec->size(); i++ ){
+	   fGenData[i]->SetData(vnum/10-1, (*vec)[i]); 
+	}
+    }
+
+    return;
+}
+
 void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits  ){
     evio::evioDOMNodeList::const_iterator iter;
     int vnum;
@@ -229,7 +277,7 @@ void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits  ){
 }
 
 void TSolEVIOFile::Clear(){
-    // Clear out hit data
+    // Clear out hit and generated data
 
 #ifdef  DEBUG
 	fprintf(stderr, "%s %s line %d: Deleting hits\n",
@@ -241,7 +289,12 @@ void TSolEVIOFile::Clear(){
 	delete fHitData[i];
     }
 
+    for( i = 0; i < fGenData.size(); i++ ){
+	delete fGenData[i];
+    }
+
     fHitData.clear();
+    fGenData.clear();
 
 #ifdef  DEBUG
 	fprintf(stderr, "%s %s line %d: Hits deleted\n",
@@ -408,14 +461,9 @@ hitdata::~hitdata(){
     delete fData;
 }
 
+///////////////////////////////////////////////////////////////
+// gendata classes
+
+gendata::gendata():hitdata(-1, __GENERATED_SIZE){;}
 
 #endif//__CINT__
-
-
-
-
-
-
-
-
-

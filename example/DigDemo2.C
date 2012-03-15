@@ -60,6 +60,7 @@ void DigDemo2(){
 
     int  ndata, i;
     TSolGEMData *gd;
+    gendata *gen;
 
     ddd->InitTree (*dds, "digdemo2.root");
     
@@ -67,6 +68,12 @@ void DigDemo2(){
     ndata = 0;
     while( f->ReadNextEvent() ){
 	gd = f->GetGEMData();
+	gen = f->GetGenData(0);
+
+	printf("Generated p: ");
+	gen[0]->GetP().Print();
+	printf("Generated v: ");
+	gen[0]->GetV().Print();
 
 	ddd->Digitize(*gd, *dds);
 	ndata++;

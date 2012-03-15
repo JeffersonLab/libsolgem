@@ -14,8 +14,11 @@
 #define NBANKS 2
 
 // Tag numbers associated in the GEMC banks
+#define __GENERATED_TAG  10
 #define __GEM_TAG  110
 #define __FLUX_TAG 800
+
+#define __GENERATED_SIZE 7
 
 #define __GEM_DRIFT_ID 6
 #define __GEM_STRIP_ID 19
