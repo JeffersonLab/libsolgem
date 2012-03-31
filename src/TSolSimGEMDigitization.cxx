@@ -111,8 +111,11 @@ TSolDigitizedPlane::Threshold (Short_t thr)
 };
 
 
-TSolSimGEMDigitization::TSolSimGEMDigitization(const TSolSpec& spect)
+TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
+						const char* name )
+  : THaAnalysisObject(name, "GEM simulation digitizer")
 {
+  Init( TDatime() );
   Initialize (spect);
 }
 
@@ -143,65 +146,9 @@ TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 	fDP[ic][ip] = new TSolDigitizedPlane (spect.GetChamber(ic).GetPlane(ip).GetNStrips());
     }
 
-  SetGasParams();
-  SetEleParams();
-  SetPulseShaping();
-
   fOFile = NULL;
   fOTree = NULL;
   fNTreeHits = 0;
-}
-
-void 
-TSolSimGEMDigitization::SetGasParams (Double_t wion, // eV 
-				      Double_t diff,  // cm2/s
-				      Double_t vDrift, // cm/s
-				      Double_t avFidBand, // n sigma
-				      Int_t    avChargeStats,  // 0 Furry, 1 Gaussian
-				      Double_t gainMean,
-				      Double_t gain0
-				      )
-{
-  fGasWion = wion;
-  fGasDiffusion = diff* 100;
-  fGasDriftVelocity = vDrift*10.;
-  fAvalancheFiducialBand = avFidBand; // number of sigma defining the band around the avalanche in readout plane
-  fAvalancheChargeStatistics = avChargeStats;
-  fGainMean = gainMean;
-  fGain0 = gain0;
-}
-
-void 
-TSolSimGEMDigitization::SetEleParams (Double_t off,  // trigger offset [ns] 
-				      Double_t jit,   // trigger sigma jitter [ns]
-				      Double_t sampleTime, // 25 ns
-				      Int_t samplePoints,
-				      Double_t pulseNoiseSigma,
-				      Int_t thr,       // electronics sparse readout threshold (adc unit)
-				      Double_t adc_off, 
-				      Double_t adc_gain, 
-				      Int_t adc_bits,
-				      Double_t gateWidth
-				      )
-{
-  fTriggerOffset = off;
-  fTriggerJitter = jit;
-  fEleSamplingPoints = samplePoints;
-  fEleSamplingPeriod = sampleTime;
-  fPulseNoiseSigma = pulseNoiseSigma;
-  fADCoffset = adc_off;
-  fADCgain = adc_gain;
-  fADCbits = adc_bits;
-  fGateWidth = gateWidth;
-}
-
-void 
-TSolSimGEMDigitization::SetPulseShaping (Double_t tau0, // [ns] GEM model; = 50. in SiD model 
-					 Double_t tau1 // [ns] GEM model only; if negative assume SiD model
-					 ) 
-{
-  fPulseShapeTau0 = tau0;
-  fPulseShapeTau1 = tau1;
 }
 
 Int_t 

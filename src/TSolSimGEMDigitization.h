@@ -69,32 +69,11 @@ class TSolDigitizedPlane
 class TSolSimGEMDigitization: public THaAnalysisObject
 {
  public:
-  TSolSimGEMDigitization(const TSolSpec& spect);
+  TSolSimGEMDigitization( const TSolSpec& spect,
+			  const char* name = "testdigitization");
   virtual ~TSolSimGEMDigitization();
 
   void Initialize(const TSolSpec& spect);
-  void SetGasParams (Double_t wion = 26., // eV 
-		     Double_t diff = 250.,  // cm2/s
-		     Double_t vDrift = 5.5*1e6, // cm/s
-		     Double_t avFidBand = 10.0, // n sigma
-		     Int_t    avChargeStats = 0, // 0 Furry, 1 Gaussian
-		     Double_t gainMean = 8000.0,
-		     Double_t gain0 = 20.0
-		     );
-  void SetEleParams (Double_t off=10.,  // trigger offset [ns] 
-		     Double_t jit=5.,   // trigger sigma jitter [ns]
-		     Double_t sampleTime = 25., // 25 ns
-		     Int_t samplePoints = 10,
-		     Double_t pulseNoiseSigma = 100.0, // sigma of the gaussian noise distribution on each sample
-		     Int_t thr=1,       // electronics sparse readout threshold (adc unit)
-		     Double_t adc_off=0., 
-		     Double_t adc_gain=1., 
-		     Int_t adc_bits=12,
-		     Double_t gateWidth = 100.
-		     );
-  void SetPulseShaping (Double_t tau0=38.3, // [ns] GEM model; = 50. in SiD model 
-			Double_t tau1=129. // [ns] GEM model only; if negative assume SiD model
-			);
   Int_t ReadDatabase (const TDatime& date);
 
   void Digitize (const TSolGEMData& gdata, const TSolSpec& spect); // digitize event  
@@ -145,17 +124,17 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   
 
   // Gas parameters
-  Double_t fGasWion;
-  Double_t fGasDiffusion;
-  Double_t fGasDriftVelocity;
+  Double_t fGasWion;               // eV
+  Double_t fGasDiffusion;          // mm2/s
+  Double_t fGasDriftVelocity;      // mm/s
   Double_t fAvalancheFiducialBand; // number of sigma defining the band around the avalanche in readout plane
   Int_t    fAvalancheChargeStatistics;  // 0 Furry, 1 Gaussian
   Double_t fGainMean;
   Double_t fGain0;
 
   // Electronics parameters
-  Double_t fTriggerOffset;    // trigger offset (ns)
-  Double_t fTriggerJitter;       // trigger sigma jitter
+  Double_t fTriggerOffset;       // trigger offset (ns)
+  Double_t fTriggerJitter;       // trigger sigma jitter (ns)
   Int_t    fEleSamplingPoints;   
   Double_t fEleSamplingPeriod;    // ns    
   Double_t fPulseNoiseSigma;  // sigma of the gaussian noise distribution on each sample
