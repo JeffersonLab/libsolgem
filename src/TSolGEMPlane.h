@@ -41,6 +41,12 @@ class TSolWedge;
 // The "strip frame" is the wedge frame additionally rotated by the
 // strip angle, so the strips are parallel to y and measure position in x.
 
+// The "projection frame" is a 1D coordinate system parallel to the x axis
+// of the strip frame where 0 coincides with the the strip frame x coordinate 
+// that runs through the lab origin.  This frame is equivalent for all wedges 
+// of the same wire  orientation regardless of position, so it is the frame
+// to do tracking in
+
 // The origin and phi0 are specified in the lab frame. The size is in the
 // wedge frame.
 
@@ -75,6 +81,11 @@ class TSolGEMPlane : public THaSubDetector {
 	void StripToLab (Double_t& x, Double_t& y) const;  // input and output in meters
 	void StripToPlane (Double_t& x, Double_t& y) const;  // input and output in meters
 	void PlaneToLab (Double_t& x, Double_t& y) const {fWedge->WedgeToLab (x, y);};  // input and output in meters
+
+	Double_t StripNumtoStrip( Int_t num );
+
+	Double_t StriptoProj( Double_t s );
+	Double_t StripNumtoProj( Int_t s );
 
 	// Edges of strip, in strip frame, in meters
 	Double_t GetStripLowerEdge (UInt_t is) const;

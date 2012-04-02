@@ -209,6 +209,26 @@ TSolGEMPlane::StripToLab (Double_t& x, Double_t& y) const
   return;
 }
 
+Double_t TSolGEMPlane::StripNumtoStrip( Int_t strip )
+{
+    // Gives x coordinate in strip frame of a wire
+    return (strip - GetStrip(0.,0.))*GetSPitch();
+}
+
+
+Double_t TSolGEMPlane::StriptoProj( Double_t s )
+{
+    // Gives coordinate in projection frame from strip frame x
+    Double_t r = (GetWedge().GetR1()-GetWedge().GetR0())/2.0;
+    return s + r*fCWS;
+}
+
+
+Double_t TSolGEMPlane::StripNumtoProj( Int_t s ){
+    // Gives coordinate in projection frame from strip number
+    return StriptoProj( StripNumtoStrip(s) );
+}
+
 Double_t 
 TSolGEMPlane::GetStripLowerEdge (UInt_t is) const {return (fSBeg + is * GetSPitch());}
 
