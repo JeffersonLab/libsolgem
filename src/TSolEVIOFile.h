@@ -61,6 +61,7 @@ class gendata : public hitdata {
 	~gendata(){;}
 
 	int	GetPID(){ return IsFilled()? (int) fData[0] : -1e9; }
+	double  GetWeight(){ return fData[7]; }
 	TVector3 GetP(){ return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); }
 	TVector3 GetV(){ return IsFilled()? TVector3(fData[4], fData[5], fData[6]) : TVector3(-1e9, -1e9, -1e9 ); }
 };

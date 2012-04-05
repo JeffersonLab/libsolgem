@@ -240,14 +240,20 @@ void TSolEVIOFile::BuildGenerated( evio::evioDOMNodeList *hits  ){
 	vnum = v->num;
 	// Build hit event 
 	for(  i = 0; i < vec->size(); i++ ){
-	   fGenData[i]->SetData(vnum/10-1, (*vec)[i]); 
+	    // 4,5,6 are vertex positions.  GEMC spits them out in cm
+	    // which we will convert to mm for consistancy
+	    if( 4 <= vnum && vnum <= 6 ){
+		fGenData[i]->SetData(vnum/10-1, (*vec)[i]*10.0); 
+	    } else {
+		fGenData[i]->SetData(vnum/10-1, (*vec)[i]); 
+	    }
 	}
     }
 
     return;
 }
 
-void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits  ){
+void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits ){
     evio::evioDOMNodeList::const_iterator iter;
     int vnum;
     unsigned int i;
@@ -269,7 +275,16 @@ void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits  ){
 
 	// Build hit event 
 	for(  i = 0; i < vec->size(); i++ ){
-	   fHitData[i]->SetData(vnum, (*vec)[i]); 
+	    fHitData[i]->SetData(vnum, (*vec)[i]); 
+	}
+
+	// Extract weight data which is stored in each hit 
+	// and put it into generated data.  This is a dumb kludge
+	// and it makes me feel bad.  SPR 4/5/2012
+	if( vnum == 19 ){
+	    for( i = 0; i < fGenData.size() && vec->size()>0; i++ ){
+		fGenData[i]->SetData(7, (*vec)[0]);
+	    }
 	}
     }
 
@@ -464,6 +479,10 @@ hitdata::~hitdata(){
 ///////////////////////////////////////////////////////////////
 // gendata classes
 
-gendata::gendata():hitdata(-1, __GENERATED_SIZE){;}
+// Size is 1 bigger because we are also including the weight
+// Set that default to 1
+gendata::gendata():hitdata(-1, __GENERATED_SIZE+1){
+    SetData(7,1.0);
+}
 
 #endif//__CINT__

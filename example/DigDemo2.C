@@ -73,6 +73,7 @@ void DigDemo2(){
 	// Access to generated vertex and momentum
 	gen->GetV();
 	gen->GetP();
+	gen->GetWeight();
 
 	ddd->Digitize(*gd, *dds);
 	ndata++;
