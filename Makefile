@@ -5,35 +5,39 @@ include Makefile.arch
 
 NAME    := libsolgem
 
-SOLINCLUDE =
+SOLINCLUDE := -I$(shell pwd)/src
 
 #------------------------------------------------------------------------------
 # Hall A Analyzer
 
-PLATFORM = $(shell uname -s)-$(shell uname -i)
-HOSTNAME = $(shell hostname)
-
-#ifeq ($(HOSTNAME),fvm13)
+# Analyzer default location,
 ANALYZER ?= $(HOME)/ANALYZER
-#else
-ANALYZER ?= /dev/null
-#endif
+# Possible Analyzer header locations, will be used in the order found
+INCDIRS  := $(wildcard $(addprefix $(ANALYZER)/, include src hana_decode hana_scaler))
+ifeq ($(strip $(INCDIRS)),)
+  $(error No Analyzer header files found. Check $$ANALYZER)
+endif
 
-SOLINCLUDE += -I$(ANALYZER)/src -I$(ANALYZER)/hana_decode
+SOLINCLUDE += $(addprefix -I, $(INCDIRS) )
 
 #------------------------------------------------------------------------------
 # EVIO
 
-#ifeq ($(HOSTNAME),fvm13)
+PLATFORM = $(shell uname -s)-$(shell uname -i)
+# EVIO default location, as a last resort if $EVIO isn't set in build env
 EVIO ?= ../libevio
-SOLINCLUDE += -I$(EVIO)/include
-LDFLAGS  += -L$(EVIO)/$(PLATFORM)/lib -levioxx -levio -lz -lexpat
-#else
-EVIO ?= /dev/null
-
-SOLINCLUDE += -I$(EVIO)/src/libsrc -I$(EVIO)/src/libsrc++
-LDFLAGS  += -L$(EVIO)/lib -levioxx -levio -lz -lexpat
-#endif
+# Possible EVIO header directories, will be used in the order found
+EVIOINC := $(wildcard $(addprefix $(EVIO)/, include src/libsrc src/libsrc++))
+# Possible EVIO library locations, the first one found will be used
+EVIOLIB := $(firstword $(wildcard $(addprefix $(EVIO)/, $(PLATFORM)/lib lib)))
+ifeq ($(strip $(EVIOINC)),)
+  $(error No EVIO header files found. Check $$EVIO)
+endif
+ifeq ($(strip $(EVIOLIB)),)
+  $(error No EVIO library directory found. Check $$EVIO)
+endif
+SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
+LDFLAGS  += -L$(EVIOLIB) -levioxx -levio -lz -lexpat
 
 #------------------------------------------------------------------------------
 
@@ -42,7 +46,6 @@ CXXFLAGS += $(SOLINCLUDE)
 DICT	= $(NAME)_dict
 SRC   = src/TSolAnalyzer.cxx \
         src/TSolEVIOFile.cxx \
-        src/TSolEvData.cxx \
         src/TSolGEMChamber.cxx \
         src/TSolGEMCluster.cxx \
         src/TSolGEMData.cxx \
@@ -51,10 +54,14 @@ SRC   = src/TSolAnalyzer.cxx \
         src/TSolSimAux.cxx \
         src/TSolSimGEMDigitization.cxx \
         src/TSolWedge.cxx \
-        src/TSolSpec.cxx 
-        OBJS	= $(SRC:.$(SrcSuf)=.$(ObjSuf)) $(DICT).o
-HDR	= $(SRC:.$(SrcSuf)=.h) src/Linkdef.h
-ROHDR	= $(SRC:.$(SrcSuf)=.h) src/Linkdef.h
+        src/TSolSpec.cxx \
+        src/TSolSimEvent.cxx \
+        src/TSolSimFile.cxx \
+        src/TSolSimDecoder.cxx
+
+OBJS	= $(SRC:.cxx=.$(ObjSuf)) $(DICT).o
+HDR	= $(SRC:.cxx=.h) src/Linkdef.h
+ROHDR	= $(SRC:.cxx=.h) src/Linkdef.h
 
 LIBSOLGEM	= libsolgem.so
 

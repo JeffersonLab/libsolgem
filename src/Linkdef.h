@@ -5,7 +5,6 @@
 #pragma link C++ nestedclasses;
 
 #pragma link C++ defined_in "src/TSolAnalyzer.h";
-#pragma link C++ defined_in "src/TSolEvData.h";
 #pragma link C++ defined_in "src/TSolEVIOFile.h";
 #pragma link C++ defined_in "src/TSolGEMChamber.h";
 #pragma link C++ defined_in "src/TSolGEMCluster.h";
@@ -16,6 +15,9 @@
 #pragma link C++ defined_in "src/TSolSimGEMDigitization.h";
 #pragma link C++ defined_in "src/TSolSpec.h";
 #pragma link C++ defined_in "src/TSolWedge.h";
+#pragma link C++ defined_in "src/TSolSimEvent.h";
+#pragma link C++ defined_in "src/TSolSimFile.h";
+#pragma link C++ defined_in "src/TSolSimDecoder.h";
 
 // Limited stuff in EVIO file.  We don't want to be
 // able to call the evio functions in the interpreter
