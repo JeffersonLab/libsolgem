@@ -17,6 +17,7 @@
 #include "TSolGEMChamber.h"
 #include "TSolGEMPlane.h"
 #include "TSolSimAux.h"
+#include "TSolSimEvent.h"
 
 using namespace std;
 
@@ -117,6 +118,8 @@ TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
 {
   Init( TDatime() );
   Initialize (spect);
+
+  fEvent = new TSolSimEvent(5);
 }
 
 
@@ -130,6 +133,10 @@ TSolSimGEMDigitization::~TSolSimGEMDigitization()
     }
   delete[] fDP;
   delete[] fNPlanes;
+
+  delete fOFile;
+  delete fOTree;
+  delete fEvent;
 }
 
 void 
@@ -146,9 +153,9 @@ TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 	fDP[ic][ip] = new TSolDigitizedPlane (spect.GetChamber(ic).GetPlane(ip).GetNStrips());
     }
 
-  fOFile = NULL;
-  fOTree = NULL;
-  fNTreeHits = 0;
+  fOFile = 0;
+  fOTree = 0;
+  fEvent = 0;
 }
 
 Int_t 
@@ -191,7 +198,7 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
 void 
 TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spect) // digitize event 
 {
-  fNTreeHits = 0;
+  fEvent->Clear();
   UInt_t nh = gdata.GetNHit();
 
   for (UInt_t ic = 0; ic < fNChambers; ++ic)
@@ -237,14 +244,20 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 		{
 		  fDP[igem][j]->Cumulate (dh[j], itype);
 		}
-	      if (fOTree != NULL) FillTreeHit (ih, igem, dh, gdata);
+	      FillTreeHit (ih, igem, dh, gdata);
 	      delete dh[0];
 	      delete dh[1];
 	      delete[] dh;
 	    }
 	} 
     }
-  if (fOTree != NULL) FillTreeEvent (gdata);
+  FillTreeEvent (gdata);
+
+  if (fOFile && fOTree)
+    {
+      fOFile->cd();
+      fOTree->Fill();
+    }
 }
  
 
@@ -633,74 +646,25 @@ TSolSimGEMDigitization::PrintSamples() const
     }
 }
 
-  // Tree methodss
+// Tree methods
 void 
 TSolSimGEMDigitization::InitTree (const TSolSpec& spect, const TString& ofile)
 {
-  fOFileName = ofile;
-  
-  fOFile = new TFile (fOFileName, "RECREATE");
+  fOFile = new TFile( ofile, "RECREATE");
 
-  if (fOFile == 0) 
+  if (fOFile == 0 || fOFile->IsZombie() ) 
     {
-      cerr << "Error: cannot open output file " << fOFileName << endl;
+      cerr << "Error: cannot open output file " << ofile << endl;
+      delete fOFile; fOFile = 0;
       return;
     } 
 
-  fOTree = new TTree ("digtree", "Tree of digitized values");
+  fOTree = new TTree( treeName, "Tree of digitized values");
 
   // create the tree variables
 
-  fOTree->Branch ("RunID", &fRunID, "RunID/I");
-  fOTree->Branch ("EvtID", &fEvtID, "EvtID/I");
-
-  // ttree output variables
-
-  // "true-montecarlo" information
-  fOTree->Branch ("digi.gem.nhit", &fNTreeHits, "digi.gem.nhit/I");
-  fOTree->Branch ("digi.gem.nsignal", &fNSignal, "digi.gem.nsignal/I");
-
-  fOTree->Branch ("digi.gem.hit.chamber", fClsChamber, "digi.gem.hit.chamber[digi.gem.nhit]/S");
-
-  fOTree->Branch ("digi.gem.hit.charge", fClsCharge, "digi.gem.hit.charge[digi.gem.nhit]/F");
-
-  fOTree->Branch ("digi.gem.hit.mcentry", fClsRefEntry, "digi.gem.hit.mcentry[digi.gem.nhit]/I");
-  fOTree->Branch ("digi.gem.hit.mcfile", fClsRefFile, "digi.gem.hit.mcfile[digi.gem.nhit]/I");
-
-  fOTree->Branch ("digi.gem.hit.time", fClsTime, "digi.gem.hit.time[digi.gem.nhit]/F");
-
-  fOTree->Branch ("digi.gem.hit.mx", fClsMx, "digi.gem.hit.mx[digi.gem.nhit]/F");
-  fOTree->Branch ("digi.gem.hit.my", fClsMy, "digi.gem.hit.my[digi.gem.nhit]/F");
-  fOTree->Branch ("digi.gem.hit.mz", fClsMz, "digi.gem.hit.mz[digi.gem.nhit]/F");
- 
-  fOTree->Branch ("digi.gem.hit.pID", fClsPID, "digi.gem.hit.pID[digi.gem.nhit]/I");
-
-  fOTree->Branch ("digi.gem.hit.size0", fClsSize[0], Form ("digi.gem.hit.size0[digi.gem.nhit]/I"));
-  fOTree->Branch ("digi.gem.hit.size1", fClsSize[1], Form ("digi.gem.hit.size1[digi.gem.nhit]/I"));
-  fOTree->Branch ("digi.gem.hit.strip0", fClsFirstStrip[0], Form ("digi.gem.hit.strip0[digi.gem.nhit]/I"));
-  fOTree->Branch ("digi.gem.hit.strip1", fClsFirstStrip[1], Form ("digi.gem.hit.strip1[digi.gem.nhit]/I"));
-
-  // "real-digitized" information 
-  fOTree->Branch ("digi.gem.nch", &fDNCh, "digi.gem.nch/I");
-  fOTree->Branch ("digi.gem.chamber", fDGEM, "digi.gem.chamber[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.plane", fDPlane, "digi.gem.plane[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.strip", fDStrip, "digi.gem.strip[digi.gem.nch]/S");
-
-  fOTree->Branch ("digi.gem.adc0", fDSADC[0], "digi.gem.adc0[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc1", fDSADC[1], "digi.gem.adc1[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc2", fDSADC[2], "digi.gem.adc2[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc3", fDSADC[3], "digi.gem.adc3[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc4", fDSADC[4], "digi.gem.adc4[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc5", fDSADC[5], "digi.gem.adc5[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc6", fDSADC[6], "digi.gem.adc6[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc7", fDSADC[7], "digi.gem.adc7[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc8", fDSADC[8], "digi.gem.adc8[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.adc9", fDSADC[9], "digi.gem.adc9[digi.gem.nch]/S");
-  fOTree->Branch ("digi.gem.type", fType, "digi.gem.type[digi.gem.nch]/S");
-
-  // extra info
-  fOTree->Branch ("digi.gem.charge", fCharge, "digi.gem.charge[digi.gem.nch]/F");
-  fOTree->Branch ("digi.gem.time1", fTime1, "digi.gem.time1[digi.gem.nch]/F");
+  fOTree->Branch( eventBranchName, "TSolSimEvent", &fEvent );
+  
  }
 
 void
@@ -709,33 +673,35 @@ TSolSimGEMDigitization::FillTreeHit (const UInt_t ih,
 				     TSolGEMVStrip** dh,
 				     const TSolGEMData& tsgd)
 {
-  fClsChamber[fNTreeHits] = igem;
-  fClsRefEntry[fNTreeHits] = tsgd.GetEntryNumber(ih);
-  fClsPID[fNTreeHits] = tsgd.GetParticleID(ih);
+
+  TSolSimEvent::GEMCluster clust;
+  clust.fChamber  = igem;
+  clust.fRefEntry = tsgd.GetEntryNumber(ih);
+  clust.fRefFile  = tsgd.GetParticleType(ih);
+  clust.fPID      = tsgd.GetParticleID(ih);
+  if (tsgd.GetParticleType(ih) == 0)
+    fEvent->fNSignal++;
 	    
-  fClsCharge[fNTreeHits] = dh[0]->GetHitCharge();
+  clust.fCharge   = dh[0]->GetHitCharge();
   for (UInt_t j = 0; j < 2; j++) 
     { // warning to be generalized
-      fClsSize[j][fNTreeHits] = dh[j]->GetSize();
-      fClsFirstStrip[j][fNTreeHits] = dh[j]->GetIdx(0);
+      clust.fSize[j]  = dh[j]->GetSize();
+      clust.fStart[j] = dh[j]->GetIdx(0);
     }
-  fClsTime[fNTreeHits]=dh[0]->GetTime();
-  
-  fClsMx[fNTreeHits] = tsgd.GetMomentum (ih).X();
-  fClsMy[fNTreeHits] = tsgd.GetMomentum (ih).Y();
-  fClsMz[fNTreeHits] = tsgd.GetMomentum (ih).Z();
-  fClsRefFile[fNTreeHits] = tsgd.GetParticleType (ih); 
-  fNTreeHits++;
-  if (tsgd.GetParticleType (ih) == 0) fNSignal++;
+  clust.fTime = dh[0]->GetTime();
+  clust.fP = tsgd.GetMomentum(ih);
+
+  fEvent->fGEMClust.push_back( clust );
 }
 
 void
 TSolSimGEMDigitization::FillTreeEvent (const TSolGEMData& tsgd)
 {
-  fRunID = tsgd.GetRun();
-  fEvtID = tsgd.GetEvent();
-  fDNCh = 0;
+  fEvent->fRunID = tsgd.GetRun();
+  fEvent->fEvtID = tsgd.GetEvent();
+  fEvent->fGEMStrips.clear();
   
+  TSolSimEvent::DigiGEMStrip strip;
   for (UInt_t ich = 0; ich < GetNChambers(); ++ich)
     {
       for (UInt_t ip = 0; ip < GetNPlanes (ich); ++ip)
@@ -743,22 +709,23 @@ TSolSimGEMDigitization::FillTreeEvent (const TSolGEMData& tsgd)
 	  UInt_t nover = Threshold (ich, ip, 0); // threshold is zero for now
 	  for (UInt_t iover = 0; iover < nover; iover++) 
 	    {
-	      fDGEM[fDNCh] = (Short_t) ich; 
-	      fDPlane[fDNCh] = (Short_t) ip; 
-	      fDStrip[fDNCh] = (Short_t) GetIdxOverThr (ich, ip, iover);
-	      UInt_t idx = GetIdxOverThr (ich, ip, iover);
-	      for (UInt_t ss = 0; ss < (UInt_t) GetNSamples (ich, ip); ++ss)
-		fDSADC[ss][fDNCh] = (Short_t) GetADC (ich, ip, idx, ss);
-	      fCharge[fDNCh] = GetCharge (ich, ip, idx);
-	      fTime1[fDNCh] = GetTime (ich, ip, idx);
-	      fType[fDNCh] = (Short_t) GetType (ich, ip, idx);		   
-	      fDNCh++;
+	      strip.fGEM   = (Short_t) ich; 
+	      strip.fPlane = (Short_t) ip; 
+	      strip.fNum   = (Short_t) GetIdxOverThr(ich, ip, iover);
+
+	      UInt_t idx = GetIdxOverThr(ich, ip, iover);
+	      for (UInt_t ss = 0; ss < (UInt_t) GetNSamples(ich, ip); ++ss)
+		strip.fADC[ss] = (Short_t) GetADC(ich, ip, idx, ss);
+
+	      strip.fSigType = (Short_t) GetType(ich, ip, idx);
+	      strip.fCharge  = GetCharge(ich, ip, idx);
+	      strip.fTime1   = GetTime(ich, ip, idx);
+
+	      fEvent->fGEMStrips.push_back( strip );
 	    }
 	} 
     }
 
-  fOFile->cd();
-  fOTree->Fill();
 }
 
 void 

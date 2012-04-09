@@ -110,10 +110,6 @@ Int_t TSolSimFile::Open()
 {
   // Open ROOT input file
 
-  // Names of the objects we will be looking for in the ROOT input file
-  const char* const treeName = "digtree";
-  const char* const eventBranchName = "event";
-
   fROOTFile = new TFile(fROOTFileName, "READ", "SoLID MC data");
   if( !fROOTFile || fROOTFile->IsZombie() ) {
     Error( __FUNCTION__, "Cannot open input file %s", fROOTFileName.Data() );

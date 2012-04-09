@@ -30,10 +30,16 @@ void TSolSimTrack::Print( const Option_t* opt ) const
 
 //-----------------------------------------------------------------------------
 TSolSimEvent::TSolSimEvent()
-  : fRunID(0), fEvtID(0), fRefFile(0), fMCTracks(0), 
-    fNClust(0), fNSignal(0), fNStrips(0)
+  : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0)
 {
+}			     
 
+//-----------------------------------------------------------------------------
+TSolSimEvent::TSolSimEvent( UInt_t ntracks )
+  : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0)
+{
+  if( ntracks == 0 ) ntracks = 1;
+  fMCTracks = new TClonesArray( "TSolSimTrack", ntracks );
 }			     
 
 //-----------------------------------------------------------------------------
@@ -47,8 +53,10 @@ void TSolSimEvent::Clear( const Option_t* /*opt*/ )
 {
   // Clear the event in preparation for reading next tree entry
 
-  fRunID = fEvtID = fRefFile = 0;
-  fNClust = fNSignal = fNStrips = 0;
+  fRunID = fEvtID = 0;
+  fNSignal = 0;
+  fGEMClust.clear();
+  fGEMStrips.clear();
   if( fMCTracks ) fMCTracks->Clear();
 }
 
@@ -59,7 +67,7 @@ void TSolSimEvent::Print( const Option_t* opt ) const
 
   cout << ">>>>> =====================================" << endl;
   cout << "Event number:               " << fEvtID << endl;
-  cout << "Number of fired GEM strips: " << fNStrips  << endl;
+  cout << "Number of fired GEM strips: " << fGEMStrips.size()  << endl;
 
   TString sopt(opt);
   bool do_hit    = sopt.Contains("hit", TString::kIgnoreCase);
@@ -67,15 +75,16 @@ void TSolSimEvent::Print( const Option_t* opt ) const
   // bool do_backgr = sopt.Contains("backgr", TString::kIgnoreCase);
   // bool do_pileup = sopt.Contains("pileup", TString::kIgnoreCase);
   if( do_hit ) {
-    for( Int_t i=0; i<fNStrips; ++i ) {
+    for( vector<DigiGEMStrip>::size_type i=0; i<fGEMStrips.size(); ++i ) {
+      const DigiGEMStrip& s = fGEMStrips[i];
       cout << "hit = " << i
-	   << ", GEM = "    << fStpGEM[i]
-	   << ", plane = "  << fStpPlane[i]
-	   << ", strip = "  << fStpNum[i]
-	   << ", type = "   << fStpSigType[i]
+	   << ", GEM = "    << s.fGEM
+	   << ", plane = "  << s.fPlane
+	   << ", strip = "  << s.fNum
+	   << ", type = "   << s.fSigType
 	   << ", adc = ";
       for( int k=0; k<MC_MAXSAMP; k++ ) {
-	cout << fStpADC[k][i];
+	cout << s.fADC[k];
 	if( k+1 != MC_MAXSAMP ) cout << ", ";
       }
       cout << endl;

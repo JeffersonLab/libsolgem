@@ -13,6 +13,7 @@
 #define __TSolSim_h
 
 #include "TVector3.h"
+#include <vector>
 
 class TClonesArray;
 
@@ -45,50 +46,59 @@ class TSolSimTrack : public TObject {
 //-----------------------------------------------------------------------------
 // Kludgy hardcoded parameters necessary because I can't get ROOT to allocate
 // arrays dynamically via TTree::GetEntry
-#define MC_MAXC  10000
-#define MC_MAXS  20000
+//#define MC_MAXC  10000
+//#define MC_MAXS  20000
 #define MC_MAXSAMP 10
+
+#define treeName "digtree"
+#define eventBranchName "event"
 
 class TSolSimEvent : public TObject {
 public:
-  TSolSimEvent();
+  TSolSimEvent();                 // Default constructor, for ROOT I/O
+  TSolSimEvent( UInt_t ntracks ); // Construct and initialize fMCTracks
   virtual ~TSolSimEvent();
 
   // Event identification
   Int_t     fRunID;               // Run number
   Int_t     fEvtID;               // Event number
-  Int_t     fRefFile;             // Reference file in MC
 
   // MC tracks
   TClonesArray*   fMCTracks;      //-> MC tracks in this event
-
+  
   // Cluster variables (MC generated)
-  Int_t     fNClust;              // Number of clusters (sum over all planes)
+  // Note: fNSignal <= fClust.size() (equal if no background)
+  // The first fNSignal elements in the array of clusters are from the signal
   Int_t     fNSignal;             // Number of clusters from trigger track (signal)
-  // Note: fNsignal <= fNClust (equal if no background)
-  // The first fNsignal elements in these arrays are from the signal
-  Short_t   fClsChamber[MC_MAXC]; // [fNClust] Chamber number of cluster
-  Float_t   fClsCharge[MC_MAXC];  // [fNClust] Charge of avalanche
-  Int_t     fClsRefEntry[MC_MAXC];// [fNClust] Reference entry in MC
-  Float_t   fClsTime[MC_MAXC];    // [fNClust] Arrival time at electronics (w/o ToF)
-  TVector3  fClsP[MC_MAXC];       // [fNClust] Momentum of particle generating the cluster
-  Int_t     fClsPID[MC_MAXC];     // [fNClust] PDG ID of particle generating the cluster
-  Int_t     fClsSizeX[MC_MAXC];   // [fNClust] Number of strips in cluster on x-axis
-  Int_t     fClsSizeY[MC_MAXC];   // [fNClust] Number of strips in cluster on y-axis
-  Int_t     fClsStartX[MC_MAXC];  // [fNClust] Number of first strip in cluster on x-axis
-  Int_t     fClsStartY[MC_MAXC];  // [fNClust] Number of first strip in cluster on y-axis
 
+  struct GEMCluster {
+    Short_t   fChamber;   // Chamber number of cluster
+    Float_t   fCharge;    // Charge of avalanche
+    Int_t     fRefEntry;  // Reference entry in MC
+    Int_t     fRefFile;   // Particle type associated with hit
+    Float_t   fTime;      // Arrival time at electronics (w/o ToF)
+    TVector3  fP;         // Momentum of particle generating the cluster
+    Int_t     fPID;       // PDG ID of particle generating the cluster
+    Int_t     fSize[2];   // Number of strips in cluster per axis
+    Int_t     fStart[2];  // Number of first strip in cluster per axis
+  };
+
+  std::vector<GEMCluster> fGEMClust;  // All MC-generated clusters in the GEMs
+  
   // Digitized strip amplitude data
-  Int_t     fNStrips;             // Number of strips firing
-  Short_t   fStpGEM[MC_MAXS];     // [fNStrips] Location index of strip
-  Short_t   fStpPlane[MC_MAXS];   // [fNStrips] Plane number
-  Short_t   fStpNum[MC_MAXS];     // [fNStrips] Strip number
-  Short_t   fStpSigType[MC_MAXS]; // [fNStrips] Signal type (0=signal(+bck), 1=bck)
-  Short_t   fStpTrack[MC_MAXS];   // [fNStrips] Track index (-1=none)
-  Float_t   fStpCharge[MC_MAXS];  // [fNStrips] Total charge in strip
-  Float_t   fStpTime1[MC_MAXS];   // [fNStrips] Time of first sample
-                                  //   relative to event start in target (TBC)
-  Short_t   fStpADC[MC_MAXSAMP][MC_MAXS]; // [fNStrips] ADC samples
+  struct DigiGEMStrip {
+    Short_t   fGEM;       // Location index of strip
+    Short_t   fPlane;     // Plane number
+    Short_t   fNum;       // Strip number
+    Short_t   fSigType;   // Signal type (0=signal(+bck), 1=bck)
+    Short_t   fTrack;     // Track index (-1=none)
+    Float_t   fCharge;    // Total charge in strip
+    Float_t   fTime1;     // Time of first sample
+                             //   relative to event start in target (TBC)
+    Short_t   fADC[MC_MAXSAMP]; // ADC samples
+  };
+
+  std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
 
   virtual void Clear( const Option_t* opt="" );
   virtual void Print( const Option_t* opt="" ) const;

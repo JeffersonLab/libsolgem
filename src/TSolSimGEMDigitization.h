@@ -16,6 +16,7 @@ class TTree;
 class TSolGEMData;
 class TSolGEMVStrip;
 class TSolSpec;
+class TSolSimEvent;
 
 // First an auxiliary class
 
@@ -107,10 +108,11 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   UInt_t GetNOverThr (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNOverThr();};
   UInt_t GetIdxOverThr (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; 
 
+  TSolSimEvent* GetEvent() const { return fEvent; }
 
  private:
 
-  void MakePrefix() {THaAnalysisObject::MakePrefix (NULL);}
+  void MakePrefix() { THaAnalysisObject::MakePrefix(0); }
   void IonModel (const TVector3& xi, 
 		 const TVector3& xo, 
 		 const Double_t elost, 
@@ -164,43 +166,11 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
   // Tree
 
-  TString fOFileName;  // Name of output ROOT file
-  TFile* fOFile;       // Output ROOT file
-  TTree* fOTree;
+  TFile* fOFile;          // Output ROOT file
+  TTree* fOTree;          // Output tree
+  TSolSimEvent* fEvent;   // Output event structure, written to tree
 
-  Int_t fRunID;  // Run number
-  Int_t fEvtID;  // Event number
-
-  // cluster (hit) variables  
-  Int_t fNTreeHits;   // total number of hits for tree
-  Int_t fNSignal;    // number of hits of signal 
-
-  static const Int_t gMAX_CHANNELS = 10000;
-  
-  Short_t fClsChamber[gMAX_CHANNELS]; // chamber/module index from 0 to 5 (or total number of chambers)
-  Float_t fClsCharge[gMAX_CHANNELS]; // charge of the hits avalanche
-  Int_t fClsRefEntry[gMAX_CHANNELS]; // reference entry in mc 
-  Int_t fClsRefFile[gMAX_CHANNELS]; // reference file in mc (combined with the above can be used to lok at the Montecarlo raw data)
-  Float_t fClsTime[gMAX_CHANNELS]; // time of arrival of the signal into the electronics (time of flight not included yet)
-  Float_t fClsMx[gMAX_CHANNELS]; // momentum particle generating the hit (x component)
-  Float_t fClsMy[gMAX_CHANNELS]; // momentum particle generating the hit (y component)
-  Float_t fClsMz[gMAX_CHANNELS]; // momentum particle generating the hit (z component)
-  Int_t fClsPID[gMAX_CHANNELS]; // particle ID (PDG code) generating the hit
-
-  Int_t fClsSize[2][gMAX_CHANNELS];   // number of strips in cluster/hit on each axis
-  Int_t fClsFirstStrip[2][gMAX_CHANNELS]; // address of first strip of the cluster on each axis
-  
-  Int_t fDNCh; // number of strips (channels) firing in event
-  Short_t fDGEM[gMAX_CHANNELS]; // chamber[7,15] | module[3-6]] | axis[0-2] 
-  Short_t fDPlane[gMAX_CHANNELS]; // axis or more generally a readout plane
-  Short_t fDStrip[gMAX_CHANNELS]; // strip address 
-  Short_t fDSADC[10][gMAX_CHANNELS]; // adc values of the strip
-  Short_t fType[gMAX_CHANNELS]; // type of strip hit (0=signal or signal+bck, 1=bck)
-  Float_t fCharge[gMAX_CHANNELS]; // total charge in strip
-  Float_t fTime1[gMAX_CHANNELS]; // time of first sample since event started in target (TBC)
-
-    public:
-	ClassDef (TSolSimGEMDigitization, 1)
+  ClassDef (TSolSimGEMDigitization, 1)
 };
 
 #endif

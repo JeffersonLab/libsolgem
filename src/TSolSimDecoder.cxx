@@ -116,14 +116,16 @@ int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
   if( fDoBench ) fBench->Begin("physics_decode");
 
   // Decode the digitized data.  Populate crateslot array.
-  for( Int_t i = 0; i < simEvent->fNStrips; i++) {
+  for( vector<TSolSimEvent::DigiGEMStrip>::size_type i = 0;
+       i < simEvent->fGEMStrips.size(); i++) {
 
-    Int_t roc  = simEvent->fStpGEM[i];
-    Int_t slot = simEvent->fStpNum[i] / CHAN_PER_SLOT;
-    Int_t chan = simEvent->fStpNum[i] % CHAN_PER_SLOT;
+    const TSolSimEvent::DigiGEMStrip& s = simEvent->fGEMStrips[i];
+    Int_t roc  = s.fGEM;
+    Int_t slot = s.fNum / CHAN_PER_SLOT;
+    Int_t chan = s.fNum % CHAN_PER_SLOT;
 
     for( Int_t k = 0; k < MC_MAXSAMP; k++ ) {
-      Int_t raw = simEvent->fStpADC[k][i];
+      Int_t raw = s.fADC[k];
       if (crateslot[idx(roc,slot)]->loadData("adc",chan,raw,raw)
 	  == SD_ERR) return HED_ERR;
     }
@@ -136,8 +138,10 @@ int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
   // cannot handle variable pointers.
 
   TClonesArray* tracks = simEvent->fMCTracks;
-  for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
-    fTracks.Add( tracks->UncheckedAt(i) );
+  if( tracks ) {
+    for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
+      fTracks.Add( tracks->UncheckedAt(i) );
+    }
   }
 
   if( fDoBench ) fBench->Stop("physics_decode");
