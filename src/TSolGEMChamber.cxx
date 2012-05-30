@@ -23,6 +23,15 @@ TSolGEMChamber::~TSolGEMChamber()
   delete[] fPlanes;
   delete fWedge;
 }
+
+
+const char* TSolGEMChamber::GetDBFileName() const {
+    THaApparatus *app = GetApparatus();
+    if( app )
+	return app->GetName();
+    else
+	return fPrefix;
+}
   
 Int_t 
 TSolGEMChamber::ReadDatabase (const TDatime& date)

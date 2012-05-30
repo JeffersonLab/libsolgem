@@ -28,6 +28,7 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
 {
   fNOT = 0;
   fNSamples = nsample;
+
   fNStrips = nstrip;
 
   fType = new Short_t[nstrip];
@@ -76,9 +77,10 @@ TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
 
   Short_t ooo,nnn;
 
-  if (vv) {
+  if (vv ) {
     for (j=0;j<vv->GetSize();j++) {
       idx = vv->GetIdx(j);
+      if( idx < 0 ) continue; //  This is I believe should never happen?  SPR 5/30/2012
       fType[idx] |= (Short_t) type;
       fTime[idx] = (fTime[idx] < vv->GetTime()) ? fTime[idx] : vv->GetTime();
       fCharge[idx] += vv->GetCharge(j);
@@ -227,9 +229,9 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       vv1 -= offset;
       vv2 -= offset;
       vv3 -= offset;
-      vv1.RotateZ (angle);
-      vv2.RotateZ (angle);
-      vv3.RotateZ (angle);
+      vv1.RotateZ (-angle);
+      vv2.RotateZ (-angle);
+      vv3.RotateZ (-angle);
 	
       IonModel (vv1, vv2, gdata.GetHitEnergy(ih), vv3);
       if (fRNIon > 0) 
@@ -397,7 +399,8 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
     delete[] fRX; 
     delete[] fRY; 
     cerr << "out of sector" << endl;
-    fprintf(stderr, "%s %s:  out of sector, chamber %d\nFollowing relations should hold:\n(x1 %f>glx %f) (x0 %f<gux %f)\n(y1 %f>gly %f) (y0 %f<guy %f)\n\n", __FILE__,  __FUNCTION__, ic, x1, glx, x0, gux, y1, gly, y0, guy );
+    fprintf(stderr, "%s %s:  out of sector, chamber %d\nFollowing relations should hold:\n(x1 %f>glx %f) (x0 %f<gux %f)\n(y1 %f>gly %f) (y0 %f<guy %f)\n", __FILE__,  __FUNCTION__, ic, x1, glx, x0, gux, y1, gly, y0, guy );
+    fprintf(stderr, "\tplane %d r %f phi %f\n\n", (ic-1)/30+1, sqrt(x0*x0+y0*y0), atan(y0/x0)*180/3.14159  );
     return 0;
   }
 

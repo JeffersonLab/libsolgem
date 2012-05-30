@@ -6,7 +6,19 @@ using namespace std;
 
 TSolGEMData::TSolGEMData (UInt_t h)
 {
+    fGem  = 0;
+    fEdep = 0;
+    fPID  = 0;
+    fType = 0;
+    fXi   = 0;
+    fXo   = 0;
+    fXr   = 0;
+    fMom  = 0;
+    fEntryNumber  = 0;
+
   if (h > 0) InitEvent (h);
+
+  // Initialize variables
 }
 
 TSolGEMData::~TSolGEMData()

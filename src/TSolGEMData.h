@@ -66,6 +66,5 @@ class TSolGEMData
   TVector3 **fXr; // entrance point in readout
   TVector3 **fMom; // momentum of the particle
   UInt_t *fEntryNumber;
-
 };
 #endif

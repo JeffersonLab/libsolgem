@@ -25,6 +25,7 @@ class TSolGEMChamber : public THaDetector {
 
   Int_t ReadDatabase (const TDatime& date);
   Int_t ReadGeometry (FILE* file, const TDatime& date, Bool_t required);
+  const char* GetDBFileName() const;
 
   Int_t Decode( const THaEvData & );
 

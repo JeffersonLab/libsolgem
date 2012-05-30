@@ -21,6 +21,8 @@
 #define __GENERATED_SIZE 7
 
 #define __GEM_DRIFT_ID 6
+#define __GEM_COPPER_FRONT_ID 5
+#define __GEM_COPPER_BACK_ID 7
 #define __GEM_STRIP_ID 19
 
 int __gemc_types_datasize[NBANKS] = {23,21};
