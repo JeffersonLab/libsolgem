@@ -350,7 +350,7 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
 	    // plane num  we find the drift planes and then
 	    // match them to the corresponding readout hits
 
-	    if( h->GetDetID()%100 == __GEM_DRIFT_ID ){
+	    if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
 		// Vector information
 		TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
 		gd->SetMomentum(ngdata, p);

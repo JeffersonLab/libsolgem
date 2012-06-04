@@ -63,17 +63,37 @@ TSolWedge::Contains (Double_t x, Double_t y) const
   // Is (x, y) within the wedge?
 
   Double_t r2 = x * x + y * y;
-  if (r2 < fR0R0 || r2 > fR1R1)
+  if (r2 < fR0R0 || r2 > fR1R1){
     return false;
+  }
 
-  if (fPhi0 < 0)
-    // Wedge straddles +x axis, need OR
-    return (CmpAng (x, y, fPhi0 + 2 * gPI, fTPhi0) >= 0 ||
-	    CmpAng (x, y, fPhi1, fTPhi1) <= 0);
-  else
-    // Doesn't, need AND
-    return (CmpAng (x, y, fPhi0, fTPhi0) >= 0 &&
-	    CmpAng (x, y, fPhi1, fTPhi1) <= 0);
+  // We'll use atan2 to test angle ranges.  It returns a value between -pi and pi
+  double thisang = atan2( y, x );
+  // we'll adjust it to get 0 and 2pi
+  if( thisang < 0.0 ){ thisang += 2.0*gPI; }
+
+  // Now we just need to make a test
+  // Let's make sure that fPhi0 and fPhi1 are within 0 and 2pi
+  // First fmod makes sure it's between -2pi and 2pi
+  // Second fmod makes sure it's between 0 and 2pi
+
+  double phi0 = fmod(fmod(fPhi0, 2.0*gPI)+2.0*gPI, 2.0*gPI);
+  double phi1 = fmod(fmod(fPhi1, 2.0*gPI)+2.0*gPI, 2.0*gPI);
+
+  // Common case
+  if( phi0 < phi1 ){
+      return ( phi0 < thisang && thisang < phi1 );
+  }
+
+  // Case where phi1 has looped back around
+  if( phi0 > phi1 ){
+      if( phi0 < thisang ) return true; // Case where it must be between phi0 and 0 axis
+      if( thisang < phi1 ) return true; // Case where it must be between 0 axis and phi1
+      return false; // Must be one of the previous two cases to be true
+  }
+
+  return false; // I guess if phi0 == phi1 you can't be between them...
+
 }
 
 
@@ -86,6 +106,12 @@ NSolWedge::CmpAng (Double_t x, Double_t y, Double_t phi, Double_t tphi)
 
   // First check quadrants and return if not same -- or if point is
   // on y axis.
+
+    /*  SPR 6/4/12 There's some edge testing problems here
+     *  Edited ::Contains to be a bit more simple
+     */
+
+    fprintf(stderr, "NSolWedge::CmpAng - Warning!  This function may not produce expected results\n");
 
   if (x > 0 && y >= 0)
     {

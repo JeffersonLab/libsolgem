@@ -533,7 +533,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 	  posflag = 0;
 	  for (Int_t b = 0; b < fEleSamplingPoints; b++) 
 	    { // sampling
-	      pulse = TSolSimAux::PulseShape (t0 + fEleSamplingPeriod * b, 
+	      pulse = TSolSimAux::PulseShape (fEleSamplingPeriod * b - t0, 
 					      us[i-iL], 
 					      fPulseShapeTau0, 
 					      fPulseShapeTau1);
