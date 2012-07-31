@@ -13,12 +13,11 @@ SOLINCLUDE := -I$(shell pwd)/src
 # Analyzer default location,
 ANALYZER ?= $(HOME)/ANALYZER
 # Possible Analyzer header locations, will be used in the order found
-INCDIRS  := $(wildcard $(addprefix $(ANALYZER)/, include src hana_decode hana_scaler))
-ifeq ($(strip $(INCDIRS)),)
+ANAINCDIRS  := $(wildcard $(addprefix $(ANALYZER)/, include src hana_decode hana_scaler))
+ifeq ($(strip $(ANAINCDIRS)),)
   $(error No Analyzer header files found. Check $$ANALYZER)
 endif
 
-SOLINCLUDE += $(addprefix -I, $(INCDIRS) )
 
 #------------------------------------------------------------------------------
 # EVIO
@@ -38,6 +37,10 @@ ifeq ($(strip $(EVIOLIB)),)
 endif
 SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
 LDFLAGS  += -L$(EVIOLIB) -levioxx -levio -lz -lexpat
+
+# Some of the analyzer include dirs conflict with headers in
+# EVIO
+SOLINCLUDE += $(addprefix -I, $(ANAINCDIRS) )
 
 #------------------------------------------------------------------------------
 

@@ -4,6 +4,7 @@
 // Put prototypes here first so that it doens't freak out
 // over the hidden code
 
+
 #ifdef  __CINT__
 namespace evio {
     class evioFileChannel;
@@ -14,13 +15,14 @@ namespace evio {
 // Hide these from the ROOT interpreter
 // we don't need them anyways
 #ifndef __CINT__
-#include "evioUtil.hxx"
 #include "evioFileChannel.hxx"
+#include "evioUtil.hxx"
 #endif//__CINT__
 
 #include "TROOT.h"
 
 #include "TSolGEMData.h"
+
 
 #define __DEFAULT_DATA_SIZE 32
 
