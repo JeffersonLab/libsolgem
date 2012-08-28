@@ -7,7 +7,7 @@ This software is designed to interface EVIO output from
 GEMC to the Hall A analyzer.  It requires:
 
 EVIO 
-https://clas12svn.jlab.org/repos/trunk/clas12/evio/
+https://clas12svn.jlab.org/repos/clas12/evio/tags/evio-4.0/
 
 Hall A Analyzer
 http://hallaweb.jlab.org/podd/index.html
