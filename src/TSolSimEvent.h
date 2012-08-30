@@ -59,6 +59,28 @@ public:
   TSolSimEvent( UInt_t ntracks ); // Construct and initialize fMCTracks
   virtual ~TSolSimEvent();
 
+  UInt_t NGEMClust () const {return fGEMClust.size();};
+  Short_t GetCChamber (UInt_t ic) const {return fGEMClust[ic].fChamber;};
+  Float_t GetCCharge (UInt_t ic) const {return fGEMClust[ic].fCharge;};
+  Int_t GetCRefEntry (UInt_t ic) const {return fGEMClust[ic].fRefEntry;};
+  Int_t GetCRefFile (UInt_t ic) const {return fGEMClust[ic].fRefFile;};
+  Float_t GetCTime (UInt_t ic) const {return fGEMClust[ic].fTime;};
+  TVector3 GetCP (UInt_t ic) const {return fGEMClust[ic].fP;};
+  Int_t GetCPID (UInt_t ic) const {return fGEMClust[ic].fPID;};
+  Int_t fGetCSize (UInt_t ic, UInt_t i) const {return fGEMClust[ic].fSize[i];};
+  Int_t fGetCStart (UInt_t ic, UInt_t i) const {return fGEMClust[ic].fStart[i];};
+  TVector3 GetCXEntry (UInt_t ic) const {return fGEMClust[ic].fXEntry;};
+
+  UInt_t NGEMStrips () const {return fGEMStrips.size();};
+  Short_t GetSGEM (UInt_t i) const {return fGEMStrips[i].fGEM;};
+  Short_t GetSPlane (UInt_t i) const {return fGEMStrips[i].fPlane;};
+  Short_t GetSNum (UInt_t i) const {return fGEMStrips[i].fNum;};
+  Short_t GetSSigType (UInt_t i) const {return fGEMStrips[i].fSigType;};
+  Short_t GetSTrack (UInt_t i) const {return fGEMStrips[i].fTrack;};
+  Float_t GetSCharge (UInt_t i) const {return fGEMStrips[i].fCharge;};
+  Float_t GetSTime1 (UInt_t i) const {return fGEMStrips[i].fTime1;};
+  Short_t GetSADC (UInt_t i, UInt_t isamp) const {return fGEMStrips[i].fADC[isamp];};
+
   // Event identification
   Int_t     fRunID;               // Run number
   Int_t     fEvtID;               // Event number
@@ -81,6 +103,7 @@ public:
     Int_t     fPID;       // PDG ID of particle generating the cluster
     Int_t     fSize[2];   // Number of strips in cluster per axis
     Int_t     fStart[2];  // Number of first strip in cluster per axis
+    TVector3  fXEntry;    // Truth position of hit
   };
 
   std::vector<GEMCluster> fGEMClust;  // All MC-generated clusters in the GEMs
