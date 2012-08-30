@@ -48,6 +48,7 @@ CXXFLAGS += $(SOLINCLUDE)
 
 DICT	= $(NAME)_dict
 SRC   = src/TSolAnalyzer.cxx \
+	src/TSolClusters.cxx \
         src/TSolEVIOFile.cxx \
         src/TSolGEMChamber.cxx \
         src/TSolGEMCluster.cxx \

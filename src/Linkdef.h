@@ -5,6 +5,7 @@
 #pragma link C++ nestedclasses;
 
 #pragma link C++ defined_in "src/TSolAnalyzer.h";
+#pragma link C++ defined_in "src/TSolClusters.h";
 #pragma link C++ defined_in "src/TSolEVIOFile.h";
 #pragma link C++ defined_in "src/TSolGEMChamber.h";
 #pragma link C++ defined_in "src/TSolGEMCluster.h";
