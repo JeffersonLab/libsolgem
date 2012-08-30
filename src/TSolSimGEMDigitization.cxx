@@ -693,6 +693,7 @@ TSolSimGEMDigitization::FillTreeHit (const UInt_t ih,
     }
   clust.fTime = dh[0]->GetTime();
   clust.fP = tsgd.GetMomentum(ih);
+  clust.fXEntry = tsgd.GetHitEntrance (ih);
 
   fEvent->fGEMClust.push_back( clust );
 }
