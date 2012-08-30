@@ -38,6 +38,10 @@ class TSolGEMChamber : public THaDetector {
   TSolWedge& GetWedge() const {return *fWedge;};
   Double_t GetAngle() const {return fWedge->GetAngle();}; // rotation angle between lab and wedge frame
 
+  // Frame conversions
+  void LabToPlane (Double_t& x, Double_t& y) const {fWedge->LabToWedge (x, y);};  // input and output in meters
+  void PlaneToLab (Double_t& x, Double_t& y) const {fWedge->WedgeToLab (x, y);};  // input and output in meters
+
   UInt_t GetNPlanes() const {return fNPlanes;};
 
   TSolGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};
