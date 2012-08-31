@@ -9,14 +9,26 @@
 
 class TSolWedge;
 
-// A chamber contains one or more (currently hardwired at two) GEM planes.
-// It is rectangular, and oriented within a geometric plane of constant Z
-// at an arbitrary angle from the x axis. (This is a separate rotation
-// angle from the angle of the strips in each plane, which is with respect
-// to the chamber's x axis.)
+// A chamber is a "wedge" (section of an annulus). It is characterized by
+// the minimum and maximum radius (r0 and r1), the minimum angle (phi0),
+// the angular width (dphi), the z coordinate of the front face (z0),
+// and the thickness in z (depth)
 
-// The geometry is characterized by: Origin (in lab frame), rotation angle
-// (with respect to lab x axis), and size (in rotated frame).
+// The inner and outer arcs are always centered on (x, y) = (0, 0) in the
+// lab frame. 
+
+// Derived from these quantities is a rectangular prism bounding box,
+// one of whose sides is parallel to the symmetry axis of the wedge,
+// described by a "size" which is half the transverse sizes and the
+// full z size, and an "origin" which is the center of the front face of the 
+// bounding box.
+
+// The "wedge frame" or "plane frame" is the frame whose x/y origin is
+// the center of the bounding box and whose x axis lies along the
+// symmetry axis of the wedge.
+
+// The origin and phi0 are specified in the lab frame. The size is in the
+// wedge frame.
 
 class TSolGEMChamber : public THaDetector {
  public:
