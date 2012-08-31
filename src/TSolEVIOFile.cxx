@@ -346,7 +346,7 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
 	    h = GetHitData(i);
 
 	    // Chamber IDs are tagged as 
-	    // xxyy  where xx is the chamber num and yy is the 
+	    // xxxyy  where xxx is the chamber num and yy is the 
 	    // plane num  we find the drift planes and then
 	    // match them to the corresponding readout hits
 
