@@ -470,33 +470,45 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
       // define function, gaussian and sum of gaussian
 
-      TF2 *sgaus = new TF2[fRNIon];
-      TH2F *fsum = 0;
-  
+      Double_t* fsuma = new Double_t[nnx*nny];
+      Double_t xbw = (xr - xl) / nnx;
+      Double_t ybw = (yt - yb) / nny;
+      memset (fsuma, 0, nnx * nny * sizeof (fsuma));
       for (UInt_t i = 0; i < fRNIon; i++) 
-	{ 
-	  // define gaussian functions (for spatial distribution)
-	  sgaus[i] = TF2 (Form ("sgaus%d", i),
-			  TSolSimAux::SimpleCircle,
-			  xl, xr, yb, yt, 4);
-	  sgaus[i].SetParNames ("Const", "X_{0}", "Y_{0}", "#sigma");
+	{
 	  Double_t ggnorm = fRCharge[i] / 3.14 / 9. / fRSNorm[i] / fRSNorm[i]; // normalized to charge
 	  Double_t frxs = fRX[i] * 1e-3; Double_t frys = fRY[i] * 1e-3;
 	  pl->PlaneToStrip (frxs, frys);
 	  frxs *= 1e3; frys *= 1e3;
-	  sgaus[i].SetParameters (ggnorm, frxs, frys, 3. * fRSNorm[i]);
-	  sgaus[i].SetNpx (nnx); 
-	  sgaus[i].SetNpy (nny);
-	  if (i == 0)
+	  // bin containing center and # bins each side to process
+	  Int_t ix = (frxs-xl) / xbw;
+	  Int_t iy = (frys-yb) / ybw;
+	  Int_t dx = 3 * fRSNorm[i] / xbw  + 1;
+	  Int_t dy = 3 * fRSNorm[i] / ybw  + 1;
+	  Double_t r2 = pow (3 * fRSNorm[i], 2);
+	  // Loop over bins
+	  // xc and yc are center of current bin
+	  Double_t xc = xl + (ix - dx + 0.5) * xbw;
+	  for (Int_t jx = ix-dx; jx <= ix+dx; ++jx)
 	    {
-	      fsum = (TH2F*) sgaus[i].CreateHistogram(); // on first loop, create histo
-	    }
-	  else
-	    {
-	      fsum->Add (&sgaus[i], 1.0); 
+	      Double_t xd2 = pow (frxs-xc, 2);
+	      Double_t yc = yb + (iy - dy + 0.5) * ybw;
+	      for (Int_t jy = iy-dy; jy <= iy+dy; ++jy)
+		{
+		  if (jx >= 0 && jx < nnx && jy >= 0 && jy < nny && xd2 + pow(frys-yc, 2) <= r2)
+		    fsuma[jx*nny+jy] += ggnorm;
+		  yc += ybw;
+	        }
+	      xc += xbw;
 	    }
 	}
 
+      TH2F *fsum = new TH2F ("fsum", "", nnx, xl, xr, nny, yb, yt);
+      for (Int_t jx = 1; jx <= nnx; ++jx)
+	for (Int_t jy = 1; jy <= nny; ++jy)
+	  {
+	    fsum->SetBinContent (jx, jy, fsuma[(jx-1)*nny+jy-1]);
+	  }
 
       Double_t scale = ((Double_t) nnx)/((Double_t) nx) * ((Double_t) nny)/((Double_t) ny);
 
@@ -563,7 +575,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       delete[] dadc;
       delete[] us;
       
-      delete[] sgaus;
+      // delete[] sgaus;
     }
 
   delete[] fRSNorm;
