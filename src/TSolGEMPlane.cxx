@@ -74,7 +74,6 @@ TSolGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 			   parent->GetWedge().GetR1(),
 			   parent->GetWedge().GetPhi0(),
 			   parent->GetWedge().GetDPhi());
-      SetRotations();
 
       z0 = fOrigin[2];
       depth = fSize[2];
