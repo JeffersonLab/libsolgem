@@ -1,4 +1,6 @@
 #include "TSolClusters.h"
+#include "TSolGEMPlane.h"
+#include "TSolSimGEMDigitization.h"
 #include <assert.h>
 
 Double_t TSolClusters::gSplitFrac = 0.1;
@@ -194,4 +196,33 @@ TSolClusters::MakeClusters (const Double_t stripstart, const Double_t strippitch
     nHits = -nHits;
   
   return nHits;
+}
+
+
+Int_t
+TSolClusters::ClusterPlane (TSolGEMPlane& gp,
+			    const Int_t ich,
+			    const Int_t ip,
+			    TSolSimGEMDigitization& ddd,
+			    const Double_t cut)
+{
+  UInt_t ns = gp.GetNStrips();
+  if (ns == 0)
+    return 0;
+
+  // Put corrected ADC data into sorted map.
+  for (UInt_t is = 0; is < ns; ++is)
+    {
+      // Apply the ADC cut
+      Double_t ch = ddd.GetCharge (ich, ip, is);
+      if (ch >= cut) 
+	AddRawHit (is, ch);
+    }
+
+  // Using these for origin and pitch gives cluster location
+  // in strip frame, in m
+  Double_t stripstart = gp.StripNumtoStrip (0); // in mm
+  Double_t strippitch = gp.GetSPitch(); // in mm
+
+  return MakeClusters (stripstart, strippitch);
 }

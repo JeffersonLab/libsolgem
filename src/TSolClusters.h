@@ -14,6 +14,8 @@
 #include <map>
 
 typedef std::map < Int_t, Float_t > HitMap_t;
+class TSolGEMPlane;
+class TSolSimGEMDigitization;
 
 struct Cluster_t
 {
@@ -28,9 +30,10 @@ struct Cluster_t
 class TSolClusters: public TObject
 {
  public: 
-  TSolClusters() {fClusters.clear();};
+  TSolClusters() {Init();};
   virtual ~TSolClusters() {};
 
+  void Init() {fRawHits.clear(); fClusters.clear();}
   void AddRawHit (UInt_t i, Float_t adc) {fRawHits[i] = adc;}
 
   void SetPos (UInt_t ic, Double_t vPos) {fClusters[ic].fPos = vPos;};
@@ -47,6 +50,11 @@ class TSolClusters: public TObject
 
   Int_t MakeClusters (const Double_t stripstart, 
 		      const Double_t strippitch);
+  Int_t ClusterPlane (TSolGEMPlane& gp, 
+		      const Int_t ich,
+		      const Int_t ip,
+		      TSolSimGEMDigitization& ddd,
+		      const Double_t cut);
 
   //  virtual void Print( const Option_t* opt="" ) const;
 
