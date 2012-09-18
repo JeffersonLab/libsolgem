@@ -28,9 +28,9 @@ TSolGEMChamber::~TSolGEMChamber()
 const char* TSolGEMChamber::GetDBFileName() const {
     THaApparatus *app = GetApparatus();
     if( app )
-	return app->GetName();
+      return Form ("%s.", app->GetName());
     else
-	return fPrefix;
+      return fPrefix;
 }
   
 Int_t 
