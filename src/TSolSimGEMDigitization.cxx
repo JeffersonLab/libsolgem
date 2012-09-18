@@ -464,16 +464,12 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       Int_t nx = iU - iL + 1;
       Int_t ny = (Int_t) ((yt - yb + 1) / yq + 0.5);
 
-      // # of fine histogram bins
-      Int_t nnx = (nx < 2000) ? nx * 4 : nx; // TF2 bins cannot be <4 !!! and high precision with higher bins
-      Int_t nny = (ny < 2000) ? ny * 4 : ny;
-
       // define function, gaussian and sum of gaussian
 
-      Double_t* fsuma = new Double_t[nnx*nny];
-      Double_t xbw = (xr - xl) / nnx;
-      Double_t ybw = (yt - yb) / nny;
-      memset (fsuma, 0, nnx * nny * sizeof (fsuma));
+      Double_t* fsuma = new Double_t[nx*ny];
+      Double_t xbw = (xr - xl) / nx;
+      Double_t ybw = (yt - yb) / ny;
+      memset (fsuma, 0, nx * ny * sizeof (fsuma));
       for (UInt_t i = 0; i < fRNIon; i++) 
 	{
 	  Double_t ggnorm = fRCharge[i] / 3.14 / 9. / fRSNorm[i] / fRSNorm[i]; // normalized to charge
@@ -495,24 +491,21 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 	      Double_t yc = yb + (iy - dy + 0.5) * ybw;
 	      for (Int_t jy = iy-dy; jy <= iy+dy; ++jy)
 		{
-		  if (jx >= 0 && jx < nnx && jy >= 0 && jy < nny && xd2 + pow(frys-yc, 2) <= r2)
-		    fsuma[jx*nny+jy] += ggnorm;
+		  if (jx >= 0 && jx < nx && jy >= 0 && jy < ny && xd2 + pow(frys-yc, 2) <= r2)
+		    fsuma[jx*ny+jy] += ggnorm;
 		  yc += ybw;
 	        }
 	      xc += xbw;
 	    }
 	}
 
-      TH2F *fsum = new TH2F ("fsum", "", nnx, xl, xr, nny, yb, yt);
-      for (Int_t jx = 1; jx <= nnx; ++jx)
-	for (Int_t jy = 1; jy <= nny; ++jy)
+      TH2F *fsum = new TH2F ("fsum", "", nx, xl, xr, ny, yb, yt);
+      for (Int_t jx = 1; jx <= nx; ++jx)
+	for (Int_t jy = 1; jy <= ny; ++jy)
 	  {
-	    fsum->SetBinContent (jx, jy, fsuma[(jx-1)*nny+jy-1]);
+	    fsum->SetBinContent (jx, jy, fsuma[(jx-1)*ny+jy-1]);
 	  }
-
-      Double_t scale = ((Double_t) nnx)/((Double_t) nx) * ((Double_t) nny)/((Double_t) ny);
-
-      fsum->Rebin2D (nnx/nx, nny/ny); // rebin (fix problem on TF2 that cannot have nbin<4) ; warning rebin does not rescale width
+      delete[] fsuma;
 
       Double_t *us = new Double_t[nx];
       for (Int_t j = 0; j < nx; j++) 
@@ -521,7 +514,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       for (Int_t i = iL; i <= iU; i++)
 	{
 	  Int_t kk = i - iL;
-	  us[kk] += fsum->Integral (kk+1, kk+1, 1, ny, "width") / scale;
+	  us[kk] += fsum->Integral (kk+1, kk+1, 1, ny, "width");
 	}
 
       Float_t t0 = time_off + fRTime0
