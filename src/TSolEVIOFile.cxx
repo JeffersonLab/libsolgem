@@ -487,7 +487,7 @@ void hitdata::SetData(unsigned int idx, double data ){
     return;
 }
 
-double hitdata::GetData(unsigned int idx){
+double hitdata::GetData(unsigned int idx) const {
     if( idx >= fSize ){
 	fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
 	return 1e9;
@@ -501,7 +501,7 @@ double hitdata::GetData(unsigned int idx){
     return fData[idx];
 }
 
-bool hitdata::IsFilled(){
+bool hitdata::IsFilled() const {
     if( fFillbits == ((1<<fSize) - 1) ){
 	return true;
     }

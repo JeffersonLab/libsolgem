@@ -38,13 +38,13 @@ class hitdata {
 	hitdata( int detid, unsigned int size = __DEFAULT_DATA_SIZE );
 	virtual ~hitdata();
 
-	int     GetDetID(){ return fDetID;}
+	int     GetDetID() const { return fDetID;}
 
 	void    SetData( unsigned int, double );
-	double  GetData( unsigned int );
+	double  GetData( unsigned int ) const ;
 	double *GetData(){ return fData; }
 
-	bool    IsFilled();
+	bool    IsFilled() const ;
 
     protected:
 	int     fDetID;
@@ -62,10 +62,10 @@ class gendata : public hitdata {
 	gendata();
 	~gendata(){;}
 
-	int	GetPID(){ return IsFilled()? (int) fData[0] : -1e9; }
-	double  GetWeight(){ return fData[7]; }
-	TVector3 GetP(){ return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); }
-	TVector3 GetV(){ return IsFilled()? TVector3(fData[4], fData[5], fData[6]) : TVector3(-1e9, -1e9, -1e9 ); }
+	int	GetPID() const { return IsFilled()? (int) fData[0] : -1e9; }
+	double  GetWeight() const { return fData[7]; }
+	TVector3 GetP() const { return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); }
+	TVector3 GetV() const { return IsFilled()? TVector3(fData[4], fData[5], fData[6]) : TVector3(-1e9, -1e9, -1e9 ); }
 };
 
 
