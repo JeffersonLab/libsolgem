@@ -11,6 +11,7 @@
 #include "TMath.h"
 #include "TTree.h"
 
+#include "TSolEVIOFile.h"  // needed for gendata class def
 #include "TSolGEMData.h"
 #include "TSolGEMVStrip.h"
 #include "TSolSpec.h"
@@ -246,20 +247,14 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 		{
 		  fDP[igem][j]->Cumulate (dh[j], itype);
 		}
-	      FillTreeHit (ih, igem, dh, gdata);
+	      SetTreeHit (ih, igem, dh, gdata);
 	      delete dh[0];
 	      delete dh[1];
 	      delete[] dh;
 	    }
 	} 
     }
-  FillTreeEvent (gdata);
-
-  if (fOFile && fOTree)
-    {
-      fOFile->cd();
-      fOTree->Fill();
-    }
+  SetTreeStrips (gdata);
 }
  
 
@@ -676,11 +671,24 @@ TSolSimGEMDigitization::InitTree (const TSolSpec& spect, const TString& ofile)
  }
 
 void
-TSolSimGEMDigitization::FillTreeHit (const UInt_t ih, 
-				     const UInt_t igem, 
-				     TSolGEMVStrip** dh,
-				     const TSolGEMData& tsgd)
+TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
+				      const gendata& gd)
 {
+  fEvent->fRunID = tsgd.GetRun();
+  fEvent->fEvtID = tsgd.GetEvent();
+  fEvent->fPrimaryVertex = gd.GetV();
+  fEvent->fPrimaryVertex *= 10.0; // convert to mm
+  fEvent->fMomentum = gd.GetP(); // momentum in MeV
+}
+
+void
+TSolSimGEMDigitization::SetTreeHit (const UInt_t ih, 
+				    const UInt_t igem, 
+				    TSolGEMVStrip** dh,
+				    const TSolGEMData& tsgd)
+{
+  // Sets the variables in fEvent->fGEMClust describing a hit
+  // This is later used to fill the tree.
 
   TSolSimEvent::GEMCluster clust;
   clust.fChamber  = igem;
@@ -704,10 +712,11 @@ TSolSimGEMDigitization::FillTreeHit (const UInt_t ih,
 }
 
 void
-TSolSimGEMDigitization::FillTreeEvent (const TSolGEMData& tsgd)
+TSolSimGEMDigitization::SetTreeStrips (const TSolGEMData& tsgd)
 {
-  fEvent->fRunID = tsgd.GetRun();
-  fEvent->fEvtID = tsgd.GetEvent();
+  // Sets the variables in fEvent->fGEMStrips describing strip signals
+  // This is later used to fill the tree.
+
   fEvent->fGEMStrips.clear();
   
   TSolSimEvent::DigiGEMStrip strip;
@@ -734,7 +743,16 @@ TSolSimGEMDigitization::FillTreeEvent (const TSolGEMData& tsgd)
 	    }
 	} 
     }
+}
 
+void
+TSolSimGEMDigitization::FillTree ()
+{
+  if (fOFile && fOTree)
+    {
+      fOFile->cd();
+      fOTree->Fill();
+    }
 }
 
 void 

@@ -85,6 +85,9 @@ public:
   Int_t     fRunID;               // Run number
   Int_t     fEvtID;               // Event number
 
+  TVector3  fPrimaryVertex;       // Position of primary vertex
+  TVector3  fMomentum;            // Momentum of primary scatter
+
   // MC tracks
   TClonesArray*   fMCTracks;      //-> MC tracks in this event
   

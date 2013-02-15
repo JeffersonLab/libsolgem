@@ -17,6 +17,7 @@ class TSolGEMData;
 class TSolGEMVStrip;
 class TSolSpec;
 class TSolSimEvent;
+class gendata;
 
 // First an auxiliary class
 
@@ -83,14 +84,22 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   void PrintCharges() const;
   void PrintSamples() const;
 
-  // Tree methodss
+  // Tree methods
+  // To write a tree with digitization results:
+  //   Call InitTree before main loop;
+  //   Call SetTreeEvent in main loop (before or after Digitize;
+  //   Call FillTree in main loop (after Digitize and SetTreeEvent)
+  // Call WriteTree and CloseTree after main loop
+
   void InitTree (const TSolSpec& spect, const TString& ofile);
-  void FillTreeHit (const UInt_t ih, 
-		    const UInt_t igem, 
-		    TSolGEMVStrip** dh,
-		    const TSolGEMData& tsgd);
-  void FillTreeHit (const TSolGEMData& gdata);
-  void FillTreeEvent (const TSolGEMData& gdata);
+  void SetTreeEvent (const TSolGEMData& tsgd,
+		     const gendata& gd);
+  void SetTreeHit (const UInt_t ih, 
+		   const UInt_t igem, 
+		   TSolGEMVStrip** dh,
+		   const TSolGEMData& tsgd); // called from Digitization
+  void SetTreeStrips (const TSolGEMData& gdata); // called from Digitization
+  void FillTree ();
   void WriteTree () const;
   void CloseTree () const;
 
