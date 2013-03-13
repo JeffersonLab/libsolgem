@@ -35,8 +35,11 @@ endif
 ifeq ($(strip $(EVIOLIB)),)
   $(error No EVIO library directory found. Check $$EVIO)
 endif
+ifeq (debug,$(findstring debug,$(ROOTBUILD)))
+  DBGSFX = _d
+endif
 SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
-LDFLAGS  += -L$(EVIOLIB) -levioxx -levio -lz -lexpat
+LDFLAGS  += -L$(EVIOLIB) -levioxx$(DBGSFX) -levio$(DBGSFX) -lz -lexpat
 
 # Some of the analyzer include dirs conflict with headers in
 # EVIO
