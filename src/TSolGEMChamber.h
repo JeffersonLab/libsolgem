@@ -68,6 +68,6 @@ class TSolGEMChamber : public THaDetector {
  public:
   ClassDef(TSolGEMChamber,0)
 
-    };
+};
 
 #endif//__TSOLGEMCHAMBER_H

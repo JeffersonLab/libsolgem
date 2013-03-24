@@ -125,15 +125,19 @@ Int_t TSolSimFile::Open()
     return -2;
   }
 
-  fTree->SetBranchStatus("*", kFALSE);
+  //  fTree->SetBranchStatus("*", kFALSE);
 
   // Set up reading of the event branch
   delete fEvent; fEvent = 0;
 
-  UInt_t found = 0;
-  fTree->SetBranchStatus( eventBranchName, kTRUE, &found );
-  if( found > 0 ) {
-    fTree->SetBranchAddress( eventBranchName, &fEvent );
+  // UInt_t found = 0;
+  // fTree->SetBranchStatus( eventBranchName, kTRUE, &found );
+  // if( found > 0 ) {
+  //   fTree->SetBranchAddress( eventBranchName, &fEvent );
+  // }
+  TBranch* br = fTree->GetBranch(eventBranchName);
+  if( br ) {
+    br->SetAddress(&fEvent);
   }
   else {
     Error( __FUNCTION__, "No event branch \"%s\" in the input tree.",

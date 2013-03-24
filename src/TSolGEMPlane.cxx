@@ -8,6 +8,7 @@
 #include "TSolGEMCluster.h"
 #include "TSolWedge.h"
 #include "THaEvData.h"
+#include "TMath.h"
 
 using namespace std;
 
@@ -257,19 +258,25 @@ TSolGEMPlane::Print() const
   cout << "I'm a GEM plane named " << GetName() << endl;
 
   TVector3 o (GetOrigin());
-  cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2) << endl;
+  cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
+       << " (rho,theta,phi)=(" << o.Mag() << "," << o.Theta()*TMath::RadToDeg()
+       << "," << o.Phi()*TMath::RadToDeg() << ")"
+       << endl;
 
   const Float_t* s = GetSize();
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
   cout << "  Wedge geometry: r0: " << fWedge->GetR0()
        << " r1: " << fWedge->GetR1()
-       << " phi0: " << fWedge->GetPhi0()
-       << " dphi: " << fWedge->GetDPhi() << endl;
+       << " phi0: " << fWedge->GetPhi0()*TMath::RadToDeg()
+       << " dphi: " << fWedge->GetDPhi()*TMath::RadToDeg()
+       << endl;
 
-  cout << "  " << GetNStrips() << " strips, angle "
-       << GetSAngle() << ", pitch " 
-       << GetSPitch() << endl;
+  cout << "  " << GetNStrips() << " strips"
+       << ", angle " << GetSAngle()*TMath::RadToDeg()
+       << ", start " << fSBeg << " " << 0.5*(GetStripLowerEdge(0)+GetStripUpperEdge(0))
+       << ", pitch " << GetSPitch()
+       << endl;
 }
 
 void

@@ -13,21 +13,24 @@
 /////////////////////////////////////////////////////////////////////
 
 #include "TSolSimDecoder.h"
-#include "TSolSimEvent.h"
 #include "THaCrateMap.h"
 #include "THaBenchmark.h"
 #include "VarDef.h"
 #include "TClonesArray.h"
+#include <cstdlib>
 
 using namespace std;
 
-// Prefix of our own gloabl variables (true MC data)
+// Prefix of our own global variables (MC truth data)
 static const char* const MC_PREFIX = "MC.";
 
 //-----------------------------------------------------------------------------
 TSolSimDecoder::TSolSimDecoder() : fIsSetup(false)
 {
   // Constructor
+
+  fHits = new TClonesArray( "TSolSimGEMHit", 200 );
+  fBackTracks = new TClonesArray( "TSolSimBackTrack", 5 );
 
   DefineVariables();
 }
@@ -36,6 +39,9 @@ TSolSimDecoder::TSolSimDecoder() : fIsSetup(false)
 TSolSimDecoder::~TSolSimDecoder() {
 
   DefineVariables( THaAnalysisObject::kDelete );
+
+  delete fBackTracks;
+  delete fHits;
 }
 
 //-----------------------------------------------------------------------------
@@ -48,15 +54,46 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
   fIsSetup = ( mode == THaAnalysisObject::kDefine );
 
   RVarDef vars[] = {
-    { "tr.n",    "Number of tracks",     "GetNTracks()" },
-    { "tr.x",    "Track origin x (m)",   "fTracks.TSolSimTrack.TX()" },
-    { "tr.y",    "Track origin y (m)",   "fTracks.TSolSimTrack.TY()" },
-    { "tr.th",   "Track tan(theta)",     "fTracks.TSolSimTrack.TTheta()" },
-    { "tr.ph",   "Track tan(phi)",       "fTracks.TSolSimTrack.TPhi()" },
-    { "tr.p",    "Track momentum (GeV)", "fTracks.TSolSimTrack.P() "},
-    { "tr.hit1", "Chamber # of 1st hit", "fTracks.TSolSimTrack.fHit1" },
-    { "tr.pid",  "Track PID (PDG)",      "fTracks.TSolSimTrack.fPID" },
-    { "tr.t0",   "Track time offset",    "fTracks.TSolSimTrack.fTimeOffset" },
+    { "tr.n",    "Number of tracks",      "GetNTracks()" },
+    { "tr.x",    "Track origin x (m)",    "fTracks.TSolSimTrack.VX()" },
+    { "tr.y",    "Track origin y (m)",    "fTracks.TSolSimTrack.VY()" },
+    { "tr.z",    "Track origin z (m)",    "fTracks.TSolSimTrack.VZ()" },
+    { "tr.p",    "Track momentum (GeV)",  "fTracks.TSolSimTrack.P() "},
+    { "tr.theta","Track theta_p (rad)",   "fTracks.TSolSimTrack.PTheta()" },
+    { "tr.phi",  "Track phi_p (rad)",     "fTracks.TSolSimTrack.PPhi()" },
+    { "tr.pid",  "Track PID (PDG)",       "fTracks.TSolSimTrack.fPID" },
+    { "tr.num",  "GEANT track number",    "fTracks.TSolSimTrack.fNumber" },
+
+    { "btr.n",   "Number of back tracks", "GetNBackTracks()" },
+    { "btr.pid", "Track PID (PDG)",       "fBackTracks.TSolSimBackTrack.fPID" },
+    { "btr.num", "GEANT track number",    "fBackTracks.TSolSimBackTrack.fType" },
+    { "btr.x",   "Track pos lab x (m)",   "fBackTracks.TSolSimBackTrack.TX()" },
+    { "btr.y",   "Track pos lab y (m)",   "fBackTracks.TSolSimBackTrack.TY()" },
+    { "btr.th",  "Track tan(theta)",      "fBackTracks.TSolSimBackTrack.TTheta()" },
+    { "btr.ph",  "Track tan(phi)",        "fBackTracks.TSolSimBackTrack.TPhi()" },
+    { "btr.hx",  "Track pos plane x (m)", "fBackTracks.TSolSimBackTrack.HX()" },
+    { "btr.hy",  "Track pos plane y (m)", "fBackTracks.TSolSimBackTrack.HY()" },
+    { "btr.p",   "Track momentum (GeV)",  "fBackTracks.TSolSimBackTrack.P() "},
+
+    { "hit.n",     "Number of MC hits",          "GetNHits()" },
+    { "hit.id",    "MC hit number",              "fHits.TSolSimGEMHit.fID" },
+    { "hit.sect",  "MC hit sector",              "fHits.TSolSimGEMHit.fSector" },
+    { "hit.plane", "MC hit plane",               "fHits.TSolSimGEMHit.fPlane" },
+    { "hit.type",  "MC hit GEANT counter",       "fHits.TSolSimGEMHit.fType" },
+    { "hit.pid",   "MC hit PID (PDG)",           "fHits.TSolSimGEMHit.fPID" },
+    { "hit.p",     "MC hit particle p [GeV]",    "fHits.TSolSimGEMHit.P()" },
+    { "hit.x",     "MC hit lab x position [m]",  "fHits.TSolSimGEMHit.X()" },
+    { "hit.y",     "MC hit lab y position [m]",  "fHits.TSolSimGEMHit.Y()" },
+    { "hit.z",     "MC hit lab z position [m]",  "fHits.TSolSimGEMHit.Z()" },
+    { "hit.charge","MC hit cluster charge",      "fHits.TSolSimGEMHit.fCharge" },
+    { "hit.time",  "MC hit time offset [s]",     "fHits.TSolSimGEMHit.fTime" },
+    { "hit.usz",   "MC hit u cluster size",      "fHits.TSolSimGEMHit.fUSize" },
+    { "hit.uwire", "MC hit u cluster 1st wire",  "fHits.TSolSimGEMHit.fUStart" },
+    { "hit.upos",  "MC hit u cluster center [m]","fHits.TSolSimGEMHit.fUPos" },
+    { "hit.vsz",   "MC hit v cluster size",      "fHits.TSolSimGEMHit.fVSize" },
+    { "hit.vwire", "MC hit v cluster 1st wire",  "fHits.TSolSimGEMHit.fVStart" },
+    { "hit.vpos",  "MC hit v cluster center [m]","fHits.TSolSimGEMHit.fVPos" },
+
     { 0 }
   };
   
@@ -72,8 +109,11 @@ void TSolSimDecoder::Clear( Option_t* opt )
 
   THaEvData::Clear();
 
-  // Never delete the tracks, only clear the list. The tracks are deleted
-  // in TSolSimFile::ReadEvent() by the call to fEvent->Clear().
+  fHits->Clear();
+  fBackTracks->Clear();
+  // Never delete the physics tracks, only clear the list. The tracks are part
+  // of a TClonesArray which is Clear()ed  in TSolSimFile::ReadEvent() by the
+  // call to fEvent->Clear().
   fTracks.Clear("nodelete");
 }
 
@@ -90,9 +130,7 @@ int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
   // Cast the evbuffer pointer back to exactly the event type that is present
   // in the input file (in TSolSimFile). The pointer-to-integer is there
   // just for compatibility with the standard decoder.
-  // Note: simEvent can't be constant - ROOT does not like to iterate
-  // over const TList.
-  TSolSimEvent* simEvent = (TSolSimEvent*)(evbuffer);
+  const TSolSimEvent* simEvent = reinterpret_cast<const TSolSimEvent*>(evbuffer);
 
   if (first_decode) {
     init_cmap();     
@@ -115,33 +153,54 @@ int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
 
   if( fDoBench ) fBench->Begin("physics_decode");
 
-  // Decode the digitized data.  Populate crateslot array.
+  // Decode the digitized strip data.  Populate crateslot array.
   for( vector<TSolSimEvent::DigiGEMStrip>::size_type i = 0;
        i < simEvent->fGEMStrips.size(); i++) {
 
     const TSolSimEvent::DigiGEMStrip& s = simEvent->fGEMStrips[i];
-    Int_t roc  = s.fGEM;
-    Int_t slot = s.fNum / CHAN_PER_SLOT;
-    Int_t chan = s.fNum % CHAN_PER_SLOT;
+    // The (roc,slot,chan) assignment must match the detmap definition.
+    // See TreeSearch/dbconvert.cxx
+    const int NPLANES = 4, NPROJ = 2, CHAN_PER_SLOT = 1280;
+    const int modules_per_readout = 1;
+    const int modules_per_chamber = 2*modules_per_readout;
+    const int chambers_per_crate = (MAXSLOT/modules_per_chamber/NPLANES)*NPLANES;
+    div_t d = div( s.fChan, CHAN_PER_SLOT );
+    Int_t module = d.quot;
+    Int_t chan   = d.rem;
+    Int_t ix = module +
+      modules_per_readout*( s.fProj + NPROJ*( s.fPlane + NPLANES*s.fSector ));
+    d = div( ix, chambers_per_crate*modules_per_chamber );
+    Int_t roc  = d.quot;
+    Int_t slot = d.rem;
 
-    for( Int_t k = 0; k < MC_MAXSAMP; k++ ) {
+    for( Int_t k = 0; k < s.fNsamp; k++ ) {
       Int_t raw = s.fADC[k];
-      if (crateslot[idx(roc,slot)]->loadData("adc",chan,raw,raw)
-	  == SD_ERR) return HED_ERR;
+      if( crateslot[idx(roc,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
+	return HED_ERR;
     }
   }
 
-  // Extract MC track info, so we can access it via global variables
-  // The list of tracks is already part of the event - no need to generate
-  // our own tracks here. 
-  // FIXME: However, we have to copy the list because the global variable system 
-  // cannot handle variable pointers.
+  // Create lists of two types of tracks:
+  // 1) Physics tracks, as generated at the target
+  // 2) "Back tracks": hits at the first plane from the primary particle
 
+  // Physics tracks
   TClonesArray* tracks = simEvent->fMCTracks;
   if( tracks ) {
     for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
       fTracks.Add( tracks->UncheckedAt(i) );
     }
+  }
+
+  // Back tracks, as well as MC hit data ("clusters")
+  for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
+       i < simEvent->fGEMClust.size(); ++i ) {
+    const TSolSimEvent::GEMCluster& c = simEvent->fGEMClust[i];
+
+    new( (*fHits)[GetNHits()] ) TSolSimGEMHit(c);
+
+    if( c.fPlane == 0 && c.fType == 1 )
+      new( (*fBackTracks)[GetNBackTracks()] ) TSolSimBackTrack(c);
   }
 
   if( fDoBench ) fBench->Stop("physics_decode");
@@ -154,4 +213,45 @@ int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
 }
 
 //-----------------------------------------------------------------------------
+TSolSimGEMHit::TSolSimGEMHit( const TSolSimEvent::GEMCluster& c )
+  : fID(c.fID), fSector(c.fSector), fPlane(c.fPlane), fType(c.fType), 
+    fPID(c.fPID), fP(c.fP), fXEntry(c.fXEntry), fMCpos(c.fMCpos),
+    fHitpos(c.fHitpos), fCharge(c.fCharge), fTime(c.fTime),
+    fUSize(c.fSize[0]), fUStart(c.fStart[0]), fUPos(c.fXProj[0]),
+    fVSize(c.fSize[1]), fVStart(c.fStart[1]), fVPos(c.fXProj[1])
+{
+  // Construct hit from cluster
+}
+
+//-----------------------------------------------------------------------------
+void TSolSimGEMHit::Print( const Option_t* ) const
+{
+  // Print TSolSimGEMHit info
+
+}
+
+//-----------------------------------------------------------------------------
+TSolSimBackTrack::TSolSimBackTrack( const TSolSimEvent::GEMCluster& c )
+  : fType(c.fType), fPID(c.fPID),
+    fOrigin(c.fMCpos), fHitpos(c.fHitpos), fMomentum(c.fP)
+{
+  // Construct track from cluster info
+}
+
+//-----------------------------------------------------------------------------
+void TSolSimBackTrack::Print( const Option_t* ) const
+{
+  // Print TSolSimBackTrack info
+
+  cout << "track: type = " << fType
+       << ", PID = " << fPID 
+       << endl;
+  cout << "  Origin    = ";  fOrigin.Print();
+  cout << "  Momentum  = ";  fMomentum.Print();
+  cout << "  Hitpos    = ";  fHitpos.Print();
+}
+
+//-----------------------------------------------------------------------------
 ClassImp(TSolSimDecoder)
+ClassImp(TSolSimGEMHit)
+ClassImp(TSolSimBackTrack)

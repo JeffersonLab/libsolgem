@@ -13,34 +13,37 @@
 #define __TSolSim_h
 
 #include "TVector3.h"
+#include "TArrayS.h"
 #include <vector>
 
 class TClonesArray;
 
 //-----------------------------------------------------------------------------
+// A Monte Carlo physics track
 class TSolSimTrack : public TObject {
  public: 
-  TSolSimTrack() : fType(0), fLayer(0), fPID(0), fTimeOffset(0.0), fHit1(-1) {}
-  TSolSimTrack( Int_t type, Int_t layer, Int_t pid, Double_t toff )
-    : fType(type), fLayer(layer), fPID(pid), fTimeOffset(toff), fHit1(-1) {}
+  TSolSimTrack( Int_t number, Int_t pid, Double_t weight,
+		const TVector3& vertex, const TVector3& momentum )
+    : fNumber(number), fPID(pid), fWeight(weight),
+      fOrigin(vertex), fMomentum(momentum) {}
+  TSolSimTrack() : fNumber(0), fPID(0), fWeight(1.0) {}
 
-  Int_t    fType;        // Track type
-  Int_t    fLayer;       // Material type where track originated (unused)
+  Int_t    fNumber;      // Track counter
   Int_t    fPID;         // Track particle ID (PDG)
-  Double_t fTimeOffset;  // Time offset of the track (s)
-  TVector3 fOrigin;      // Origin (m)
+  Double_t fWeight;      // Weight factor
+  TVector3 fOrigin;      // Vertex position (m)
   TVector3 fMomentum;    // Momentum (GeV)
-  Int_t    fHit1;        // Chamber where this track makes its first hit
 
-  Double_t TX()     { return fOrigin.X(); }
-  Double_t TY()     { return fOrigin.Y(); }
-  Double_t TTheta() { return fMomentum.Px()/fMomentum.Pz(); }
-  Double_t TPhi()   { return fMomentum.Py()/fMomentum.Pz(); }
+  Double_t VX()     { return fOrigin.X(); }
+  Double_t VY()     { return fOrigin.Y(); }
+  Double_t VZ()     { return fOrigin.Z(); }
   Double_t P()      { return fMomentum.Mag(); }
+  Double_t PTheta() { return fMomentum.Theta(); }
+  Double_t PPhi()   { return fMomentum.Phi(); }
 
   virtual void Print( const Option_t* opt="" ) const;
   
-  ClassDef(TSolSimTrack, 1) // A true MC track
+  ClassDef(TSolSimTrack, 2) // A MC physics track
 };
 
 //-----------------------------------------------------------------------------
@@ -59,78 +62,69 @@ public:
   TSolSimEvent( UInt_t ntracks ); // Construct and initialize fMCTracks
   virtual ~TSolSimEvent();
 
-  UInt_t NGEMClust () const {return fGEMClust.size();};
-  Short_t GetCChamber (UInt_t ic) const {return fGEMClust[ic].fChamber;};
-  Float_t GetCCharge (UInt_t ic) const {return fGEMClust[ic].fCharge;};
-  Int_t GetCRefEntry (UInt_t ic) const {return fGEMClust[ic].fRefEntry;};
-  Int_t GetCRefFile (UInt_t ic) const {return fGEMClust[ic].fRefFile;};
-  Float_t GetCTime (UInt_t ic) const {return fGEMClust[ic].fTime;};
-  TVector3 GetCP (UInt_t ic) const {return fGEMClust[ic].fP;};
-  Int_t GetCPID (UInt_t ic) const {return fGEMClust[ic].fPID;};
-  Int_t fGetCSize (UInt_t ic, UInt_t i) const {return fGEMClust[ic].fSize[i];};
-  Int_t fGetCStart (UInt_t ic, UInt_t i) const {return fGEMClust[ic].fStart[i];};
-  TVector3 GetCXEntry (UInt_t ic) const {return fGEMClust[ic].fXEntry;};
+  virtual void Clear( const Option_t* opt="" );
+  virtual void Print( const Option_t* opt="" ) const;
 
-  UInt_t NGEMStrips () const {return fGEMStrips.size();};
-  Short_t GetSGEM (UInt_t i) const {return fGEMStrips[i].fGEM;};
-  Short_t GetSPlane (UInt_t i) const {return fGEMStrips[i].fPlane;};
-  Short_t GetSNum (UInt_t i) const {return fGEMStrips[i].fNum;};
-  Short_t GetSSigType (UInt_t i) const {return fGEMStrips[i].fSigType;};
-  Short_t GetSTrack (UInt_t i) const {return fGEMStrips[i].fTrack;};
-  Float_t GetSCharge (UInt_t i) const {return fGEMStrips[i].fCharge;};
-  Float_t GetSTime1 (UInt_t i) const {return fGEMStrips[i].fTime1;};
-  Short_t GetSADC (UInt_t i, UInt_t isamp) const {return fGEMStrips[i].fADC[isamp];};
+  TSolSimTrack* AddTrack( Int_t number, Int_t pid, Double_t weight,
+			  const TVector3& vertex, const TVector3& momentum );
+
+  Int_t GetNclust()  const { return fGEMClust.size(); }
+  Int_t GetNstrips() const { return fGEMStrips.size(); }
+  Int_t GetNtracks() const;
 
   // Event identification
   Int_t     fRunID;               // Run number
   Int_t     fEvtID;               // Event number
 
-  TVector3  fPrimaryVertex;       // Position of primary vertex
-  TVector3  fMomentum;            // Momentum of primary scatter
-
   // MC tracks
-  TClonesArray*   fMCTracks;      //-> MC tracks in this event
+  TClonesArray*   fMCTracks;      //-> Physics tracks
   
   // Cluster variables (MC generated)
+  // Each "cluster" is a MC hit along with the digitized charge avalance data
   // Note: fNSignal <= fClust.size() (equal if no background)
   // The first fNSignal elements in the array of clusters are from the signal
   Int_t     fNSignal;             // Number of clusters from trigger track (signal)
 
   struct GEMCluster {
-    Short_t   fChamber;   // Chamber number of cluster
-    Float_t   fCharge;    // Charge of avalanche
-    Int_t     fRefEntry;  // Reference entry in MC
-    Int_t     fRefFile;   // Particle type associated with hit
-    Float_t   fTime;      // Arrival time at electronics (w/o ToF)
-    TVector3  fP;         // Momentum of particle generating the cluster
+    Short_t   fID;        // Cluster number, cross-ref to GEMStrip
+    // MC hit data
+    Short_t   fSector;    // Sector number
+    Short_t   fPlane;     // Plane number
+    // Int_t     fRefEntry;  // Reference entry in MC -- NEVER FILLED
+    Int_t     fType;      // GEANT particle counter (1 = primary)
     Int_t     fPID;       // PDG ID of particle generating the cluster
+    TVector3  fP;         // Momentum of particle generating the cluster
+    TVector3  fXEntry;    // Track at chamber entrance in lab coords [m]
+    TVector3  fMCpos;     // Approx. truth position of hit in lab [m]
+    TVector3  fHitpos;    // fMCpos in Tracker frame [m]
+    // Digitization results for this hit
+    Float_t   fCharge;    // Charge of avalanche
+    Float_t   fTime;      // Arrival time at electronics (w/o ToF)
     Int_t     fSize[2];   // Number of strips in cluster per axis
     Int_t     fStart[2];  // Number of first strip in cluster per axis
-    TVector3  fXEntry;    // Truth position of hit
+    Float_t   fXProj[2];  // fMCpos along projection axis [m]
   };
 
   std::vector<GEMCluster> fGEMClust;  // All MC-generated clusters in the GEMs
   
   // Digitized strip amplitude data
   struct DigiGEMStrip {
-    Short_t   fGEM;       // Location index of strip
+    Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
-    Short_t   fNum;       // Strip number
-    Short_t   fSigType;   // Signal type (0=signal(+bck), 1=bck)
-    Short_t   fTrack;     // Track index (-1=none)
+    Short_t   fProj;      // Readout coordinate ("x" = 0, "y" = 1)
+    Short_t   fChan;      // Channel number
+    Short_t   fSigType;   // Accumulated signal types (BIT(0) = signal)
     Float_t   fCharge;    // Total charge in strip
     Float_t   fTime1;     // Time of first sample
-                             //   relative to event start in target (TBC)
-    Short_t   fADC[MC_MAXSAMP]; // ADC samples
+                          //   relative to event start in target (TBC)
+    Short_t   fNsamp;     // Number of ADC samples
+    Short_t   fADC[MC_MAXSAMP]; // [fNsamp] ADC samples
+    TArrayS   fClusters;  // Clusters contributing to signal on this strip
   };
 
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
 
-  virtual void Clear( const Option_t* opt="" );
-  virtual void Print( const Option_t* opt="" ) const;
-
-  ClassDef(TSolSimEvent, 1) // Simulated data for one event
+  ClassDef(TSolSimEvent, 2) // Simulated data for one event
 };
-
 
 #endif

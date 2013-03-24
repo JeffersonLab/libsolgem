@@ -2,6 +2,7 @@
 
 #include "TSolGEMChamber.h"
 #include "TSolWedge.h"
+#include "TMath.h"
 
 using namespace std;
 
@@ -122,15 +123,19 @@ TSolGEMChamber::Print (const Bool_t printplanes)
 {
   cout << "I'm a GEM chamber named " << GetName() << endl;
   TVector3 o (GetOrigin());
-  cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2) << endl;
+  cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
+       << " (rho,theta,phi)=(" << o.Mag() << "," << o.Theta()*TMath::RadToDeg()
+       << "," << o.Phi()*TMath::RadToDeg() << ")"
+       << endl;
 
   const Float_t* s = GetSize();
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
   cout << "  Wedge geometry: r0: " << fWedge->GetR0()
        << " r1: " << fWedge->GetR1()
-       << " phi0: " << fWedge->GetPhi0()
-       << " dphi: " << fWedge->GetDPhi() << endl;
+       << " phi0: " << fWedge->GetPhi0()*TMath::RadToDeg()
+       << " dphi: " << fWedge->GetDPhi()*TMath::RadToDeg()
+       << endl;
 
   if (printplanes)
     for (UInt_t i = 0; i < GetNPlanes(); ++i)

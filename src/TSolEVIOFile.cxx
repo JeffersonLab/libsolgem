@@ -461,9 +461,9 @@ hitdata::hitdata(int detid, unsigned int size ){
     fFillbits = 0;
 
     if( size > sizeof( long long int )*8 ){
-	fprintf(stderr, "%s %s line %d:  Error:  Event size too long for bit pattern storage (requested %d, have %d)\n",
+	fprintf(stderr, "%s %s line %d:  Error:  Event size too long for bit pattern storage (requested %d, have %ld)\n",
 	      __FILE__, __PRETTY_FUNCTION__, __LINE__, size, 
-	      sizeof(long long int)*8);
+		sizeof(long long int)*8);
 	exit(1);
     }
 

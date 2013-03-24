@@ -84,21 +84,21 @@ class TSolEVIOFile {
 	Int_t Open();
 	Int_t Close();
 
-	const char* GetFileName() { return fFilename; }
+	const char* GetFileName() const { return fFilename; }
 
 	Int_t ReadNextEvent();
 	void  ExtractDetIDs( evio::evioDOMNodeList *, int );
 	void  BuildData( evio::evioDOMNodeList * );
 	void  BuildGenerated( evio::evioDOMNodeList * );
-	void  AddDatum(int crate, int slot, int chan, double data );
+  //	void  AddDatum(int crate, int slot, int chan, double data );
 
-	UInt_t GetNData(){ return fHitData.size(); }
-	UInt_t GetNGen(){ return fGenData.size(); }
+	UInt_t GetNData() const { return fHitData.size(); }
+	UInt_t GetNGen() const { return fGenData.size(); }
 
-	UInt_t GetEvNum(){ return fEvNum; }
+	UInt_t GetEvNum() const { return fEvNum; }
 
-	hitdata *GetHitData(Int_t i){ return fHitData[i]; }
-	gendata *GetGenData(Int_t i){ return fGenData[i]; }
+	hitdata *GetHitData(Int_t i) const { return fHitData[i]; }
+	gendata *GetGenData(Int_t i) const { return fGenData[i]; }
 
 	TSolGEMData *GetGEMData();
 

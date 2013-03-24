@@ -10,30 +10,115 @@
 #include "THaEvData.h"
 #include "THaAnalysisObject.h"
 #include "TList.h"
+#include "TClonesArray.h"
+#include "TSolSimEvent.h"
+#include <cassert>
 
 class THaCrateMap;
 
+//-----------------------------------------------------------------------------
+// Helper classes for making decoded event data available via global variables
+
+class TSolSimGEMHit : public TObject {
+public:
+  TSolSimGEMHit() {}
+  TSolSimGEMHit( const TSolSimEvent::GEMCluster& cl );
+
+  virtual void Print( const Option_t* opt="" ) const;
+
+  Double_t P() const { return fP.Mag(); }
+  Double_t X() const { return fMCpos.X(); }
+  Double_t Y() const { return fMCpos.Y(); }
+  Double_t Z() const { return fMCpos.Z(); }
+
+  Int_t     fID;        // Cluster number, cross-ref to GEMStrip
+  // MC hit data
+  Int_t     fSector;    // Sector number
+  Int_t     fPlane;     // Plane number
+  Int_t     fType;      // GEANT particle counter (1 = primary)
+  Int_t     fPID;       // PDG ID of particle generating the cluster
+  TVector3  fP;         // Momentum of particle generating the cluster
+  TVector3  fXEntry;    // Track at chamber entrance in lab coords [m]
+  TVector3  fMCpos;     // Approx. truth position of hit in lab [m]
+  TVector3  fHitpos;    // fMCpos in Tracker frame [m]
+  // Digitization results for this hit
+  Float_t   fCharge;    // Charge of avalanche
+  Float_t   fTime;      // Arrival time at electronics (w/o ToF)
+  Int_t     fUSize;     // Number of strips in u-cluster
+  Int_t     fUStart;    // Number of first strip in u-cluster
+  Float_t   fUPos;      // fMCpos along u-projection axis [m]
+  Int_t     fVSize;     // Number of strips in v-cluster
+  Int_t     fVStart;    // Number of first strip in v-cluster
+  Float_t   fVPos;      // fMCpos along v-projection axis [m]
+
+  ClassDef(TSolSimGEMHit, 0) // A Monte Carlo hit at a GEM tracking chamber
+};
+
+//-----------------------------------------------------------------------------
+class TSolSimBackTrack : public TObject {
+public:
+  TSolSimBackTrack() {}
+  TSolSimBackTrack( const TSolSimEvent::GEMCluster& cl );
+  
+  Double_t TX()     { return fOrigin.X(); }
+  Double_t TY()     { return fOrigin.Y(); }
+  Double_t TTheta() { return fMomentum.Px()/fMomentum.Pz(); }
+  Double_t TPhi()   { return fMomentum.Py()/fMomentum.Pz(); }
+  Double_t P()      { return fMomentum.Mag(); }
+  Double_t HX()     { return fHitpos.X(); }
+  Double_t HY()     { return fHitpos.Y(); }
+
+  virtual void Print( const Option_t* opt="" ) const;
+
+private:
+
+  Int_t    fType;        // Track type
+  Int_t    fPID;         // Track particle ID (PDG)
+  TVector3 fOrigin;      // Position at first plane in lab frame (m)
+  TVector3 fHitpos;      // Position at first plane in Tracker frame [m]
+  TVector3 fMomentum;    // Momentum (GeV)
+
+  ClassDef(TSolSimBackTrack, 0) // MC track registered at first tracking chamber
+};
+
+//-----------------------------------------------------------------------------
+// SoLID simulation decode class
 class TSolSimDecoder : public THaEvData {
  public:
   TSolSimDecoder();
   virtual ~TSolSimDecoder();
 
-  Int_t  LoadEvent( const int*evbuffer, THaCrateMap* usermap );
+  virtual Int_t LoadEvent( const int* evbuffer, THaCrateMap* usermap );
+  virtual void  Clear( Option_t* opt="" );
 
-  void   Clear( Option_t* opt="" );
-  Int_t  GetNTracks() const { return fTracks.GetSize(); }
+  Int_t  GetNBackTracks() const { return fBackTracks->GetLast()+1; }
+  Int_t  GetNHits()       const { return fHits->GetLast()+1; }
+  Int_t  GetNTracks()     const { return fTracks.GetSize(); }
+
   Int_t  DefineVariables( THaAnalysisObject::EMode mode = 
 			  THaAnalysisObject::kDefine );
 
-  static const Int_t CHAN_PER_SLOT = 128;
+  TSolSimBackTrack* GetBackTrack( Int_t i ) const {
+    TObject* obj = fBackTracks->UncheckedAt(i);
+    assert( dynamic_cast<TSolSimBackTrack*>(obj) );
+    return static_cast<TSolSimBackTrack*>(obj);
+  }
+  TSolSimGEMHit* GetGEMHit( Int_t i ) const {
+    TObject* obj = fHits->UncheckedAt(i);
+    assert( dynamic_cast<TSolSimGEMHit*>(obj) );
+    return static_cast<TSolSimGEMHit*>(obj);
+  }
 
  protected:
 
-  TList   fTracks;       // Monte Carlo tracks
+  TList          fTracks;     // MC physics tracks
+  TClonesArray*  fHits;       //-> MC hits (clusters)
+  TClonesArray*  fBackTracks; //-> Primary particle tracks at first chamber
 
-  bool    fIsSetup;
+  Bool_t  fIsSetup;
 
   ClassDef(TSolSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };
+
 
 #endif

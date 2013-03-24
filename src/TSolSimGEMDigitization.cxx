@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <cstdlib>
 
 #include "TCanvas.h"
 #include "TFile.h"
@@ -10,6 +11,7 @@
 #include "TH2F.h"
 #include "TMath.h"
 #include "TTree.h"
+#include "TClonesArray.h"
 
 #include "TSolEVIOFile.h"  // needed for gendata class def
 #include "TSolGEMData.h"
@@ -44,7 +46,10 @@ TSolDigitizedPlane::TSolDigitizedPlane (Short_t nstrip,
     cerr << __FUNCTION__ << " allocation failed" << endl;
     return;
   }
-  Init();
+
+  fStripClusters.resize(fNStrips);
+
+  Clear();
 };
 
 TSolDigitizedPlane::~TSolDigitizedPlane() 
@@ -58,7 +63,7 @@ TSolDigitizedPlane::~TSolDigitizedPlane()
 };
 
 void
-TSolDigitizedPlane::Init()
+TSolDigitizedPlane::Clear()
 {
   for (Int_t i = 0; i < fNStrips; i++) 
     {
@@ -68,10 +73,16 @@ TSolDigitizedPlane::Init()
       fTime[i] = 9999.;
     }
   fPStripADC->Reset();
+
+  for( vector< std::vector<Short_t> >::iterator it = fStripClusters.begin();
+       it != fStripClusters.end(); ++it ) {
+    (*it).clear();
+  }
 }
 
 void 
-TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
+TSolDigitizedPlane::Cumulate (const TSolGEMVStrip *vv, Int_t type,
+			      Short_t clusterID )
 {
   Int_t j,k;
   Int_t idx;
@@ -91,6 +102,7 @@ TSolDigitizedPlane::Cumulate (TSolGEMVStrip *vv, Int_t type) const
 	fPStripADC->AddAt(ooo+nnn, idx*fNSamples+k);
 	fTotADC[idx] += nnn;
       }
+      fStripClusters[idx].push_back(clusterID);
     }
   }
 };
@@ -117,9 +129,11 @@ TSolDigitizedPlane::Threshold (Short_t thr)
 
 TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
 						const char* name )
-  : THaAnalysisObject(name, "GEM simulation digitizer")
+  : THaAnalysisObject(name, "GEM simulation digitizer"),
+    fDP(0), fNChambers(0), fNPlanes(0), fRX(0), fRY(0), fRSNorm(0), 
+    fRCharge(0), fOFile(0), fOTree(0), fEvent(0)
 {
-  Init( TDatime() );
+  Init();
   Initialize (spect);
 
   fEvent = new TSolSimEvent(5);
@@ -128,23 +142,34 @@ TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
 
 TSolSimGEMDigitization::~TSolSimGEMDigitization()
 {
+  DeleteObjects();
+}
+
+void TSolSimGEMDigitization::DeleteObjects()
+{
   for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
       for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
 	delete fDP[ic][ip];
       delete[] fDP[ic];
     }
-  delete[] fDP;
-  delete[] fNPlanes;
+  delete[] fDP;       fDP = 0;
+  delete[] fNPlanes;  fNPlanes = 0;
 
-  delete fOFile;
-  delete fOTree;
-  delete fEvent;
+  delete fOFile;      fOFile = 0;
+  delete fOTree;      fOTree = 0;
+  delete fEvent;      fEvent = 0;
 }
 
 void 
 TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 {
+  // Initialize digitization structures based on parameters from given
+  // spectrometer
+
+  // Avoid memory leaks in case of reinitialization
+  DeleteObjects();
+
   fNChambers = spect.GetNChambers();
   fDP = new TSolDigitizedPlane**[fNChambers];
   fNPlanes = new UInt_t[fNChambers];
@@ -152,13 +177,11 @@ TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
     {
       fNPlanes[ic] = spect.GetChamber(ic).GetNPlanes();
       fDP[ic] = new TSolDigitizedPlane*[fNPlanes[ic]];
-      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
-	fDP[ic][ip] = new TSolDigitizedPlane (spect.GetChamber(ic).GetPlane(ip).GetNStrips());
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip) {
+	fDP[ic][ip] =
+	  new TSolDigitizedPlane( spect.GetChamber(ic).GetPlane(ip).GetNStrips());
+      }
     }
-
-  fOFile = 0;
-  fOTree = 0;
-  fEvent = 0;
 }
 
 Int_t 
@@ -207,7 +230,7 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
   for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
       for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
-	fDP[ic][ip]->Init();
+	fDP[ic][ip]->Clear();
     }
 
   for (UInt_t ih = 0; ih < nh; ++ih)
@@ -240,14 +263,16 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 	  Double_t time_zero = 
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
+	  // TODO: make dh[2] a member variable & clear it here to avoid the constant
+	  // construction and deletion
 	  TSolGEMVStrip **dh = AvaModel (igem, spect, vv1, vv2, time_zero);
 	  if (dh != NULL)
 	    {
+	      Short_t id = SetTreeHit (ih, spect, dh, gdata);
 	      for (UInt_t j = 0; j < 2; j++) 
 		{
-		  fDP[igem][j]->Cumulate (dh[j], itype);
+		  fDP[igem][j]->Cumulate (dh[j], itype, id );
 		}
-	      SetTreeHit (ih, igem, dh, gdata);
 	      delete dh[0];
 	      delete dh[1];
 	      delete[] dh;
@@ -670,45 +695,92 @@ TSolSimGEMDigitization::InitTree (const TSolSpec& spect, const TString& ofile)
   
  }
 
-void
-TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
-				      const gendata& gd)
+inline
+static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
-  fEvent->fRunID = tsgd.GetRun();
-  fEvent->fEvtID = tsgd.GetEvent();
-  fEvent->fPrimaryVertex = gd.GetV();
-  fEvent->fPrimaryVertex *= 10.0; // convert to mm
-  fEvent->fMomentum = gd.GetP(); // momentum in MeV
+  // Conversion from chamber index to sector/plane indices.
+  // The meaning of the chamber index is not defined anywhere else this code.
+  // The only requirement is that the database for TSolSpec matches whatever
+  // is defined in the MC used to generate the input.
+  // The database floating around at this time (February 2013) uses the definition
+  // ich = is + nsectors*ipl (is = sector, ipl = plane).
+  // The number of sectors is implied to be 30.
+
+  static const int NSECTORS = 30;
+  div_t d = div( chamber, NSECTORS );
+  sector = d.rem;
+  plane  = d.quot;
 }
 
 void
-TSolSimGEMDigitization::SetTreeHit (const UInt_t ih, 
-				    const UInt_t igem, 
-				    TSolGEMVStrip** dh,
+TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
+				      const TSolEVIOFile& f, Int_t evnum )
+{
+  // Set overall event info. Call this after Digitize, else fEvent->Clear()
+  // will clear the track info
+
+  fEvent->fRunID = tsgd.GetRun();
+  fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
+  for( UInt_t i=0; i<f.GetNGen(); ++i ) {
+    const gendata* gd = f.GetGenData(i);
+    //TODO: get GEANT id?
+    fEvent->AddTrack( i+1, gd->GetPID(), gd->GetWeight(),
+		      gd->GetV()*1e-3, // Vertex coordinates in [m]
+		      gd->GetP()*1e-3  // Momentum in [GeV]
+		      );
+  }
+}
+
+Short_t
+TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
+				    const TSolSpec& spect,
+				    TSolGEMVStrip* const *dh,
 				    const TSolGEMData& tsgd)
 {
   // Sets the variables in fEvent->fGEMClust describing a hit
   // This is later used to fill the tree.
 
   TSolSimEvent::GEMCluster clust;
-  clust.fChamber  = igem;
-  clust.fRefEntry = tsgd.GetEntryNumber(ih);
-  clust.fRefFile  = tsgd.GetParticleType(ih);
-  clust.fPID      = tsgd.GetParticleID(ih);
-  if (tsgd.GetParticleType(ih) == 0)
-    fEvent->fNSignal++;
-	    
-  clust.fCharge   = dh[0]->GetHitCharge();
-  for (UInt_t j = 0; j < 2; j++) 
-    { // warning to be generalized
-      clust.fSize[j]  = dh[j]->GetSize();
-      clust.fStart[j] = dh[j]->GetIdx(0);
-    }
-  clust.fTime = dh[0]->GetTime();
-  clust.fP = tsgd.GetMomentum(ih);
-  clust.fXEntry = tsgd.GetHitEntrance (ih);
+
+  UInt_t igem = tsgd.GetHitChamber(ih);
+  ChamberToSector( igem, clust.fSector, clust.fPlane );
+  //  clust.fRefEntry = tsgd.GetEntryNumber(ih);  // Apparently never initialized
+  clust.fType     = tsgd.GetParticleID(ih);   // GEANT particle counter
+  clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
+  clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
+  clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
+  // The best estimate of the "true" hit position is the center of the
+  // ionization region
+  clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m]
+
+  // Calculate hit position in the Tracker frame. This is fMCpos relative to
+  // the origin of first plane of the sector, but rotated by the nominal
+  // (non-offset) sector angle.
+  // NB: assumes NSECTORS=30, even spacing, clockwise numbering
+  Double_t sector_angle = 12.*clust.fSector*TMath::DegToRad();
+  clust.fHitpos = clust.fMCpos - spect.GetChamber(clust.fSector).GetOrigin();
+  clust.fHitpos.RotateZ(-sector_angle);
+
+  const TSolGEMChamber& ch = spect.GetChamber(igem);
+  for (UInt_t j = 0; j < 2; j++) {
+    clust.fSize[j]  = dh[j]->GetSize();
+    clust.fStart[j] = (clust.fSize[j] > 0) ? dh[j]->GetIdx(0) : -1;
+    const TSolGEMPlane& pl = ch.GetPlane(j);
+    Double_t proj_angle = pl.GetAngle() + pl.GetSAngle() - sector_angle;
+    TVector3 hitpos(clust.fHitpos);
+    hitpos.RotateZ(-proj_angle);
+    clust.fXProj[j] = hitpos.X();
+  }
+  clust.fCharge = dh[0]->GetHitCharge();
+  clust.fTime   = dh[0]->GetTime();
+  clust.fID     = fEvent->fGEMClust.size()+1;
 
   fEvent->fGEMClust.push_back( clust );
+
+  if( clust.fPlane == 0 && clust.fType == 1 )
+    fEvent->fNSignal++;
+
+  return clust.fID;
 }
 
 void
@@ -722,22 +794,34 @@ TSolSimGEMDigitization::SetTreeStrips (const TSolGEMData& tsgd)
   TSolSimEvent::DigiGEMStrip strip;
   for (UInt_t ich = 0; ich < GetNChambers(); ++ich)
     {
+      ChamberToSector( ich, strip.fSector, strip.fPlane );
+
+      // The "plane" here is actually the projection (= readout coordinate).
+      // TSolGEMChamber::ReadDatabase associates the name suffix "x" with
+      // the first "plane", and "y", with the second. However, strip angles can
+      // be different for each chamber, so what's "x" in one chamber may very
+      // well be something else, like "x'", in another. These angles don't even
+      // have to match anything in the Monte Carlo.
       for (UInt_t ip = 0; ip < GetNPlanes (ich); ++ip)
 	{
+	  strip.fProj = (Short_t) ip; 
+	  strip.fNsamp = TMath::Min((Short_t)MC_MAXSAMP,
+				    (Short_t)GetNSamples(ich, ip));
 	  UInt_t nover = Threshold (ich, ip, 0); // threshold is zero for now
 	  for (UInt_t iover = 0; iover < nover; iover++) 
 	    {
-	      strip.fGEM   = (Short_t) ich; 
-	      strip.fPlane = (Short_t) ip; 
-	      strip.fNum   = (Short_t) GetIdxOverThr(ich, ip, iover);
-
 	      UInt_t idx = GetIdxOverThr(ich, ip, iover);
-	      for (UInt_t ss = 0; ss < (UInt_t) GetNSamples(ich, ip); ++ss)
+	      strip.fChan = (Short_t) idx;
+
+	      for (Int_t ss = 0; ss < strip.fNsamp; ++ss)
 		strip.fADC[ss] = (Short_t) GetADC(ich, ip, idx, ss);
 
 	      strip.fSigType = (Short_t) GetType(ich, ip, idx);
 	      strip.fCharge  = GetCharge(ich, ip, idx);
 	      strip.fTime1   = GetTime(ich, ip, idx);
+
+	      const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
+	      strip.fClusters.Set( sc.size(), &sc[0] );
 
 	      fEvent->fGEMStrips.push_back( strip );
 	    }
@@ -758,12 +842,15 @@ TSolSimGEMDigitization::FillTree ()
 void 
 TSolSimGEMDigitization::WriteTree () const
 {
-  fOTree->Write();
+  if (fOFile && fOTree) {
+    fOFile->cd();
+    fOTree->Write();
+  }
 }
 
 void 
 TSolSimGEMDigitization::CloseTree () const
 {
-  fOFile->Close();
+  if (fOFile) fOFile->Close();
 }
 

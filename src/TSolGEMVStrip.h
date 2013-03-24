@@ -13,6 +13,7 @@ class TSolGEMVStrip {
  private:
   // working variable of digi method (virtual strips)
 
+  // TODO: rewrite this using STL containers ...
   TArrayS *fIdx;  // index of the strip
   TArrayS *fADC; // value of the ADC sample
   TArrayD *fCharge; // total charge in strip (sampled)

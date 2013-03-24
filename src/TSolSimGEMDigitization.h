@@ -10,6 +10,8 @@
 
 #include "THaAnalysisObject.h"
 
+#include <vector>
+
 class TFile;
 class TTree;
 
@@ -17,7 +19,7 @@ class TSolGEMData;
 class TSolGEMVStrip;
 class TSolSpec;
 class TSolSimEvent;
-class gendata;
+class TSolEVIOFile;
 
 // First an auxiliary class
 
@@ -29,6 +31,7 @@ class TSolDigitizedPlane
  private:
   // ADC sampled value of strip array of each axis
 
+  //TODO: make this a struct inside an STL vector or similar
   TArrayS *fPStripADC;
   Short_t *fType;
   Short_t *fTotADC;
@@ -42,15 +45,17 @@ class TSolDigitizedPlane
   UInt_t fNOT;   // # strips over threshold
   UInt_t* fOverThr;  // # list of strips over threshold
 
+  std::vector< std::vector<Short_t> > fStripClusters; // Clusters associated with each strip
+
  public:
   // init and reset physics strips arrays
   TSolDigitizedPlane (Short_t nstrip,
 		      Short_t nsample = 10);
   ~TSolDigitizedPlane();
-  void Init();
+  void Clear();
 
   // cumulate hits (strips signals)
-  void Cumulate (TSolGEMVStrip *vv, Int_t type) const;
+  void Cumulate (const TSolGEMVStrip *vv, Int_t type, Short_t clusterID );
 
   Short_t GetType (Int_t n) const {return fType[n];}
   Short_t GetTotADC (Int_t n) const {return fTotADC[n];}
@@ -64,6 +69,8 @@ class TSolDigitizedPlane
 
   UInt_t GetNOverThr() const {return fNOT;};
   UInt_t GetIdxOverThr (Int_t n) const {return fOverThr[n];}; 
+
+  const std::vector<Short_t>& GetStripClusters(UInt_t n) const { return fStripClusters[n]; }
 };
 
 
@@ -93,11 +100,12 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
   void InitTree (const TSolSpec& spect, const TString& ofile);
   void SetTreeEvent (const TSolGEMData& tsgd,
-		     const gendata& gd);
-  void SetTreeHit (const UInt_t ih, 
-		   const UInt_t igem, 
-		   TSolGEMVStrip** dh,
-		   const TSolGEMData& tsgd); // called from Digitization
+		     const TSolEVIOFile& f,
+		     Int_t evnum = -1);
+  Short_t SetTreeHit (const UInt_t ih,
+		      const TSolSpec& spect,
+		      TSolGEMVStrip* const *dh,
+		      const TSolGEMData& tsgd); // called from Digitization
   void SetTreeStrips (const TSolGEMData& gdata); // called from Digitization
   void FillTree ();
   void WriteTree () const;
@@ -116,6 +124,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   UInt_t Threshold (UInt_t ich, UInt_t ip, Short_t thr) {return fDP[ich][ip]->Threshold (thr);};
   UInt_t GetNOverThr (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNOverThr();};
   UInt_t GetIdxOverThr (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; 
+  const std::vector<Short_t>& GetStripClusters(UInt_t ich, UInt_t ip, UInt_t n) const 
+  { return fDP[ich][ip]->GetStripClusters(n); }
 
   TSolSimEvent* GetEvent() const { return fEvent; }
 
@@ -178,6 +188,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   TFile* fOFile;          // Output ROOT file
   TTree* fOTree;          // Output tree
   TSolSimEvent* fEvent;   // Output event structure, written to tree
+
+  void DeleteObjects();
 
   ClassDef (TSolSimGEMDigitization, 1)
 };
