@@ -55,18 +55,25 @@ void DigDemo2(){
 	printf("Opening EVIO returned %s\n", res);
 	return;
     }
+
+    // Hypothetical background run
+    TSolEVIOFile *fback = new TSolEVIOFile("testback.ev");
+    fback->Open();
     
     ////////////////////////////////////////////////////////////////
 
     int  ndata, i;
-    TSolGEMData *gd;
+    TSolGEMData *gd, *gb;
     gendata *gen;
 
     ddd->InitTree (*dds, "digdemo2.root");
     
     printf("Digitizing events\n");
     ndata = 0;
-    while( f->ReadNextEvent() ){
+
+    int hadback = 1;
+
+    while( f->ReadNextEvent() && hadback ){
 	gd = f->GetGEMData();
 	gen = f->GetGenData(0);
 
@@ -74,6 +81,26 @@ void DigDemo2(){
 	gen->GetV();
 	gen->GetP();
 	gen->GetWeight();
+
+	int nbacktoadd = 1;
+	int backidx = 0;
+	// Add some number of background events
+	while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){
+	    gb = fback->GetGEMData();
+
+	    // Randomize times based on gate width
+	    for( int bidx = 0; bidx < gb->GetNHit(); bidx++ ){
+		double timeshift = gRandom->Uniform(-ddd->GetGateWidth(), 75.0 );//ns
+		gb->SetHitTime(bidx, gb->GetHitTime(bidx) + timeshift );
+	    }
+
+	    gd->AddGEMData(gb);
+	    backidx++;
+	}
+
+	if( backidx != nbacktoadd ){
+	    printf("Warning:  Not enough background events to be added (%d)\n", backidx);
+	}
 
 	ddd->Digitize(*gd, *dds);
 	ndata++;

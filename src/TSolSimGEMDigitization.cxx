@@ -241,9 +241,18 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       
       Short_t itype = (1 << gdata.GetParticleType(ih)); // signal = 1, bck = 2, 4, 8 ...
 	
+      // Only use primary particle here
+//      if( gdata.GetParticleID(ih) != 1 ) continue;
+
       TVector3 vv1 = gdata.GetHitEntrance (ih);
       TVector3 vv2 = gdata.GetHitExit (ih);
-      TVector3 vv3 = gdata.GetHitReadout (ih);
+      //TVector3 vv3 = gdata.GetHitReadout (ih);
+      //  FIXME:  Sometimes we don't always have the readoutplane data
+      //          which is a problem when we try to digitize.  However,
+      //          the distance is fixed from the initial hit plane so 
+      //          I'm hardcoding it here for now.  It shoudl go in the 
+      //          database
+      TVector3 vv3 = gdata.GetHitEntrance(ih) + TVector3(0.0, 0.0, 4.5975+4.5925);
 
       // These vectors are in the lab frame, we need them in the chamber frame
       // Also convert to mm
@@ -260,6 +269,7 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       IonModel (vv1, vv2, gdata.GetHitEnergy(ih), vv3);
       if (fRNIon > 0) 
 	{
+	    itype = 1; // itype 1 is no time randomization, itype 2 has time randomization
 	  Double_t time_zero = 
 	    (itype == 1) ? 0.
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth; // randomization of the bck ( assume 3 useful samples at 25 ns)
@@ -338,8 +348,10 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
     fRY[i]=vseg.Y()*lion+xi.Y();
 
     LL = TMath::Abs(xrout.Z() - (vseg.Z()*lion+xi.Z()));
+//    printf("z coords %f %f %f %f lion %f\n", xi.Z(), xo.Z(), xrout.Z(), vseg.Z(), lion);
 
     ttime = LL/fGasDriftVelocity; // traveling time from the drift gap to the readout
+    //printf("ttime = %f\n", ttime);
 
     fRTime0 = (ttime<fRTime0) ? ttime : fRTime0; // minimum traveling time 
 

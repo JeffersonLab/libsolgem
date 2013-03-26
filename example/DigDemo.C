@@ -24,6 +24,7 @@ void DigDemo()
   ddgd->SetHitEntrance (0, TVector3 (0.29, 0.003, 1.55) * 1000.0); // mm
   ddgd->SetHitExit (0, TVector3 (0.28, 0.001, 1.58) * 1000.0);
   ddgd->SetHitReadout (0, TVector3 (0.278, 0.0008, 1.59) * 1000.0);
+  ddgd->SetHitTime(0, 0.0); //ns
   ddgd->SetHitEnergy (0, 1e3); // eV
   ddgd->SetHitChamber (0, 0);
   ddgd->SetParticleID (0, 1);
