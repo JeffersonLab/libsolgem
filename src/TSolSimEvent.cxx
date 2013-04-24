@@ -124,6 +124,7 @@ void TSolSimEvent::Print( const Option_t* opt ) const
     if( do_hit && !fGEMClust.empty() )
       cout << "-------------" << endl;
   }
+
   if( do_hit ) {
     UInt_t i = 0;
     for( vector<DigiGEMStrip>::const_iterator is = fGEMStrips.begin();
@@ -135,6 +136,7 @@ void TSolSimEvent::Print( const Option_t* opt ) const
 	   << ", proj = "   << s.fProj
 	   << ", strip = "  << s.fChan
 	   << ", type = "   << s.fSigType
+	   << ", charge = " << s.fCharge
 	   << ", adc = ";
       for( int k=0; k<s.fNsamp; k++ ) {
 	cout << s.fADC[k];

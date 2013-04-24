@@ -64,7 +64,6 @@ public:
 
   virtual void Clear( const Option_t* opt="" );
   virtual void Print( const Option_t* opt="" ) const;
-
   TSolSimTrack* AddTrack( Int_t number, Int_t pid, Double_t weight,
 			  const TVector3& vertex, const TVector3& momentum );
 
@@ -75,6 +74,8 @@ public:
   // Event identification
   Int_t     fRunID;               // Run number
   Int_t     fEvtID;               // Event number
+
+  Double_t  fWeight;              // Event weight
 
   // MC tracks
   TClonesArray*   fMCTracks;      //-> Physics tracks
@@ -103,6 +104,7 @@ public:
     Int_t     fSize[2];   // Number of strips in cluster per axis
     Int_t     fStart[2];  // Number of first strip in cluster per axis
     Float_t   fXProj[2];  // fMCpos along projection axis [m]
+    TVector3  fVertex;    // Vertex
   };
 
   std::vector<GEMCluster> fGEMClust;  // All MC-generated clusters in the GEMs
