@@ -364,6 +364,9 @@ TSolGEMData *TSolEVIOFile::GetGEMData(){
 			// Average over entrance and exit time
 		gd->SetHitTime(ngdata, (h->GetData(8)+h->GetData(12))/2.0);
 
+		TVector3 vert(h->GetData(14), h->GetData(15), h->GetData(16));
+		gd->SetVertex(ngdata, vert);
+
 		//	    printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
 
 		gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
