@@ -182,6 +182,7 @@ TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 	  new TSolDigitizedPlane( spect.GetChamber(ic).GetPlane(ip).GetNStrips());
       }
     }
+  fEvCleared = false;
 }
 
 Int_t 
@@ -224,7 +225,8 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
 void 
 TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spect) // digitize event 
 {
-  fEvent->Clear();
+  if (!fEvCleared)
+    fEvent->Clear();
   UInt_t nh = gdata.GetNHit();
 
   for (UInt_t ic = 0; ic < fNChambers; ++ic)
@@ -304,6 +306,7 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
 				 const Double_t elost, 
 				 const TVector3& xrout)   // used only to calculate distance drift-readout (to be removed in future version)
 {
+#define DBG_ION 0
 
   Double_t LL;
   Double_t deltaE=elost; // eV  MC
@@ -319,6 +322,8 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
 
   if (fRNIon <=0)
     return;
+
+  if (DBG_ION) cout << "E lost = " << elost << ", " << fRNIon << " ions";
 
   if (fRNIon > 200) {
     cerr << __FUNCTION__ << ": WARNING: too many primary ions " << fRNIon << " limit to 200" << endl;
@@ -362,9 +367,11 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
     switch (fAvalancheChargeStatistics) {
     case 1:
       fRCharge[i]= rnd.Gaus(fGainMean, gnorm); // Gaussian distribution of the charge
+      if (DBG_ION) cout << "x, y = " << fRX[i] << ", " << fRY[i] << " snorm = " << fRSNorm[i] << " charge " << fRCharge[i] << endl;
       break;
     default: 
       fRCharge[i]= rnd.Exp(fGainMean); // Furry distribution
+      if (DBG_ION) cout << "x, y = " << fRX[i] << ", " << fRY[i] << " snorm = " << fRSNorm[i] << " charge " << fRCharge[i] << endl;
       break;
     }
 
@@ -387,6 +394,15 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 				 const TVector3& xo,
 				 const Double_t time_off)
 {
+#define DBG_AVA 1
+
+  if (DBG_AVA)
+    {
+      cout << "Chamber " << ic << "----------------------------------" << endl;
+      cout << "In  " << xi.X() << " " << xi.Y() << " " << xi.Z() << endl;
+      cout << "Out " << xo.X() << " " << xo.Y() << " " << xo.Z() << endl;
+    }
+
   // xi, xo are in chamber frame, in mm
 
   Double_t nsigma = fAvalancheFiducialBand; // coverage factor
@@ -421,11 +437,10 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
   Double_t gux = spect.GetChamber(ic).GetUpperEdgeX() * 1000.0;
   Double_t guy = spect.GetChamber(ic).GetUpperEdgeY() * 1000.0;
 
-//    fprintf(stderr, "%s %s:  out of sector, chamber %d\nFollowing relations should hold:\n(x1 %f>glx %f) (x0 %f<gux %f)\n(y1 %f>gly %f) (y0 %f<guy %f)\n\n", __FILE__,  __FUNCTION__, ic, x1, glx, x0, gux, y1, gly, y0, guy );
+   // fprintf(stderr, "%s %s:  out of sector, chamber %d\nFollowing relations should hold:\n(x1 %f>glx %f) (x0 %f<gux %f)\n(y1 %f>gly %f) (y0 %f<guy %f)\n\n", __FILE__,  __FUNCTION__, ic, x1, glx, x0, gux, y1, gly, y0, guy );
 
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of active area of the sector
-
     delete[] fRSNorm;
     delete[] fRCharge;
     delete[] fRX; 
@@ -447,6 +462,9 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
   virs = new TSolGEMVStrip *[fNPlanes[ic]];
   for (UInt_t ipl = 0; ipl < fNPlanes[ic]; ++ipl)
     {
+      if (DBG_AVA)
+	cout << "plane " << ipl << " =========================" << endl;
+
       // Compute strips affected by the avalanche
 
       TSolGEMPlane* pl = &(spect.GetChamber(ic).GetPlane(ipl)); 
@@ -458,6 +476,9 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
       pl->PlaneToStrip (xs1, ys1);
       xs1 *= 1e3; ys1 *= 1e3;
+
+      if (DBG_AVA)
+	cout << "xs0 ys0 xs1 ys1 " << xs0 << " " << ys0 << " " << xs1 << " " << ys1 << endl;
 
       Int_t iL = pl->GetStrip (xs0 * 1e-3, ys0 * 1e-3);
       Int_t iU = pl->GetStrip (xs1 * 1e-3, ys1 * 1e-3);
@@ -473,6 +494,11 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       //
 
       // Limits in x are low edge of first strip to high edge of last
+      if (DBG_AVA)
+	{
+	  cout << "iL gsle " << iL << " " << pl->GetStripLowerEdge (iL) << endl;
+	  cout << "iU gsle " << iU << " " << pl->GetStripLowerEdge (iU) << endl;
+	}
       Double_t xl = pl->GetStripLowerEdge (iL) * 1000.0;
       Double_t xr = pl->GetStripUpperEdge (iU) * 1000.0;
 
@@ -481,7 +507,9 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
       // this is the direction orthogonal to the pitch direction)
 
       Double_t pitch = pl->GetSPitch() * 1000.0;
+      // Should the .1 be here?? ???????????????????????????????????????
       Double_t yq = pitch * .1;
+      // Double_t yq = pitch;
       Double_t yb = yq * TMath::Floor (ys0 / yq);
       Double_t yt = yq * TMath::Floor (ys1 / yq);
       if (yb > yt)
@@ -495,12 +523,18 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
       Int_t nx = iU - iL + 1;
       Int_t ny = (Int_t) ((yt - yb + 1) / yq + 0.5);
+      if (DBG_AVA)
+	cout << "xr xl yt yb nx ny " 
+	     << xr << " " << xl << " " << yt << " " << yb 
+	     << " " << nx << " " << ny << endl;
 
       // define function, gaussian and sum of gaussian
 
       Double_t* fsuma = new Double_t[nx*ny];
       Double_t xbw = (xr - xl) / nx;
       Double_t ybw = (yt - yb) / ny;
+      if (DBG_AVA)
+	cout << "xbw ybw " << xbw << " " << ybw << endl;
       memset (fsuma, 0, nx * ny * sizeof (fsuma));
       for (UInt_t i = 0; i < fRNIon; i++) 
 	{
@@ -513,6 +547,8 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 	  Int_t iy = (frys-yb) / ybw;
 	  Int_t dx = 3 * fRSNorm[i] / xbw  + 1;
 	  Int_t dy = 3 * fRSNorm[i] / ybw  + 1;
+	  if (DBG_AVA > 1)
+	    cout << "ix dx iy dy " << ix << " " << dx << " " << iy << " " << dy << endl;
 	  Double_t r2 = pow (3 * fRSNorm[i], 2);
 	  // Loop over bins
 	  // xc and yc are center of current bin
@@ -728,9 +764,10 @@ void
 TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
 				      const TSolEVIOFile& f, Int_t evnum )
 {
-  // Set overall event info. Call this after Digitize, else fEvent->Clear()
-  // will clear the track info
+  // Set overall event info.
 
+  fEvent->Clear();
+  fEvCleared = true;
   fEvent->fRunID = tsgd.GetRun();
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
@@ -741,6 +778,7 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
 		      gd->GetP()*1e-3  // Momentum in [GeV]
 		      );
   }
+  fEvent->fWeight = f.GetGenData(0)->GetWeight();
 }
 
 Short_t
@@ -791,8 +829,10 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   if( clust.fPlane == 0 && clust.fType == 1 )
     fEvent->fNSignal++;
+  clust.fVertex = tsgd.GetVertex (ih);
 
   return clust.fID;
+  fEvCleared = false;
 }
 
 void
@@ -839,12 +879,16 @@ TSolSimGEMDigitization::SetTreeStrips (const TSolGEMData& tsgd)
 	    }
 	} 
     }
+  fEvCleared = false;
 }
 
 void
 TSolSimGEMDigitization::FillTree ()
 {
-  if (fOFile && fOTree)
+  if (fOFile && fOTree 
+      // added this line to not write events where there are no entries
+      && fEvent->fGEMStrips.size() > 0 && fEvent->fGEMClust.size() > 0
+      )
     {
       fOFile->cd();
       fOTree->Fill();

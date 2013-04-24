@@ -190,6 +190,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   TFile* fOFile;          // Output ROOT file
   TTree* fOTree;          // Output tree
   TSolSimEvent* fEvent;   // Output event structure, written to tree
+  Bool_t fEvCleared;      // True if event has been cleared
 
   void DeleteObjects();
 
