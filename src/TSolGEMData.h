@@ -26,6 +26,7 @@ class TSolGEMData
   void SetHitEntrance (UInt_t k, const TVector3& xEnt) {*(fXi[k]) = xEnt;};
   void SetHitExit (UInt_t k, const TVector3& xExit) {*(fXo[k]) = xExit;};
   void SetHitReadout (UInt_t k, const TVector3& xRead) {*(fXr[k]) = xRead;};
+  void SetVertex (UInt_t k, const TVector3& v) {*(fVert[k]) = v;};
   // Energy lost is in eV
   void SetHitEnergy (UInt_t k, Double_t e) {fEdep[k] = e;};
   void SetHitTime(UInt_t k, Double_t t) {fTime[k] = t;};
@@ -41,17 +42,17 @@ class TSolGEMData
   TVector3& GetHitEntrance (UInt_t k) const {return *(fXi[k]);};
   TVector3& GetHitExit (UInt_t k) const {return *(fXo[k]);};
   TVector3& GetHitReadout (UInt_t k) const {return *(fXr[k]);};
+  TVector3& GetVertex (UInt_t k) const {return *(fVert[k]);};
   Double_t GetHitEnergy (UInt_t k) const {return fEdep[k];};
   Double_t GetHitTime(UInt_t k) const {return fTime[k];};
   UInt_t GetHitChamber (UInt_t k) const {return fGem[k];};
   UInt_t GetParticleID (UInt_t k) const {return fPID[k];};
   UInt_t GetParticleType (UInt_t k) const {return fType[k];};
   UInt_t GetEntryNumber(UInt_t k) const {return fEntryNumber[k];};
-
   void AddGEMData(TSolGEMData *);
 
-  void Print();
-  void PrintHit (UInt_t k);
+  void Print() const;
+  void PrintHit (UInt_t k) const;
 
  private:
 
@@ -70,6 +71,7 @@ class TSolGEMData
   TVector3 **fXo; // exit point in drift
   TVector3 **fXr; // entrance point in readout
   TVector3 **fMom; // momentum of the particle
+  TVector3 **fVert; // vertex position
   UInt_t *fEntryNumber;
 };
 #endif

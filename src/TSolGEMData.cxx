@@ -15,6 +15,7 @@ TSolGEMData::TSolGEMData (UInt_t h)
     fXo   = 0;
     fXr   = 0;
     fMom  = 0;
+    fVert  = 0;
     fEntryNumber  = 0;
 
   if (h > 0) InitEvent (h);
@@ -45,11 +46,13 @@ TSolGEMData::ClearEvent()
       delete fXo[k];
       delete fXr[k];
       delete fMom[k];
+      delete fVert[k];
     }
     delete[] fXi;
     delete[] fXo;
     delete[] fXr;
     delete[] fMom;
+    delete[] fVert;
     
     //    cerr << __FUNCTION__ << "fGEM deleted " << endl;
     
@@ -78,12 +81,14 @@ TSolGEMData::InitEvent (UInt_t h)
   fXo = new TVector3*[h];
   fXr = new TVector3*[h];
   fMom = new TVector3*[h];
+  fVert = new TVector3*[h];
   for (UInt_t k = 0; k < fNHit; k++) 
   {
   	fXi[k] = new TVector3;
   	fXo[k] = new TVector3;
   	fXr[k] = new TVector3;
   	fMom[k] = new TVector3;
+  	fVert[k] = new TVector3;
   }	  		
 }
 
@@ -161,24 +166,26 @@ TSolGEMData::AddGEMData(TSolGEMData *gd)
 }
 
 void 
-TSolGEMData::Print()
+TSolGEMData::Print() const
 {
   cout << "Run " << GetRun() << " Event " << GetEvent() << " " << GetNHit() << " hits" << endl;
 }
 
 void 
-TSolGEMData::PrintHit (UInt_t k)
+TSolGEMData::PrintHit (UInt_t k) const
 {
   cout << "  Event " << GetEvent() << ":" << endl;
   cout << "    Momentum: " << GetMomentum(k).X()
        << " " << GetMomentum(k).Y() 
        << " " << GetMomentum(k).Z() 
+       << " (mag. " << GetMomentum(k).Mag() << ")"
        << " MeV" << endl;
   cout << "    Hit time: " << GetHitTime(k) << " ns" << endl;
   cout << "    Hit entrance pos.: " << GetHitEntrance(k).X()
        << " " << GetHitEntrance(k).Y() 
        << " " << GetHitEntrance(k).Z() 
        << " mm" << endl;
+  
   cout << "    Hit exit pos.: " << GetHitExit(k).X()
        << " " << GetHitExit(k).Y() 
        << " " << GetHitExit(k).Z() 
@@ -186,6 +193,11 @@ TSolGEMData::PrintHit (UInt_t k)
   cout << "    Hit readout pos.: " << GetHitReadout(k).X()
        << " " << GetHitReadout(k).Y() 
        << " " << GetHitReadout(k).Z() 
+       << " mm" << endl;
+
+  cout << "    Hit vertex pos.: " << GetVertex(k).X()
+       << " " << GetVertex(k).Y() 
+       << " " << GetVertex(k).Z() 
        << " mm" << endl;
   cout << "    Hit energy: " << GetHitEnergy(k) << " eV" << endl;
   cout << "    Hit chamber: " << GetHitChamber(k) << endl;
