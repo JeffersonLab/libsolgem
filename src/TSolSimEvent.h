@@ -94,7 +94,7 @@ public:
     // Int_t     fRefEntry;  // Reference entry in MC -- NEVER FILLED
     Int_t     fType;      // GEANT particle counter (1 = primary)
     Int_t     fPID;       // PDG ID of particle generating the cluster
-    TVector3  fP;         // Momentum of particle generating the cluster
+    TVector3  fP;         // Momentum of particle generating the cluster [GeV]
     TVector3  fXEntry;    // Track at chamber entrance in lab coords [m]
     TVector3  fMCpos;     // Approx. truth position of hit in lab [m]
     TVector3  fHitpos;    // fMCpos in Tracker frame [m]
