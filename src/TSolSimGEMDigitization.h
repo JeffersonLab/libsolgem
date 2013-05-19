@@ -156,7 +156,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Double_t fGain0;
 
   // Electronics parameters
-  Double_t fTriggerOffset;       // trigger offset (ns)
+  Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
   Double_t fTriggerJitter;       // trigger sigma jitter (ns)
   Int_t    fEleSamplingPoints;   
   Double_t fEleSamplingPeriod;    // ns    

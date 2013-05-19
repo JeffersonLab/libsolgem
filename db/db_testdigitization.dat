@@ -8,7 +8,7 @@ testdigitization.avalanchechargestatatistics = 0 # 0 Furry, 1 Gaussian
 testdigitization.gainmean = 8000.0
 testdigitization.gain0 = 20.0
 # Electronics parameters:
-testdigitization.triggeroffset = 10. # ns
+testdigitization.triggeroffset = 125. # ns
 testdigitization.triggerjitter = 5.  # ns
 testdigitization.elesamplingpoints = 10
 testdigitization.elesamplingperiod = 25.
