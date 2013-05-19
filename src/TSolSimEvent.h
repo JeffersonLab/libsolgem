@@ -126,7 +126,7 @@ public:
 
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
 
-  ClassDef(TSolSimEvent, 2) // Simulated data for one event
+  ClassDef(TSolSimEvent, 3) // Simulated data for one event
 };
 
 #endif
