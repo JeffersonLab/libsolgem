@@ -412,7 +412,7 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 				 const TVector3& xo,
 				 const Double_t t0)
 {
-#define DBG_AVA 1
+#define DBG_AVA 0
 
 #if DBG_AVA > 0
   cout << "Chamber " << ic << "----------------------------------" << endl;
