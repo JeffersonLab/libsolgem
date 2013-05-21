@@ -54,27 +54,39 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
   fIsSetup = ( mode == THaAnalysisObject::kDefine );
 
   RVarDef vars[] = {
-    { "tr.n",    "Number of tracks",      "GetNTracks()" },
-    { "tr.x",    "Track origin x (m)",    "fTracks.TSolSimTrack.VX()" },
-    { "tr.y",    "Track origin y (m)",    "fTracks.TSolSimTrack.VY()" },
-    { "tr.z",    "Track origin z (m)",    "fTracks.TSolSimTrack.VZ()" },
-    { "tr.p",    "Track momentum (GeV)",  "fTracks.TSolSimTrack.P() "},
-    { "tr.theta","Track theta_p (rad)",   "fTracks.TSolSimTrack.PTheta()" },
-    { "tr.phi",  "Track phi_p (rad)",     "fTracks.TSolSimTrack.PPhi()" },
-    { "tr.pid",  "Track PID (PDG)",       "fTracks.TSolSimTrack.fPID" },
-    { "tr.num",  "GEANT track number",    "fTracks.TSolSimTrack.fNumber" },
+    // Generated track info
+    { "tr.n",      "Number of tracks",      "GetNTracks()" },
+    { "tr.x",      "Track origin x (m)",    "fTracks.TSolSimTrack.VX()" },
+    { "tr.y",      "Track origin y (m)",    "fTracks.TSolSimTrack.VY()" },
+    { "tr.z",      "Track origin z (m)",    "fTracks.TSolSimTrack.VZ()" },
+    { "tr.p",      "Track momentum (GeV)",  "fTracks.TSolSimTrack.P() "},
+    { "tr.theta",  "Track theta_p (rad)",   "fTracks.TSolSimTrack.PTheta()" },
+    { "tr.phi",    "Track phi_p (rad)",     "fTracks.TSolSimTrack.PPhi()" },
+    { "tr.pid",    "Track PID (PDG)",       "fTracks.TSolSimTrack.fPID" },
+    { "tr.num",    "GEANT track number",    "fTracks.TSolSimTrack.fNumber" },
 
-    { "btr.n",   "Number of back tracks", "GetNBackTracks()" },
-    { "btr.pid", "Track PID (PDG)",       "fBackTracks.TSolSimBackTrack.fPID" },
-    { "btr.num", "GEANT track number",    "fBackTracks.TSolSimBackTrack.fType" },
-    { "btr.x",   "Track pos lab x (m)",   "fBackTracks.TSolSimBackTrack.TX()" },
-    { "btr.y",   "Track pos lab y (m)",   "fBackTracks.TSolSimBackTrack.TY()" },
-    { "btr.th",  "Track tan(theta)",      "fBackTracks.TSolSimBackTrack.TTheta()" },
-    { "btr.ph",  "Track tan(phi)",        "fBackTracks.TSolSimBackTrack.TPhi()" },
-    { "btr.hx",  "Track pos plane x (m)", "fBackTracks.TSolSimBackTrack.HX()" },
-    { "btr.hy",  "Track pos plane y (m)", "fBackTracks.TSolSimBackTrack.HY()" },
-    { "btr.p",   "Track momentum (GeV)",  "fBackTracks.TSolSimBackTrack.P() "},
+    // "Back tracks": hits of the primary particle in the first tracker plane
+    { "btr.n",     "Number of back tracks", "GetNBackTracks()" },
+    { "btr.pid",   "Track PID (PDG)",       "fBackTracks.TSolSimBackTrack.fPID" },
+    { "btr.num",   "GEANT track number",    "fBackTracks.TSolSimBackTrack.fType" },
+    { "btr.sect",  "Sector number",         "fBackTracks.TSolSimBackTrack.fSector" },
+    { "btr.p",     "Track momentum (GeV)",      "fBackTracks.TSolSimBackTrack.P() "},
+    // Track position in Cartesian/TRANSPORT coordinates, not optimal for SoLID
+    { "btr.x",     "Track pos lab x (m)",   "fBackTracks.TSolSimBackTrack.X()" },
+    { "btr.y",     "Track pos lab y (m)",   "fBackTracks.TSolSimBackTrack.Y()" },
+    { "btr.tht",   "Track dir tan(theta)",  "fBackTracks.TSolSimBackTrack.ThetaT()" },
+    { "btr.pht",   "Track dir tan(phi)",    "fBackTracks.TSolSimBackTrack.PhiT()" },
+    // Track position and direction in cylindrical coordinates, good for SoLID
+    { "btr.r",     "Track pos lab r_trans (m)", "fBackTracks.TSolSimBackTrack.R()" },
+    { "btr.th"     "Track pos lab theta (rad)", "fBackTracks.TSolSimBackTrack.Theta()" },
+    { "btr.ph"     "Track pos lab phi (rad)",   "fBackTracks.TSolSimBackTrack.Phi()" },
+    { "btr.dph",   "Track dir phi (rad)",       "fBackTracks.TSolSimBackTrack.PhiDir()" },
+    { "btr.dth",   "Track dir theta (rad)",     "fBackTracks.TSolSimBackTrack.ThetaDir()" },
+    // Hit coordinates in first tracker plane, relative to plane origin
+    { "btr.hx",    "Track pos plane x (m)",     "fBackTracks.TSolSimBackTrack.HX()" },
+    { "btr.hy",    "Track pos plane y (m)",     "fBackTracks.TSolSimBackTrack.HY()" },
 
+    // All hits register in the GEMs
     { "hit.n",     "Number of MC hits",          "GetNHits()" },
     { "hit.id",    "MC hit number",              "fHits.TSolSimGEMHit.fID" },
     { "hit.sect",  "MC hit sector",              "fHits.TSolSimGEMHit.fSector" },
@@ -232,7 +244,7 @@ void TSolSimGEMHit::Print( const Option_t* ) const
 
 //-----------------------------------------------------------------------------
 TSolSimBackTrack::TSolSimBackTrack( const TSolSimEvent::GEMCluster& c )
-  : fType(c.fType), fPID(c.fPID),
+  : fType(c.fType), fPID(c.fPID), fSector(c.fSector),
     fOrigin(c.fMCpos), fHitpos(c.fHitpos), fMomentum(c.fP)
 {
   // Construct track from cluster info

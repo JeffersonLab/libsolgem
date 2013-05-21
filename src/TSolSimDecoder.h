@@ -60,13 +60,18 @@ public:
   TSolSimBackTrack() {}
   TSolSimBackTrack( const TSolSimEvent::GEMCluster& cl );
   
-  Double_t TX()     { return fOrigin.X(); }
-  Double_t TY()     { return fOrigin.Y(); }
-  Double_t TTheta() { return fMomentum.Px()/fMomentum.Pz(); }
-  Double_t TPhi()   { return fMomentum.Py()/fMomentum.Pz(); }
-  Double_t P()      { return fMomentum.Mag(); }
-  Double_t HX()     { return fHitpos.X(); }
-  Double_t HY()     { return fHitpos.Y(); }
+  Double_t X()         const { return fOrigin.X(); }
+  Double_t Y()         const { return fOrigin.Y(); }
+  Double_t P()         const { return fMomentum.Mag(); }
+  Double_t ThetaT()    const { return fMomentum.Px()/fMomentum.Pz(); }
+  Double_t PhiT()      const { return fMomentum.Py()/fMomentum.Pz(); }
+  Double_t R()         const { return fOrigin.Perp(); }
+  Double_t Theta()     const { return fOrigin.Theta(); }
+  Double_t Phi()       const { return fOrigin.Phi(); }
+  Double_t ThetaDir()  const { return fMomentum.Theta(); }
+  Double_t PhiDir()    const { return fMomentum.Phi(); }
+  Double_t HX()        const { return fHitpos.X(); }
+  Double_t HY()        const { return fHitpos.Y(); }
 
   virtual void Print( const Option_t* opt="" ) const;
 
@@ -74,6 +79,7 @@ private:
 
   Int_t    fType;        // Track type
   Int_t    fPID;         // Track particle ID (PDG)
+  Int_t    fSector;      // Sector where this track detected
   TVector3 fOrigin;      // Position at first plane in lab frame (m)
   TVector3 fHitpos;      // Position at first plane in Tracker frame [m]
   TVector3 fMomentum;    // Momentum (GeV)
