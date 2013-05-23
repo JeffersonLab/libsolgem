@@ -75,14 +75,22 @@ public:
 
   virtual void Print( const Option_t* opt="" ) const;
 
+  Int_t    GetType()    const { return fType; }
+  Int_t    GetHitBits() const { return fHitBits; }
+  void     SetHitBit( UInt_t i )  { SETBIT(fHitBits,i); }
+  Bool_t   TestHitBit( UInt_t i ) { return TESTBIT(fHitBits,i); }
+
+  Int_t    Update( const TSolSimEvent::GEMCluster& cl );
+
 private:
 
-  Int_t    fType;        // Track type
+  Int_t    fType;        // GEANT particle number
   Int_t    fPID;         // Track particle ID (PDG)
   Int_t    fSector;      // Sector where this track detected
   TVector3 fOrigin;      // Position at first plane in lab frame (m)
   TVector3 fHitpos;      // Position at first plane in Tracker frame [m]
   TVector3 fMomentum;    // Momentum (GeV)
+  Int_t    fHitBits;     // Bitpattern of plane numbers hit by this back track
 
   ClassDef(TSolSimBackTrack, 0) // MC track registered at first tracking chamber
 };
@@ -101,7 +109,7 @@ class TSolSimDecoder : public THaEvData {
   Int_t  GetNHits()       const { return fHits->GetLast()+1; }
   Int_t  GetNTracks()     const { return fTracks.GetSize(); }
 
-  Int_t  DefineVariables( THaAnalysisObject::EMode mode = 
+  Int_t  DefineVariables( THaAnalysisObject::EMode mode =
 			  THaAnalysisObject::kDefine );
 
   TSolSimBackTrack* GetBackTrack( Int_t i ) const {
@@ -122,6 +130,8 @@ class TSolSimDecoder : public THaEvData {
   TClonesArray*  fBackTracks; //-> Primary particle tracks at first chamber
 
   Bool_t  fIsSetup;
+
+  Int_t DoLoadEvent( const int* evbuffer, THaCrateMap* usermap );
 
   ClassDef(TSolSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };
