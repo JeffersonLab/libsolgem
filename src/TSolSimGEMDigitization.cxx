@@ -844,12 +844,12 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fCharge = dh[0]->GetHitCharge();
   clust.fTime   = dh[0]->GetTime();
   clust.fID     = fEvent->fGEMClust.size()+1;
+  clust.fVertex = tsgd.GetVertex (ih);
 
   fEvent->fGEMClust.push_back( clust );
 
   if( clust.fPlane == 0 && clust.fType == 1 )
     fEvent->fNSignal++;
-  clust.fVertex = tsgd.GetVertex (ih);
 
   return clust.fID;
   // after the return??
