@@ -813,7 +813,6 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   TSolSimEvent::GEMCluster clust;
 
-  cout << "here1" << endl;
   UInt_t igem = tsgd.GetHitChamber(ih);
   ChamberToSector( igem, clust.fSector, clust.fPlane );
   //  clust.fRefEntry = tsgd.GetEntryNumber(ih);  // Apparently never initialized
@@ -868,7 +867,6 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   if( clust.fPlane == 0 && clust.fType == 1 )
     fEvent->fNSignal++;
-  cout << "here9" << endl;
 
   return clust.fID;
   // after the return??
