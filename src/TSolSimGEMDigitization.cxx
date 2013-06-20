@@ -271,6 +271,7 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       vv2.RotateZ (-angle);
       vv3.RotateZ (-angle);
 	
+      TSolGEMVStrip **dh = NULL;
       IonModel (vv1, vv2, gdata.GetHitEnergy(ih), vv3);
       if (fRNIon > 0) 
 	{
@@ -281,20 +282,20 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 	    // randomization of the bck ( assume 3 useful samples at 25 ns)
 	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth;
 
-	  TSolGEMVStrip **dh = AvaModel (igem, spect, vv1, vv2, time_zero);
-	  if (dh != NULL)
+	  dh = AvaModel (igem, spect, vv1, vv2, time_zero);
+	}
+      Short_t id = SetTreeHit (ih, spect, dh, gdata);
+      if (dh != NULL)
+	{
+	  for (UInt_t j = 0; j < 2; j++) 
 	    {
-	      Short_t id = SetTreeHit (ih, spect, dh, gdata);
-	      for (UInt_t j = 0; j < 2; j++) 
-		{
-		  fDP[igem][j]->Cumulate (dh[j], itype, id );
-		}
-	      // TODO: make dh[2] a member variable & clear it here to avoid the constant
-	      // construction and deletion
-	      delete dh[0];
-	      delete dh[1];
-	      delete[] dh;
+	      fDP[igem][j]->Cumulate (dh[j], itype, id );
 	    }
+	  // TODO: make dh[2] a member variable & clear it here to avoid the constant
+	  // construction and deletion
+	  delete dh[0];
+	  delete dh[1];
+	  delete[] dh;
 	} 
     }
   SetTreeStrips (gdata);
@@ -812,6 +813,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   TSolSimEvent::GEMCluster clust;
 
+  cout << "here1" << endl;
   UInt_t igem = tsgd.GetHitChamber(ih);
   ChamberToSector( igem, clust.fSector, clust.fPlane );
   //  clust.fRefEntry = tsgd.GetEntryNumber(ih);  // Apparently never initialized
@@ -833,16 +835,32 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   const TSolGEMChamber& ch = spect.GetChamber(igem);
   for (UInt_t j = 0; j < 2; j++) {
-    clust.fSize[j]  = dh[j]->GetSize();
-    clust.fStart[j] = (clust.fSize[j] > 0) ? dh[j]->GetIdx(0) : -1;
+    if (dh != NULL && dh[j] != NULL)
+      {
+	clust.fSize[j]  = dh[j]->GetSize();
+	clust.fStart[j] = (clust.fSize[j] > 0) ? dh[j]->GetIdx(0) : -1;
+      }
+    else
+      {
+	clust.fSize[j] = 0;
+	clust.fStart[j] = 0;
+      }
     const TSolGEMPlane& pl = ch.GetPlane(j);
     Double_t proj_angle = pl.GetAngle() + pl.GetSAngle() - sector_angle;
     TVector3 hitpos(clust.fHitpos);
     hitpos.RotateZ(-proj_angle);
     clust.fXProj[j] = hitpos.X();
   }
-  clust.fCharge = dh[0]->GetHitCharge();
-  clust.fTime   = dh[0]->GetTime();
+  if (dh != NULL && dh[0] != NULL)
+    {
+      clust.fCharge = dh[0]->GetHitCharge();
+      clust.fTime   = dh[0]->GetTime();
+    }
+  else
+    {
+      clust.fCharge = 0;
+      clust. fTime = 0;
+    }
   clust.fID     = fEvent->fGEMClust.size()+1;
   clust.fVertex = tsgd.GetVertex (ih);
 
@@ -850,6 +868,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   if( clust.fPlane == 0 && clust.fType == 1 )
     fEvent->fNSignal++;
+  cout << "here9" << endl;
 
   return clust.fID;
   // after the return??
@@ -908,7 +927,10 @@ TSolSimGEMDigitization::FillTree ()
 {
   if (fOFile && fOTree 
       // added this line to not write events where there are no entries
-      && fEvent->fGEMStrips.size() > 0 && fEvent->fGEMClust.size() > 0
+
+      // Remove for background study
+      //      && fEvent->fGEMStrips.size() > 0 && fEvent->fGEMClust.size() > 0
+
       )
     {
       fOFile->cd();
