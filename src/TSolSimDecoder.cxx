@@ -242,7 +242,10 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
       Int_t ib = 0;
       for( ; ib < nback; ++ib ) {
 	TSolSimBackTrack* theTrack = GetBackTrack(ib);
-	if( theTrack && theTrack->GetType() == c.fType ) {
+	//FIXME: the problem here is that background runs may also contain
+	// clusters with fType == 1. Clusters need to be marked primary/background.
+	//	if( theTrack && theTrack->GetType() == c.fType ) {
+	if( theTrack && theTrack->SeemsToMatch(c) ) {
 	  if( theTrack->TestHitBit(c.fPlane) ) {
 	    Warning( here, "Event %d: Multiple hits of primary particle "
 		     "in plane %d\nShould never happen. Call expert.",

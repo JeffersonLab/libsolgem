@@ -79,6 +79,9 @@ public:
   Int_t    GetHitBits() const { return fHitBits; }
   void     SetHitBit( UInt_t i )  { SETBIT(fHitBits,i); }
   Bool_t   TestHitBit( UInt_t i ) { return TESTBIT(fHitBits,i); }
+  Bool_t   SeemsToMatch( const TSolSimEvent::GEMCluster& c ) {
+    return ( fType == c.fType && fPID == c.fPID && fSector == c.fSector );
+  }
 
   Int_t    Update( const TSolSimEvent::GEMCluster& cl );
 
