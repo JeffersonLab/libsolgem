@@ -244,11 +244,9 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       if (igem >= fNChambers)
 	continue;
       
-      Short_t itype = (1 << gdata.GetParticleType(ih)); // signal = 1, bck = 2, 4, 8 ...
+      //FIXME: GetParticleID is a misnomer, should be GetGEANTParticleCounter or similar
+      Short_t itype = (gdata.GetParticleID(ih)==1) ? 1 : 2; // signal = 1, bck = 2
 	
-      // Only use primary particle here
-//      if( gdata.GetParticleID(ih) != 1 ) continue;
-
       TVector3 vv1 = gdata.GetHitEntrance (ih);
       TVector3 vv2 = gdata.GetHitExit (ih);
       //TVector3 vv3 = gdata.GetHitReadout (ih);
@@ -277,10 +275,10 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 	{
 	  // Time of this hit's avalance relative to the trigger
 	  Double_t time_zero = fRTime0*1e9 - trigger_time;
-	  itype = 1; // itype 1 is no time randomization, itype 2 has time randomization
-	  time_zero += (itype == 1) ? 0.
-	    // randomization of the bck ( assume 3 useful samples at 25 ns)
-	    : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth;
+	  // itype = 1; // itype 1 is no time randomization, itype 2 has time randomization
+	  // time_zero += (itype == 1) ? 0.
+	  //   // randomization of the bck ( assume 3 useful samples at 25 ns)
+	  //   : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth;
 
 	  dh = AvaModel (igem, spect, vv1, vv2, time_zero);
 	}
@@ -815,7 +813,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   UInt_t igem = tsgd.GetHitChamber(ih);
   ChamberToSector( igem, clust.fSector, clust.fPlane );
-  //  clust.fRefEntry = tsgd.GetEntryNumber(ih);  // Apparently never initialized
+  clust.fSource   = tsgd.GetSource(ih);  // Source of this hit (0=signal, >0 background)
   clust.fType     = tsgd.GetParticleID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]

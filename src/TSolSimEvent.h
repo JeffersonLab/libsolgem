@@ -91,7 +91,7 @@ public:
     // MC hit data
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
-    // Int_t     fRefEntry;  // Reference entry in MC -- NEVER FILLED
+    Int_t     fSource;    // MC data set source (0 = signal, >0 background)
     Int_t     fType;      // GEANT particle counter (1 = primary)
     Int_t     fPID;       // PDG ID of particle generating the cluster
     TVector3  fP;         // Momentum of particle generating the cluster [GeV]
@@ -126,7 +126,7 @@ public:
 
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
 
-  ClassDef(TSolSimEvent, 3) // Simulated data for one event
+  ClassDef(TSolSimEvent, 4) // Simulated data for one event
 };
 
 #endif
