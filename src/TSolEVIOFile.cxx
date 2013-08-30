@@ -8,25 +8,24 @@
 #ifndef __CINT__
 
 
-TSolEVIOFile::TSolEVIOFile(){
-    fFilename[0] = '\0';
-    fChan = NULL;
-
-    return;
+TSolEVIOFile::TSolEVIOFile()
+  : fChan(0)
+{
+  fFilename[0] = '\0';
 }
 
-TSolEVIOFile::TSolEVIOFile(const char *f){
-    SetFilename(f);
-    return;
+TSolEVIOFile::TSolEVIOFile(const char *f) : fChan(0) {
+  SetFilename(f);
 }
 
-TSolEVIOFile::~TSolEVIOFile(){
-    return; 
+TSolEVIOFile::~TSolEVIOFile() {
+  Clear();
+  delete fChan;
 }
 
 void TSolEVIOFile::SetFilename( const char *f ){
-   strcpy( fFilename, f );
-   return;
+  if( !f ) return;
+  strcpy( fFilename, f );
 }
 
 Int_t TSolEVIOFile::Open(){
@@ -36,6 +35,7 @@ Int_t TSolEVIOFile::Open(){
     try {
 	// SPR - Unclear to me what a good value to use for the 
 	// buffer size is.  I picked something that works...
+        delete fChan;
 	fChan = new evio::evioFileChannel(fFilename, "r", 1<<24 );
 
 	if( !fChan ){ 
@@ -47,6 +47,7 @@ Int_t TSolEVIOFile::Open(){
     } catch (evio::evioException e) {
 	// Problem opening
 	fprintf(stderr, "%s %s line %d:  %s\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, e.toString().data() );
+	delete fChan; fChan = 0;
 	return 0;
     }
 
@@ -57,16 +58,19 @@ Int_t TSolEVIOFile::Open(){
 
 Int_t TSolEVIOFile::Close(){
     // Return 0 on fail, 1 on success
+    Int_t ret = 1;
     try {
 	if( !fChan ){ return 0; }
 
 	fChan->close();
     } catch (evio::evioException e) {
-	// Problem opening
+	// Problem closing
 	fprintf(stderr, "%s\n", e.toString().data() );
+	ret = 0;
     }
 
-    return 1;
+    delete fChan; fChan = 0;
+    return ret;
 }
 
 Int_t TSolEVIOFile::ReadNextEvent(){
@@ -319,141 +323,148 @@ void TSolEVIOFile::Clear(){
     return;
 }
 
-TSolGEMData *TSolEVIOFile::GetGEMData(){
-    // Pack data into TSolGEMData
+
+TSolGEMData* TSolEVIOFile::GetGEMData()
+{
+  // Return TSolGEMData object filled with GEM data of present event.
+  // The returned object pointer must be deleted by the caller!
+
+  TSolGEMData* gd = new TSolGEMData();
+
+  GetGEMData(gd);
+  return gd;
+}
+
+void TSolEVIOFile::GetGEMData(TSolGEMData* gd, Int_t source )
+{
+  // Pack data into TSolGEMData
    
-    unsigned int i,j;
+//    printf("NEXT EVENT ---------------------------\n");
 
-    hitdata *h, *hs;
-
-    bool matchedstrip;
-
-    // Upper limit of what we need.  Probably only a 
-    // factor of 2 high
-    TSolGEMData *gd = new TSolGEMData(GetNData());
+    if( !gd ) return;
+    gd->ClearEvent();
     gd->SetEvent(fEvNum);
     gd->SetRun(0);
 
-//    printf("NEXT EVENT ---------------------------\n");
-
-    if (GetNData() == 0){
-	gd->SetNHit (0);
+    if (GetNData() == 0) {
+      return;
     }
-    else
-    {
-	int ngdata = 0;
-	for( i = 0; i < GetNData(); i++ ){
-	    h = GetHitData(i);
+    gd->InitEvent(GetNData());
 
-	    // Chamber IDs are tagged as 
-	    // xxxyy  where xxx is the chamber num and yy is the 
-	    // plane num  we find the drift planes and then
-	    // match them to the corresponding readout hits
+    hitdata *h, *hs;
+    bool matchedstrip;
+    unsigned int i, j, ngdata = 0;
+    for( i = 0; i < GetNData(); i++ ){
+      h = GetHitData(i);
 
-	    if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
-		// Vector information
-		TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
-		gd->SetMomentum(ngdata, p);
+      // Chamber IDs are tagged as 
+      // xxxyy  where xxx is the chamber num and yy is the 
+      // plane num  we find the drift planes and then
+      // match them to the corresponding readout hits
 
-		TVector3 li(h->GetData(5), h->GetData(6), h->GetData(7));
-		gd->SetHitEntrance(ngdata, li);
+      if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
+	// Vector information
+	TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
+	gd->SetMomentum(ngdata, p);
 
-		TVector3 lo(h->GetData(9), h->GetData(10), h->GetData(11));
-		gd->SetHitExit(ngdata, lo);
+	TVector3 li(h->GetData(5), h->GetData(6), h->GetData(7));
+	gd->SetHitEntrance(ngdata, li);
+
+	TVector3 lo(h->GetData(9), h->GetData(10), h->GetData(11));
+	gd->SetHitExit(ngdata, lo);
 		
-			// Average over entrance and exit time
-		gd->SetHitTime(ngdata, (h->GetData(8)+h->GetData(12))/2.0);
+	// Average over entrance and exit time
+	gd->SetHitTime(ngdata, (h->GetData(8)+h->GetData(12))/2.0);
 
-		TVector3 vert(h->GetData(14), h->GetData(15), h->GetData(16));
-		gd->SetVertex(ngdata, vert);
+	TVector3 vert(h->GetData(14), h->GetData(15), h->GetData(16));
+	gd->SetVertex(ngdata, vert);
 
-		//	    printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
+	//	    printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
 
-		gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
-		gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
-		gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
+	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
+	gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
+	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
+	// There is currently no info in the input file that distinguishes
+	// signal from background data, so we need to set the flag manually
+	gd->SetSource(ngdata, source);
 
-		// Chamber ID starts indexing a 0 whereas we start conventionally
-		// at 1 
-		gd->SetHitChamber(ngdata, h->GetDetID()/100 - 1 );
+	// Chamber ID starts indexing a 0 whereas we start conventionally at 1 
+	gd->SetHitChamber(ngdata, h->GetDetID()/100 - 1 );
 
-		////////////////////////////////////////////
-		// Search for entrance/exit hits in surrounding Cu plane
+	////////////////////////////////////////////
+	// Search for entrance/exit hits in surrounding Cu plane
 
-		for( j = 0; j < GetNData(); j++ ){
-		    hs = GetHitData(j);
+	for( j = 0; j < GetNData(); j++ ){
+	  hs = GetHitData(j);
 
-		    if( hs->GetDetID()%100 == __GEM_COPPER_FRONT_ID &&    // is prior Cu plane
-			    hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
-			    ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
-		      ){
-			// Found matching hit, replace entrance data
-			li = TVector3(hs->GetData(5), hs->GetData(6), hs->GetData(7));
-			gd->SetHitEntrance(ngdata, li);
-			break;
-		    }
-		}
-
-		for( j = 0; j < GetNData(); j++ ){
-		    hs = GetHitData(j);
-
-		    if( hs->GetDetID()%100 == __GEM_COPPER_BACK_ID &&    // is subsequent Cu plane
-			    hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
-			    ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
-		      ){
-			// Found matching hit, replace exit data
-			lo = TVector3(hs->GetData(9), hs->GetData(10), hs->GetData(11));
-			gd->SetHitExit(ngdata, lo);
-			break;
-		    }
-		}
-
-		////////////////////////////////////////////
-		// Search other hits for the corresponding 
-		// hit on the strip
-
-
-		matchedstrip = false;
-		for( j = 0; j < GetNData(); j++ ){
-		    hs = GetHitData(j);
-
-		    if( hs->GetDetID()%100 == __GEM_STRIP_ID &&    // is strip plane
-			    hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
-			    ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
-		      ){
-			if( !matchedstrip ){
-			    // This is the truth information
-			    TVector3 lr(hs->GetData(2), hs->GetData(3), hs->GetData(4));
-			    gd->SetHitReadout(ngdata, lr);
-			    matchedstrip = true;
-			} else {
-			    fprintf(stderr, "%s %s line %d: Found multiple readout plane hits matching drift hit.  Truth information may be inaccurate\n",
-				    __FILE__, __FUNCTION__, __LINE__);
-			}
-		    } 
-		}
-
-		if( !matchedstrip && (UInt_t) h->GetData(18) == 1 ){
-		    // FIXME
-		    // SPR 12/2/2011
-		    // This isn't the greatest way to do this but we're usually intersted in 
-		    // Particle 1 when we're looking at doing tracking.  Not all things depositing
-		    // energy leave a corresponding hit in the cathode plane.  Maybe we can look at
-		    // the mother IDs or something later.  
-
-		    fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
-			    __FILE__, __FUNCTION__, __LINE__);
-		    TVector3 lr(-1e9, -1e9, -1e9);
-		    gd->SetHitReadout(ngdata, lr);
-		}
-
-		ngdata++;
-	    }
+	  if( hs->GetDetID()%100 == __GEM_COPPER_FRONT_ID &&    // is prior Cu plane
+	      hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
+	      ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
+	      ){
+	    // Found matching hit, replace entrance data
+	    li = TVector3(hs->GetData(5), hs->GetData(6), hs->GetData(7));
+	    gd->SetHitEntrance(ngdata, li);
+	    break;
+	  }
 	}
-	gd->SetNHit(ngdata);
-    }
 
-    return gd;
+	for( j = 0; j < GetNData(); j++ ){
+	  hs = GetHitData(j);
+
+	  if( hs->GetDetID()%100 == __GEM_COPPER_BACK_ID &&    // is subsequent Cu plane
+	      hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
+	      ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
+	      ){
+	    // Found matching hit, replace exit data
+	    lo = TVector3(hs->GetData(9), hs->GetData(10), hs->GetData(11));
+	    gd->SetHitExit(ngdata, lo);
+	    break;
+	  }
+	}
+
+	////////////////////////////////////////////
+	// Search other hits for the corresponding 
+	// hit on the strip
+
+
+	matchedstrip = false;
+	for( j = 0; j < GetNData(); j++ ){
+	  hs = GetHitData(j);
+
+	  if( hs->GetDetID()%100 == __GEM_STRIP_ID &&    // is strip plane
+	      hs->GetDetID()/100 == h->GetDetID()/100 && // same detector
+	      ((UInt_t) hs->GetData(18)) == ((UInt_t) h->GetData(18))  // same particle
+	      ){
+	    if( !matchedstrip ){
+	      // This is the truth information
+	      TVector3 lr(hs->GetData(2), hs->GetData(3), hs->GetData(4));
+	      gd->SetHitReadout(ngdata, lr);
+	      matchedstrip = true;
+	    } else {
+	      fprintf(stderr, "%s %s line %d: Found multiple readout plane hits matching drift hit.  Truth information may be inaccurate\n",
+		      __FILE__, __FUNCTION__, __LINE__);
+	    }
+	  } 
+	}
+
+	if( !matchedstrip && (UInt_t) h->GetData(18) == 1 ){
+	  // FIXME
+	  // SPR 12/2/2011
+	  // This isn't the greatest way to do this but we're usually intersted in 
+	  // Particle 1 when we're looking at doing tracking.  Not all things depositing
+	  // energy leave a corresponding hit in the cathode plane.  Maybe we can look at
+	  // the mother IDs or something later.  
+
+	  fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
+		  __FILE__, __FUNCTION__, __LINE__);
+	  TVector3 lr(-1e9, -1e9, -1e9);
+	  gd->SetHitReadout(ngdata, lr);
+	}
+
+	ngdata++;
+      }
+    }
+    gd->SetNHit(ngdata);
 }
 
 

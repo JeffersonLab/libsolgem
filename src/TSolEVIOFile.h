@@ -101,6 +101,7 @@ class TSolEVIOFile {
 	gendata *GetGenData(Int_t i) const { return fGenData[i]; }
 
 	TSolGEMData *GetGEMData();
+        void GetGEMData(TSolGEMData* gd, Int_t source = 0 );
 
     private:
 	char  fFilename[255];
