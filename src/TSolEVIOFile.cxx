@@ -8,13 +8,11 @@
 #ifndef __CINT__
 
 
-TSolEVIOFile::TSolEVIOFile()
-  : fChan(0)
-{
+TSolEVIOFile::TSolEVIOFile() : fChan(0), fSource(0) {
   fFilename[0] = '\0';
 }
 
-TSolEVIOFile::TSolEVIOFile(const char *f) : fChan(0) {
+TSolEVIOFile::TSolEVIOFile(const char *f) : fChan(0), fSource(0) {
   SetFilename(f);
 }
 
@@ -335,7 +333,7 @@ TSolGEMData* TSolEVIOFile::GetGEMData()
   return gd;
 }
 
-void TSolEVIOFile::GetGEMData(TSolGEMData* gd, Int_t source )
+void TSolEVIOFile::GetGEMData(TSolGEMData* gd)
 {
   // Pack data into TSolGEMData
    
@@ -384,9 +382,7 @@ void TSolEVIOFile::GetGEMData(TSolGEMData* gd, Int_t source )
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
 	gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
 	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
-	// There is currently no info in the input file that distinguishes
-	// signal from background data, so we need to set the flag manually
-	gd->SetSource(ngdata, source);
+	gd->SetSource(ngdata, fSource);
 
 	// Chamber ID starts indexing a 0 whereas we start conventionally at 1 
 	gd->SetHitChamber(ngdata, h->GetDetID()/100 - 1 );

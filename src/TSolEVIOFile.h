@@ -80,12 +80,13 @@ class TSolEVIOFile {
 	virtual ~TSolEVIOFile();
 
 	void  SetFilename( const char *name );
+        void  SetSource( Int_t i );
 	void  Clear();
 	Int_t Open();
 	Int_t Close();
 
 	const char* GetFileName() const { return fFilename; }
-
+        Int_t GetSource() const { return fSource; }
 	Int_t ReadNextEvent();
 	void  ExtractDetIDs( evio::evioDOMNodeList *, int );
 	void  BuildData( evio::evioDOMNodeList * );
@@ -101,11 +102,12 @@ class TSolEVIOFile {
 	gendata *GetGenData(Int_t i) const { return fGenData[i]; }
 
 	TSolGEMData *GetGEMData();
-        void GetGEMData(TSolGEMData* gd, Int_t source = 0 );
+        void GetGEMData(TSolGEMData* gd);
 
     private:
 	char  fFilename[255];
 	evio::evioFileChannel *fChan;
+        Int_t fSource;   // User-defined source ID (e.g. MC run number)
 
 	vector<hitdata *> fHitData;
 	vector<gendata *> fGenData;
