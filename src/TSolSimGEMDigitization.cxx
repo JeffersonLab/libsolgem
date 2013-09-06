@@ -235,7 +235,7 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 	fDP[ic][ip]->Clear();
     }
 
-  // ... NEED Time of flight from GEANT4
+  // Trigger time distribution, including an arbitrary offset to align signal timing
   Double_t trigger_time = fTrnd.Gaus(fTriggerOffset, fTriggerJitter);
 
   for (UInt_t ih = 0; ih < nh; ++ih)
@@ -273,12 +273,8 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       IonModel (vv1, vv2, gdata.GetHitEnergy(ih), vv3);
       if (fRNIon > 0) 
 	{
-	  // Time of this hit's avalance relative to the trigger
-	  Double_t time_zero = fRTime0*1e9 - trigger_time;
-	  // itype = 1; // itype 1 is no time randomization, itype 2 has time randomization
-	  // time_zero += (itype == 1) ? 0.
-	  //   // randomization of the bck ( assume 3 useful samples at 25 ns)
-	  //   : fTrnd.Uniform (fGateWidth + 75.) - fGateWidth;
+	  // Time of the leading edge of this hit's avalance relative to the trigger
+	  Double_t time_zero = gdata.GetHitTime(ih) + fRTime0*1e9 - trigger_time;
 
 	  dh = AvaModel (igem, spect, vv1, vv2, time_zero);
 	}
