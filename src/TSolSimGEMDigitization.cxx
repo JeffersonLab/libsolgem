@@ -131,7 +131,7 @@ TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
 						const char* name )
   : THaAnalysisObject(name, "GEM simulation digitizer"),
     fDP(0), fNChambers(0), fNPlanes(0), fRX(0), fRY(0), fRSNorm(0), 
-    fRCharge(0), fOFile(0), fOTree(0), fEvent(0)
+    fRCharge(0), fDoMapSector(false), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
   Initialize (spect);
@@ -283,6 +283,8 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 	  dh = AvaModel (igem, spect, vv1, vv2, time_zero);
 	}
       Short_t id = SetTreeHit (ih, spect, dh, gdata);
+      // If requested via fDoMapSector, accumulate all data in a single sector
+      igem = MapSector(igem);
       if (dh != NULL)
 	{
 	  for (UInt_t j = 0; j < 2; j++) 
@@ -760,6 +762,8 @@ TSolSimGEMDigitization::InitTree (const TSolSpec& spect, const TString& ofile)
   
  }
 
+static const UInt_t NSECTORS = 30;
+
 inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
@@ -771,10 +775,22 @@ static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
   // ich = is + nsectors*ipl (is = sector, ipl = plane).
   // The number of sectors is implied to be 30.
 
-  static const int NSECTORS = 30;
   div_t d = div( chamber, NSECTORS );
   sector = d.rem;
   plane  = d.quot;
+}
+
+UInt_t
+TSolSimGEMDigitization::MapSector( UInt_t chamber ) const
+{
+  // If mapping of MC data from all sectors into a single one (= sector 0)
+  // is requested, convert the true chamber index to the one with the mapped
+  // sector number.
+
+  if( fDoMapSector ) {
+    chamber = NSECTORS * UInt_t(chamber/NSECTORS);
+  }
+  return chamber;
 }
 
 void
@@ -812,7 +828,8 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   TSolSimEvent::GEMCluster clust;
 
   UInt_t igem = tsgd.GetHitChamber(ih);
-  ChamberToSector( igem, clust.fSector, clust.fPlane );
+  ChamberToSector( igem, clust.fRealSector, clust.fPlane );
+  clust.fSector   = clust.fRealSector;   // May change if mapped, see below
   clust.fSource   = tsgd.GetSource(ih);  // Source of this hit (0=signal, >0 background)
   clust.fType     = tsgd.GetParticleID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
@@ -861,9 +878,19 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fID     = fEvent->fGEMClust.size()+1;
   clust.fVertex = tsgd.GetVertex (ih);
 
+  if( fDoMapSector ) {
+    // If mapping requested, pretend this his occurred in sector 0.
+    // We assume that sector 0 has nominal angle 0, which is already assumed
+    // in the calculation of sector_angle above
+    clust.fSector = 0;
+    clust.fP.RotateZ(-sector_angle);
+    clust.fXEntry.RotateZ(-sector_angle);
+    clust.fMCpos.RotateZ(-sector_angle);
+  }
+
   fEvent->fGEMClust.push_back( clust );
 
-  if( clust.fPlane == 0 && clust.fType == 1 )
+  if( clust.fPlane == 0 && clust.fType == 1 && clust.fSource == 0 )
     fEvent->fNSignal++;
 
   return clust.fID;

@@ -131,6 +131,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
   TSolSimEvent* GetEvent() const { return fEvent; }
 
+  void SetMapSector( Bool_t b = true ) { fDoMapSector = b; }
+
  private:
 
   void MakePrefix() { THaAnalysisObject::MakePrefix(0); }
@@ -145,6 +147,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 			     const TVector3& xo,
 			     const Double_t time_off);
   
+  UInt_t MapSector( UInt_t igem ) const;
 
   // Gas parameters
   Double_t fGasWion;               // eV
@@ -184,6 +187,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Double_t fRSMax;
   Double_t fRTotalCharge;
   Double_t fRTime0;
+
+  Bool_t   fDoMapSector;
 
   // Tree
 

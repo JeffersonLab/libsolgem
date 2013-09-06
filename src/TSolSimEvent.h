@@ -91,6 +91,7 @@ public:
     // MC hit data
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
+    Short_t   fRealSector;// Real sector number (may be !=fSector if mapped)
     Int_t     fSource;    // MC data set source (0 = signal, >0 background)
     Int_t     fType;      // GEANT particle counter (1 = primary)
     Int_t     fPID;       // PDG ID of particle generating the cluster
