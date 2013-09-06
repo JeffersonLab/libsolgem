@@ -131,6 +131,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
   TSolSimEvent* GetEvent() const { return fEvent; }
 
+  Bool_t IsMapSector() const { return fDoMapSector; }
   void SetMapSector( Bool_t b = true ) { fDoMapSector = b; }
 
  private:
