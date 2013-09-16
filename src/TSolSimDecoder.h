@@ -35,6 +35,8 @@ public:
   // MC hit data
   Int_t     fSector;    // Sector number
   Int_t     fPlane;     // Plane number
+  Int_t     fRealSector;// Real sector number (may be !=fSector if mapped)
+  Int_t     fSource;    // MC data set source (0 = signal, >0 background)
   Int_t     fType;      // GEANT particle counter (1 = primary)
   Int_t     fPID;       // PDG ID of particle generating the cluster
   TVector3  fP;         // Momentum of particle generating the cluster
@@ -90,6 +92,8 @@ private:
   Int_t    fType;        // GEANT particle number
   Int_t    fPID;         // Track particle ID (PDG)
   Int_t    fSector;      // Sector where this track detected
+  Int_t    fRealSector;  // Actual sector number (may be !=fSector if mapped)
+  Int_t    fSource;      // MC data set source (0 = signal, >0 background)
   TVector3 fOrigin;      // Position at first plane in lab frame (m)
   TVector3 fHitpos;      // Position at first plane in Tracker frame [m]
   TVector3 fMomentum;    // Momentum (GeV)

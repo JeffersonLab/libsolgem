@@ -230,8 +230,10 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
 
     new( (*fHits)[GetNHits()] ) TSolSimGEMHit(c);
 
-    // Keep all hits of the primary track in the GEM planes
-    if( c.fType == 1 ) {
+    // "Back tracks"
+    // Record the apparent track from the primary particle
+    // of the signal data here, i.e. type == 1 and source == 0.
+    if( c.fType == 1 && c.fSource == 0 ) {
       if( c.fPlane < 0 || c.fPlane >= NPLANES ) {
 	Error( here, "Illegal plane number = %d in cluster"
 	       "Should never happen. Call expert.", c.fPlane );
@@ -296,7 +298,8 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
 
 //-----------------------------------------------------------------------------
 TSolSimGEMHit::TSolSimGEMHit( const TSolSimEvent::GEMCluster& c )
-  : fID(c.fID), fSector(c.fSector), fPlane(c.fPlane), fType(c.fType),
+  : fID(c.fID), fSector(c.fSector), fPlane(c.fPlane), 
+    fRealSector(c.fRealSector), fSource(c.fSource), fType(c.fType),
     fPID(c.fPID), fP(c.fP), fXEntry(c.fXEntry), fMCpos(c.fMCpos),
     fHitpos(c.fHitpos), fCharge(c.fCharge), fTime(c.fTime),
     fUSize(c.fSize[0]), fUStart(c.fStart[0]), fUPos(c.fXProj[0]),
