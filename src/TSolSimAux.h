@@ -7,6 +7,9 @@
 
 #include <Rtypes.h>
 
+// size of return value of ADCConvert
+static const Int_t MAX_ADCBITS = 8*sizeof(Short_t)-1;
+
 namespace TSolSimAux
 {
   Short_t ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits);

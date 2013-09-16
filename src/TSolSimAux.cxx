@@ -1,26 +1,32 @@
-#include <cmath>
-
-#include <TMath.h>
-
 #include "TSolSimAux.h"
+
+#include <cassert>
+#include <TMath.h>
 
 // ADC Conversion
 //
 //
 
 Short_t 
-TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits) {
+TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
+{
+  // Convert analog value 'val' to integer ADC reading with 'bits' resolution
 
-  Double_t vvv;
-  Short_t dval;
-  Double_t saturation;
+  assert( bits >= 0 && bits <= MAX_ADCBITS );
 
-  saturation = pow(2,bits);
-  vvv = (val - off)/gain;
+  if( val < 0. )
+    val = 0.;
+  Double_t vvv = (val - off)/gain;
 
-  dval = (Short_t) ((vvv>saturation) ? saturation : vvv);
+  Double_t saturation = static_cast<Double_t>( (1<<bits)-1 );
+  if( vvv > saturation )
+    vvv = saturation;
+
+  Short_t dval =
+    static_cast<Short_t>( TMath::Floor( (vvv>saturation) ? saturation : vvv ));
 
   //  cerr << val << " dval = " << dval << endl;
+  if( dval < 0 ) dval = 0;
   return dval;
 
 }
@@ -39,7 +45,7 @@ TSolSimAux::PulseShape(Double_t t,
   Double_t v;
   Double_t x;
   x = t/Tp;
-  v = C/Tp * x * exp(-x);
+  v = C/Tp * x * TMath::Exp(-x);
   
   return ( v>0. ) ? v : 0.;
 
@@ -66,7 +72,7 @@ TSolSimAux::PulseShape(Double_t t,
   if (tau1<0) { return PulseShape(t, A, tau0); } // SiD model
   x0 = -t/tau0;
   x1 = -t/tau1;
-  v = A * ((tau0+tau1)/tau1/tau1)*(1.-exp(x0)) * exp(x1);
+  v = A * ((tau0+tau1)/tau1/tau1)*(1.-TMath::Exp(x0)) * TMath::Exp(x1);
   
   return ( v>0. ) ? v : 0.;
  	   
