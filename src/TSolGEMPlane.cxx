@@ -1,7 +1,5 @@
 #include "TSolGEMPlane.h"
 
-#include <iostream>
-
 #include "TClonesArray.h"
 
 #include "TSolGEMChamber.h"
@@ -9,6 +7,9 @@
 #include "TSolWedge.h"
 #include "THaEvData.h"
 #include "TMath.h"
+
+#include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -235,21 +236,43 @@ TSolGEMPlane::GetStripLowerEdge (UInt_t is) const {return (fSBeg + is * GetSPitc
 Double_t 
 TSolGEMPlane::GetStripUpperEdge (UInt_t is) const {return GetStripLowerEdge (is) + GetSPitch();}
 
+
 Int_t
-TSolGEMPlane::GetStrip (Double_t x, Double_t y) const
+TSolGEMPlane::GetStripUnchecked( Double_t x ) const
+{
+  // Get strip number for given x-coordinate in strip frame,
+  // no questions asked. Caller must check return value
+
+  return (Int_t) ((x - fSBeg) / GetSPitch());
+}
+
+Int_t
+TSolGEMPlane::GetStripInRange( Double_t x ) const
+{
+  // Get strip number for given x-coordinate in strip frame
+  // and, if out of range, limit it to allowable values.
+
+  Int_t s = GetStripUnchecked(x);
+  if( s < 0 )              s = 0;
+  if( s >= GetNStrips() )  s = GetNStrips()-1;
+  return s;
+}
+    
+Int_t
+TSolGEMPlane::GetStrip (Double_t x, Double_t yc) const
 {
   // Strip number corresponding to coordinates x, y in 
   // strip frame, or -1 if outside (2-d) bounds
 
   Double_t xc = x;
-  Double_t yc = y;
   StripToLab (xc, yc);
 
   if (!fWedge->Contains (xc, yc))
     return -1;
 
-  Int_t s = (Int_t) ((x - fSBeg) / GetSPitch());
-  return s >= 0 ? s : 0;
+  Int_t s = GetStripUnchecked(x);
+  assert( s >= 0 && s < GetNStrips() ); // by construction in ReadGeometry()
+  return s;
 }
 
 void 
