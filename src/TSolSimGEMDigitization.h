@@ -86,6 +86,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Int_t ReadDatabase (const TDatime& date);
 
   void Digitize (const TSolGEMData& gdata, const TSolSpec& spect); // digitize event  
+  void NoDigitize (const TSolGEMData& gdata, const TSolSpec& spect); // do not digitize event, just fill tree
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
   void Print() const;
   void PrintCharges() const;

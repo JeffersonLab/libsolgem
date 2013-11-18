@@ -298,6 +298,26 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
 }
  
 
+void 
+TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& spect) // do not digitize event, just fill the tree
+{
+  if (!fEvCleared)
+    fEvent->Clear();
+  UInt_t nh = gdata.GetNHit();
+
+  for (UInt_t ih = 0; ih < nh; ++ih)
+    {
+      UInt_t igem = gdata.GetHitChamber (ih);
+      if (igem >= fNChambers)
+	continue;
+      
+      TSolGEMVStrip **dh = NULL;
+      Short_t id = SetTreeHit (ih, spect, dh, gdata);
+    }
+  SetTreeStrips (gdata);
+}
+ 
+
 //-------------------------------------------------------
 //.......................................................
 // ionization Model
