@@ -7,9 +7,10 @@ This software is designed to interface EVIO output from
 GEMC to the Hall A analyzer.  It requires:
 
 * [EVIO](https://coda.jlab.org/wiki/index.php/Event_IO_%28evio%29) version 4.0
-  or higher
+  or higher. Source repository
+  [here](https://clas12svn.jlab.org/repos/clas12/evio/tags/evio-4.0/)
 
-8 [Hall A Analyzer](http://hallaweb.jlab.org/podd/index.html)
+* [Hall A Analyzer](http://github.com/JeffersonLab/analyzer)
 
 * Environment variables EVIO and ANALYZER must be
    set to point to these packages
@@ -42,12 +43,12 @@ Example of how to load and run this library
 
 For developers
 --------------
-There are two basic ideas building on the analyzer.  
+There are two basic ideas building on the analyzer.
 
 1)  The input files are different and are pure EVIO.
     We can ignore everything like EPICS, etc in the data
     stream.  To keep from rewriting a lot of the raw
-    data code, we'll cast the EVIO output into 
+    data code, we'll cast the EVIO output into
     THaEvData.  I'll need to specify this exactly, but
     the 'crate' will probably be fixed, the slot will
     be based on the manual identifier number, and the
