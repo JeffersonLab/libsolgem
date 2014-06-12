@@ -1,0 +1,20 @@
+# Compiled stuff
+*.[od]
+lib*.so*
+
+# Generated files
+*_dict.h
+*_dict.cxx
+
+# Editor lint
+.#*
+*~
+\#*#
+
+# Work directory clutter, test files, replay output etc.
+*.root
+*.odef
+*.cdef
+*.png
+*.patch
+*.diff
