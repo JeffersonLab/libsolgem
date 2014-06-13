@@ -3,10 +3,9 @@
 #ifndef __TSolSimGEMDigitization__
 #define __TSolSimGEMDigitization__
 
-#include "Rtypes.h"
 #include "TRandom3.h"
 #include "TVector3.h"
-#include "TArrayS.h"
+#include "TArrayI.h"
 
 #include "THaAnalysisObject.h"
 
@@ -26,49 +25,50 @@ class TSolEVIOFile;
 // The whole strip plane; used to cumulate virtual strips charges
 // and generate real strips
 
-class TSolDigitizedPlane 
-{
- private:
+class TSolDigitizedPlane {
+private:
   // ADC sampled value of strip array of each axis
 
   //TODO: make this a struct inside an STL vector or similar
-  TArrayS *fPStripADC;
+  TArrayI fStripADC;
   Short_t *fType;
-  Short_t *fTotADC;
+  Int_t   *fTotADC;
 
   Float_t *fCharge;
   Float_t *fTime;
 
-  Short_t fNSamples;
-  Short_t fNStrips;
+  UShort_t fNSamples;
+  UShort_t fNStrips;
+  Int_t    fThreshold;
 
-  UInt_t fNOT;   // # strips over threshold
-  UInt_t* fOverThr;  // # list of strips over threshold
+  UShort_t  fNOT;   // # strips over threshold
+  Short_t*  fOverThr;  // # list of strips over threshold
 
   std::vector< std::vector<Short_t> > fStripClusters; // Clusters associated with each strip
 
- public:
+public:
   // init and reset physics strips arrays
-  TSolDigitizedPlane (Short_t nstrip,
-		      Short_t nsample = 10);
+  TSolDigitizedPlane (UShort_t nstrip,
+		      UShort_t nsample = 10,
+		      Int_t    threshold = 0 );
   ~TSolDigitizedPlane();
   void Clear();
 
   // cumulate hits (strips signals)
-  void Cumulate (const TSolGEMVStrip *vv, Int_t type, Short_t clusterID );
+  void Cumulate (const TSolGEMVStrip *vv, Short_t type, Short_t clusterID );
 
-  Short_t GetType (Int_t n) const {return fType[n];}
-  Short_t GetTotADC (Int_t n) const {return fTotADC[n];}
-  Float_t GetTime (Int_t n) const {return fTime[n];};
-  Float_t GetCharge (Int_t n) const {return fCharge[n];};
-  Short_t GetADC (Int_t n, Int_t ks) const {return fPStripADC->At(n*fNSamples+ks);};
-  Short_t GetNSamples() const {return fNSamples;}
-  Short_t GetNStrips() const {return fNStrips;}
+  Short_t  GetType (Int_t n) const {return fType[n];}
+  Int_t    GetTotADC (Int_t n) const {return fTotADC[n];}
+  Float_t  GetTime (Int_t n) const {return fTime[n];}
+  Float_t  GetCharge (Int_t n) const {return fCharge[n];}
+  Int_t    GetADC (Int_t n, Int_t ks) const {return fStripADC[n*fNSamples+ks];}
+  UShort_t GetNSamples() const {return fNSamples;}
+  UShort_t GetNStrips() const {return fNStrips;}
 
-  UInt_t Threshold (Short_t thr);
+  UShort_t Threshold (Int_t thr);
 
-  UInt_t GetNOverThr() const {return fNOT;};
-  UInt_t GetIdxOverThr (Int_t n) const {return fOverThr[n];}; 
+  UShort_t GetNOverThr() const {return fNOT;}
+  Short_t  GetIdxOverThr (Int_t n) const {return fOverThr[n];}
 
   const std::vector<Short_t>& GetStripClusters(UInt_t n) const { return fStripClusters[n]; }
 };
@@ -97,7 +97,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   // Tree methods
   // To write a tree with digitization results:
   //   Call InitTree before main loop;
-  //   Call SetTreeEvent in main loop (before or after Digitize;
+  //   Call SetTreeEvent in main loop (before or after Digitize)
   //   Call FillTree in main loop (after Digitize and SetTreeEvent)
   // Call WriteTree and CloseTree after main loop
 
@@ -109,25 +109,27 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 		      const TSolSpec& spect,
 		      TSolGEMVStrip* const *dh,
 		      const TSolGEMData& tsgd); // called from Digitization
-  void SetTreeStrips (const TSolGEMData& gdata); // called from Digitization
+  void SetTreeStrips(); // called from Digitization
   void FillTree ();
   void WriteTree () const;
   void CloseTree () const;
 
   // Access to results
-  Short_t GetType (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetType (n);};
-  Short_t GetTotADC (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetTotADC (n);};
-  Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);};
-  Float_t GetCharge (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetCharge (n);};
-  Short_t GetADC (UInt_t ich, UInt_t ip, Int_t n, Int_t ks) const {return fDP[ich][ip]->GetADC (n, ks);};
-  UInt_t GetNChambers() const {return fNChambers;};
-  UInt_t GetNPlanes (const UInt_t i) const {return fNPlanes[i];};
-  Short_t GetNSamples (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNSamples();}
-  Short_t GetNStrips (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNStrips();}
-  UInt_t Threshold (UInt_t ich, UInt_t ip, Short_t thr) {return fDP[ich][ip]->Threshold (thr);};
-  UInt_t GetNOverThr (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNOverThr();};
-  UInt_t GetIdxOverThr (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetIdxOverThr (n);}; 
-  const std::vector<Short_t>& GetStripClusters(UInt_t ich, UInt_t ip, UInt_t n) const 
+  Short_t GetType (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetType (n);}
+  Int_t   GetTotADC (UInt_t ich, UInt_t ip, Int_t n) const {return fDP[ich][ip]->GetTotADC (n);}
+  Float_t GetTime (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetTime (n);}
+  Float_t GetCharge (UInt_t ich, UInt_t ip, UInt_t n) const {return fDP[ich][ip]->GetCharge (n);}
+  Int_t   GetADC (UInt_t ich, UInt_t ip, Int_t n, Int_t ks) const {return fDP[ich][ip]->GetADC (n, ks);}
+  UInt_t   GetNChambers() const {return fNChambers;};
+  UInt_t   GetNPlanes (const UInt_t i) const {return fNPlanes[i];}
+  UShort_t GetNSamples (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNSamples();}
+  UShort_t GetNStrips (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNStrips();}
+  UShort_t Threshold (UInt_t ich, UInt_t ip, Int_t thr) {return fDP[ich][ip]->Threshold (thr);}
+  UShort_t GetNOverThr (UInt_t ich, UInt_t ip) const {return fDP[ich][ip]->GetNOverThr();}
+  Short_t  GetIdxOverThr (UInt_t ich, UInt_t ip, Int_t n) const
+  { return fDP[ich][ip]->GetIdxOverThr(n); }
+
+  const std::vector<Short_t>& GetStripClusters(UInt_t ich, UInt_t ip, UInt_t n) const
   { return fDP[ich][ip]->GetStripClusters(n); }
 
   TSolSimEvent* GetEvent() const { return fEvent; }
@@ -137,7 +139,6 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
  private:
 
-  void MakePrefix() { THaAnalysisObject::MakePrefix(0); }
   void IonModel (const TVector3& xi, 
 		 const TVector3& xo, 
 		 const Double_t elost, 
@@ -145,7 +146,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   
   TSolGEMVStrip ** AvaModel (const Int_t ic,
 			     const TSolSpec& spect,
-			     const TVector3& xi, 
+			     const TVector3& xi,
 			     const TVector3& xo,
 			     const Double_t time_off);
   
@@ -163,42 +164,56 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   // Electronics parameters
   Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
   Double_t fTriggerJitter;       // trigger sigma jitter (ns)
-  Int_t    fEleSamplingPoints;   
-  Double_t fEleSamplingPeriod;    // ns    
-  Double_t fPulseNoiseSigma;  // sigma of the gaussian noise distribution on each sample
+  Int_t    fEleSamplingPoints;
+  Double_t fEleSamplingPeriod;   // ns
+  Double_t fPulseNoiseSigma; // sigma of the amplitude noise distribution on each sample
   Double_t fADCoffset;       // ADC offset
   Double_t fADCgain;         // ADC gain
   Int_t    fADCbits;         // ADC resolutions in bits
   Double_t fGateWidth;       // to be changed , ns - pulse shape width at ~1/10 max
-   
+
   // Pulse shaping parameters
-  Double_t fPulseShapeTau0;   // [ns] GEM model; = 50. in SiD model 
+  Double_t fPulseShapeTau0;   // [ns] GEM model; = 50. in SiD model
   Double_t fPulseShapeTau1;   // [ns] GEM model only; if negative assume SiD model
 
-  //
+  // Geometry
+  Double_t fRoutZ;            // z-distance hit entrance to readout plane [mm]
+
+  // Sector mapping
+  Bool_t   fDoMapSector;
+  Int_t    fSignalSector;
+
   TSolDigitizedPlane*** fDP; // 2D array of plane pointers indexed by chamber, plane #
 
   UInt_t fNChambers;  // # chambers
   UInt_t* fNPlanes;   // # planes in each chamber
-  TRandom3 fTrnd;   // time randomizer
-  UInt_t   fRNIon;  // number of ions
-  Double_t *fRX;
-  Double_t *fRY;
-  Double_t *fRSNorm;
-  Double_t *fRCharge;
+  TRandom3 fTrnd;     // time randomizer
+  UInt_t   fRNIon;    // number of ions
+  struct IonPar_t {
+    Double_t X;       // position of the point on the projection
+    Double_t Y;
+    Double_t Charge;  // Charge deposited by this ion
+    Double_t SNorm;   // 3 x radius of ion diffusion area at readout
+    Double_t R2;      // = SNorm^2 : radius of numerical integration area
+    Double_t ggnorm;  // = Charge/R2/pi : charge per unit area
+  };
+  std::vector<IonPar_t> fRIon;
   Double_t fRSMax;
   Double_t fRTotalCharge;
   Double_t fRTime0;
 
-  Bool_t   fDoMapSector;
+  std::vector<Double_t> fSumA;
+  std::vector<Short_t>  fDADC;
 
   // Tree
 
   TFile* fOFile;          // Output ROOT file
   TTree* fOTree;          // Output tree
   TSolSimEvent* fEvent;   // Output event structure, written to tree
-  Bool_t fEvCleared;      // True if event has been cleared
 
+  Bool_t fFilledStrips;   // True if no data changed since last SetTreeStrips
+
+  void MakePrefix() { THaAnalysisObject::MakePrefix(0); }
   void DeleteObjects();
 
   ClassDef (TSolSimGEMDigitization, 0)

@@ -123,14 +123,14 @@ public:
     Float_t   fCharge;    // Total charge in strip
     Float_t   fTime1;     // Time of first sample
                           //   relative to event start in target (TBC)
-    Short_t   fNsamp;     // Number of ADC samples
-    Short_t   fADC[MC_MAXSAMP]; // [fNsamp] ADC samples
+    UShort_t  fNsamp;     // Number of ADC samples
+    Int_t     fADC[MC_MAXSAMP]; // [fNsamp] ADC samples
     TArrayS   fClusters;  // Clusters contributing to signal on this strip
   };
 
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
 
-  ClassDef(TSolSimEvent, 4) // Simulated data for one event
+  ClassDef(TSolSimEvent, 5) // Simulated data for one event
 };
 
 #endif
