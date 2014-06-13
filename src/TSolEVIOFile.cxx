@@ -450,8 +450,8 @@ void TSolEVIOFile::GetGEMData(TSolGEMData* gd)
 	  // energy leave a corresponding hit in the cathode plane.  Maybe we can look at
 	  // the mother IDs or something later.  
 
-	  fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
-		  __FILE__, __FUNCTION__, __LINE__);
+	  // fprintf(stderr, "%s %s line %d: Did not find readout plane hit corresponding to drift hits.  No truth information\n",
+	  // 	  __FILE__, __FUNCTION__, __LINE__);
 	  TVector3 lr(-1e9, -1e9, -1e9);
 	  gd->SetHitReadout(ngdata, lr);
 	}
