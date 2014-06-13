@@ -94,6 +94,7 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "hit.n",     "Number of MC hits",          "GetNHits()" },
     { "hit.id",    "MC hit number",              "fHits.TSolSimGEMHit.fID" },
     { "hit.sect",  "MC hit sector",              "fHits.TSolSimGEMHit.fSector" },
+    { "hit.rsect", "MC hit non-mapped sector",   "fHits.TSolSimGEMHit.fRealSector" },
     { "hit.plane", "MC hit plane",               "fHits.TSolSimGEMHit.fPlane" },
     { "hit.type",  "MC hit GEANT counter",       "fHits.TSolSimGEMHit.fType" },
     { "hit.pid",   "MC hit PID (PDG)",           "fHits.TSolSimGEMHit.fPID" },
@@ -237,7 +238,7 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
     // of the signal data here, i.e. type == 1 and source == 0.
     if( c.fType == 1 && c.fSource == 0 ) {
       if( c.fPlane < 0 || c.fPlane >= NPLANES ) {
-	Error( here, "Illegal plane number = %d in cluster"
+	Error( here, "Illegal plane number = %d in cluster. "
 	       "Should never happen. Call expert.", c.fPlane );
 	simEvent->Print("clust");
 	return HED_FATAL;
