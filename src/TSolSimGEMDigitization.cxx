@@ -232,25 +232,26 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
 
   const DBRequest request[] =
     {
-      {"gasionwidth",               &fGasWion,                   kDouble, 0, 1, 0},
-      {"gasdiffusion",              &fGasDiffusion,              kDouble, 0, 1, 0},
-      {"gasdriftvelocity",          &fGasDriftVelocity,          kDouble, 0, 1, 0},
-      {"avalanchefiducialband",     &fAvalancheFiducialBand,     kDouble, 0, 1, 0},
-      {"avalanchechargestatistics", &fAvalancheChargeStatistics, kInt,    0, 1, 0},
-      {"gainmean",                  &fGainMean,                  kDouble, 0, 1, 0},
-      {"gain0",                     &fGain0,                     kDouble, 0, 1, 0},
-      {"triggeroffset",             &fTriggerOffset,             kDouble, 0, 1, 0},
-      {"triggerjitter",             &fTriggerJitter,             kDouble, 0, 1, 0},
-      {"elesamplingpoints",         &fEleSamplingPoints,         kInt,    0, 1, 0},
-      {"elesamplingperiod",         &fEleSamplingPeriod,         kDouble, 0, 1, 0},
-      {"pulsenoisesigma",           &fPulseNoiseSigma,           kDouble, 0, 1, 0},
-      {"adcoffset",                 &fADCoffset,                 kDouble, 0, 1, 0},
-      {"adcgain",                   &fADCgain,                   kDouble, 0, 1, 0},
-      {"adcbits",                   &fADCbits,                   kInt,    0, 1, 0},
-      {"gatewidth",                 &fGateWidth,                 kDouble, 0, 1, 0},
-      {"pulseshapetau0",            &fPulseShapeTau0,            kDouble, 0, 1, 0},
-      {"pulseshapetau1",            &fPulseShapeTau1,            kDouble, 0, 1, 0},
-      {0}
+      { "gasionwidth",               &fGasWion,                   kDouble },
+      { "gasdiffusion",              &fGasDiffusion,              kDouble },
+      { "gasdriftvelocity",          &fGasDriftVelocity,          kDouble },
+      { "avalanchefiducialband",     &fAvalancheFiducialBand,     kDouble },
+      { "avalanchechargestatistics", &fAvalancheChargeStatistics, kInt    },
+      { "gainmean",                  &fGainMean,                  kDouble },
+      { "gain0",                     &fGain0,                     kDouble },
+      { "triggeroffset",             &fTriggerOffset,             kDouble },
+      { "triggerjitter",             &fTriggerJitter,             kDouble },
+      { "elesamplingpoints",         &fEleSamplingPoints,         kInt    },
+      { "elesamplingperiod",         &fEleSamplingPeriod,         kDouble },
+      { "pulsenoisesigma",           &fPulseNoiseSigma,           kDouble },
+      { "adcoffset",                 &fADCoffset,                 kDouble },
+      { "adcgain",                   &fADCgain,                   kDouble },
+      { "adcbits",                   &fADCbits,                   kInt    },
+      { "gatewidth",                 &fGateWidth,                 kDouble },
+      { "pulseshapetau0",            &fPulseShapeTau0,            kDouble },
+      { "pulseshapetau1",            &fPulseShapeTau1,            kDouble },
+      { "zrout",                     &fRoutZ,                     kDouble },
+      { 0 }
     };
 
   Int_t err = LoadDB (file, date, request, fPrefix);
@@ -316,7 +317,7 @@ TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spec
       vv3.RotateZ (-angle);
 	
       TSolGEMVStrip **dh = NULL;
-      IonModel (vv1, vv2, gdata.GetHitEnergy(ih), vv3);
+      IonModel( vv1, vv2, gdata.GetHitEnergy(ih) );
       if (fRNIon > 0) 
 	{
 	  // Time of the leading edge of this hit's avalance relative to the trigger
@@ -372,8 +373,7 @@ TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& sp
 void
 TSolSimGEMDigitization::IonModel(const TVector3& xi,
 				 const TVector3& xo,
-				 const Double_t elost,
-				 const TVector3& xrout)   // used only to calculate distance drift-readout (to be removed in future version)
+				 const Double_t elost ) // eV
 {
 #define DBG_ION 0
 
@@ -411,7 +411,13 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
     ip.X = vseg.X()*lion+xi.X();
     ip.Y = vseg.Y()*lion+xi.Y();
 
-    Double_t LL = TMath::Abs(xrout.Z() - (vseg.Z()*lion+xi.Z()));
+    // Note the definition of fRoutZ is the distance from xi.Z() to xrout.Z():
+    // xi               xo   xrout
+    //  |<-----vseg----->|    |
+    //  |<-----fRoutZ----|--->|
+    //  |<-lion*vseg->   |    |
+    //  |             <--LL-->|
+    Double_t LL = TMath::Abs(fRoutZ - vseg.Z()*lion);
     Double_t ttime = LL/fGasDriftVelocity; // traveling time from the drift gap to the readout
 
     fRTime0 = TMath::Min(ttime, fRTime0); // minimum traveling time [s]

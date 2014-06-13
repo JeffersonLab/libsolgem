@@ -139,11 +139,10 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
  private:
 
-  void IonModel (const TVector3& xi, 
-		 const TVector3& xo, 
-		 const Double_t elost, 
-		 const TVector3& xrout);   // used only to calculate distance drift-readout (to be removed in future version)
-  
+  void IonModel (const TVector3& xi,
+		 const TVector3& xo,
+		 const Double_t elost );
+
   TSolGEMVStrip ** AvaModel (const Int_t ic,
 			     const TSolSpec& spect,
 			     const TVector3& xi,
