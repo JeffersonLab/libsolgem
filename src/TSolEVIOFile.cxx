@@ -341,8 +341,8 @@ void TSolEVIOFile::GetGEMData(TSolGEMData* gd)
 
     if( !gd ) return;
     gd->ClearEvent();
+    gd->SetSource(fSource);
     gd->SetEvent(fEvNum);
-    gd->SetRun(0);
 
     if (GetNData() == 0) {
       return;
@@ -382,7 +382,6 @@ void TSolEVIOFile::GetGEMData(TSolGEMData* gd)
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
 	gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
 	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
-	gd->SetSource(ngdata, fSource);
 
 	// Chamber ID starts indexing a 0 whereas we start conventionally at 1 
 	gd->SetHitChamber(ngdata, h->GetDetID()/100 - 1 );

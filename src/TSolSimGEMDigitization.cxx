@@ -845,8 +845,8 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   UInt_t igem = tsgd.GetHitChamber(ih);
   ChamberToSector( igem, clust.fRealSector, clust.fPlane );
-  clust.fSector   = clust.fRealSector;   // May change if mapped, see below
-  clust.fSource   = tsgd.GetSource(ih);  // Source of this hit (0=signal, >0 background)
+  clust.fSector   = clust.fRealSector; // May change if mapped, see below
+  clust.fSource   = tsgd.GetSource();  // Source of this hit (0=signal, >0 background)
   clust.fType     = tsgd.GetParticleID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]

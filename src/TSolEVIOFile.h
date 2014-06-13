@@ -80,7 +80,7 @@ class TSolEVIOFile {
 	virtual ~TSolEVIOFile();
 
 	void  SetFilename( const char *name );
-        void  SetSource( Int_t i );
+        void  SetSource( Int_t i ) { fSource = i; }
 	void  Clear();
 	Int_t Open();
 	Int_t Close();

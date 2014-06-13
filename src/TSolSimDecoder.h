@@ -78,12 +78,10 @@ public:
   virtual void Print( const Option_t* opt="" ) const;
 
   Int_t    GetType()    const { return fType; }
+  Int_t    GetSource()  const { return fSource; }
   Int_t    GetHitBits() const { return fHitBits; }
   void     SetHitBit( UInt_t i )  { SETBIT(fHitBits,i); }
   Bool_t   TestHitBit( UInt_t i ) { return TESTBIT(fHitBits,i); }
-  Bool_t   SeemsToMatch( const TSolSimEvent::GEMCluster& c ) {
-    return ( fType == c.fType && fPID == c.fPID && fSector == c.fSector );
-  }
 
   Int_t    Update( const TSolSimEvent::GEMCluster& cl );
 
@@ -92,14 +90,13 @@ private:
   Int_t    fType;        // GEANT particle number
   Int_t    fPID;         // Track particle ID (PDG)
   Int_t    fSector;      // Sector where this track detected
-  Int_t    fRealSector;  // Actual sector number (may be !=fSector if mapped)
   Int_t    fSource;      // MC data set source (0 = signal, >0 background)
   TVector3 fOrigin;      // Position at first plane in lab frame (m)
   TVector3 fHitpos;      // Position at first plane in Tracker frame [m]
   TVector3 fMomentum;    // Momentum (GeV)
   Int_t    fHitBits;     // Bitpattern of plane numbers hit by this back track
 
-  ClassDef(TSolSimBackTrack, 0) // MC track registered at first tracking chamber
+  ClassDef(TSolSimBackTrack,1) // MC track registered at first tracking chamber
 };
 
 //-----------------------------------------------------------------------------

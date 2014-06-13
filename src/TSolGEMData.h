@@ -21,6 +21,7 @@ class TSolGEMData
   void SetNHit (UInt_t h)   { fHitData.resize(h); }
   void SetEvent (UInt_t id) { fEvtID = id; }
   void SetRun (UInt_t r)    { fRunID = r; }
+  void SetSource (Int_t s)  { fSource = s; }
 
   void SetMomentum (UInt_t k, const TVector3& p) { fHitData[k].fMom = p; }
   // Positions are in mm
@@ -32,13 +33,14 @@ class TSolGEMData
   void SetHitEnergy (UInt_t k, Double_t e)     { fHitData[k].fEdep = e; }
   void SetHitTime(UInt_t k, Double_t t)        { fHitData[k].fTime = t; }
   void SetHitChamber (UInt_t k, UInt_t c)      { fHitData[k].fGem  = c; }
-  void SetParticleID (UInt_t k, UInt_t pid)    { fHitData[k].fPID  = pid; }
+  void SetParticleID (UInt_t k, Int_t pid)     { fHitData[k].fPID  = pid; }
   void SetParticleType (UInt_t k, UInt_t type) { fHitData[k].fType = type; }
-  void SetSource (UInt_t k, Int_t n)           { fHitData[k].fSource = n; }
 
-  UInt_t GetNHit()  const { return fHitData.size(); }
-  UInt_t GetEvent() const { return fEvtID; }
-  UInt_t GetRun()   const { return fRunID; }
+  UInt_t GetNHit()   const { return fHitData.size(); }
+  UInt_t GetEvent()  const { return fEvtID; }
+  UInt_t GetRun()    const { return fRunID; }
+  Int_t  GetSource() const { return fSource; }
+
   const TVector3& GetMomentum (UInt_t k)    const { return fHitData[k].fMom; }
   const TVector3& GetHitEntrance (UInt_t k) const { return fHitData[k].fXi; }
   const TVector3& GetHitExit (UInt_t k)     const { return fHitData[k].fXo; }
@@ -47,9 +49,8 @@ class TSolGEMData
   Double_t GetHitEnergy (UInt_t k)    const { return fHitData[k].fEdep; }
   Double_t GetHitTime(UInt_t k)       const { return fHitData[k].fTime; }
   UInt_t GetHitChamber (UInt_t k)     const { return fHitData[k].fGem; }
-  UInt_t GetParticleID (UInt_t k)     const { return fHitData[k].fPID; }
+  Int_t  GetParticleID (Int_t k)      const { return fHitData[k].fPID; }
   UInt_t GetParticleType (UInt_t k)   const { return fHitData[k].fType; }
-  Int_t  GetSource(UInt_t k)          const { return fHitData[k].fSource; }
   void AddGEMData(TSolGEMData *);
 
   void Print() const;
@@ -58,14 +59,14 @@ class TSolGEMData
  private:
 
   UInt_t fRunID, fEvtID;
+  Int_t  fSource; // MC source file ID (0 = signal, >0 background)
 
   // Hit data
   struct GEMHitData_t {
     UInt_t    fGem;
     Double_t  fEdep;  // energy lost in drift
     Double_t  fTime;  // hit time
-    UInt_t    fPID;   // particle ID
-    Int_t     fSource;// file source (0 = signal, >0 backgrounds)
+    Int_t     fPID;   // particle ID
     UInt_t    fType;  // particle counter: 1 = primary, >1 secondaries
     TVector3  fXi;    // entrance point in drift
     TVector3  fXo;    // exit point in drift

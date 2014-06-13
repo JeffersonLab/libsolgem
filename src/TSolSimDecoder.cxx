@@ -72,6 +72,7 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "btr.num",   "GEANT particle number",     "fBackTracks.TSolSimBackTrack.fType" },
     { "btr.planes","Bitpattern of planes hit",  "fBackTracks.TSolSimBackTrack.fHitBits" },
     { "btr.sect",  "Sector number",             "fBackTracks.TSolSimBackTrack.fSector" },
+    { "btr.src",   "MC data set source",        "fBackTracks.TSolSimBackTrack.fSource" },
     { "btr.p",     "Track momentum (GeV)",      "fBackTracks.TSolSimBackTrack.P() "},
     // Track position in Cartesian/TRANSPORT coordinates, not optimal for SoLID
     { "btr.x",     "Track pos lab x (m)",       "fBackTracks.TSolSimBackTrack.X()" },
@@ -244,10 +245,8 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
       Int_t ib = 0;
       for( ; ib < nback; ++ib ) {
 	TSolSimBackTrack* theTrack = GetBackTrack(ib);
-	//FIXME: the problem here is that background runs may also contain
-	// clusters with fType == 1. Clusters need to be marked primary/background.
-	//	if( theTrack && theTrack->GetType() == c.fType ) {
-	if( theTrack && theTrack->SeemsToMatch(c) ) {
+	if( theTrack && theTrack->GetType() == c.fType &&
+	    theTrack->GetSource() == c.fSource ) {
 	  if( theTrack->TestHitBit(c.fPlane) ) {
 	    Warning( here, "Event %d: Multiple hits of primary particle "
 		     "in plane %d\nShould never happen. Call expert.",
@@ -317,7 +316,8 @@ void TSolSimGEMHit::Print( const Option_t* ) const
 
 //-----------------------------------------------------------------------------
 TSolSimBackTrack::TSolSimBackTrack( const TSolSimEvent::GEMCluster& c )
-  : fType(c.fType), fPID(c.fPID), fSector(c.fSector), fHitBits(0)
+  : fType(c.fType), fPID(c.fPID), fSector(c.fSector), fSource(c.fSource),
+    fHitBits(0)
 {
   // Construct track from cluster info
 
