@@ -66,10 +66,14 @@ void TSolSimEvent::Clear( const Option_t* opt )
 {
   // Clear the event in preparation for reading next tree entry
 
+  TString sopt(opt);
+
   fNSignal = 0;
   fGEMClust.clear();
   fGEMStrips.clear();
-  if( fMCTracks ) fMCTracks->Clear(opt);
+  if( sopt.Contains("all",TString::kIgnoreCase) ) {
+    if( fMCTracks ) fMCTracks->Clear(opt);
+  }
 }
 
 //-----------------------------------------------------------------------------
