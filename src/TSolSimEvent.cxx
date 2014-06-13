@@ -30,17 +30,19 @@ void TSolSimTrack::Print( const Option_t* opt ) const
 
 //-----------------------------------------------------------------------------
 TSolSimEvent::TSolSimEvent()
-  : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0)
+  : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0), fSectorsMapped(false),
+    fSignalSector(0)
 {
-}			     
+}
 
 //-----------------------------------------------------------------------------
 TSolSimEvent::TSolSimEvent( UInt_t ntracks )
-  : fRunID(0), fEvtID(0), fNSignal(0)
+  : fRunID(0), fEvtID(0), fNSignal(0), fSectorsMapped(false),
+    fSignalSector(0)
 {
   if( ntracks == 0 ) ntracks = 1;
   fMCTracks = new TClonesArray( "TSolSimTrack", ntracks );
-}			     
+}
 
 //-----------------------------------------------------------------------------
 TSolSimEvent::~TSolSimEvent()
@@ -107,11 +109,13 @@ void TSolSimEvent::Print( const Option_t* opt ) const
 	 ic != fGEMClust.end(); ++ic ) {
       const GEMCluster& c = *ic;
       cout << "hit = " << c.fID
-	   << ", sector = " << c.fSector
-	   << ", plane = "  << c.fPlane
-	   << ", type = "   << c.fType
+	   << ", src = "    << c.fSource
+	   << ", sect = "   << c.fRealSector;
+      if( fSectorsMapped ) cout << "->" << c.fSector;
+      cout << ", plane = "  << c.fPlane
+	   << ", GID = "    << c.fType
 	   << ", PID = "    << c.fPID
-	   << ", charge = " << c.fCharge
+	   << ", chrg = "   << c.fCharge
 	   << ", time = "   << c.fTime
 	   << ", size = ("  << c.fSize[0]  << ", " << c.fSize[1]  << ")"
 	   << ", start = (" << c.fStart[0] << ", " << c.fStart[1] << ")"
@@ -131,12 +135,12 @@ void TSolSimEvent::Print( const Option_t* opt ) const
 	 is != fGEMStrips.end(); ++is ) {
       const DigiGEMStrip& s = *is;
       cout << "strip = " << i++
-	   << ", sector = " << s.fSector
+	   << ", sect = "   << s.fSector
 	   << ", plane = "  << s.fPlane
 	   << ", proj = "   << s.fProj
 	   << ", strip = "  << s.fChan
 	   << ", type = "   << s.fSigType
-	   << ", charge = " << s.fCharge
+	   << ", chrg = "   << s.fCharge
 	   << ", adc = ";
       for( int k=0; k<s.fNsamp; k++ ) {
 	cout << s.fADC[k];

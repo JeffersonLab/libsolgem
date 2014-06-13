@@ -21,7 +21,7 @@ class TClonesArray;
 //-----------------------------------------------------------------------------
 // A Monte Carlo physics track
 class TSolSimTrack : public TObject {
- public: 
+ public:
   TSolSimTrack( Int_t number, Int_t pid, Double_t weight,
 		const TVector3& vertex, const TVector3& momentum )
     : fNumber(number), fPID(pid), fWeight(weight),
@@ -42,7 +42,7 @@ class TSolSimTrack : public TObject {
   Double_t PPhi()   { return fMomentum.Phi(); }
 
   virtual void Print( const Option_t* opt="" ) const;
-  
+
   ClassDef(TSolSimTrack, 2) // A MC physics track
 };
 
@@ -79,12 +79,15 @@ public:
 
   // MC tracks
   TClonesArray*   fMCTracks;      //-> Physics tracks
-  
+
   // Cluster variables (MC generated)
   // Each "cluster" is a MC hit along with the digitized charge avalance data
   // Note: fNSignal <= fClust.size() (equal if no background)
   // The first fNSignal elements in the array of clusters are from the signal
   Int_t     fNSignal;             // Number of clusters from trigger track (signal)
+
+  Bool_t    fSectorsMapped;       // Sectors are mapped to 0
+  Int_t     fSignalSector;        // Sector of primary signal particle
 
   struct GEMCluster {
     Short_t   fID;        // Cluster number, cross-ref to GEMStrip
@@ -101,7 +104,7 @@ public:
     TVector3  fHitpos;    // fMCpos in Tracker frame [m]
     // Digitization results for this hit
     Float_t   fCharge;    // Charge of avalanche
-    Float_t   fTime;      // Arrival time at electronics (w/o ToF)
+    Float_t   fTime;      // Arrival time at electronics
     Int_t     fSize[2];   // Number of strips in cluster per axis
     Int_t     fStart[2];  // Number of first strip in cluster per axis
     Float_t   fXProj[2];  // fMCpos along projection axis [m]
@@ -109,7 +112,7 @@ public:
   };
 
   std::vector<GEMCluster> fGEMClust;  // All MC-generated clusters in the GEMs
-  
+
   // Digitized strip amplitude data
   struct DigiGEMStrip {
     Short_t   fSector;    // Sector number
