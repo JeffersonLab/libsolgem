@@ -1,19 +1,19 @@
 #ifndef __TSOLSPEC_H
 #define __TSOLSPEC_H
 
-#include "TList.h"
-
 #include "THaSpectrometer.h"
 
-#include "TSolGEMChamber.h"
 #include "types.h"
+#include <vector>
+
+class TSolGEMChamber;
 
 class TSolSpec : public THaSpectrometer {
     public:
 	TSolSpec( const char *name, const char *desc );
-	virtual ~TSolSpec() {;}
+        virtual ~TSolSpec();
 
-	Int_t AddGEM (TSolGEMChamber& pdet);
+	Int_t AddGEM (TSolGEMChamber* pdet);
 
 	Int_t CoarseTrack();
 	Int_t CoarseReconstruct();
@@ -25,14 +25,13 @@ class TSolSpec : public THaSpectrometer {
 	Int_t FindVertices(TClonesArray &);
 //	void MakePrefix(){ return; }
 
-	UInt_t GetNChambers() const { return fChambers.GetEntries(); }
-	TSolGEMChamber &GetChamber(Int_t i) const 
-	  { return *(static_cast<TSolGEMChamber*>(fChambers.At(i))); }
+	UInt_t GetNChambers() const { return fChambers.size(); }
+	TSolGEMChamber &GetChamber(Int_t i) const { return *(fChambers.at(i)); }
 
-	void Print();
+	void Print() const;
 
     private:
-	TList  fChambers;
+        std::vector<TSolGEMChamber*>  fChambers;
 
     public:
 	ClassDef(TSolSpec,0)
