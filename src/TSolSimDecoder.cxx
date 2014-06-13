@@ -186,7 +186,7 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
   if( fDoBench ) fBench->Begin("physics_decode");
 
   // Decode the digitized strip data.  Populate crateslot array.
-  const Int_t NPLANES = 4; // FIXME: get from database
+  const Int_t NPLANES = 5; // FIXME: get from database
   for( vector<TSolSimEvent::DigiGEMStrip>::size_type i = 0;
        i < simEvent->fGEMStrips.size(); i++) {
 
@@ -194,9 +194,9 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
     // The (roc,slot,chan) assignment must match the detmap definition.
     // See TreeSearch/dbconvert.cxx
     // FIXME: make parameters configurable
-    const int NPROJ = 2, CHAN_PER_SLOT = 1280;
+    const int NPROJ = 2, CHAN_PER_SLOT = 1500;
     const int modules_per_readout = 1;
-    const int modules_per_chamber = 2*modules_per_readout;
+    const int modules_per_chamber = NPROJ*modules_per_readout;
     const int chambers_per_crate = (MAXSLOT/modules_per_chamber/NPLANES)*NPLANES;
     div_t d = div( s.fChan, CHAN_PER_SLOT );
     Int_t module = d.quot;
