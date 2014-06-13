@@ -85,7 +85,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   void Initialize(const TSolSpec& spect);
   Int_t ReadDatabase (const TDatime& date);
 
-  void Digitize (const TSolGEMData& gdata, const TSolSpec& spect); // digitize event  
+  Int_t Digitize (const TSolGEMData& gdata, const TSolSpec& spect); // digitize event
+  Int_t AdditiveDigitize (const TSolGEMData& gdata, const TSolSpec& spect); // add more digitized data, e.g. background
   void NoDigitize (const TSolGEMData& gdata, const TSolSpec& spect); // do not digitize event, just fill tree
   const TSolDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
   void Print() const;
@@ -108,7 +109,8 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Short_t SetTreeHit (const UInt_t ih,
 		      const TSolSpec& spect,
 		      TSolGEMVStrip* const *dh,
-		      const TSolGEMData& tsgd); // called from Digitization
+		      const TSolGEMData& tsgd,
+		      Double_t t0 ); // called from Digitization
   void SetTreeStrips(); // called from Digitization
   void FillTree ();
   void WriteTree () const;
@@ -148,8 +150,6 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 			     const TVector3& xi,
 			     const TVector3& xo,
 			     const Double_t time_off);
-  
-  UInt_t MapSector( UInt_t igem ) const;
 
   // Gas parameters
   Double_t fGasWion;               // eV

@@ -6,14 +6,11 @@ using namespace std;
 
 TSolGEMData::TSolGEMData (UInt_t h)
 {
-  InitEvent (h);
-
-  // Initialize variables
+  fHitData.reserve(h);
 }
 
 TSolGEMData::~TSolGEMData()
 {
-  ClearEvent();
 }
 
 void
@@ -28,21 +25,7 @@ TSolGEMData::InitEvent (UInt_t h)
   if (h <= 0)
     return;
 
-  fHitData.reserve(10*h);
   fHitData.resize(h);
-}
-
-void 
-TSolGEMData::AddGEMData(TSolGEMData *gd)
-{
-  // Add hit data from 'gd' to the hit data of this object
-
-  if( !gd || gd->GetNHit() == 0 )
-    return;
-
-  fHitData.insert( fHitData.end(), gd->fHitData.begin(), gd->fHitData.end() );
-
-  return;
 }
 
 void 

@@ -51,7 +51,6 @@ class TSolGEMData
   UInt_t GetHitChamber (UInt_t k)     const { return fHitData[k].fGem; }
   Int_t  GetParticleID (Int_t k)      const { return fHitData[k].fPID; }
   UInt_t GetParticleType (UInt_t k)   const { return fHitData[k].fType; }
-  void AddGEMData(TSolGEMData *);
 
   void Print() const;
   void PrintHit (UInt_t k) const;

@@ -270,78 +270,143 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
   return kOK;
 }
 
-void
+Int_t
 TSolSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSolSpec& spect)
 {
+  // Digitize event after clearing all previous digitization results.
+
   fEvent->Clear();
+  fSignalSector = 0;  // safe default, will normally be overridden in AdditiveDigitize
+
+  for (UInt_t ic = 0; ic < fNChambers; ++ic) {
+    for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
+      fDP[ic][ip]->Clear();
+  }
+  fFilledStrips = true;
+
+  return AdditiveDigitize( gdata, spect );
+}
+
+Int_t
+TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSpec& spect)
+{
+  // Digitize event. Add results to any existing digitized data.
+
   UInt_t nh = gdata.GetNHit();
 
-  for (UInt_t ic = 0; ic < fNChambers; ++ic)
-    {
-      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
-	fDP[ic][ip]->Clear();
+  // For signal data, determine the sector of the primary track
+  bool is_background = gdata.GetSource() != 0;
+  if( fDoMapSector && !is_background ) {
+    Int_t ntrk = fEvent->GetNtracks();
+    if( ntrk == 0 && nh > 0 ) {
+      Warning("Digitize", "Signal data without a primary track?");
+    } else if( ntrk > 0 ) {
+      if( ntrk > 1 )
+	Warning("Digitize", "Multiple primary tracks in signal run?");
+
+      TSolSimTrack* trk = static_cast<TSolSimTrack*>( fEvent->fMCTracks->At(0) );
+      if( trk ) {
+	Double_t ph = trk->PPhi();
+	// Assumes phi doesn't change between vertex and GEMs (no field) and the
+	// nominal angle (i.e. without offset) of sector 0 is 0 degrees
+	fSignalSector = TMath::FloorNint(ph*NSECTORS/TMath::TwoPi() + 0.5);
+	if( fSignalSector < 0 ) fSignalSector += NSECTORS;
+      } else
+	Error("Digitize", "Null track pointer? Should never happen. Call expert.");
     }
+  }
+  if( nh == 0 ) return 0;
 
-  // Trigger time distribution, including an arbitrary offset to align signal timing
-  Double_t trigger_time = fTrnd.Gaus(fTriggerOffset, fTriggerJitter);
+  // Map sectors of any background data to the signal sector, if so requested
+  bool map_backgr = fDoMapSector && is_background;
 
-  for (UInt_t ih = 0; ih < nh; ++ih)
-    {
-      UInt_t igem = gdata.GetHitChamber (ih);
-      if (igem >= fNChambers)
-	continue;
-      
-      //FIXME: GetParticleID is a misnomer, should be GetGEANTParticleCounter or similar
-      Short_t itype = (gdata.GetParticleID(ih)==1) ? 1 : 2; // signal = 1, bck = 2
-	
-      TVector3 vv1 = gdata.GetHitEntrance (ih);
-      TVector3 vv2 = gdata.GetHitExit (ih);
-      //TVector3 vv3 = gdata.GetHitReadout (ih);
-      //  FIXME:  Sometimes we don't always have the readoutplane data
-      //          which is a problem when we try to digitize.  However,
-      //          the distance is fixed from the initial hit plane so 
-      //          I'm hardcoding it here for now.  It shoudl go in the 
-      //          database
-      TVector3 vv3 = gdata.GetHitEntrance(ih) + TVector3(0.0, 0.0, 4.5975+4.5925);
+  // Randomize the event time for background events
+  UInt_t vsize = ( map_backgr ) ? NSECTORS : 1;
+  vector<Float_t> event_time(vsize);
+  vector<bool> time_set(vsize,false);
+  UInt_t itime = 0;
 
-      // These vectors are in the lab frame, we need them in the chamber frame
-      // Also convert to mm
+  for (UInt_t ih = 0; ih < nh; ++ih) {
+    UInt_t igem = gdata.GetHitChamber (ih);
+    if (igem >= fNChambers)
+      continue;
 
-      TVector3 offset = spect.GetChamber(igem).GetOrigin() * 1000.0;
-      Double_t angle = spect.GetChamber(igem).GetAngle();
-      vv1 -= offset;
-      vv2 -= offset;
-      vv3 -= offset;
-      vv1.RotateZ (-angle);
-      vv2.RotateZ (-angle);
-      vv3.RotateZ (-angle);
-	
-      TSolGEMVStrip **dh = NULL;
-      IonModel( vv1, vv2, gdata.GetHitEnergy(ih) );
-      if (fRNIon > 0) 
-	{
-	  // Time of the leading edge of this hit's avalance relative to the trigger
-	  Double_t time_zero = gdata.GetHitTime(ih) + fRTime0*1e9 - trigger_time;
+    //FIXME: GetParticleID is a misnomer, should be GetGEANTParticleCounter or similar
+    Short_t itype = (gdata.GetParticleID(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
+    Short_t isect, iplane;
+    ChamberToSector( igem, isect, iplane );
+    if( fDoMapSector && !is_background && isect != fSignalSector )
+      // If mapping sectors, skip signal hits that won't end up in sector 0
+      continue;
 
-	  dh = AvaModel (igem, spect, vv1, vv2, time_zero);
+    TVector3 vv1 = gdata.GetHitEntrance (ih);
+    TVector3 vv2 = gdata.GetHitExit (ih);
+
+    // These vectors are in the lab frame, we need them in the chamber frame
+    // Also convert to mm
+
+    TVector3 offset = spect.GetChamber(igem).GetOrigin() * 1000.0;
+    Double_t angle = spect.GetChamber(igem).GetAngle();
+    vv1 -= offset;
+    vv2 -= offset;
+    vv1.RotateZ (-angle);
+    vv2.RotateZ (-angle);
+
+    TSolGEMVStrip **dh = NULL;
+    IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
+
+    // Generate randomized event time (for background) and trigger time jitter
+    if( map_backgr ) {
+      // If mapping sectors, treat the hits from each sector like coming from
+      // a separate event. As a result, each sector gets its own random event_time.
+      // If not mapping sectors, itime = 0, and all hits get the same time offset.
+      itime = isect;
+    }
+    if( !time_set[itime] ) {
+      // Trigger time jitter, including an arbitrary offset to align signal timing
+      Double_t trigger_jitter = fTrnd.Gaus(fTriggerOffset, fTriggerJitter);
+      if( is_background ) {
+	// For background data, uniformly randomize event time between
+	// -fGateWidth to +75 ns (assuming 3 useful 25 ns samples).
+	event_time[itime] = fTrnd.Uniform(fGateWidth + 3*fEleSamplingPeriod)
+	  - fGateWidth - trigger_jitter;
+      } else {
+	// Signal events occur at t = 0, smeared only by the trigger jitter
+	event_time[itime] = -trigger_jitter;
+      }
+      time_set[itime] = true;
+    }
+    // Time of the leading edge of this hit's avalance relative to the trigger
+    Double_t time_zero = event_time[itime] + gdata.GetHitTime(ih) + fRTime0*1e9;
+
+    if (fRNIon > 0) {
+      dh = AvaModel (igem, spect, vv1, vv2, time_zero);
+    }
+    // Record MC hits in output event
+    Short_t id = SetTreeHit (ih, spect, dh, gdata, time_zero);
+
+    // Record digitized strip signals in output event
+    if (dh) {
+      // If requested via fDoMapSector, accumulate all data in sector 0
+      if( fDoMapSector ) {
+	igem = MapSector(igem);
+	if( !is_background ) {
+	  assert( !fEvent->fGEMClust.empty() );
+	  igem += fEvent->fGEMClust.back().fSector;
 	}
-      Short_t id = SetTreeHit (ih, spect, dh, gdata);
-      // If requested via fDoMapSector, accumulate all data in a single sector
-      igem = MapSector(igem);
-      if (dh != NULL)
-	{
-	  for (UInt_t j = 0; j < 2; j++) 
-	    {
-	      fDP[igem][j]->Cumulate (dh[j], itype, id );
-	    }
-	  // TODO: make dh[2] a member variable & clear it here to avoid the constant
-	  // construction and deletion
-	  delete dh[0];
-	  delete dh[1];
-	  delete[] dh;
-	} 
+      }
+      for (UInt_t j = 0; j < 2; j++) {
+	fDP[igem][j]->Cumulate (dh[j], itype, id );
+      }
+      // TODO: make dh[2] a member variable & clear it here to avoid the constant
+      // construction and deletion
+      delete dh[0];
+      delete dh[1];
+      delete[] dh;
     }
-  SetTreeStrips ();
+  }
+  fFilledStrips = false;
+  return 0;
 }
 
 
@@ -360,7 +425,7 @@ TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& sp
 
       TSolGEMVStrip **dh = NULL;
       // Short_t id =
-      SetTreeHit (ih, spect, dh, gdata);
+      SetTreeHit (ih, spect, dh, gdata, 0.0);
     }
   SetTreeStrips ();
 }
@@ -821,19 +886,7 @@ TSolSimGEMDigitization::InitTree (const TSolSpec& spect, const TString& ofile)
   // create the tree variables
 
   fOTree->Branch( eventBranchName, "TSolSimEvent", &fEvent );
-}
 
-UInt_t
-TSolSimGEMDigitization::MapSector( UInt_t chamber ) const
-{
-  // If mapping of MC data from all sectors into a single one (= sector 0)
-  // is requested, convert the true chamber index to the one with the mapped
-  // sector number.
-
-  if( fDoMapSector ) {
-    chamber = NSECTORS * UInt_t(chamber/NSECTORS);
-  }
-  return chamber;
 }
 
 void
@@ -854,15 +907,19 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
 		      );
   }
   // FIXME: either only one GenData per event, or multiple weights per event
-  if( f.GetNGen() > 0 ) 
+  if( f.GetNGen() > 0 )
     fEvent->fWeight = f.GetGenData(0)->GetWeight();
+
+  fEvent->fSectorsMapped = fDoMapSector;
+  fEvent->fSignalSector = fSignalSector;
 }
 
 Short_t
 TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 				    const TSolSpec& spect,
 				    TSolGEMVStrip* const *dh,
-				    const TSolGEMData& tsgd)
+				    const TSolGEMData& tsgd,
+				    Double_t t0 )
 {
   // Sets the variables in fEvent->fGEMClust describing a hit
   // This is later used to fill the tree.
@@ -884,10 +941,16 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // Calculate hit position in the Tracker frame. This is fMCpos relative to
   // the origin of first plane of the sector, but rotated by the nominal
   // (non-offset) sector angle.
-  // NB: assumes NSECTORS=30, even spacing, clockwise numbering
-  Double_t sector_angle = 12.*clust.fSector*TMath::DegToRad();
+  // NB: assumes even sector spacing, clockwise numbering and sector 0 at 0 deg
+  Double_t sector_angle = TMath::TwoPi()*clust.fSector/NSECTORS;
   clust.fHitpos = clust.fMCpos - spect.GetChamber(clust.fSector).GetOrigin();
   clust.fHitpos.RotateZ(-sector_angle);
+
+  if (dh != NULL && dh[0] != NULL)
+    clust.fCharge = dh[0]->GetHitCharge();
+  else
+    clust.fCharge = 0;
+  clust.fTime   = t0;  // [ns]
 
   const TSolGEMChamber& ch = spect.GetChamber(igem);
   for (UInt_t j = 0; j < 2; j++) {
@@ -907,16 +970,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
     hitpos.RotateZ(-proj_angle);
     clust.fXProj[j] = hitpos.X();
   }
-  if (dh != NULL && dh[0] != NULL)
-    {
-      clust.fCharge = dh[0]->GetHitCharge();
-      clust.fTime   = dh[0]->GetTime();
-    }
-  else
-    {
-      clust.fCharge = 0;
-      clust. fTime = 0;
-    }
+
   clust.fID     = fEvent->fGEMClust.size()+1;
   clust.fVertex = tsgd.GetVertex (ih);
 
@@ -997,7 +1051,10 @@ TSolSimGEMDigitization::SetTreeStrips()
 void
 TSolSimGEMDigitization::FillTree ()
 {
-  if (fOFile && fOTree 
+  if( !fFilledStrips )
+    SetTreeStrips();
+
+  if (fOFile && fOTree
       // added this line to not write events where there are no entries
 
       // Remove for background study
