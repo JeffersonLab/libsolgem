@@ -56,8 +56,10 @@ class TSolGEMChamber : public THaDetector {
   UInt_t GetNPlanes() const {return fNPlanes;};
 
   TSolGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};
-  void InitPlane (const UInt_t i, const char* name, const char* desc);
+  Int_t InitPlane (const UInt_t i, const char* name, const char* desc);
   void Print (const Bool_t printplanes = kTRUE);
+
+  TSolGEMChamber() : fPlanes(0), fWedge(0) {} // for ROOT RTTI
 
  private:
   TSolGEMPlane** fPlanes; // List of chambers

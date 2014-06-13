@@ -47,8 +47,10 @@ TSolGEMChamber::ReadDatabase (const TDatime& date)
   if (err)
     return err;
 
-  InitPlane (0, TString (GetName()) + "x", TString (GetTitle()) +" x");
-  InitPlane (1, TString (GetName()) + "y", TString (GetTitle()) +" y");
+  err = InitPlane (0, TString (GetName()) + "x", TString (GetTitle()) +" x");
+  if( err != kOK ) return err;
+  err = InitPlane (1, TString (GetName()) + "y", TString (GetTitle()) +" y");
+  if( err != kOK ) return err;
 
   return kOK;
 }
@@ -111,12 +113,12 @@ TSolGEMChamber::Decode (const THaEvData& ed )
   return 0;
 }
 
-void 
+Int_t
 TSolGEMChamber::InitPlane (const UInt_t i, const char* name, const char* desc)
 {
   fPlanes[i] = new TSolGEMPlane (name, desc, this);
   fPlanes[i]->SetName (name);
-  fPlanes[i]->Init();
+  return fPlanes[i]->Init();
 }
 
 void
