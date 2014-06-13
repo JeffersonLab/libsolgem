@@ -121,4 +121,13 @@ class TSolGEMPlane : public THaSubDetector {
 
 };
 
+inline void
+TSolGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
+{
+  register Double_t temp = x;
+  x = fCWS * x - fSWS * y;
+  y = fSWS * temp + fCWS * y;
+  return;
+}
+
 #endif//__TSOLGEMPLANE_H

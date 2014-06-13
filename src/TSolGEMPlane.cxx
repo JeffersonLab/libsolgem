@@ -171,15 +171,6 @@ TSolGEMPlane::GetSAngle()   const
 }
 
 void
-TSolGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
-{
-  Double_t temp = x;
-  x = fCWS * x - fSWS * y;
-  y = fSWS * temp + fCWS * y;
-  return;
-}
-
-void
 TSolGEMPlane::LabToStrip (Double_t& x, Double_t& y) const
 {
   x -= (GetOrigin())[0];
