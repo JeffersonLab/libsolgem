@@ -35,8 +35,7 @@ class TSolSpec : public THaSpectrometer {
 	TList  fChambers;
 
     public:
-	ClassDef(TSolSpec,1)
-
+	ClassDef(TSolSpec,0)
 };
 
 #endif//__TSOLSPEC_H

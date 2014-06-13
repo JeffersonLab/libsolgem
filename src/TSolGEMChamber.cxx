@@ -1,7 +1,8 @@
 #include <iostream>
 
 #include "TSolGEMChamber.h"
-#include "TSolWedge.h"
+#include "TSolGEMPlane.h"
+#include "THaEvData.h"
 #include "TMath.h"
 
 using namespace std;
@@ -13,7 +14,7 @@ TSolGEMChamber::TSolGEMChamber( const char *name, const char *desc )
   fNPlanes = 2;
   fPlanes = new TSolGEMPlane*[fNPlanes];
   fWedge = new TSolWedge;
-  
+
   return;
 }
 
@@ -33,8 +34,8 @@ const char* TSolGEMChamber::GetDBFileName() const {
     else
       return fPrefix;
 }
-  
-Int_t 
+
+Int_t
 TSolGEMChamber::ReadDatabase (const TDatime& date)
 {
   FILE* file = OpenFile (date);
@@ -52,7 +53,7 @@ TSolGEMChamber::ReadDatabase (const TDatime& date)
   return kOK;
 }
 
-Int_t 
+Int_t
 TSolGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
 			      Bool_t required)
 {
@@ -67,7 +68,7 @@ TSolGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   Double_t dphi = -999.0;
   Double_t z0 = -999.0;
   Double_t depth = -999.0;
-  const DBRequest request[] = 
+  const DBRequest request[] =
     {
       {"r0",          &r0,           kDouble, 0, 1},
       {"r1",          &r1,           kDouble, 0, 1},
@@ -78,10 +79,10 @@ TSolGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
       {0}
     };
   err = LoadDB (file, date, request, fPrefix);
-  
+
   if (err)
     return err;
-  
+
   // Database specifies angles in degrees, convert to radians
   Double_t torad = atan(1) / 45.0;
   phi0 *= torad;
@@ -100,8 +101,8 @@ TSolGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
 }
 
 
-Int_t 
-TSolGEMChamber::Decode (const THaEvData& ed)
+Int_t
+TSolGEMChamber::Decode (const THaEvData& ed )
 {
   for (UInt_t i = 0; i < GetNPlanes(); ++i)
     {

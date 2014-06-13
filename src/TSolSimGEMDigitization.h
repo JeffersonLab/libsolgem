@@ -201,7 +201,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
   void DeleteObjects();
 
-  ClassDef (TSolSimGEMDigitization, 1)
+  ClassDef (TSolSimGEMDigitization, 0)
 };
 
 #endif

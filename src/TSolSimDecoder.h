@@ -53,7 +53,7 @@ public:
   Int_t     fVStart;    // Number of first strip in v-cluster
   Float_t   fVPos;      // fMCpos along v-projection axis [m]
 
-  ClassDef(TSolSimGEMHit, 0) // A Monte Carlo hit at a GEM tracking chamber
+  ClassDef(TSolSimGEMHit,1) // A Monte Carlo hit at a GEM tracking chamber
 };
 
 //-----------------------------------------------------------------------------

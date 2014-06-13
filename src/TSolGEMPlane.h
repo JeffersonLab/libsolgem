@@ -10,7 +10,6 @@
 
 class TSolGEMCluster;
 class TClonesArray;
-class TSolWedge;
 
 // In the present implementation we assume strips in a plane are
 // uniform pitch and parallel to one another.
@@ -118,7 +117,7 @@ class TSolGEMPlane : public THaSubDetector {
 	Double_t fSWS;
 	
     public:
-	ClassDef(TSolGEMPlane,1)
+	ClassDef(TSolGEMPlane,0)
 
 };
 

@@ -4,10 +4,8 @@
 #include "THaDetector.h"
 #include "TSolWedge.h"
 
-#include "THaEvData.h"
-#include "TSolGEMPlane.h"
-
-class TSolWedge;
+class THaEvData;
+class TSolGEMPlane;
 
 // A chamber is a "wedge" (section of an annulus). It is characterized by
 // the minimum and maximum radius (r0 and r1), the minimum angle (phi0),
@@ -33,6 +31,7 @@ class TSolWedge;
 class TSolGEMChamber : public THaDetector {
  public:
   TSolGEMChamber(const char *name, const char *desc);
+
   virtual ~TSolGEMChamber();
 
   Int_t ReadDatabase (const TDatime& date);
@@ -65,7 +64,6 @@ class TSolGEMChamber : public THaDetector {
   UInt_t fNPlanes;
   TSolWedge* fWedge;  // Wedge geometry
 
- public:
   ClassDef(TSolGEMChamber,0)
 
 };
