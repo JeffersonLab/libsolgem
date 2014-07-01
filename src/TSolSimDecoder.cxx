@@ -227,69 +227,47 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
   }
 
   // MC hit data ("clusters") and "back tracks"
+  Int_t best_primary = -1, best_primary_plane = NPLANES;
+  UInt_t primary_hitbits = 0;
+  const Int_t kPrimaryType = 1, kPrimarySource = 0;
   for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
        i < simEvent->fGEMClust.size(); ++i ) {
     const TSolSimEvent::GEMCluster& c = simEvent->fGEMClust[i];
 
+    if( c.fPlane < 0 || c.fPlane >= NPLANES ) {
+      Error( here, "Illegal plane number = %d in cluster. "
+	     "Should never happen. Call expert.", c.fPlane );
+      simEvent->Print("clust");
+      return HED_FATAL;
+    }
+
+    // Save hits in the GEMs
     new( (*fHits)[GetNHits()] ) TSolSimGEMHit(c);
 
-    // "Back tracks"
-    // Record the apparent track from the primary particle
-    // of the signal data here, i.e. type == 1 and source == 0.
-    if( c.fType == 1 && c.fSource == 0 ) {
-      if( c.fPlane < 0 || c.fPlane >= NPLANES ) {
-	Error( here, "Illegal plane number = %d in cluster. "
-	       "Should never happen. Call expert.", c.fPlane );
-	simEvent->Print("clust");
-	return HED_FATAL;
+    // Save index of the primary particle hit closest to plane 0
+    if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
+      SETBIT(primary_hitbits,c.fPlane);
+      if( c.fPlane < best_primary_plane ) {
+	best_primary = i;
+	best_primary_plane = c.fPlane;
       }
-      Int_t nback = GetNBackTracks();
-      Int_t ib = 0;
-      for( ; ib < nback; ++ib ) {
-	TSolSimBackTrack* theTrack = GetBackTrack(ib);
-	if( theTrack && theTrack->GetType() == c.fType &&
-	    theTrack->GetSource() == c.fSource ) {
-	  if( theTrack->TestHitBit(c.fPlane) ) {
-	    Warning( here, "Event %d: Multiple hits of primary particle "
-		     "in plane %d\nShould never happen. Call expert.",
-		     event_num, c.fPlane );
-	  } else {
-	    if( !theTrack->TestHitBit(0) ) {
-	      // If no plane 0 position information is yet recorded,
-	      // see if the position information can be improved.
-	      if( c.fPlane == 0 ) {
-		// Jackpot; we got plane 0 now
-		if( theTrack->Update(c) )
-		  return HED_FATAL;
-	      }
-	      else {
-		// Got a plane closer to 0 than what's been seen so far?
-		Int_t ibit = 1;
-		for( ; ibit < NPLANES; ++ibit ) {
-		  if( theTrack->TestHitBit(ibit) )
-		    break;
-		}
-		if( ibit == NPLANES ) {
-		  Error( here, "No hit bit set in existing back track. "
-			 "Should never happen. Call expert." );
-		  theTrack->Print();
-		  return HED_FATAL;
-		}
-		if( c.fPlane < ibit )
-		  if( theTrack->Update(c) )
-		    return HED_FATAL;
-	      }
-	    }
-	    theTrack->SetHitBit( c.fPlane );
-	  }
-	  break;
-	}
-      }
-      if( ib == nback )
-	new( (*fBackTracks)[nback] ) TSolSimBackTrack(c);
     }
   }
-  
+
+  // "Back tracks"
+  // Record the apparent track from the primary particle
+  // of the signal data here, i.e. type == 1 and source == 0.
+  // There is only ever one primary particle per event.
+  if( best_primary >= 0 ) {
+
+    Int_t nback = GetNBackTracks();
+    assert( nback == 0 );
+
+    TSolSimBackTrack* btr = new( (*fBackTracks)[nback] )
+      TSolSimBackTrack(simEvent->fGEMClust[best_primary]);
+    btr->SetHitBits(primary_hitbits);
+  }
+
   // DEBUG:
   //cout << "SimDecoder: nTracks = " << GetNTracks() << endl;
   //fTracks.Print();

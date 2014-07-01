@@ -81,6 +81,7 @@ public:
   Int_t    GetSource()  const { return fSource; }
   Int_t    GetHitBits() const { return fHitBits; }
   void     SetHitBit( UInt_t i )  { SETBIT(fHitBits,i); }
+  void     SetHitBits( UInt_t i ) { fHitBits = i; }
   Bool_t   TestHitBit( UInt_t i ) { return TESTBIT(fHitBits,i); }
 
   Int_t    Update( const TSolSimEvent::GEMCluster& cl );
