@@ -336,7 +336,7 @@ Int_t TSolSimBackTrack::Update( const TSolSimEvent::GEMCluster& c )
 
   // z position of first tracker plane.
   // FIXME: Get this from plane object
-  static double z0 = 1.536914;
+  static double z0 = 1.571913;
 
   if( fType != c.fType || fPID != c.fPID || fSector != c.fSector ) {
     Error( here, "Updating with inconsistent GEMCluster data: "
