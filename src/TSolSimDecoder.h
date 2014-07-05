@@ -13,6 +13,7 @@
 #include "TClonesArray.h"
 #include "TSolSimEvent.h"
 #include <cassert>
+#include <map>
 
 class THaCrateMap;
 
@@ -133,15 +134,36 @@ class TSolSimDecoder : public THaEvData {
     return static_cast<TSolSimGEMHit*>(obj);
   }
 
- protected:
+  //----- TODO; put in generic SimDecoder class
+  struct MCChanInfo_t {   // preliminary set of MC truth info
+    Int_t    track;     // MC signal track number (0=none)
+    Double_t pos;       // Position of MC hit (signal hit if available, else
+                        // mean position of background hits
+    Double_t time;      // Hit time (same as position)
+    Int_t    num_bg;    // Number of background hits (0=clean signal)
+    MCChanInfo_t() : track(0), pos(0), time(0), num_bg(0) {}
+  };
+  MCChanInfo_t GetMCChanInfo( Int_t crate, Int_t slot, Int_t chan ) const;
+  //-----
+
+  // Workaround for fubar THaEvData
+  static Int_t GetMAXSLOT() { return MAXSLOT; }
+
+protected:
+  typedef std::map<Int_t,Int_t> StripMap_t;
 
   TList          fTracks;     // MC physics tracks
   TClonesArray*  fHits;       //-> MC hits (clusters)
   TClonesArray*  fBackTracks; //-> Primary particle tracks at first chamber
-
-  Bool_t  fIsSetup;
+  Bool_t         fIsSetup;    // DefineVariables has run
+  StripMap_t     fStripMap;   //! Map ROCKey -> index of corresponding strip
 
   Int_t DoLoadEvent( const UInt_t* evbuffer, Decoder::THaCrateMap* usermap );
+
+  void  StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj, Int_t s_chan,
+		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
+  Int_t StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const;
+  Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
 
   ClassDef(TSolSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };

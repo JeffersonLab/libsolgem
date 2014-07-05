@@ -20,11 +20,24 @@
 #include "TError.h"
 #include <cstdlib>
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
 // Prefix of our own global variables (MC truth data)
 static const char* const MC_PREFIX = "MC.";
+
+// Constants for conversion of strip (plane,sector,proj,chan) to (crate,slot,chan)
+// FIXME: make parameters configurable!
+static const Int_t NPLANES = 5;
+static const Int_t NPROJ = 2, CHAN_PER_SLOT = 1500;
+static const Int_t modules_per_readout = 1;
+static const Int_t modules_per_chamber = NPROJ*modules_per_readout;
+static const Int_t chambers_per_crate =
+  (TSolSimDecoder::GetMAXSLOT()/modules_per_chamber/NPLANES)*NPLANES;
+static const Int_t kPrimaryType = 1, kPrimarySource = 0;
+
+typedef vector<int>::size_type vsiz_t;
 
 //-----------------------------------------------------------------------------
 TSolSimDecoder::TSolSimDecoder() : fIsSetup(false)
@@ -51,7 +64,7 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
 {
   const char* const here = "TSolSimDecoder::DefineVariables";
 
-  if( mode == THaAnalysisObject::kDefine && fIsSetup ) 
+  if( mode == THaAnalysisObject::kDefine && fIsSetup )
     return THaAnalysisObject::kOK;
   fIsSetup = ( mode == THaAnalysisObject::kDefine );
 
@@ -115,9 +128,9 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
 
     { 0 }
   };
-  
+
   return THaAnalysisObject::
-    DefineVarsFromList( vars, THaAnalysisObject::kRVarDef, 
+    DefineVarsFromList( vars, THaAnalysisObject::kRVarDef,
 			mode, "", this, MC_PREFIX, here );
 }
 
@@ -134,6 +147,7 @@ void TSolSimDecoder::Clear( Option_t* opt )
   // of a TClonesArray which is Clear()ed  in TSolSimFile::ReadEvent() by the
   // call to fEvent->Clear().
   fTracks.Clear("nodelete");
+  fStripMap.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -150,7 +164,105 @@ int TSolSimDecoder::LoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* map)
 }
 
 //-----------------------------------------------------------------------------
-int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* map)
+void TSolSimDecoder::StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
+				 Int_t s_chan,
+				 Int_t& crate, Int_t& slot, Int_t& chan ) const
+{
+  // Convert location parameters (plane,sector,proj,chan) of the given strip
+  // to hardware channel (crate,slot,chan)
+  // The (crate,slot,chan) assignment must match the detmap definition in
+  // the database!  See TreeSearch/dbconvert.cxx
+
+  div_t d = div( s_chan, CHAN_PER_SLOT );
+  Int_t module = d.quot;
+  chan = d.rem;
+  Int_t ix = module +
+    modules_per_readout*( s_proj + NPROJ*( s_plane + NPLANES*s_sector ));
+  d = div( ix, chambers_per_crate*modules_per_chamber );
+  crate = d.quot;
+  slot  = d.rem;
+}
+
+//-----------------------------------------------------------------------------
+Int_t TSolSimDecoder::MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const
+{
+  return chan +
+    CHAN_PER_SLOT*( slot + chambers_per_crate*modules_per_chamber*crate );
+}
+
+//-----------------------------------------------------------------------------
+Int_t TSolSimDecoder::StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const
+{
+  // Return index of digitized strip correspomding to hardware channel
+  // (crate,slot,chan)
+
+  if( fStripMap.empty() )
+    return -1;
+
+  StripMap_t::const_iterator found = fStripMap.find( MakeROCKey(crate,slot,chan) );
+  if( found == fStripMap.end() )
+    return -1;
+
+  return found->second;
+}
+
+//-----------------------------------------------------------------------------
+TSolSimDecoder::MCChanInfo_t
+TSolSimDecoder::GetMCChanInfo( Int_t crate, Int_t slot, Int_t chan ) const
+{
+  // Get MC truth info for the given hardware channel
+
+  const char* const here = __FUNCTION__;
+
+  Int_t istrip = StripFromROC( crate, slot, chan );
+  assert( istrip >= 0 );  // else logic error in caller or bad fStripMap
+
+  assert( buffer );       // Must still have the event buffer
+  const TSolSimEvent* simEvent = reinterpret_cast<const TSolSimEvent*>(buffer);
+
+  assert( static_cast<vsiz_t>(istrip) < simEvent->fGEMStrips.size() );
+  const TSolSimEvent::DigiGEMStrip& strip = simEvent->fGEMStrips[istrip];
+  assert( strip.fProj >= 0 && strip.fProj < NPROJ );
+
+  MCChanInfo_t mc;
+  for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
+    Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
+    assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
+    const TSolSimEvent::GEMCluster& c = simEvent->fGEMClust[iclust];
+    assert( c.fID == iclust+1 );
+    assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
+    if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
+      if( mc.track > 0 ) {
+	Warning( Here(here), "Event %d: Multiple hits of primary particle "
+		 "in plane %d\nShould never happen. Call expert.",
+		 simEvent->fEvtID, strip.fPlane );
+	continue;
+      }
+      // Strip contains a contribution from a primary particle hit :)
+      mc.track = 1;    // currently only ever one primary particle per event
+      mc.pos   = c.fXProj[strip.fProj];
+      mc.time  = c.fTime;
+    } else {
+      ++mc.num_bg;
+      if( mc.track == 0 ) {
+	mc.pos += c.fXProj[strip.fProj];
+      }
+    }
+  }
+  assert( strip.fClusters.GetSize() == 0 || mc.track > 0 || mc.num_bg > 0 );
+
+  if( mc.track == 0 ) {
+    if( mc.num_bg > 1 ) {
+      // If only background hits, report the mean position of all those hits
+      mc.pos /= static_cast<Double_t>(mc.num_bg);
+    }
+    mc.time = strip.fTime1;
+  }
+  return mc;
+}
+
+//-----------------------------------------------------------------------------
+int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
 {
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
 
@@ -167,7 +279,7 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
   const TSolSimEvent* simEvent = reinterpret_cast<const TSolSimEvent*>(evbuffer);
 
   if (first_decode) {
-    init_cmap();     
+    init_cmap();
     if (init_slotdata(map) == HED_ERR) return HED_ERR;
     first_decode = false;
   }
@@ -176,7 +288,7 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
   for( int i=0; i<fNSlotClear; i++ )
     crateslot[fSlotClear[i]]->clearEvent();
   if( fDoBench ) fBench->Stop("clearEvent");
-  
+
   // FIXME: needed?
   evscaler = 0;
   event_length = 0;
@@ -188,32 +300,23 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
   if( fDoBench ) fBench->Begin("physics_decode");
 
   // Decode the digitized strip data.  Populate crateslot array.
-  const Int_t NPLANES = 5; // FIXME: get from database
   for( vector<TSolSimEvent::DigiGEMStrip>::size_type i = 0;
        i < simEvent->fGEMStrips.size(); i++) {
-
     const TSolSimEvent::DigiGEMStrip& s = simEvent->fGEMStrips[i];
-    // The (roc,slot,chan) assignment must match the detmap definition.
-    // See TreeSearch/dbconvert.cxx
-    // FIXME: make parameters configurable
-    const int NPROJ = 2, CHAN_PER_SLOT = 1500;
-    const int modules_per_readout = 1;
-    const int modules_per_chamber = NPROJ*modules_per_readout;
-    const int chambers_per_crate = (Decoder::MAXSLOT/modules_per_chamber/NPLANES)*NPLANES;
-    div_t d = div( s.fChan, CHAN_PER_SLOT );
-    Int_t module = d.quot;
-    Int_t chan   = d.rem;
-    Int_t ix = module +
-      modules_per_readout*( s.fProj + NPROJ*( s.fPlane + NPLANES*s.fSector ));
-    d = div( ix, chambers_per_crate*modules_per_chamber );
-    Int_t roc  = d.quot;
-    Int_t slot = d.rem;
-
+    Int_t crate, slot, chan;
+    StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );
     for( Int_t k = 0; k < s.fNsamp; k++ ) {
       Int_t raw = s.fADC[k];
-      if( crateslot[idx(roc,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
+      if( crateslot[idx(crate,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
 	return HED_ERR;
     }
+    // Build map from ROC address to strip index. This is needed to extract
+    // the MC truth info later in the tracking detector decoder via GetMCChanInfo.
+#ifndef NDEBUG
+    pair<StripMap_t::const_iterator,bool> ins =
+#endif
+      fStripMap.insert( make_pair( MakeROCKey(crate,slot,chan), i ) );
+    assert( ins.second );
   }
 
   // Create lists of two types of tracks:
@@ -231,7 +334,6 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
   // MC hit data ("clusters") and "back tracks"
   Int_t best_primary = -1, best_primary_plane = NPLANES;
   UInt_t primary_hitbits = 0, ufail = 0, vfail = 0;
-  const Int_t kPrimaryType = 1, kPrimarySource = 0;
   for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
        i < simEvent->fGEMClust.size(); ++i ) {
     const TSolSimEvent::GEMCluster& c = simEvent->fGEMClust[i];
@@ -287,7 +389,7 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
 
 //-----------------------------------------------------------------------------
 TSolSimGEMHit::TSolSimGEMHit( const TSolSimEvent::GEMCluster& c )
-  : fID(c.fID), fSector(c.fSector), fPlane(c.fPlane), 
+  : fID(c.fID), fSector(c.fSector), fPlane(c.fPlane),
     fRealSector(c.fRealSector), fSource(c.fSource), fType(c.fType),
     fPID(c.fPID), fP(c.fP), fXEntry(c.fXEntry), fMCpos(c.fMCpos),
     fHitpos(c.fHitpos), fCharge(c.fCharge), fTime(c.fTime),
