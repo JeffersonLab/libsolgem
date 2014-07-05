@@ -7,10 +7,7 @@
 //
 /////////////////////////////////////////////////////////////////////
 
-#include "THaEvData.h"
-#include "THaAnalysisObject.h"
-#include "TList.h"
-#include "TClonesArray.h"
+#include "SimDecoder.h"
 #include "TSolSimEvent.h"
 #include <cassert>
 #include <map>
@@ -108,20 +105,18 @@ private:
 
 //-----------------------------------------------------------------------------
 // SoLID simulation decoder class
-class TSolSimDecoder : public THaEvData {
+class TSolSimDecoder : public Podd::SimDecoder {
  public:
   TSolSimDecoder();
   virtual ~TSolSimDecoder();
 
   virtual Int_t LoadEvent( const UInt_t* evbuffer, Decoder::THaCrateMap* usermap );
   virtual void  Clear( Option_t* opt="" );
+  virtual Int_t DefineVariables( THaAnalysisObject::EMode mode =
+				 THaAnalysisObject::kDefine );
+  virtual Podd::MCHitInfo GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const;
 
   Int_t  GetNBackTracks() const { return fBackTracks->GetLast()+1; }
-  Int_t  GetNHits()       const { return fHits->GetLast()+1; }
-  Int_t  GetNTracks()     const { return fTracks.GetSize(); }
-
-  Int_t  DefineVariables( THaAnalysisObject::EMode mode =
-			  THaAnalysisObject::kDefine );
 
   TSolSimBackTrack* GetBackTrack( Int_t i ) const {
     TObject* obj = fBackTracks->UncheckedAt(i);
@@ -129,22 +124,10 @@ class TSolSimDecoder : public THaEvData {
     return static_cast<TSolSimBackTrack*>(obj);
   }
   TSolSimGEMHit* GetGEMHit( Int_t i ) const {
-    TObject* obj = fHits->UncheckedAt(i);
+    TObject* obj = fMCHits->UncheckedAt(i);
     assert( dynamic_cast<TSolSimGEMHit*>(obj) );
     return static_cast<TSolSimGEMHit*>(obj);
   }
-
-  //----- TODO; put in generic SimDecoder class
-  struct MCChanInfo_t {   // preliminary set of MC truth info
-    Int_t    track;     // MC signal track number (0=none)
-    Double_t pos;       // Position of MC hit (signal hit if available, else
-                        // mean position of background hits
-    Double_t time;      // Hit time (same as position)
-    Int_t    num_bg;    // Number of background hits (0=clean signal)
-    MCChanInfo_t() : track(0), pos(0), time(0), num_bg(0) {}
-  };
-  MCChanInfo_t GetMCChanInfo( Int_t crate, Int_t slot, Int_t chan ) const;
-  //-----
 
   // Workaround for fubar THaEvData
   static Int_t GetMAXSLOT() { return MAXSLOT; }
@@ -152,10 +135,7 @@ class TSolSimDecoder : public THaEvData {
 protected:
   typedef std::map<Int_t,Int_t> StripMap_t;
 
-  TList          fTracks;     // MC physics tracks
-  TClonesArray*  fHits;       //-> MC hits (clusters)
   TClonesArray*  fBackTracks; //-> Primary particle tracks at first chamber
-  Bool_t         fIsSetup;    // DefineVariables has run
   StripMap_t     fStripMap;   //! Map ROCKey -> index of corresponding strip
 
   Int_t DoLoadEvent( const UInt_t* evbuffer, Decoder::THaCrateMap* usermap );
