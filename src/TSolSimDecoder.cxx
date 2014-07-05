@@ -72,6 +72,8 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "btr.pid",   "Track PID (PDG)",           "fBackTracks.TSolSimBackTrack.fPID" },
     { "btr.num",   "GEANT particle number",     "fBackTracks.TSolSimBackTrack.fType" },
     { "btr.planes","Bitpattern of planes hit",  "fBackTracks.TSolSimBackTrack.fHitBits" },
+    { "btr.ufail", "Bitpattern of ineff. U planes", "fBackTracks.TSolSimBackTrack.fUfailBits" },
+    { "btr.vfail", "Bitpattern of ineff. V planes", "fBackTracks.TSolSimBackTrack.fVfailBits" },
     { "btr.sect",  "Sector number",             "fBackTracks.TSolSimBackTrack.fSector" },
     { "btr.src",   "MC data set source",        "fBackTracks.TSolSimBackTrack.fSource" },
     { "btr.p",     "Track momentum (GeV)",      "fBackTracks.TSolSimBackTrack.P() "},
@@ -228,7 +230,7 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
 
   // MC hit data ("clusters") and "back tracks"
   Int_t best_primary = -1, best_primary_plane = NPLANES;
-  UInt_t primary_hitbits = 0;
+  UInt_t primary_hitbits = 0, ufail = 0, vfail = 0;
   const Int_t kPrimaryType = 1, kPrimarySource = 0;
   for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
        i < simEvent->fGEMClust.size(); ++i ) {
@@ -251,6 +253,12 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
 	best_primary = i;
 	best_primary_plane = c.fPlane;
       }
+      // Determine digitization hit inefficiency: Check if this MC hit
+      // activated GEM strips in both readout planes
+      if( c.fSize[0] == 0 )
+	SETBIT(ufail,c.fPlane);
+      if( c.fSize[1] == 0 )
+	SETBIT(vfail,c.fPlane);
     }
   }
 
@@ -266,6 +274,8 @@ int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* ma
     TSolSimBackTrack* btr = new( (*fBackTracks)[nback] )
       TSolSimBackTrack(simEvent->fGEMClust[best_primary]);
     btr->SetHitBits(primary_hitbits);
+    btr->SetUfailBits(ufail);
+    btr->SetVfailBits(vfail);
   }
 
   // DEBUG:
@@ -297,7 +307,7 @@ void TSolSimGEMHit::Print( const Option_t* ) const
 //-----------------------------------------------------------------------------
 TSolSimBackTrack::TSolSimBackTrack( const TSolSimEvent::GEMCluster& c )
   : fType(c.fType), fPID(c.fPID), fSector(c.fSector), fSource(c.fSource),
-    fHitBits(0)
+    fHitBits(0), fUfailBits(0), fVfailBits(0)
 {
   // Construct track from cluster info
 

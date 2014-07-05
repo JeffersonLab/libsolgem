@@ -1,5 +1,5 @@
 #ifndef __TSolSimDecoder_h
-#define __TSolSimDecoder_
+#define __TSolSimDecoder_h
 
 /////////////////////////////////////////////////////////////////////
 //
@@ -80,10 +80,13 @@ public:
   Int_t    GetType()    const { return fType; }
   Int_t    GetSource()  const { return fSource; }
   Int_t    GetHitBits() const { return fHitBits; }
+  Int_t    GetUfailBits() const { return fUfailBits; }
+  Int_t    GetVfailBits() const { return fVfailBits; }
   void     SetHitBit( UInt_t i )  { SETBIT(fHitBits,i); }
   void     SetHitBits( UInt_t i ) { fHitBits = i; }
+  void     SetUfailBits( UInt_t i ) { fUfailBits = i; }
+  void     SetVfailBits( UInt_t i ) { fVfailBits = i; }
   Bool_t   TestHitBit( UInt_t i ) { return TESTBIT(fHitBits,i); }
-
   Int_t    Update( const TSolSimEvent::GEMCluster& cl );
 
 private:
@@ -95,13 +98,15 @@ private:
   TVector3 fOrigin;      // Position at first plane in lab frame (m)
   TVector3 fHitpos;      // Position at first plane in Tracker frame [m]
   TVector3 fMomentum;    // Momentum (GeV)
-  Int_t    fHitBits;     // Bitpattern of plane numbers hit by this back track
+  Int_t    fHitBits;     // Bitpattern of plane nos hit by this back track
+  Int_t    fUfailBits;   // Bitpattern of plane nos without digitized hits in U
+  Int_t    fVfailBits;   // Bitpattern of plane nos without digitized hits in V
 
-  ClassDef(TSolSimBackTrack,1) // MC track registered at first tracking chamber
+  ClassDef(TSolSimBackTrack,2) // MC track registered at first tracking chamber
 };
 
 //-----------------------------------------------------------------------------
-// SoLID simulation decode class
+// SoLID simulation decoder class
 class TSolSimDecoder : public THaEvData {
  public:
   TSolSimDecoder();
