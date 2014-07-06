@@ -324,9 +324,14 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
   // 2) "Back tracks": hits in any GEM plane from the primary particle
 
   // Physics tracks. We need to copy them here so we can export them as global
-  // variables. At present, there is only ever one track, so this has
-  // negligible overhead.
-  *fMCTracks = *(simEvent->fMCTracks);
+  // variables.
+  TClonesArray* tracks = simEvent->fMCTracks;
+  if( tracks ) {
+    for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
+      TSolSimTrack* trk = static_cast<TSolSimTrack*>(tracks->UncheckedAt(i));
+      new( (*fMCTracks)[i] ) TSolSimTrack(*trk);
+    }
+  }
 
   // MC hit data ("clusters") and "back tracks"
   Int_t best_primary = -1, best_primary_plane = NPLANES;
