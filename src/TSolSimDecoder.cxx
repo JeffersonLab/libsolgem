@@ -145,7 +145,7 @@ void TSolSimDecoder::Clear( Option_t* opt )
 {
   // Clear track and plane data
 
-  SimDecoder::Clear(opt);   // clears fMCHits and fMCTracks
+  SimDecoder::Clear(opt);   // clears fMCHits, fMCTracks and fMCPoints
 
   fBackTracks->Clear(opt);
   fStripMap.clear();
@@ -345,9 +345,14 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
     // Save hits in the GEMs
     new( (*fMCHits)[GetNMCHits()] ) TSolSimGEMHit(c);
 
-    // Save index of the primary particle hit closest to plane 0
+    // Extra bookkeeping for primary tracks, used for making back tracks below
     if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
+      // Record the primary track's points for access via the SimDecoder interface
+      Int_t igem = NPLANES*c.fSector + c.fPlane;
+      new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint(1,igem,c.fMCpos);
+      // Keep bitpattern of planes crossed by this primary
       SETBIT(primary_hitbits,c.fPlane);
+      // Save index of the primary particle hit closest to plane 0
       if( c.fPlane < best_primary_plane ) {
 	best_primary = i;
 	best_primary_plane = c.fPlane;
