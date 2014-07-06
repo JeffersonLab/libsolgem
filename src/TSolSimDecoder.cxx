@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <utility>
+#include <stdexcept>
 
 using namespace std;
 using namespace Podd;
@@ -35,6 +36,10 @@ static const Int_t chambers_per_crate =
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 
 typedef vector<int>::size_type vsiz_t;
+
+// Default z position of first tracker plane. Should update this in the replay
+// script via TSolSimDecoder::SetZ0()
+Double_t TSolSimDecoder::fgZ0 = 1.571913;
 
 //-----------------------------------------------------------------------------
 TSolSimDecoder::TSolSimDecoder()
@@ -416,19 +421,17 @@ Int_t TSolSimBackTrack::Update( const TSolSimEvent::GEMCluster& c )
 
   static const char* const here = "TSolSimBackTrack::Update";
 
-  // z position of first tracker plane.
-  // FIXME: Get this from plane object
-  static double z0 = 1.571913;
+  // Currently not needed since Update only called from constructor
+  // if( fType != c.fType || fPID != c.fPID || fSector != c.fSector ) {
+  //   Error( here, "Updating with inconsistent GEMCluster data: "
+  // 	   "type = %d/%d, pid = %d/%d, sector = %d/%d.\n"
+  // 	   "Should never happen. Call expert.",
+  // 	   fType, c.fType, fPID, c.fPID, fSector, c.fSector );
+  //   return -1;
+  // }
 
-  if( fType != c.fType || fPID != c.fPID || fSector != c.fSector ) {
-    Error( here, "Updating with inconsistent GEMCluster data: "
-	   "type = %d/%d, pid = %d/%d, sector = %d/%d.\n"
-	   "Should never happen. Call expert.",
-	   fType, c.fType, fPID, c.fPID, fSector, c.fSector );
-    return -1;
-  }
   if( c.fPlane > 0 ) {
-    Double_t dz = c.fMCpos.Z() - z0;
+    Double_t dz = c.fMCpos.Z() - TSolSimDecoder::GetZ0();
     if( dz <= 0 ) {
       Error( here, "Illegal fMCpos z-coordinate in plane = %d. "
 	     "Should never happen. Call expert.", c.fPlane );

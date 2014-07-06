@@ -132,11 +132,17 @@ class TSolSimDecoder : public Podd::SimDecoder {
   // Workaround for fubar THaEvData
   static Int_t GetMAXSLOT() { return MAXSLOT; }
 
+  static void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
+  static Double_t GetZ0() { return fgZ0; }
+
 protected:
   typedef std::map<Int_t,Int_t> StripMap_t;
 
-  TClonesArray*  fBackTracks; //-> Primary particle tracks at first chamber
-  StripMap_t     fStripMap;   //! Map ROCKey -> index of corresponding strip
+  // Event-by-event data
+  TClonesArray*   fBackTracks; //-> Primary particle tracks at first chamber
+  StripMap_t      fStripMap;   //! Map ROCKey -> index of corresponding strip
+
+  static Double_t fgZ0;        // z position of first tracker plane
 
   Int_t DoLoadEvent( const UInt_t* evbuffer, Decoder::THaCrateMap* usermap );
 
