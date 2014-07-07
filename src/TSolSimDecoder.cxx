@@ -34,6 +34,8 @@ static const Int_t modules_per_chamber = NPROJ*modules_per_readout;
 static const Int_t chambers_per_crate =
   (TSolSimDecoder::GetMAXSLOT()/modules_per_chamber/NPLANES)*NPLANES;
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
+// Projection types must match the definitions in TreeSearch
+enum EProjType { kUPlane = 0, kVPlane };
 
 typedef vector<int>::size_type vsiz_t;
 
@@ -352,9 +354,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
 
     // Extra bookkeeping for primary tracks, used for making back tracks below
     if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
-      // Record the primary track's points for access via the SimDecoder interface
-      Int_t igem = NPLANES*c.fSector + c.fPlane;
-      new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint(1,igem,c.fMCpos);
+      // Record the primary track's points for access via the SimDecoder interface.
+      // Record one point per projection so that we can study residuals.
+      Int_t igem = NPROJ*c.fPlane;
+      new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kUPlane,
+							kUPlane, c.fMCpos );
+      new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kVPlane,
+							kVPlane, c.fMCpos );
       // Keep bitpattern of planes crossed by this primary
       SETBIT(primary_hitbits,c.fPlane);
       // Save index of the primary particle hit closest to plane 0
