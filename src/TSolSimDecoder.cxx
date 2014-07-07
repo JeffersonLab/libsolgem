@@ -361,10 +361,15 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
       // Record the primary track's points for access via the SimDecoder interface.
       // Record one point per projection so that we can study residuals.
       Int_t igem = NPROJ*c.fPlane;
-      new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kUPlane,
-							kUPlane, c.fMCpos );
-      new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kVPlane,
-							kVPlane, c.fMCpos );
+      MCTrackPoint* pt =
+	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kUPlane,
+							  kUPlane, c.fMCpos, c.fP );
+      pt->fMCTime = c.fTime;
+      pt =
+	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kVPlane,
+							  kVPlane, c.fMCpos, c.fP );
+      pt->fMCTime = c.fTime;
+
       // Keep bitpattern of planes crossed by this primary
       SETBIT(primary_hitbits,c.fPlane);
       // Save index of the primary particle hit closest to plane 0
