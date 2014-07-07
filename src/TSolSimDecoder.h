@@ -28,6 +28,9 @@ public:
   Double_t X() const { return fMCpos.X(); }
   Double_t Y() const { return fMCpos.Y(); }
   Double_t Z() const { return fMCpos.Z(); }
+  Double_t R()      const { return fMCpos.Perp(); }
+  Double_t Theta()  const { return fMCpos.Theta(); }
+  Double_t Phi()    const { return fMCpos.Phi(); }
 
   Int_t     fID;        // Cluster number, cross-ref to GEMStrip
   // MC hit data
