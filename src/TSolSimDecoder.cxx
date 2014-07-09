@@ -16,7 +16,12 @@
 #include "THaCrateMap.h"
 #include "THaBenchmark.h"
 #include "VarDef.h"
+
 #include "TError.h"
+#include "TSystem.h"
+#include "TMath.h"
+#include "TDatabasePDG.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <utility>
@@ -53,6 +58,8 @@ TSolSimDecoder::TSolSimDecoder()
   fBackTracks = new TClonesArray( "TSolSimBackTrack",   5 );
 
   DefineVariables();
+
+  gSystem->Load("libEG.so");  // for TDatabasePDG
 }
 
 //-----------------------------------------------------------------------------
@@ -384,6 +391,40 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
       if( c.fSize[1] == 0 )
 	SETBIT(vfail,c.fPlane);
     }
+  }
+
+  // Sort fMCPoints by type and plane number, then calculate plane-to-plane
+  // differences. The following assumes that all points are from the same track
+  // (ensured above). If that is no longer so one day, fMCPoints will need to
+  // be sorted by track number as well, and the algo below needs to be changed.
+  fMCPoints->Sort();
+  MCTrackPoint* prev_pt = 0;
+  assert( GetNMCTracks() > 0 );
+  TSolSimTrack* trk = static_cast<TSolSimTrack*>( fMCTracks->UncheckedAt(0) );
+  Double_t mass = 0;
+  if( trk ) {
+    TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(trk->fPID);
+    if( particle )
+      mass = particle->Mass();
+  }
+  for( Int_t i = 0; i < GetNMCPoints(); ++i ) {
+    MCTrackPoint* pt = static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(i) );
+    if( !pt ) continue;
+    if( prev_pt ) {
+      assert( pt->fMCTrack == prev_pt->fMCTrack );
+      if( prev_pt->fType == pt->fType ) {
+	if( prev_pt->fPlane+1 == pt->fPlane ) {
+	  pt->fDeltaE = TMath::Sqrt(prev_pt->fMCP.Mag2() + mass*mass) -
+	    TMath::Sqrt(pt->fMCP.Mag2() + mass*mass);
+	  pt->fDeflect = prev_pt->fMCP.Angle(pt->fMCP);
+	}
+	prev_pt = pt;
+      }
+      else
+	prev_pt = 0;  // Starting new type
+    }
+    else
+      prev_pt = pt;   // First point of a sequence
   }
 
   // "Back tracks"
