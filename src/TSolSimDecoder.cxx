@@ -67,18 +67,19 @@ TSolSimDecoder::~TSolSimDecoder() {
 //-----------------------------------------------------------------------------
 Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
 {
-  // Define global variables for the MC quantities. Overrides the base
+  // Define global variables for the MC quantities. Extends the base
   // class method.
 
   const char* const here = "TSolSimDecoder::DefineVariables";
 
   if( mode == THaAnalysisObject::kDefine && fIsSetup )
     return THaAnalysisObject::kOK;
-  fIsSetup = ( mode == THaAnalysisObject::kDefine );
+
+  SimDecoder::DefineVariables( mode );
 
   RVarDef vars[] = {
     // Generated track info
-    { "tr.n",      "Number of tracks",      "GetNMCTracks()" },
+    //    { "tr.n",      "Number of tracks",      "GetNMCTracks()" },
     { "tr.x",      "Track origin x (m)",    "fMCTracks.TSolSimTrack.VX()" },
     { "tr.y",      "Track origin y (m)",    "fMCTracks.TSolSimTrack.VY()" },
     { "tr.z",      "Track origin z (m)",    "fMCTracks.TSolSimTrack.VZ()" },
@@ -113,7 +114,7 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "btr.hy",    "Track pos plane y [m]",     "fBackTracks.TSolSimBackTrack.HY()" },
 
     // Digitized hits registered in the GEMs
-    { "hit.n",     "Number of MC hits",          "GetNMCHits()" },
+    //    { "hit.n",     "Number of MC hits",          "GetNMCHits()" },
     { "hit.id",    "MC hit number",              "fMCHits.TSolSimGEMHit.fID" },
     { "hit.sect",  "MC hit sector",              "fMCHits.TSolSimGEMHit.fSector" },
     { "hit.rsect", "MC hit non-mapped sector",   "fMCHits.TSolSimGEMHit.fRealSector" },
@@ -132,10 +133,10 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "hit.charge","MC hit cluster charge",      "fMCHits.TSolSimGEMHit.fCharge" },
     { "hit.time",  "MC hit time offset [s]",     "fMCHits.TSolSimGEMHit.fTime" },
     { "hit.usz",   "MC hit u cluster size",      "fMCHits.TSolSimGEMHit.fUSize" },
-    { "hit.uwire", "MC hit u cluster 1st wire",  "fMCHits.TSolSimGEMHit.fUStart" },
+    { "hit.ustart","MC hit u cluster 1st strip", "fMCHits.TSolSimGEMHit.fUStart" },
     { "hit.upos",  "MC hit u cluster center [m]","fMCHits.TSolSimGEMHit.fUPos" },
     { "hit.vsz",   "MC hit v cluster size",      "fMCHits.TSolSimGEMHit.fVSize" },
-    { "hit.vwire", "MC hit v cluster 1st wire",  "fMCHits.TSolSimGEMHit.fVStart" },
+    { "hit.vstart","MC hit v cluster 1st strip", "fMCHits.TSolSimGEMHit.fVStart" },
     { "hit.vpos",  "MC hit v cluster center [m]","fMCHits.TSolSimGEMHit.fVPos" },
 
     { 0 }
