@@ -409,22 +409,16 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
   }
   for( Int_t i = 0; i < GetNMCPoints(); ++i ) {
     MCTrackPoint* pt = static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(i) );
-    if( !pt ) continue;
-    if( prev_pt ) {
+    assert(pt);
+    if( prev_pt && prev_pt->fType == pt->fType ) {
       assert( pt->fMCTrack == prev_pt->fMCTrack );
-      if( prev_pt->fType == pt->fType ) {
-	if( prev_pt->fPlane+1 == pt->fPlane ) {
-	  pt->fDeltaE = TMath::Sqrt(prev_pt->fMCP.Mag2() + mass*mass) -
-	    TMath::Sqrt(pt->fMCP.Mag2() + mass*mass);
-	  pt->fDeflect = prev_pt->fMCP.Angle(pt->fMCP);
-	}
-	prev_pt = pt;
+      if( prev_pt->fPlane+1 == pt->fPlane ) {
+	pt->fDeltaE = TMath::Sqrt(prev_pt->fMCP.Mag2() + mass*mass) -
+	  TMath::Sqrt(pt->fMCP.Mag2() + mass*mass);
+	pt->fDeflect = prev_pt->fMCP.Angle(pt->fMCP);
       }
-      else
-	prev_pt = 0;  // Starting new type
     }
-    else
-      prev_pt = pt;   // First point of a sequence
+    prev_pt = pt;
   }
 
   // "Back tracks"
