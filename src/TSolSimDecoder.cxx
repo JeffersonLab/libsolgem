@@ -361,14 +361,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
     if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
       // Record the primary track's points for access via the SimDecoder interface.
       // Record one point per projection so that we can study residuals.
-      Int_t igem = NPROJ*c.fPlane;
       MCTrackPoint* pt =
-	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kUPlane,
-							  kUPlane, c.fMCpos, c.fP );
+	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, c.fPlane, kUPlane,
+							  c.fMCpos, c.fP );
       pt->fMCTime = c.fTime;
       pt =
-	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, igem+kVPlane,
-							  kVPlane, c.fMCpos, c.fP );
+	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, c.fPlane, kVPlane,
+							  c.fMCpos, c.fP );
       pt->fMCTime = c.fTime;
 
       // Keep bitpattern of planes crossed by this primary
