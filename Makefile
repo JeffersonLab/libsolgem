@@ -36,7 +36,9 @@ ifeq ($(strip $(EVIOLIB)),)
   $(error No EVIO library directory found. Check $$EVIO)
 endif
 ifeq (debug,$(findstring debug,$(ROOTBUILD)))
-  DBGSFX = _d
+  DBGSFX = -dbg
+else
+  CXXFLAGS += -O2 -DNDEBUG
 endif
 SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
 LDFLAGS  += -L$(EVIOLIB) -levioxx$(DBGSFX) -levio$(DBGSFX) -lz -lexpat
