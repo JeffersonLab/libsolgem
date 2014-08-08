@@ -166,12 +166,12 @@ void TSolSimDecoder::Clear( Option_t* opt )
 }
 
 //-----------------------------------------------------------------------------
-int TSolSimDecoder::LoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* map)
+int TSolSimDecoder::LoadEvent(const int* evbuffer )
 {
   // Wrapper around DoLoadEvent so we can conveniently stop the benchmark
   // counter in case of errors
 
-  int ret = DoLoadEvent( evbuffer, map );
+  int ret = DoLoadEvent( evbuffer );
 
   if( fDoBench ) fBench->Stop("physics_decode");
 
@@ -276,13 +276,13 @@ MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
 }
 
 //-----------------------------------------------------------------------------
-Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
+Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer )
 {
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
 
   static const char* const here = "TSolSimDecoder::LoadEvent";
 
-  fMap = map;
+  assert( fMap || fNeedInit );
 
   // Local copy of evbuffer pointer - any good use for it?
   buffer = evbuffer;
@@ -292,9 +292,12 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
   // just for compatibility with the standard decoder.
   const TSolSimEvent* simEvent = reinterpret_cast<const TSolSimEvent*>(evbuffer);
 
-  if (first_decode) {
-    init_cmap();
-    if (init_slotdata(map) == HED_ERR) return HED_ERR;
+  Int_t ret = HED_OK;
+  if (first_decode || fNeedInit) {
+    ret = init_cmap();
+    if( ret != HED_OK ) return ret;
+    ret = init_slotdata(fMap);
+    if( ret != HED_OK ) return ret;
     first_decode = false;
   }
   if( fDoBench ) fBench->Begin("clearEvent");

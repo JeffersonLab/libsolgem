@@ -113,7 +113,7 @@ class TSolSimDecoder : public Podd::SimDecoder {
   TSolSimDecoder();
   virtual ~TSolSimDecoder();
 
-  virtual Int_t LoadEvent( const UInt_t* evbuffer, Decoder::THaCrateMap* usermap );
+  virtual Int_t LoadEvent( const int* evbuffer );
   virtual void  Clear( Option_t* opt="" );
   virtual Int_t DefineVariables( THaAnalysisObject::EMode mode =
 				 THaAnalysisObject::kDefine );
@@ -147,7 +147,7 @@ protected:
 
   static Double_t fgZ0;        // z position of first tracker plane
 
-  Int_t DoLoadEvent( const UInt_t* evbuffer, Decoder::THaCrateMap* usermap );
+  Int_t DoLoadEvent( const int* evbuffer );
 
   void  StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj, Int_t s_chan,
 		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
