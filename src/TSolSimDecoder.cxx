@@ -371,12 +371,15 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer )
     if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
       // Record the primary track's points for access via the SimDecoder interface.
       // Record one point per projection so that we can study residuals.
+      Int_t itrack = 1;
       MCTrackPoint* pt =
-	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, c.fPlane, kUPlane,
+	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
+							  c.fPlane, kUPlane,
 							  c.fMCpos, c.fP );
       pt->fMCTime = c.fTime;
       pt =
-	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( 1, c.fPlane, kVPlane,
+	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
+							  c.fPlane, kVPlane,
 							  c.fMCpos, c.fP );
       pt->fMCTime = c.fTime;
 
@@ -401,15 +404,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer )
   // (ensured above). If that is no longer so one day, fMCPoints will need to
   // be sorted by track number as well, and the algo below needs to be changed.
   fMCPoints->Sort();
-  MCTrackPoint* prev_pt = 0;
-  assert( GetNMCTracks() > 0 );
-  TSolSimTrack* trk = static_cast<TSolSimTrack*>( fMCTracks->UncheckedAt(0) );
   Double_t mass = 0;
-  if( trk ) {
-    TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(trk->fPID);
-    if( particle )
+  assert( GetNMCTracks() > 0 );
+  if( TSolSimTrack* trk = static_cast<TSolSimTrack*>(fMCTracks->UncheckedAt(0)) ) {
+    if( TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(trk->fPID) )
       mass = particle->Mass();
   }
+  MCTrackPoint* prev_pt = 0;
   for( Int_t i = 0; i < GetNMCPoints(); ++i ) {
     MCTrackPoint* pt = static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(i) );
     assert(pt);
@@ -419,6 +420,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer )
 	pt->fDeltaE = TMath::Sqrt(prev_pt->fMCP.Mag2() + mass*mass) -
 	  TMath::Sqrt(pt->fMCP.Mag2() + mass*mass);
 	pt->fDeflect = prev_pt->fMCP.Angle(pt->fMCP);
+	pt->ToF = pt->fMCTime - prev_pt->fMCTime;
       }
     }
     prev_pt = pt;
