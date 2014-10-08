@@ -166,7 +166,7 @@ void TSolSimDecoder::Clear( Option_t* opt )
 }
 
 //-----------------------------------------------------------------------------
-int TSolSimDecoder::LoadEvent(const int* evbuffer )
+int TSolSimDecoder::LoadEvent(const UInt_t* evbuffer )
 {
   // Wrapper around DoLoadEvent so we can conveniently stop the benchmark
   // counter in case of errors
@@ -276,7 +276,7 @@ MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
 }
 
 //-----------------------------------------------------------------------------
-Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer )
+Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
 {
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
 

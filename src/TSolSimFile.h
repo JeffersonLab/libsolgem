@@ -32,7 +32,7 @@ class TSolSimFile : public THaRunBase {
 
   Int_t         Close();
   virtual Int_t Compare( const TObject* obj ) const;
-  const UInt_t*  GetEvBuffer() const;
+  const UInt_t* GetEvBuffer() const;
   Int_t         Init();
   const char*   GetFileName() const { return fROOTFileName.Data(); }
   Int_t         Open();
