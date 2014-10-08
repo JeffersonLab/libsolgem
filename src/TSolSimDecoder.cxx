@@ -420,7 +420,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const int* evbuffer )
 	pt->fDeltaE = TMath::Sqrt(prev_pt->fMCP.Mag2() + mass*mass) -
 	  TMath::Sqrt(pt->fMCP.Mag2() + mass*mass);
 	pt->fDeflect = prev_pt->fMCP.Angle(pt->fMCP);
-	pt->ToF = pt->fMCTime - prev_pt->fMCTime;
+	pt->fToF = pt->fMCTime - prev_pt->fMCTime;
       }
     }
     prev_pt = pt;
