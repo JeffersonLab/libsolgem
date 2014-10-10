@@ -4,6 +4,7 @@
 #include "TSolGEMChamber.h"
 #include "TSolGEMPlane.h"
 #include "THaEvData.h"
+#include "THaApparatus.h"
 #include "TMath.h"
 
 using namespace std;
