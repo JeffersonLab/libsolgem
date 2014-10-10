@@ -17,15 +17,15 @@
 using namespace std;
 
 //-----------------------------------------------------------------------------
-void TSolSimTrack::Print( const Option_t* opt ) const
+TSolSimTrack::TSolSimTrack( Int_t number, Int_t pid, Double_t weight,
+			    const TVector3& vertex, const TVector3& momentum )
+  : Podd::MCTrack( number, pid, weight, vertex, momentum )
 {
-  // Print TSolSimTrack info
+}
 
-  cout << "track: num = " << fNumber
-       << ", PID = " << fPID
-       << endl;
-  cout << "  Origin    = ";  fOrigin.Print();
-  cout << "  Momentum  = ";  fMomentum.Print();
+//-----------------------------------------------------------------------------
+TSolSimTrack::TSolSimTrack() : Podd::MCTrack()
+{
 }
 
 //-----------------------------------------------------------------------------
@@ -57,8 +57,9 @@ TSolSimTrack* TSolSimEvent::AddTrack( Int_t number, Int_t pid, Double_t wght,
 {
   // Add a physics track with the given parameters
 
-  return new( (*fMCTracks)[GetNtracks()] )
-    TSolSimTrack( number, pid, wght, vertex, momentum );
+  return
+    new( (*fMCTracks)[GetNtracks()] ) TSolSimTrack( number, pid, wght,
+						    vertex, momentum );
 }
 
 //-----------------------------------------------------------------------------

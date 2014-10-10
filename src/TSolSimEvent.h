@@ -12,6 +12,7 @@
 #ifndef __TSolSim_h
 #define __TSolSim_h
 
+#include "SimDecoder.h"
 #include "TVector3.h"
 #include "TArrayS.h"
 #include <vector>
@@ -19,31 +20,13 @@
 class TClonesArray;
 
 //-----------------------------------------------------------------------------
-// A Monte Carlo physics track
-class TSolSimTrack : public TObject {
- public:
+class TSolSimTrack : public Podd::MCTrack {
+public:
   TSolSimTrack( Int_t number, Int_t pid, Double_t weight,
-		const TVector3& vertex, const TVector3& momentum )
-    : fNumber(number), fPID(pid), fWeight(weight),
-      fOrigin(vertex), fMomentum(momentum) {}
-  TSolSimTrack() : fNumber(0), fPID(0), fWeight(1.0) {}
+		const TVector3& vertex, const TVector3& momentum );
+  TSolSimTrack();
 
-  Int_t    fNumber;      // Track counter
-  Int_t    fPID;         // Track particle ID (PDG)
-  Double_t fWeight;      // Weight factor
-  TVector3 fOrigin;      // Vertex position (m)
-  TVector3 fMomentum;    // Momentum (GeV)
-
-  Double_t VX()     { return fOrigin.X(); }
-  Double_t VY()     { return fOrigin.Y(); }
-  Double_t VZ()     { return fOrigin.Z(); }
-  Double_t P()      { return fMomentum.Mag(); }
-  Double_t PTheta() { return fMomentum.Theta(); }
-  Double_t PPhi()   { return fMomentum.Phi(); }
-
-  virtual void Print( const Option_t* opt="" ) const;
-
-  ClassDef(TSolSimTrack, 2) // A MC physics track
+  ClassDef(TSolSimTrack,3)  // A MC physics track in SoLID
 };
 
 //-----------------------------------------------------------------------------
