@@ -276,6 +276,17 @@ MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
 }
 
 //-----------------------------------------------------------------------------
+static inline Int_t NumberOfSetBits( UInt_t v )
+{
+  // Count number of bits set in 32-bit integer. From
+  // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+
+  v = v - ((v >> 1) & 0x55555555);
+  v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+  return (((v + (v >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+//-----------------------------------------------------------------------------
 Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
 {
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
@@ -343,12 +354,12 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
   // Physics tracks. We need to copy them here so we can export them as global
   // variables.
   TClonesArray* tracks = simEvent->fMCTracks;
-  if( tracks ) {
-    for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
-      TSolSimTrack* trk = static_cast<TSolSimTrack*>(tracks->UncheckedAt(i));
-      new( (*fMCTracks)[i] ) TSolSimTrack(*trk);
-    }
+  assert( tracks );
+  for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
+    TSolSimTrack* trk = static_cast<TSolSimTrack*>(tracks->UncheckedAt(i));
+    new( (*fMCTracks)[i] ) TSolSimTrack(*trk);
   }
+  assert( GetNMCTracks() > 0 );
 
   // MC hit data ("clusters") and "back tracks"
   Int_t best_primary = -1, best_primary_plane = NPLANES;
@@ -405,11 +416,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
   // be sorted by track number as well, and the algo below needs to be changed.
   fMCPoints->Sort();
   Double_t mass = 0;
-  assert( GetNMCTracks() > 0 );
-  if( TSolSimTrack* trk = static_cast<TSolSimTrack*>(fMCTracks->UncheckedAt(0)) ) {
-    if( TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(trk->fPID) )
-      mass = particle->Mass();
-  }
+  TSolSimTrack* trk = static_cast<TSolSimTrack*>(fMCTracks->UncheckedAt(0));
+  assert(trk);
+  if( TParticlePDG* particle = TDatabasePDG::Instance()->GetParticle(trk->fPID) )
+    mass = particle->Mass();
+  else
+    Warning( "LoadEvent", "No enrty in PDG database for PID = %d", trk->fPID );
+
   MCTrackPoint* prev_pt = 0;
   for( Int_t i = 0; i < GetNMCPoints(); ++i ) {
     MCTrackPoint* pt = static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(i) );
@@ -425,6 +438,9 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
     }
     prev_pt = pt;
   }
+
+  // Keep statistics in the MC track
+  trk->fNHits = NumberOfSetBits(primary_hitbits);
 
   // "Back tracks"
   // Record the apparent track from the primary particle
