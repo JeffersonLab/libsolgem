@@ -95,6 +95,10 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "tr.phi",    "Track phi_p (rad)",     "fMCTracks.TSolSimTrack.PPhi()" },
     { "tr.pid",    "Track PID (PDG)",       "fMCTracks.TSolSimTrack.fPID" },
     { "tr.num",    "GEANT track number",    "fMCTracks.TSolSimTrack.fNumber" },
+    { "tr.planes", "Bitpattern of planes hit", "fMCTracks.TSolSimTrack.fHitBits" },
+    { "tr.nhits",  "Number of tracker hits","fMCTracks.TSolSimTrack.fNHits" },
+    { "tr.nfound", "Number of hits found",  "fMCTracks.TSolSimTrack.fNHitsFound" },
+    { "tr.flags",  "Reconstruction status", "fMCTracks.TSolSimTrack.fReconFlags" },
 
     // "Back tracks": hits of the primary particle in the first tracker plane
     { "btr.n",     "Number of back tracks",     "GetNBackTracks()" },
@@ -383,16 +387,16 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       // Record the primary track's points for access via the SimDecoder interface.
       // Record one point per projection so that we can study residuals.
       Int_t itrack = 1;
-      MCTrackPoint* pt =
+      MCTrackPoint* upt =
 	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
 							  c.fPlane, kUPlane,
 							  c.fMCpos, c.fP );
-      pt->fMCTime = c.fTime;
-      pt =
+      upt->fMCTime = c.fTime;
+      MCTrackPoint* vpt =
 	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
 							  c.fPlane, kVPlane,
 							  c.fMCpos, c.fP );
-      pt->fMCTime = c.fTime;
+      vpt->fMCTime = c.fTime;
 
       // Keep bitpattern of planes crossed by this primary
       SETBIT(primary_hitbits,c.fPlane);
@@ -403,10 +407,16 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       }
       // Determine digitization hit inefficiency: Check if this MC hit
       // activated GEM strips in both readout planes
-      if( c.fSize[0] == 0 )
-	SETBIT(ufail,c.fPlane);
-      if( c.fSize[1] == 0 )
-	SETBIT(vfail,c.fPlane);
+      if( c.fSize[0] == 0 ) {
+	SETBIT(ufail, c.fPlane);
+      } else {
+	SETBIT(upt->fStatus, MCTrackPoint::kDigitized);
+      }
+      if( c.fSize[1] == 0 ) {
+	SETBIT(vfail, c.fPlane);
+      } else {
+	SETBIT(vpt->fStatus, MCTrackPoint::kDigitized);
+      }
     }
   }
 
@@ -441,6 +451,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
 
   // Keep statistics in the MC track
   trk->fNHits = NumberOfSetBits(primary_hitbits);
+  trk->fHitBits = primary_hitbits;
 
   // "Back tracks"
   // Record the apparent track from the primary particle
