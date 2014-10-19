@@ -409,11 +409,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       // activated GEM strips in both readout planes
       if( c.fSize[0] == 0 ) {
 	SETBIT(ufail, c.fPlane);
+	CLRBIT(upt->fStatus, MCTrackPoint::kDigitized);
       } else {
 	SETBIT(upt->fStatus, MCTrackPoint::kDigitized);
       }
       if( c.fSize[1] == 0 ) {
 	SETBIT(vfail, c.fPlane);
+	CLRBIT(vpt->fStatus, MCTrackPoint::kDigitized);
       } else {
 	SETBIT(vpt->fStatus, MCTrackPoint::kDigitized);
       }
