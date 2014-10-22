@@ -452,7 +452,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
   }
 
   // Keep statistics in the MC track
-  trk->fNHits = NumberOfSetBits(primary_hitbits);
+  trk->fNHits = 2*NumberOfSetBits(primary_hitbits);
   trk->fHitBits = primary_hitbits;
 
   // "Back tracks"
