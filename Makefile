@@ -37,8 +37,9 @@ ifeq ($(strip $(EVIOLIB)),)
 endif
 ifeq (debug,$(findstring debug,$(ROOTBUILD)))
   DBGSFX = -dbg
+  CXXFLAGS += -O0
 else
-  CXXFLAGS += -O2 -DNDEBUG
+  CXXFLAGS += -O2 #-DNDEBUG
 endif
 SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
 LDFLAGS  += -L$(EVIOLIB) -levioxx$(DBGSFX) -levio$(DBGSFX) -lz -lexpat
