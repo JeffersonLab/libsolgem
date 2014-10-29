@@ -149,10 +149,10 @@ protected:
 
   Int_t DoLoadEvent( const UInt_t* evbuffer );
 
-  void  StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj, Int_t s_chan,
-		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
+  // void  StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj, Int_t s_chan,
+  // 		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
   Int_t StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const;
-  Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
+  // Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
 
   ClassDef(TSolSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };

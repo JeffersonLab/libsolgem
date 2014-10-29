@@ -183,9 +183,10 @@ int TSolSimDecoder::LoadEvent(const UInt_t* evbuffer )
 }
 
 //-----------------------------------------------------------------------------
-void TSolSimDecoder::StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
-				 Int_t s_chan,
-				 Int_t& crate, Int_t& slot, Int_t& chan ) const
+static inline
+void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
+		 Int_t s_chan,
+		 Int_t& crate, Int_t& slot, Int_t& chan )
 {
   // Convert location parameters (plane,sector,proj,chan) of the given strip
   // to hardware channel (crate,slot,chan)
@@ -203,7 +204,8 @@ void TSolSimDecoder::StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
 }
 
 //-----------------------------------------------------------------------------
-Int_t TSolSimDecoder::MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const
+static inline
+Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan )
 {
   return chan +
     CHAN_PER_SLOT*( slot + chambers_per_crate*modules_per_chamber*crate );
