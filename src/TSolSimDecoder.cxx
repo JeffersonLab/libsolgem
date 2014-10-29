@@ -33,6 +33,7 @@ using namespace Podd;
 // Constants for conversion of strip (plane,sector,proj,chan) to (crate,slot,chan)
 // FIXME: make parameters configurable!
 static const Int_t NPLANES = 5;
+static const Int_t NSECTORS = 30;
 static const Int_t NPROJ = 2, CHAN_PER_SLOT = 1500;
 static const Int_t modules_per_readout = 1;
 static const Int_t modules_per_chamber = NPROJ*modules_per_readout;
@@ -44,9 +45,12 @@ enum EProjType { kUPlane = 0, kVPlane };
 
 typedef vector<int>::size_type vsiz_t;
 
-// Default z position of first tracker plane. Should update this in the replay
+// Default z position of first tracker plane. May update this in the replay
 // script via TSolSimDecoder::SetZ0()
 Double_t TSolSimDecoder::fgZ0 = 1.571913;
+
+Double_t TSolSimDecoder::fgCaloZ  = 0.32;
+Bool_t   TSolSimDecoder::fgDoCalo = false;
 
 //-----------------------------------------------------------------------------
 TSolSimDecoder::TSolSimDecoder()
@@ -301,20 +305,20 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
 
   assert( fMap || fNeedInit );
 
-  // Local copy of evbuffer pointer - any good use for it?
+  // Local copy of evbuffer pointer, used in GetMCHitInfo
   buffer = evbuffer;
 
   // Cast the evbuffer pointer back to exactly the event type that is present
-  // in the input file (in TSolSimFile). The pointer-to-integer is there
-  // just for compatibility with the standard decoder.
-  const TSolSimEvent* simEvent = reinterpret_cast<const TSolSimEvent*>(evbuffer);
+  // in the input file (in TSolSimFile). The pointer-to-unsigned integer is
+  // needed compatibility with the standard decoder.
+  const TSolSimEvent* simEvent = reinterpret_cast<const TSolSimEvent*>(buffer);
 
   Int_t ret = HED_OK;
   if (first_decode || fNeedInit) {
-    ret = init_cmap();
-    if( ret != HED_OK ) return ret;
-    ret = init_slotdata(fMap);
-    if( ret != HED_OK ) return ret;
+    if( (ret = init_cmap()) != HED_OK )
+      return ret;
+    if( (ret = init_slotdata(fMap)) != HED_OK)
+      return ret;
     first_decode = false;
   }
   if( fDoBench ) fBench->Begin("clearEvent");
@@ -368,7 +372,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
   assert( GetNMCTracks() > 0 );
 
   // MC hit data ("clusters") and "back tracks"
-  Int_t best_primary = -1, best_primary_plane = NPLANES;
+  Int_t best_primary = -1, best_primary_plane = NPLANES, primary_sector = -1;
   UInt_t primary_hitbits = 0, ufail = 0, vfail = 0;
   for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
        i < simEvent->fGEMClust.size(); ++i ) {
@@ -389,6 +393,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       // Record the primary track's points for access via the SimDecoder interface.
       // Record one point per projection so that we can study residuals.
       Int_t itrack = 1;
+      primary_sector = c.fSector;
       MCTrackPoint* upt =
 	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
 							  c.fPlane, kUPlane,
@@ -471,6 +476,70 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
     btr->SetHitBits(primary_hitbits);
     btr->SetUfailBits(ufail);
     btr->SetVfailBits(vfail);
+
+    // Use the back track to emulate calorimeter hits.
+    // Assumptions:
+    // - Only tracks crossing all NPLANES GEMs (points in all planes)
+    //   make a calorimeter hit. This is a crude model for the trigger.
+    // - The track propagates without deflection from the last GEM plane
+    //   to the front of the emulated calorimeter.
+    // - The measured calorimeter position is independent of the track angle.
+    if( fgDoCalo && trk->fNHits == 2*NPLANES ) {
+      // Retrieve last MC track point
+      assert( GetNMCPoints() == 2*NPLANES );
+      MCTrackPoint* pt =
+	static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*NPLANES-1) );
+      assert( pt );
+      const TVector3& pos = pt->fMCPoint;
+      TVector3 dir = pt->fMCP.Unit();
+      if( TMath::Abs(dir.Z()) < 1e-6 ) {
+	Error( "LoadEvent", "Illegal primary track direction (%lf,%lf,%lf). "
+	       "Should never happen. Call expert.", dir.X(), dir.Y(), dir.Z() );
+	return HED_ERR;
+      }
+      dir *= 1.0/dir.Z();  // Make dir a transport vector
+      assert( pos.Z() < fgCaloZ );
+      TVector3 hitpos = pos + (fgCaloZ-pos.Z()) * dir;
+      // Rotate hitpos to sector 0. The causes no loss of generality
+      // as long as the sectors are evenly spaced
+      Double_t sector_angle = TMath::TwoPi()*primary_sector/NSECTORS;
+      hitpos.RotateZ(-sector_angle);
+
+      // Encode the raw hit date for the dummy GEM planes.
+      // The actual coordinate transformation to u or v takes place in each
+      // plane's Decode() where all the required geometry information is at hand.
+      //
+      // Because of the way the detector map is layed out at the moment,
+      // we place the calorimeter in fake sector 31, so the data are in two slots
+      // (for u and v coordinates, respectively) in the ROC immediately
+      // following the GEM trackers for sector 30. In each slot, channels
+      // 0-29 correspond to the sector of the MC track sector (should always be 0
+      // if mapping sectors. Each "hit" corresponds to one measured position.
+      // Currently, there is only ever one hit per channel since there is only
+      // one MC track. The hit's raw data are hitpos.X(), the data, hitpos.Y(),
+      // each a Float_t value interpreted as Int_t.
+
+      assert( sizeof(Float_t) == sizeof(Int_t) ); // FIXME: check in configure script
+      assert( primary_sector == 0 );
+
+      Int_t crate, slot, chan;
+      union FloatIntUnion {
+	Float_t f;
+	Int_t   i;
+      } datx, daty;
+
+      StripToROC( 0, NSECTORS, kUPlane, primary_sector, crate, slot, chan );
+      datx.f = static_cast<Float_t>(hitpos.X());
+      daty.f = static_cast<Float_t>(hitpos.Y());
+      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
+	  == SD_ERR )
+	return HED_ERR;
+
+      StripToROC( 0, NSECTORS, kVPlane, primary_sector, crate, slot, chan );
+      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
+	  == SD_ERR )
+	return HED_ERR;
+    }
   }
 
   // DEBUG:

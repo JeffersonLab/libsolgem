@@ -138,6 +138,10 @@ class TSolSimDecoder : public Podd::SimDecoder {
   static void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
   static Double_t GetZ0() { return fgZ0; }
 
+  // Support for calorimeter emulation. Static functions to allow script access
+  static void     EmulateCalorimeter( Bool_t f = true ) { fgDoCalo = f; }
+  static void     SetCaloZ( Double_t z ) { fgCaloZ = z; }
+
 protected:
   typedef std::map<Int_t,Int_t> StripMap_t;
 
@@ -145,7 +149,13 @@ protected:
   TClonesArray*   fBackTracks; //-> Primary particle tracks at first chamber
   StripMap_t      fStripMap;   //! Map ROCKey -> index of corresponding strip
 
+  // Parameters
+  // FIXME: any geometry data here are duplicates of the replay database
   static Double_t fgZ0;        // z position of first tracker plane
+
+  // Calorimeter emulation
+  static Bool_t   fgDoCalo;    // Enable calorimeter emulation
+  static Double_t fgCaloZ;     // z position of emulated calorimeter
 
   Int_t DoLoadEvent( const UInt_t* evbuffer );
 
