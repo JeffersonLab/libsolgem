@@ -32,6 +32,7 @@ class TSolGEMPlane;
 class TSolGEMChamber : public THaDetector {
  public:
   TSolGEMChamber(const char *name, const char *desc);
+  TSolGEMChamber() : fPlanes(0), fNPlanes(0), fWedge(0) {} // for ROOT RTTI
 
   virtual ~TSolGEMChamber();
 
@@ -59,8 +60,6 @@ class TSolGEMChamber : public THaDetector {
   TSolGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};
   Int_t InitPlane (const UInt_t i, const char* name, const char* desc);
   void Print (const Bool_t printplanes = kTRUE);
-
-  TSolGEMChamber() : fPlanes(0), fWedge(0) {} // for ROOT RTTI
 
  private:
   TSolGEMPlane** fPlanes; // List of chambers
