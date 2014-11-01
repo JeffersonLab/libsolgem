@@ -483,7 +483,8 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
     //   make a calorimeter hit. This is a crude model for the trigger.
     // - The track propagates without deflection from the last GEM plane
     //   to the front of the emulated calorimeter.
-    // - The measured calorimeter position is independent of the track angle.
+    // - The measured calorimeter position is independent of the incident
+    //   track angle.
     if( fgDoCalo && trk->fNHits == 2*NPLANES ) {
       // Retrieve last MC track point
       assert( GetNMCPoints() == 2*NPLANES );
@@ -492,22 +493,25 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       assert( pt );
       const TVector3& pos = pt->fMCPoint;
       TVector3 dir = pt->fMCP.Unit();
+      if( fgCaloZ <= pos.Z() ) {
+	Error( here, "Calorimeter z = %lf less than z of last GEM plane = %lf. "
+	       "Set correct value with SetCaloZ() or turn off calo emulation.",
+	       fgCaloZ, pos.Z() );
+	return HED_FATAL;
+      }
       if( TMath::Abs(dir.Z()) < 1e-6 ) {
-	Error( "LoadEvent", "Illegal primary track direction (%lf,%lf,%lf). "
+	Error( here, "Illegal primary track direction (%lf,%lf,%lf). "
 	       "Should never happen. Call expert.", dir.X(), dir.Y(), dir.Z() );
 	return HED_ERR;
       }
       dir *= 1.0/dir.Z();  // Make dir a transport vector
-      assert( pos.Z() < fgCaloZ );
       TVector3 hitpos = pos + (fgCaloZ-pos.Z()) * dir;
-      // Rotate hitpos to sector 0. The causes no loss of generality
-      // as long as the sectors are evenly spaced
-      Double_t sector_angle = TMath::TwoPi()*primary_sector/NSECTORS;
-      hitpos.RotateZ(-sector_angle);
 
-      // Encode the raw hit date for the dummy GEM planes.
+      // Encode the raw hit data for the dummy GEM planes.
       // The actual coordinate transformation to u or v takes place in each
       // plane's Decode() where all the required geometry information is at hand.
+      // This bypasses any type of digitization. That should be fine for dummy
+      // planes where we want to inject known lab hit positions into the tracking.
       //
       // Because of the way the detector map is layed out at the moment,
       // we place the calorimeter in fake sector 31, so the data are in two slots
@@ -518,23 +522,20 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       // Currently, there is only ever one hit per channel since there is only
       // one MC track. The hit's raw data are hitpos.X(), the data, hitpos.Y(),
       // each a Float_t value interpreted as Int_t.
-
-      assert( sizeof(Float_t) == sizeof(Int_t) ); // FIXME: check in configure script
       assert( primary_sector == 0 );
 
-      Int_t crate, slot, chan;
       union FloatIntUnion {
 	Float_t f;
 	Int_t   i;
       } datx, daty;
-
-      StripToROC( 0, NSECTORS, kUPlane, primary_sector, crate, slot, chan );
       datx.f = static_cast<Float_t>(hitpos.X());
       daty.f = static_cast<Float_t>(hitpos.Y());
+
+      Int_t crate, slot, chan;
+      StripToROC( 0, NSECTORS, kUPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
 	return HED_ERR;
-
       StripToROC( 0, NSECTORS, kVPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
