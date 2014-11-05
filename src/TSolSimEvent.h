@@ -22,7 +22,7 @@ class TClonesArray;
 //-----------------------------------------------------------------------------
 class TSolSimTrack : public Podd::MCTrack {
 public:
-  TSolSimTrack( Int_t number, Int_t pid, Double_t weight,
+  TSolSimTrack( Int_t number, Int_t pid,
 		const TVector3& vertex, const TVector3& momentum );
   TSolSimTrack();
 
@@ -47,7 +47,7 @@ public:
 
   virtual void Clear( const Option_t* opt="" );
   virtual void Print( const Option_t* opt="" ) const;
-  TSolSimTrack* AddTrack( Int_t number, Int_t pid, Double_t weight,
+  TSolSimTrack* AddTrack( Int_t number, Int_t pid,
 			  const TVector3& vertex, const TVector3& momentum );
 
   Int_t GetNclust()  const { return fGEMClust.size(); }

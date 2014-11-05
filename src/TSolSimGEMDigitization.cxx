@@ -901,7 +901,7 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const gendata* gd = f.GetGenData(i);
     //TODO: get GEANT id?
-    fEvent->AddTrack( i+1, gd->GetPID(), gd->GetWeight(),
+    fEvent->AddTrack( i+1, gd->GetPID(),
 		      gd->GetV()*1e-2, // Vertex coordinates in [m]
 		      gd->GetP()*1e-3  // Momentum in [GeV]
 		      );

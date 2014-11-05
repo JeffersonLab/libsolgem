@@ -335,6 +335,9 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
   event_num = simEvent->fEvtID;
   recent_event = event_num;
 
+  // Event weight
+  fWeight = simEvent->fWeight;
+
   if( fDoBench ) fBench->Begin("physics_decode");
 
   // Decode the digitized strip data.  Populate crateslot array.

@@ -17,9 +17,9 @@
 using namespace std;
 
 //-----------------------------------------------------------------------------
-TSolSimTrack::TSolSimTrack( Int_t number, Int_t pid, Double_t weight,
+TSolSimTrack::TSolSimTrack( Int_t number, Int_t pid,
 			    const TVector3& vertex, const TVector3& momentum )
-  : Podd::MCTrack( number, pid, weight, vertex, momentum )
+  : Podd::MCTrack( number, pid, vertex, momentum )
 {
 }
 
@@ -51,14 +51,14 @@ TSolSimEvent::~TSolSimEvent()
 }
 
 //-----------------------------------------------------------------------------
-TSolSimTrack* TSolSimEvent::AddTrack( Int_t number, Int_t pid, Double_t wght,
+TSolSimTrack* TSolSimEvent::AddTrack( Int_t number, Int_t pid,
 				      const TVector3& vertex,
 				      const TVector3& momentum )
 {
   // Add a physics track with the given parameters
 
   return
-    new( (*fMCTracks)[GetNtracks()] ) TSolSimTrack( number, pid, wght,
+    new( (*fMCTracks)[GetNtracks()] ) TSolSimTrack( number, pid,
 						    vertex, momentum );
 }
 
@@ -163,4 +163,4 @@ void TSolSimEvent::Print( const Option_t* opt ) const
 
 //-----------------------------------------------------------------------------
 ClassImp(TSolSimEvent)
-//ClassImp(TSolSimTrack)
+ClassImp(TSolSimTrack)
