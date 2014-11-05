@@ -104,6 +104,47 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "tr.nfound", "Number of hits found",  "fMCTracks.TSolSimTrack.fNHitsFound" },
     { "tr.flags",  "Reconstruction status", "fMCTracks.TSolSimTrack.fReconFlags" },
 
+    // Results of fit to MC points - measures multiple scattering
+    { "tr.mcfit.r",     "Track x from MC fit [m]",
+                                               "fMCTracks.TSolSimTrack.MCFitR()" },
+    { "tr.mcfit.phi",   "Track phi from MC fit [rad]",
+                                             "fMCTracks.TSolSimTrack.MCFitPhi()" },
+    { "tr.mcfit.thdir", "Track dir theta from MC fit [rad]",
+                                        "fMCTracks.TSolSimTrack.MCFitThetaDir()" },
+    { "tr.mcfit.phdir", "Track x from MC fit [rad]",
+                                          "fMCTracks.TSolSimTrack.MCFitPhiDir()" },
+    { "tr.mcfit.chi2",  "Chi2 of MC fit",
+                                           "fMCTracks.TSolSimTrack.fMCFitPar[4]" },
+    { "tr.mcfit.ndof",  "NDoF of MC fit",
+                                           "fMCTracks.TSolSimTrack.fMCFitPar[5]" },
+    { "tr.mcfit.vx",    "Vertex x from MC fit [m]",
+                                           "fMCTracks.TSolSimTrack.fMCFitPar[6]" },
+    { "tr.mcfit.vy",    "Vertex y from MC fit [m]",
+                                           "fMCTracks.TSolSimTrack.fMCFitPar[7]" },
+    { "tr.mcfit.vz",    "Vertex z from MC fit [m]",
+                                           "fMCTracks.TSolSimTrack.fMCFitPar[8]" },
+
+    // Results of fit to reconstructed MC hits - checks hit resolution effects
+    // independent of track finding
+    { "tr.fit.r",     "Track x from rec hit fit [m]",
+                                               "fMCTracks.TSolSimTrack.RcFitR()" },
+    { "tr.fit.phi",   "Track phi from rec hit fit [rad]",
+                                             "fMCTracks.TSolSimTrack.RcFitPhi()" },
+    { "tr.fit.thdir", "Track dir theta from rec hit fit [rad]",
+                                        "fMCTracks.TSolSimTrack.RcFitThetaDir()" },
+    { "tr.fit.phdir", "Track x from rec hit fit [rad]",
+                                          "fMCTracks.TSolSimTrack.RcFitPhiDir()" },
+    { "tr.fit.chi2",  "Chi2 of rec hit fit",
+                                           "fMCTracks.TSolSimTrack.fRcFitPar[4]" },
+    { "tr.fit.ndof",  "NDoF of rec hit fit",
+                                           "fMCTracks.TSolSimTrack.fRcFitPar[5]" },
+    { "tr.fit.vx",    "Vertex x from rec hit fit [m]",
+                                           "fMCTracks.TSolSimTrack.fRcFitPar[6]" },
+    { "tr.fit.vy",    "Vertex y from rec hit fit [m]",
+                                           "fMCTracks.TSolSimTrack.fRcFitPar[7]" },
+    { "tr.fit.vz",    "Vertex z from rec hit fit [m]",
+                                           "fMCTracks.TSolSimTrack.fRcFitPar[8]" },
+
     // "Back tracks": hits of the primary particle in the first tracker plane
     { "btr.n",     "Number of back tracks",     "GetNBackTracks()" },
     { "btr.pid",   "Track PID (PDG)",           "fBackTracks.TSolSimBackTrack.fPID" },
@@ -432,7 +473,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
     }
   }
 
-  // Sort fMCPoints by type and plane number, then calculate plane-to-plane
+  // Sort fMCPoints by type (u,v) and plane number, then calculate plane-to-plane
   // differences. The following assumes that all points are from the same track
   // (ensured above). If that is no longer so one day, fMCPoints will need to
   // be sorted by track number as well, and the algo below needs to be changed.

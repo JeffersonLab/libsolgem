@@ -11,6 +11,7 @@
 #include "TSolSimEvent.h"
 #include "TClonesArray.h"
 #include "TString.h"
+#include "TMath.h"
 
 #include <iostream>
 
@@ -26,6 +27,47 @@ TSolSimTrack::TSolSimTrack( Int_t number, Int_t pid,
 //-----------------------------------------------------------------------------
 TSolSimTrack::TSolSimTrack() : Podd::MCTrack()
 {
+}
+
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::MCFitR() const
+{
+  return TMath::Sqrt(fMCFitPar[0]*fMCFitPar[0] + fMCFitPar[2]*fMCFitPar[2] );
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::MCFitPhi() const
+{
+  return TVector3( fMCFitPar[0], fMCFitPar[2], 0 ).Phi();
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::MCFitThetaDir() const
+{
+  return TVector3( fMCFitPar[1], fMCFitPar[3], 1.0 ).Theta();
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::MCFitPhiDir() const
+{
+  return TVector3( fMCFitPar[1], fMCFitPar[3], 1.0 ).Phi();
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::RcFitR() const
+{
+  return TMath::Sqrt(fRcFitPar[0]*fRcFitPar[0] + fRcFitPar[2]*fRcFitPar[2] );
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::RcFitPhi() const
+{
+  return TVector3( fRcFitPar[0], fRcFitPar[2], 0 ).Phi();
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::RcFitThetaDir() const
+{
+  return TVector3( fRcFitPar[1], fRcFitPar[3], 1.0 ).Theta();
+}
+//-----------------------------------------------------------------------------
+Double_t TSolSimTrack::RcFitPhiDir() const
+{
+  return TVector3( fRcFitPar[1], fRcFitPar[3], 1.0 ).Phi();
 }
 
 //-----------------------------------------------------------------------------

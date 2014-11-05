@@ -26,6 +26,17 @@ public:
 		const TVector3& vertex, const TVector3& momentum );
   TSolSimTrack();
 
+  // Accessors for SoLID-specific parameters
+  Double_t MCFitR()        const;
+  Double_t MCFitPhi()      const;
+  Double_t MCFitThetaDir() const;
+  Double_t MCFitPhiDir()   const;
+
+  Double_t RcFitR()        const;
+  Double_t RcFitPhi()      const;
+  Double_t RcFitThetaDir() const;
+  Double_t RcFitPhiDir()   const;
+
   ClassDef(TSolSimTrack,3)  // A MC physics track in SoLID
 };
 
