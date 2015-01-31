@@ -140,7 +140,8 @@ class TSolSimDecoder : public Podd::SimDecoder {
 
   // Support for calorimeter emulation. Static functions to allow script access
   static void     EmulateCalorimeter( Bool_t f = true ) { fgDoCalo = f; }
-  static void     SetCaloZ( Double_t z ) { fgCaloZ = z; }
+  static void     SetCaloZ( Double_t z )     { fgCaloZ   = z; }
+  static void     SetCaloRes( Double_t res ) { fgCaloRes = res; }
 
 protected:
   typedef std::map<Int_t,Int_t> StripMap_t;
@@ -156,6 +157,7 @@ protected:
   // Calorimeter emulation
   static Bool_t   fgDoCalo;    // Enable calorimeter emulation
   static Double_t fgCaloZ;     // z position of emulated calorimeter
+  static Double_t fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m)
 
   Int_t DoLoadEvent( const UInt_t* evbuffer );
 

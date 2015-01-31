@@ -21,6 +21,7 @@
 #include "TSystem.h"
 #include "TMath.h"
 #include "TDatabasePDG.h"
+#include "TRandom.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -49,8 +50,9 @@ typedef vector<int>::size_type vsiz_t;
 // script via TSolSimDecoder::SetZ0()
 Double_t TSolSimDecoder::fgZ0 = 1.571913;
 
-Double_t TSolSimDecoder::fgCaloZ  = 0.32;
 Bool_t   TSolSimDecoder::fgDoCalo = false;
+Double_t TSolSimDecoder::fgCaloZ  = 0.32;
+Double_t TSolSimDecoder::fgCaloRes  = 0.01;
 
 //-----------------------------------------------------------------------------
 TSolSimDecoder::TSolSimDecoder()
@@ -550,6 +552,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
       }
       dir *= 1.0/dir.Z();  // Make dir a transport vector
       TVector3 hitpos = pos + (fgCaloZ-pos.Z()) * dir;
+
+      // Smear the position with the given resolution
+      // Assumes z-axis normal to calorimeter plane. Otherwise we would have to
+      // get the plane's fXax and fYax
+      TVector3 res( gRandom->Gaus(0.0, fgCaloRes),
+		    gRandom->Gaus(0.0, fgCaloRes), 0.0 );
+      hitpos += res;
 
       // Encode the raw hit data for the dummy GEM planes.
       // The actual coordinate transformation to u or v takes place in each
