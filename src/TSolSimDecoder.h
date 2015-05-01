@@ -133,7 +133,7 @@ class TSolSimDecoder : public Podd::SimDecoder {
   }
 
   // Workaround for fubar THaEvData
-  static Int_t GetMAXSLOT() { return MAXSLOT; }
+  static Int_t GetMAXSLOT() { return Decoder::MAXSLOT; }
 
   static void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
   static Double_t GetZ0() { return fgZ0; }
