@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "THaApparatus.h"
 #include "TSolGEMChamber.h"
 #include "TSolGEMPlane.h"
 #include "THaEvData.h"
@@ -131,7 +132,7 @@ TSolGEMChamber::Print (const Bool_t printplanes)
        << "," << o.Phi()*TMath::RadToDeg() << ")"
        << endl;
 
-  const Float_t* s = GetSize();
+  const Double_t* s = GetSize();
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
   cout << "  Wedge geometry: r0: " << fWedge->GetR0()

@@ -135,7 +135,7 @@ void TSolSimDecoder::Clear( Option_t* opt )
 }
 
 //-----------------------------------------------------------------------------
-int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
+int TSolSimDecoder::LoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* map)
 {
   // Wrapper around DoLoadEvent so we can conveniently stop the benchmark
   // counter in case of errors
@@ -148,7 +148,7 @@ int TSolSimDecoder::LoadEvent(const int* evbuffer, THaCrateMap* map)
 }
 
 //-----------------------------------------------------------------------------
-int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
+int TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer, Decoder::THaCrateMap* map)
 {
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
 
@@ -197,7 +197,7 @@ int TSolSimDecoder::DoLoadEvent(const int* evbuffer, THaCrateMap* map)
     const int NPROJ = 2, CHAN_PER_SLOT = 1500;
     const int modules_per_readout = 1;
     const int modules_per_chamber = NPROJ*modules_per_readout;
-    const int chambers_per_crate = (MAXSLOT/modules_per_chamber/NPLANES)*NPLANES;
+    const int chambers_per_crate = (Decoder::MAXSLOT/modules_per_chamber/NPLANES)*NPLANES;
     div_t d = div( s.fChan, CHAN_PER_SLOT );
     Int_t module = d.quot;
     Int_t chan   = d.rem;

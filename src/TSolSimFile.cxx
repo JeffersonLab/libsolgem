@@ -194,11 +194,11 @@ Int_t TSolSimFile::ReadEvent()
 }
 
 //-----------------------------------------------------------------------------
-const Int_t *TSolSimFile::GetEvBuffer() const
+const UInt_t *TSolSimFile::GetEvBuffer() const
 {
   if( !IsOpen() ) return 0;
 
-  return reinterpret_cast<Int_t*>(fEvent);
+  return reinterpret_cast<UInt_t*>(fEvent);
 }
 
 //-----------------------------------------------------------------------------
