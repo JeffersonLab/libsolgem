@@ -23,7 +23,8 @@ endif
 # EVIO
 
 PLATFORM = $(shell uname -s)-$(shell uname -i)
-# EVIO default location, as a last resort if $EVIO isn't set in build env
+# EVIO default locations as a last resort if $EVIO isn't set in build env
+EVIO ?= $(CODA)
 EVIO ?= ../libevio
 # Possible EVIO header directories, will be used in the order found
 EVIOINC := $(wildcard $(addprefix $(EVIO)/, include src/libsrc src/libsrc++))
