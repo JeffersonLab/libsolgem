@@ -7,6 +7,7 @@
 #include "TSolWedge.h"
 #include "THaEvData.h"
 #include "TMath.h"
+#include "ha_compiledata.h"
 
 #include <iostream>
 #include <cassert>
@@ -277,7 +278,11 @@ TSolGEMPlane::Print() const
        << "," << o.Phi()*TMath::RadToDeg() << ")"
        << endl;
 
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
   const Double_t* s = GetSize();
+#else
+  const Float_t* s = GetSize();
+#endif
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
   cout << "  Wedge geometry: r0: " << fWedge->GetR0()

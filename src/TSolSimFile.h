@@ -13,6 +13,7 @@
 
 #include "THaRunBase.h"
 #include "TString.h"
+#include "ha_compiledata.h"
 
 class TFile;
 class TTree;
@@ -32,7 +33,11 @@ class TSolSimFile : public THaRunBase {
 
   Int_t         Close();
   virtual Int_t Compare( const TObject* obj ) const;
+#if ANALYZER_VERSION_CODE >= 67072  // ANALYZER_VERSION(1,6,0)
   const UInt_t* GetEvBuffer() const;
+#else
+  const  Int_t* GetEvBuffer() const;
+#endif
   Int_t         Init();
   const char*   GetFileName() const { return fROOTFileName.Data(); }
   Int_t         Open();

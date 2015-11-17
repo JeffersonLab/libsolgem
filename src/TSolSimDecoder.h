@@ -9,6 +9,7 @@
 
 #include "SimDecoder.h"
 #include "TSolSimEvent.h"
+#include "ha_compiledata.h"
 #include <cassert>
 #include <map>
 
@@ -62,7 +63,7 @@ class TSolSimBackTrack : public TObject {
 public:
   TSolSimBackTrack() {}
   TSolSimBackTrack( const TSolSimEvent::GEMCluster& cl );
-  
+
   Double_t X()         const { return fOrigin.X(); }
   Double_t Y()         const { return fOrigin.Y(); }
   Double_t P()         const { return fMomentum.Mag(); }
@@ -113,7 +114,11 @@ class TSolSimDecoder : public Podd::SimDecoder {
   TSolSimDecoder();
   virtual ~TSolSimDecoder();
 
+#if ANALYZER_VERSION_CODE >= 67072 // ANALYZER_VERSION(1,6,0)
   virtual Int_t LoadEvent( const UInt_t* evbuffer );
+#else
+  virtual Int_t LoadEvent( const Int_t* evbuffer );
+#endif
   virtual void  Clear( Option_t* opt="" );
   virtual Int_t DefineVariables( THaAnalysisObject::EMode mode =
 				 THaAnalysisObject::kDefine );
@@ -133,7 +138,11 @@ class TSolSimDecoder : public Podd::SimDecoder {
   }
 
   // Workaround for fubar THaEvData
+#if ANALYZER_VERSION_CODE >= 67072  // ANALYZER_VERSION(1,6,0)
   static Int_t GetMAXSLOT() { return Decoder::MAXSLOT; }
+#else
+  static Int_t GetMAXSLOT() { return MAXSLOT; }
+#endif
 
   static void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
   static Double_t GetZ0() { return fgZ0; }
@@ -159,10 +168,14 @@ protected:
   static Double_t fgCaloZ;     // z position of emulated calorimeter
   static Double_t fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m)
 
+#if ANALYZER_VERSION_CODE >= 67072  // ANALYZER_VERSION(1,6,0)
   Int_t DoLoadEvent( const UInt_t* evbuffer );
+#else
+  Int_t DoLoadEvent( const Int_t* evbuffer );
+#endif
 
   // void  StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj, Int_t s_chan,
-  // 		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
+  //		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
   Int_t StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const;
   // Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
 

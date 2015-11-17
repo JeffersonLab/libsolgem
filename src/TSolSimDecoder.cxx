@@ -217,7 +217,11 @@ void TSolSimDecoder::Clear( Option_t* opt )
 }
 
 //-----------------------------------------------------------------------------
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
 int TSolSimDecoder::LoadEvent(const UInt_t* evbuffer )
+#else
+int TSolSimDecoder::LoadEvent(const Int_t* evbuffer )
+#endif
 {
   // Wrapper around DoLoadEvent so we can conveniently stop the benchmark
   // counter in case of errors
@@ -340,12 +344,19 @@ static inline Int_t NumberOfSetBits( UInt_t v )
 }
 
 //-----------------------------------------------------------------------------
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
 Int_t TSolSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
+#else
+Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
+#endif
 {
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
 
   static const char* const here = "TSolSimDecoder::LoadEvent";
 
+#if ANALYZER_VERSION_CODE < ANALYZER_VERSION(1,6,0)
+  Bool_t fNeedInit = fgNeedInit;
+#endif
   assert( fMap || fNeedInit );
 
   // Local copy of evbuffer pointer, used in GetMCHitInfo

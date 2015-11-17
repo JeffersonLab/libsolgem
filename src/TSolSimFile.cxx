@@ -194,11 +194,19 @@ Int_t TSolSimFile::ReadEvent()
 }
 
 //-----------------------------------------------------------------------------
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
 const UInt_t *TSolSimFile::GetEvBuffer() const
+#else
+const  Int_t *TSolSimFile::GetEvBuffer() const
+#endif
 {
   if( !IsOpen() ) return 0;
 
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
   return reinterpret_cast<UInt_t*>(fEvent);
+#else
+  return reinterpret_cast<Int_t*>(fEvent);
+#endif
 }
 
 //-----------------------------------------------------------------------------
