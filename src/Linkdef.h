@@ -18,7 +18,9 @@
 #pragma link C++ defined_in "src/TSolWedge.h";
 #pragma link C++ defined_in "src/TSolSimEvent.h";
 #pragma link C++ defined_in "src/TSolSimFile.h";
+#pragma link C++ defined_in "src/TSolSimG4SBSFile.h";
 #pragma link C++ defined_in "src/TSolSimDecoder.h";
+#pragma link C++ defined_in "src/g4sbs_gep_tree_with_spin.h";
 
 // Limited stuff in EVIO file.  We don't want to be
 // able to call the evio functions in the interpreter
