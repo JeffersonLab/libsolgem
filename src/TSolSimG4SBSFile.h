@@ -89,47 +89,56 @@ class g4sbsgendata : public g4sbshitdata {
 
 class TSolSimG4SBSFile {
 
-    public:
-	TSolSimG4SBSFile();
-	TSolSimG4SBSFile( const char *name );
-	virtual ~TSolSimG4SBSFile();
-
-	void  SetFilename( const char *name );
-        void  SetSource( Int_t i ) { fSource = i; }
-	void  Clear();
-	Int_t Open();
-	Int_t Close();
-
-	const char* GetFileName() const { return fFilename; }
-        Int_t GetSource() const { return fSource; }
-	Int_t ReadNextEvent();
-	/* void  ExtractDetIDs( evio::evioDOMNodeList *, int );// to be replaced */
-	/* void  BuildData( evio::evioDOMNodeList * );// to be replaced */
-	/* void  BuildGenerated( evio::evioDOMNodeList * );// to be replaced */
-	//	void  AddDatum(int crate, int slot, int chan, double data );
-
-	UInt_t GetNData() const { return fg4sbsHitData.size(); }
-	UInt_t GetNGen() const { return fg4sbsGenData.size(); }
-
-	UInt_t GetEvNum() const { return fEvNum; }
-	
-	g4sbshitdata *GetHitData(Int_t i) const { return fg4sbsHitData[i]; }
-	g4sbsgendata *GetGenData(Int_t i) const { return fg4sbsGenData[i]; }
-
-	TSolGEMData *GetGEMData();
-        void GetGEMData(TSolGEMData* gd);
-
-    private:
-	char  fFilename[255];
-	TFile *fFile;
-	//TChain *fChain;
-	g4sbs_gep_tree_with_spin *fTree;
-	Int_t fSource;   // User-defined source ID (e.g. MC run number)
-
-	vector<g4sbshitdata *> fg4sbsHitData;
-	vector<g4sbsgendata *> fg4sbsGenData;
-
-	unsigned int fEvNum;
+ public:
+  TSolSimG4SBSFile();//default constructor
+  TSolSimG4SBSFile( const char *name );//constructor with input file name: recommanded
+  virtual ~TSolSimG4SBSFile();//default destructor
+  
+  //standard getters and setters
+  void  SetFilename( const char *name );
+  void  SetSource( Int_t i ) { fSource = i; }
+  void  Clear();
+  Int_t Open();
+  Int_t Close();
+  
+  const char* GetFileName() const { return fFilename; }
+  Int_t GetSource() const { return fSource; }
+  
+  // This is actually where the data is read: 
+  // perhaps need additional functions to do the job
+  Int_t ReadNextEvent();
+  
+  /* void  ExtractDetIDs( evio::evioDOMNodeList *, int );// to be replaced */
+  /* void  BuildData( evio::evioDOMNodeList * );// to be replaced */
+  /* void  BuildGenerated( evio::evioDOMNodeList * );// to be replaced */
+  // void  AddDatum(int crate, int slot, int chan, double data );
+  
+  //return the size of the hit arrays
+  UInt_t GetNData() const { return fg4sbsHitData.size(); }
+  UInt_t GetNGen() const { return fg4sbsGenData.size(); }
+  
+  UInt_t GetEvNum() const { return fEvNum; }
+  
+  //get one hit from the hit data arrays
+  g4sbshitdata *GetHitData(Int_t i) const { return fg4sbsHitData[i]; }
+  g4sbsgendata *GetGenData(Int_t i) const { return fg4sbsGenData[i]; }
+  
+  //get GEM data
+  TSolGEMData *GetGEMData();
+  void GetGEMData(TSolGEMData* gd);
+  
+ private:
+  char  fFilename[255];
+  TFile *fFile;
+  //TChain *fChain;
+  g4sbs_gep_tree_with_spin *fTree;// needed to easily unfold root file data
+  Int_t fSource;   // User-defined source ID (e.g. MC run number)
+  
+  //hit data arrays
+  vector<g4sbshitdata *> fg4sbsHitData;
+  vector<g4sbsgendata *> fg4sbsGenData;
+  
+  unsigned int fEvNum;// global event incrementer
 };
 
 

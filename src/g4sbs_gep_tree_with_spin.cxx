@@ -4,7 +4,8 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
-
+// g4sbs_gep_tree_with_spin constructor: the tree will be the 
+// the boolean is a flag to consider(true) or ignore(false) the ECal_box and HCal_box data
 g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
@@ -20,12 +21,14 @@ g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox) : 
    Init(tree);
 }
 
+//default destructor
 g4sbs_gep_tree_with_spin::~g4sbs_gep_tree_with_spin()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
+//overload of the TTree::GetEntry(Long64_t) function
 Int_t g4sbs_gep_tree_with_spin::GetEntry(Long64_t entry)
 {
 // Read contents of entry.

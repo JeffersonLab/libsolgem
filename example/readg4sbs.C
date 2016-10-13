@@ -33,13 +33,13 @@ void readg4sbs(){
       //if(f->GetEvNum()%1000==0)
       printf("Event %d\n", f->GetEvNum());
       
-      //break;
       gd = f->GetGEMData();
       
       printf("ndata = %d\n", (int) gd->GetNHit() );
       ndata = gd->GetNHit();
+      
       for( i = 0; i < ndata; i++ ){
-	gd->PrintHit(i);
+      	gd->PrintHit(i);
       }
       printf("\n");
     }

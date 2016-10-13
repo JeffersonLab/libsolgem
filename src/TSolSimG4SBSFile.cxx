@@ -87,7 +87,8 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
     }
 
     Clear();
-
+    
+    int n_hits = 0;
     bool res = false;
     
     //cout << fEvNum << endl;
@@ -182,7 +183,7 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
       fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
 
       for(int j = 0; j<23; j++){
-	fg4sbsHitData[i]->SetData(j, hit_data_temp[j]);
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       
       gen_data_temp[0] = pid;
@@ -195,11 +196,11 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
       fg4sbsGenData.push_back(new g4sbsgendata());
       
       for(int j = 0; j<8; j++){
-	fg4sbsGenData[i]->SetData(j, gen_data_temp[j]);
+	fg4sbsGenData[n_hits]->SetData(j, gen_data_temp[j]);
       }
+      n_hits++;
       
-      
-      //#ifdef  DEBUG
+#ifdef  DEBUG
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (eV): " << edep << endl;
@@ -231,7 +232,7 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
 	cout << Vtx[k] << ", ";
       }
       cout << endl;
-      //#endif//DEBUG
+#endif//DEBUG
     }
     
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
@@ -287,7 +288,7 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
       fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
 
       for(int j = 0; j<23; j++){
-	fg4sbsHitData[i]->SetData(j, hit_data_temp[j]);
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       
       gen_data_temp[0] = pid;
@@ -300,8 +301,9 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
       fg4sbsGenData.push_back(new g4sbsgendata());
       
       for(int j = 0; j<8; j++){
-	fg4sbsGenData[i]->SetData(j, gen_data_temp[j]);
+	fg4sbsGenData[n_hits]->SetData(j, gen_data_temp[j]);
       }
+      n_hits++;
       
 #ifdef DEBUG
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
@@ -407,7 +409,7 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
       fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
       
       for(int j = 0; j<23; j++){
-	fg4sbsHitData[i]->SetData(j, hit_data_temp[j]);
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       
       gen_data_temp[0] = pid;
@@ -420,8 +422,9 @@ Int_t TSolSimG4SBSFile::ReadNextEvent(){
       fg4sbsGenData.push_back(new g4sbsgendata());
       
       for(int j = 0; j<8; j++){
-	fg4sbsGenData[i]->SetData(j, gen_data_temp[j]);
+	fg4sbsGenData[n_hits]->SetData(j, gen_data_temp[j]);
       }
+      n_hits++;
       
 #ifdef  DEBUG
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
@@ -522,10 +525,11 @@ void TSolSimG4SBSFile::GetGEMData(TSolGEMData* gd)
       h = GetHitData(i);
 
       if( h->GetData(1)>0.0 ){
+	
 	// Chamber IDs are tagged as 
-	// xxxyy  where xxx is the chamber num and yy is the 
-	// plane num  we find the drift planes and then
-	// match them to the corresponding readout hits
+	// xy  where x is the det id (0 for FT, 1 for FPPs) y the plane number, 
+	// labeled from 0 to 9 instead of 1 to 10, for convenience reasons:
+	// FT: chambers 0-5, FPPs: chambers 10-19
 	
 	//if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
 	// Vector information
@@ -552,8 +556,7 @@ void TSolSimG4SBSFile::GetGEMData(TSolGEMData* gd)
 	gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
 	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
 	
-	// Chamber ID starts indexing a 0 whereas we start conventionally at 1 
-	gd->SetHitChamber(ngdata, h->GetData(0));
+	gd->SetHitChamber(ngdata,  h->GetDetID()*10+h->GetData(0)-1);
 	
 	ngdata++;
       }
