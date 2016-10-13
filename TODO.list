@@ -1,0 +1,41 @@
+TO-DO list for GEP tracking at 12 GeV2, with realistic background levels.
+Do not hesitate to update and complete, if needed, this list.
+
+
+> - Modify/rewrite libsolgem for Cartesian geometry
+ => TO-DO
+
+> - Modify libsolgem to take input from SBS simulation output. The SoLID
+> simulations produced EVIO files; I understand that g4sbs writes ROOT
+> files. The format/data fields will differ regardless.
+ => DONE
+
+> - Modify TSolSimEvent and TSolSimDecoder data structures for SBS, if
+> necessary. (Might be ok, but could be optimized.)
+ => TO-DO
+
+> - Modify TSolSimDecoder to understand the SBS geometry.
+ => TO-DO
+
+> - Write databases for libsolgem (now libsbsgem?) TSolSimDecoder (cratemap)
+ => TO-DO
+
+> - Write a database for TreeSearch-GEM matching the one used for the
+simulation and the digitization. For SoLID, I wrote a special program
+called dbconvert to do this: it can be found in the TreeSearch repo on
+the SoLID branch. Obviously, it assumes a cylindrical geometry.
+ => TO-DO
+
+
+
+> - Analysis code for the second arm of the SBS experiment(s) to be
+> studied, e.g. the CD/ECAL combination.
+ => TO-DO
+
+> - Code (special analyzer?) to perform the kinematic correlation analysis
+> between electron and proton arm, defining a region of interest
+ => TO-DO
+
+> - Code to import the region of interest from the previous calculation
+> into TreeSearch.
+ => TO-DO

@@ -7,6 +7,7 @@
 #include "TClonesArray.h"
 
 #include "TSolEVIOFile.h"  // needed for gendata class def
+#include "TSolSimG4SBSFile.h"  // needed for gendata class def
 #include "TSolGEMData.h"
 #include "TSolGEMVStrip.h"
 #include "TSolSpec.h"
@@ -900,6 +901,31 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const gendata* gd = f.GetGenData(i);
+    //TODO: get GEANT id?
+    fEvent->AddTrack( i+1, gd->GetPID(),
+		      gd->GetV()*1e-2, // Vertex coordinates in [m]
+		      gd->GetP()*1e-3  // Momentum in [GeV]
+		      );
+  }
+  // FIXME: either only one GenData per event, or multiple weights per event
+  if( f.GetNGen() > 0 )
+    fEvent->fWeight = f.GetGenData(0)->GetWeight();
+
+  fEvent->fSectorsMapped = fDoMapSector;
+  fEvent->fSignalSector = fSignalSector;
+}
+
+void
+TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
+				      const TSolSimG4SBSFile& f, Int_t evnum )
+{
+  // Set overall event info.
+  fEvent->Clear("all");
+  fEvent->fRunID = tsgd.GetRun();
+  // FIXME: still makes sense if background added?
+  fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
+  for( UInt_t i=0; i<f.GetNGen(); ++i ) {
+    const g4sbsgendata* gd = f.GetGenData(i);
     //TODO: get GEANT id?
     fEvent->AddTrack( i+1, gd->GetPID(),
 		      gd->GetV()*1e-2, // Vertex coordinates in [m]

@@ -19,6 +19,7 @@ class TSolGEMVStrip;
 class TSolSpec;
 class TSolSimEvent;
 class TSolEVIOFile;
+class TSolSimG4SBSFile;
 
 // First an auxiliary class
 
@@ -105,6 +106,10 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   void InitTree (const TSolSpec& spect, const TString& ofile);
   void SetTreeEvent (const TSolGEMData& tsgd,
 		     const TSolEVIOFile& f,
+		     Int_t evnum = -1);
+  //dpulication of the SetTreeEvent routine with G4SBS file input instead of EVIO file
+  void SetTreeEvent (const TSolGEMData& tsgd,
+		     const TSolSimG4SBSFile& f,
 		     Int_t evnum = -1);
   Short_t SetTreeHit (const UInt_t ih,
 		      const TSolSpec& spect,
