@@ -49,15 +49,15 @@ enum EProjType { kUPlane = 0, kVPlane };
 typedef vector<int>::size_type vsiz_t;
 
 //-----------------------------------------------------------------------------
-TSolSimDecoder::TSolSimDecoder()
+TSolSimDecoder::TSolSimDecoder(const char* filedbpath)
 {
   // Constructor
 
   fMCHits     = new TClonesArray( "TSolSimGEMHit",    200 );
   fMCTracks   = new TClonesArray( "TSolSimTrack",       1 );
   fBackTracks = new TClonesArray( "TSolSimBackTrack",   5 );
-
-  InitGeomParam("../db/db_sbsgemgeom.dat");
+  
+  InitGeomParam(filedbpath);
   DefineVariables();
 
   gSystem->Load("libEG.so");  // for TDatabasePDG

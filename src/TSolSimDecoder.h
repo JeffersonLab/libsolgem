@@ -111,7 +111,7 @@ private:
 // SoLID simulation decoder class
 class TSolSimDecoder : public Podd::SimDecoder {
  public:
-  TSolSimDecoder();
+  TSolSimDecoder(const char* filedbpath = "");
   virtual ~TSolSimDecoder();
   
   void InitGeomParam(const char* dbpath);
