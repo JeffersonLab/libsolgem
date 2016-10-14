@@ -113,7 +113,9 @@ class TSolSimDecoder : public Podd::SimDecoder {
  public:
   TSolSimDecoder();
   virtual ~TSolSimDecoder();
-
+  
+  void InitGeomParam(const char* dbpath);
+  
 #if ANALYZER_VERSION_CODE >= 67072 // ANALYZER_VERSION(1,6,0)
   virtual Int_t LoadEvent( const UInt_t* evbuffer );
 #else

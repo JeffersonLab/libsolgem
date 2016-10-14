@@ -1,0 +1,10 @@
+NSECTORS:              30
+NPLANES:                5
+NPROJ:                  2
+CHAN_PER_SLOT:       1500
+modules_per_readout:    1
+
+gZ0:                    1.571913
+gDoCalo:                0
+gCaloZ:                 0.32
+gCaloRes:               0.01
