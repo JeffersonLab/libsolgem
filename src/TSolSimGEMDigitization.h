@@ -80,9 +80,11 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 {
  public:
   TSolSimGEMDigitization( const TSolSpec& spect,
-			  const char* name = "testdigitization");
+			  const char* name = "testdigitization",
+			  const char* dbpathfile = "");
   virtual ~TSolSimGEMDigitization();
 
+  void InitGeomParam(const char* dbpath);
   void Initialize(const TSolSpec& spect);
   Int_t ReadDatabase (const TDatime& date);
 

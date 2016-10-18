@@ -43,4 +43,6 @@ void readg4sbs(){
       }
       printf("\n");
     }
+    
+
 }

@@ -46,6 +46,12 @@ static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
 enum EProjType { kUPlane = 0, kVPlane };
 
+Double_t TSolSimDecoder::fgZ0 = 1.571913;
+
+Bool_t   TSolSimDecoder::fgDoCalo = false;
+Double_t TSolSimDecoder::fgCaloZ  = 0.32;
+Double_t TSolSimDecoder::fgCaloRes  = 0.01;
+
 typedef vector<int>::size_type vsiz_t;
 
 //-----------------------------------------------------------------------------
@@ -104,7 +110,7 @@ void TSolSimDecoder::InitGeomParam(const char* dbpath) {
     in >> fmodules_per_readout;
     fmodules_per_chamber = fNPROJ*fmodules_per_readout;
     fchambers_per_crate = (GetMAXSLOT()/fmodules_per_chamber/fNPLANES)*fNPLANES;
-    
+
     in.ignore(100,':');
     in >> fgZ0;
     in.ignore(100,':');
@@ -112,10 +118,22 @@ void TSolSimDecoder::InitGeomParam(const char* dbpath) {
     in.ignore(100,':');
     in >> fgCaloZ;
     in.ignore(100,':');
-    in >> fgCaloZ;
+    in >> fgCaloRes;
+    
+    Float_t dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
   }
   
+  // cout << fNSECTORS << " " << fNPLANES << " " << fNPROJ << " " << fCHAN_PER_SLOT << " "
+  // 	 << fmodules_per_readout << "; " << endl;
+  //   << fgZ0 << " " << fgDoCalo << " " << fgCaloZ << " " << fgCaloRes << endl;
   
+  in.close();
 }
 
 //-----------------------------------------------------------------------------

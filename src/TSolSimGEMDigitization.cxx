@@ -19,6 +19,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
@@ -28,10 +29,10 @@
 using namespace std;
 
 // Misc. parameters/constants, some of which should probably be in database
-static const UInt_t   NSECTORS = 30;
-static const UInt_t   kYIntegralStepsPerPitch = 10;
-static const Double_t kSNormNsigma = 3.0;
-static const UInt_t   MAX_IONS = 200;
+static UInt_t   fNSECTORS;
+static UInt_t   kYIntegralStepsPerPitch;
+static Double_t kSNormNsigma;
+static UInt_t   fMAX_IONS;
 
 // Chamber number -> sector/plane helper functions
 
@@ -46,7 +47,7 @@ static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
   // ich = is + nsectors*ipl (is = sector, ipl = plane).
   // The number of sectors is implied to be 30.
 
-  div_t d = div( chamber, NSECTORS );
+  div_t d = div( chamber, fNSECTORS );
   sector = d.rem;
   plane  = d.quot;
 }
@@ -56,7 +57,7 @@ static UInt_t MapSector( UInt_t chamber )
 {
   // Convert the true chamber index to one with sector = 0
 
-  return NSECTORS * UInt_t(chamber/NSECTORS);
+  return fNSECTORS * UInt_t(chamber/fNSECTORS);
 }
 
 // Auxiliary class
@@ -157,15 +158,63 @@ TSolDigitizedPlane::Threshold( Int_t thr )
 
 
 TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
-						const char* name )
+						const char* name,
+						const char* dbpathfile)
   : THaAnalysisObject(name, "GEM simulation digitizer"),
     fDoMapSector(false), fSignalSector(0), fDP(0), fNChambers(0), fNPlanes(0),
-    fRNIon(0), fRIon(MAX_IONS), fOFile(0), fOTree(0), fEvent(0)
+    fRNIon(0), fRIon(fMAX_IONS), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
   Initialize (spect);
+  InitGeomParam(dbpathfile);
 
   fEvent = new TSolSimEvent(5);
+}
+
+//-----------------------------------------------------------------------------
+// method to fill
+void TSolSimGEMDigitization::InitGeomParam(const char* dbpath) {
+  ifstream in(dbpath);
+  if(!in.is_open()){
+    printf("may not read geometry database at %s\n", dbpath);
+    printf("using solid default params");
+    
+    fNSECTORS = 30;
+    kYIntegralStepsPerPitch = 10;
+    kSNormNsigma = 3.0;
+    fMAX_IONS = 200;
+    
+  }else{
+    Float_t dummy;
+    in.ignore(100,':');
+    in >> fNSECTORS;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    in.ignore(100,':');
+    in >> dummy;
+    
+    in.ignore(100,':');
+    in >> kYIntegralStepsPerPitch;
+    in.ignore(100,':');
+    in >> kSNormNsigma;
+    in.ignore(100,':');
+    in >> fMAX_IONS;
+  }
+  
+  in.close();
 }
 
 
@@ -310,8 +359,8 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
 	Double_t ph = trk->PPhi();
 	// Assumes phi doesn't change between vertex and GEMs (no field) and the
 	// nominal angle (i.e. without offset) of sector 0 is 0 degrees
-	fSignalSector = TMath::FloorNint(ph*NSECTORS/TMath::TwoPi() + 0.5);
-	if( fSignalSector < 0 ) fSignalSector += NSECTORS;
+	fSignalSector = TMath::FloorNint(ph*fNSECTORS/TMath::TwoPi() + 0.5);
+	if( fSignalSector < 0 ) fSignalSector += fNSECTORS;
       } else
 	Error("Digitize", "Null track pointer? Should never happen. Call expert.");
     }
@@ -322,7 +371,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
   bool map_backgr = fDoMapSector && is_background;
 
   // Randomize the event time for background events
-  UInt_t vsize = ( map_backgr ) ? NSECTORS : 1;
+  UInt_t vsize = ( map_backgr ) ? fNSECTORS : 1;
   vector<Float_t> event_time(vsize);
   vector<bool> time_set(vsize,false);
   UInt_t itime = 0;
@@ -457,12 +506,12 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
 #if DBG_ION > 0
   cout << "E lost = " << elost << ", " << fRNIon << " ions";
 #endif
-  if (fRNIon > MAX_IONS) {
+  if (fRNIon > fMAX_IONS) {
 #if DBG_ION > 0
     cout << __FUNCTION__ << ": WARNING: too many primary ions " << fRNIon << " limit to "
-	 << MAX_IONS << endl;
+	 << fMAX_IONS << endl;
 #endif
-    fRNIon = MAX_IONS;
+    fRNIon = fMAX_IONS;
   }
 
   fRSMax = 0.;
@@ -968,7 +1017,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // the origin of first plane of the sector, but rotated by the nominal
   // (non-offset) sector angle.
   // NB: assumes even sector spacing, clockwise numbering and sector 0 at 0 deg
-  Double_t sector_angle = TMath::TwoPi()*clust.fSector/NSECTORS;
+  Double_t sector_angle = TMath::TwoPi()*clust.fSector/fNSECTORS;
   clust.fHitpos = clust.fMCpos - spect.GetChamber(clust.fSector).GetOrigin();
   clust.fHitpos.RotateZ(-sector_angle);
 
@@ -1007,10 +1056,10 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
     // the secondaries, though!)
     Double_t rot;
     if( clust.fSource == 0 ) {
-      rot = -TMath::TwoPi()*fSignalSector/NSECTORS;
+      rot = -TMath::TwoPi()*fSignalSector/fNSECTORS;
       clust.fSector -= fSignalSector;
       if( clust.fSector < 0 )
-	clust.fSector += NSECTORS;
+	clust.fSector += fNSECTORS;
     }
     else {
       // All background hits are mapped into sector 0

@@ -4,7 +4,7 @@ testdigitization.gasionwidth = 26.  # ev
 testdigitization.gasdiffusion = 25000.  # mm2/s
 testdigitization.gasdriftvelocity = 5.5e7 # mm/s
 testdigitization.avalanchefiducialband = 10.0 # n sigma
-testdigitization.avalanchechargestatatistics = 0 # 0 Furry, 1 Gaussian
+testdigitization.avalanchechargestatistics = 0 # 0 Furry, 1 Gaussian
 testdigitization.gainmean = 8000.0
 testdigitization.gain0 = 20.0
 # Electronics parameters:
@@ -20,3 +20,4 @@ testdigitization.gatewidth = 100.
 # Pulse shaping parameters:
 testdigitization.pulseshapetau0 = 38.3 # ns
 testdigitization.pulseshapetau1 = 129. #ns
+testdigitization.zrout = 9.185 #mm

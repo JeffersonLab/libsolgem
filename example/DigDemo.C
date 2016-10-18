@@ -1,10 +1,12 @@
-TSolSpec* dds;
-TSolGEMChamber* ddy;
-TSolSimGEMDigitization* ddd;
-TSolGEMData* ddgd;
-
 void DigDemo()
 {
+  gSystem->Load("../libsolgem.so");
+  
+  TSolSpec* dds;
+  TSolGEMChamber* ddy;
+  TSolSimGEMDigitization* ddd;
+  TSolGEMData* ddgd;
+  
   dds = new TSolSpec ("spectrometer", "SOLiD spectrometer");
   dds->Init();
 

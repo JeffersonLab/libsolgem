@@ -16,32 +16,33 @@ void DigDemo2(){
     dds = new TSolSpec ("spectrometer", "SOLiD spectrometer");
     dds->Init();
 
-    ddy = new TSolGEMChamber ("gemccham1","Test chamber");
+    ddy = new TSolGEMChamber ("gemccham1","Test chamber 1");
     ddy->Init();
-    dds->AddGEM (*ddy);
+    dds->AddGEM (ddy);
 
     printf("\n");
 
-    ddy = new TSolGEMChamber ("gemccham2","Test chamber");
+    ddy = new TSolGEMChamber ("gemccham2","Test chamber 2");
     ddy->Init();
-    dds->AddGEM (*ddy);
+    dds->AddGEM (ddy);
 
     printf("\n");
 
-    ddy = new TSolGEMChamber ("gemccham3","Test chamber");
+    ddy = new TSolGEMChamber ("gemccham3","Test chamber 3");
     ddy->Init();
-    dds->AddGEM (*ddy);
+    dds->AddGEM (ddy);
 
     printf("\n");
 
-    ddy = new TSolGEMChamber ("gemccham4","Test chamber");
+    ddy = new TSolGEMChamber ("gemccham4","Test chamber 4");
     ddy->Init();
-    dds->AddGEM (*ddy);
+    dds->AddGEM (ddy);
 
     dds->Print();
 
+    //ddd = new TSolSimGEMDigitization (*dds,"testdigitization","../db/db_solgemgeom.dat");
     ddd = new TSolSimGEMDigitization (*dds);
-
+    
     ////////////////////////////////////////////////////////////////
 
     TSolEVIOFile *f = new TSolEVIOFile("testgem.ev");
