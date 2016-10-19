@@ -1,0 +1,66 @@
+950101
+g4sbscham0.d0 = 3.435510
+g4sbscham0.dx = 0.400000
+g4sbscham0.dy = 1.500000
+g4sbscham0.thetaH = 16.900000
+g4sbscham0.thetaV = 5.000000
+g4sbscham0.depth = 0.016
+g4sbscham0.g4sbscham0x.stripangle = 0.0
+g4sbscham0.g4sbscham0x.pitch = 0.00009765625
+g4sbscham0.g4sbscham0y.stripangle = 90.0
+g4sbscham0.g4sbscham0y.pitch = 0.0001220703125
+
+g4sbscham1.d0 = 3.525510
+g4sbscham1.dx = 0.400000
+g4sbscham1.dy = 1.500000
+g4sbscham1.thetaH = 16.900000
+g4sbscham1.thetaV = 5.000000
+g4sbscham1.depth = 0.016
+g4sbscham1.g4sbscham1x.stripangle = 0.0
+g4sbscham1.g4sbscham1x.pitch = 0.0001
+g4sbscham1.g4sbscham1y.stripangle = 90.0
+g4sbscham1.g4sbscham1y.pitch = 0.0001
+
+g4sbscham2.d0 = 3.615510
+g4sbscham2.dx = 0.400000
+g4sbscham2.dy = 1.500000
+g4sbscham2.thetaH = 16.900000
+g4sbscham2.thetaV = 5.000000
+g4sbscham2.depth = 0.016
+g4sbscham2.g4sbscham2x.stripangle = 0.0
+g4sbscham2.g4sbscham2x.pitch = 0.0001
+g4sbscham2.g4sbscham2y.stripangle = 90.0
+g4sbscham2.g4sbscham2y.pitch = 0.0001
+
+g4sbscham3.d0 = 3.705510
+g4sbscham3.dx = 0.400000
+g4sbscham3.dy = 1.500000
+g4sbscham3.thetaH = 16.900000
+g4sbscham3.thetaV = 5.000000
+g4sbscham3.depth = 0.016
+g4sbscham3.g4sbscham3x.stripangle = 0.0
+g4sbscham3.g4sbscham3x.pitch = 0.0001
+g4sbscham3.g4sbscham3y.stripangle = 90.0
+g4sbscham3.g4sbscham3y.pitch = 0.0001
+
+g4sbscham4.d0 = 3.795510
+g4sbscham4.dx = 0.400000
+g4sbscham4.dy = 1.500000
+g4sbscham4.thetaH = 16.900000
+g4sbscham4.thetaV = 5.000000
+g4sbscham4.depth = 0.016
+g4sbscham4.g4sbscham4x.stripangle = 0.0
+g4sbscham4.g4sbscham4x.pitch = 0.0001
+g4sbscham4.g4sbscham4y.stripangle = 90.0
+g4sbscham4.g4sbscham4y.pitch = 0.0001
+
+g4sbscham5.d0 = 3.885510
+g4sbscham5.dx = 0.400000
+g4sbscham5.dy = 1.500000
+g4sbscham5.thetaH = 16.900000
+g4sbscham5.thetaV = 5.000000
+g4sbscham5.depth = 0.016
+g4sbscham5.g4sbscham5x.stripangle = 0.0
+g4sbscham5.g4sbscham5x.pitch = 0.0001
+g4sbscham5.g4sbscham5y.stripangle = 90.0
+g4sbscham5.g4sbscham5y.pitch = 0.0001
