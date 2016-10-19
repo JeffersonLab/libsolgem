@@ -65,21 +65,21 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   Double_t torad = atan(1) / 45.0;
 
   TSBSGEMChamber* parent = (TSBSGEMChamber*) GetParent();
-  // Double_t z0;
+  //Double_t d0;
   Double_t depth;
   if (parent != NULL)
     {
-      // fOrigin = parent->GetOrigin();
-      // fSize[0] = (parent->GetSize())[0];
-      // fSize[1] = (parent->GetSize())[1];
-      // fSize[2] = (parent->GetSize())[2];
+      fOrigin = parent->GetOrigin();
+      fSize[0] = (parent->GetSize())[0];
+      fSize[1] = (parent->GetSize())[1];
+      fSize[2] = (parent->GetSize())[2];
       fBox->SetGeometry (parent->GetBox().GetD0(),
       			 parent->GetBox().GetDX(),
       			 parent->GetBox().GetDY(),
       			 parent->GetBox().GetThetaH(),
       			 parent->GetBox().GetThetaV());
       
-      // z0 = fOrigin[2];
+      //d0 = fOrigin[2];
       depth = fSize[2];
     }
   else
@@ -136,8 +136,8 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   
   // Get numbers of strips
 
-  Double_t xs0 = (GetSize())[0];
-  Double_t ys0 = (GetSize())[1];
+  Double_t xs0 = (GetSize())[0]/2.0;
+  Double_t ys0 = (GetSize())[1]/2.0;
   Double_t xs[4] = {xs0, xs0, -xs0, -xs0};
   Double_t ys[4] = {ys0, -ys0, ys0, -ys0};
 
@@ -150,9 +150,9 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       if (s < smin) smin = s;
       if (s > smax) smax = s;
     }
-  fNStrips = smax - smin + 1;
+  fNStrips = smax - smin;
   fSBeg = -fNStrips * fSPitch * 0.5;
-
+  
   return kOK;
 }
 
@@ -298,15 +298,16 @@ TSBSGEMPlane::Print() const
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
   cout << "  Box geometry: D0 " << fBox->GetD0()
-       << " theta_H: " << fBox->GetThetaH()*TMath::RadToDeg()
-       << " theta_V: " << fBox->GetThetaV()*TMath::RadToDeg() 
        << " DX: " << fBox->GetDX()
        << " DY: " << fBox->GetDY()
+       << " theta_H: " << fBox->GetThetaH()*TMath::RadToDeg()
+       << " theta_V: " << fBox->GetThetaV()*TMath::RadToDeg() 
        << endl;
 
   cout << "  " << GetNStrips() << " strips"
        << ", angle " << GetSAngle()*TMath::RadToDeg()
        << ", start " << fSBeg << " " << 0.5*(GetStripLowerEdge(0)+GetStripUpperEdge(0))
+       << ", end " << fSBeg+GetNStrips()*GetSPitch() << " " << 0.5*(GetStripLowerEdge(GetNStrips()-1)+GetStripUpperEdge(GetNStrips()-1))
        << ", pitch " << GetSPitch()
        << endl;
 }

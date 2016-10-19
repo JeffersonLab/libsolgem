@@ -42,9 +42,9 @@ class TSBSBox
 	   Double_t thetaH = 0.0, Double_t thetaV = 0.0);
   virtual ~TSBSBox() {};
   
-  Double_t GetD0() const {return sqrt (fD0);};
-  Double_t GetDX() const {return sqrt (fDX);};
-  Double_t GetDY() const {return sqrt (fDY);};
+  Double_t GetD0() const {return fD0;};
+  Double_t GetDX() const {return fDX;};
+  Double_t GetDY() const {return fDY;};
   Double_t GetThetaH() const {return fThetaH;};
   Double_t GetThetaV() const {return fThetaV;};
   

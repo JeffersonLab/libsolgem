@@ -4,6 +4,7 @@
 using namespace std;
 
 #include <TDatime.h>
+#include <TMath.h>
 
 TSBSBox::TSBSBox (Double_t d0, Double_t dx, Double_t dy, Double_t thetaH, Double_t thetaV)
   : fD0(1),
@@ -44,7 +45,7 @@ TSBSBox::SetGeometry (const Double_t d0,
   fThetaV = thetaV;
 
   SetRotations();
-  
+   
   fOrigin = TVector3(0.0, 0.0, 0.0);
   
   Double_t x0 = 0.0; 
@@ -54,7 +55,7 @@ TSBSBox::SetGeometry (const Double_t d0,
   LabToBox(x0, y0, z0);
   
   fOrigin = TVector3(x0, y0, z0);
-  fSize = TVector3(fDX, fDX, 0.016);
+  fSize = TVector3(fDX, fDY, 0.016);
 }
 
 void

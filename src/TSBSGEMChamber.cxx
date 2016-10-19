@@ -144,7 +144,7 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
        << " DX: " << fBox->GetDX()
        << " DY: " << fBox->GetDY()
        << " thetaH: " << fBox->GetThetaH()*TMath::RadToDeg()
-       << " dphi: " << fBox->GetThetaV()*TMath::RadToDeg()
+       << " thetaV: " << fBox->GetThetaV()*TMath::RadToDeg()
        << endl;
 
   if (printplanes)
