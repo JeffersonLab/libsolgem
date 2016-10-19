@@ -71,6 +71,7 @@ SRC   = src/TSolAnalyzer.cxx \
         src/TSolSimG4SBSFile.cxx \
         src/TSolSimDecoder.cxx \
         src/g4sbs_gep_tree_with_spin.cxx \
+        src/TSBSSpec.cxx \
         src/TSBSGEMChamber.cxx \
         src/TSBSGEMPlane.cxx \
         src/TSBSBox.cxx
