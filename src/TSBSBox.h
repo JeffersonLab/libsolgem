@@ -3,80 +3,81 @@
 #define __TSBSBOX_H
 
 #include <cmath>
-#include <vector>
+//#include <vector>
 
 #include <Rtypes.h>
+#include <TVector3.h>
+#include <TMatrixD.h>
 
 class TDatime;
 
-// A "wedge" is a section of an annulus. It is characterized by
-// the minimum and maximum radius (r0 and r1), the minimum angle (phi0),
-// and the angular width (dphi).
+// This class is derivated from the "TSolWedge" class, 
+// to implement the SBS geometry, instead of the SoLID one. 
+// Its main utility is to provide the transformation matrices from the GEM frames to the lab.
 
-// The inner and outer arcs are always centered on (x, y) = (0, 0) in the
-// lab frame. 
+// It is basically just a box, characterized by an extension in x (dx) and y (dy)
+// and by two angles: 
+// one of horizontal rotation (thetaH), which translates the SBS angle,
+// one of vertical rotation (thetaV), translating the "bending" of the SBS wrt the xOz plane.
 
-// Derived from these quantities is a rectangular prism bounding box,
-// one of whose sides is parallel to the symmetry axis of the wedge,
-// described by a "size" which is half widths, and an "origin" which 
-// is the center of the bounding box.
+// the box is centered on the "central ray" which is then rotated by thetaH and thetaV.
+// To illustrate this, let's take a dumb example: 
+// if thetaH = thetaV = 0; then the center of the box would be located on the Z axis, 
+// and the box coverage on the x (resp y) direction would be from -dx/2 to +dx/2 
+// (resp -dy/2 to +dy/2)
 
-// The "wedge frame" is the frame whose x/y origin is the center of
-// the bounding box and whose x axis lies along the symmetry axis of
-// the wedge.
+// The rotation is made the following way: 
+// first the box is rotated by thetaH wrt y direction (i.e. x, z, modified, y conserved)
+// then, the box is rotated by thetaV wrt x' direction obtained at the previous step 
+// (i.e. y, z' modified, x' conserved)
 
-// The origin and phi0 are specified in the lab frame. The size is in the
-// wedge frame.
+// The box z location is to be understood as the box location on the z" axis 
+// obtained with the rotation defined before, and is made wrt x, y = 0, 0.
+
 
 class TSBSBox
 {
  public:
-  TSBSBox (Double_t r0 = 0, Double_t r1 = 999., Double_t phi0 = 0, Double_t dphi = 6.28);
+  TSBSBox (Double_t d0 = 1.0, Double_t dx = 1.0, Double_t dy = 1.0, 
+	   Double_t thetaH = 0.0, Double_t thetaV = 0.0);
   virtual ~TSBSBox() {};
-
-  Double_t GetR0() const {return sqrt (fR0R0);};
-  Double_t GetR1() const {return sqrt (fR1R1);};
-  Double_t GetPhi0() const {return fPhi0;};
-  Double_t GetDPhi() const {return fPhi1 - fPhi0;};
-  std::vector < Double_t > GetOrigin() const {return fOrigin;};
-  std::vector < Double_t > GetSize() const {return fSize;};
-
-  std::vector < Double_t > Bounds() const;
-  Bool_t Contains (Double_t x, Double_t y) const;
-
-  void SetGeometry (const Double_t r0,
-		    const Double_t r1,
-		    const Double_t phi0,
-		    const Double_t dphi);
+  
+  Double_t GetD0() const {return sqrt (fD0);};
+  Double_t GetDX() const {return sqrt (fDX);};
+  Double_t GetDY() const {return sqrt (fDY);};
+  Double_t GetThetaH() const {return fThetaH;};
+  Double_t GetThetaV() const {return fThetaV;};
+  
+  TVector3 GetOrigin() const {return fOrigin;};
+  TVector3 GetSize() const {return fSize;};
+  
+  void SetGeometry (const Double_t d0,
+		    const Double_t dx,
+		    const Double_t dy,
+		    const Double_t thetaH,
+		    const Double_t thetaV);
     
-  Double_t GetAngle() const {return GetPhi0() + GetDPhi()/2;}; // rotation angle between lab and wedge frame
-
   // Frame conversions
-  void LabToWedge (Double_t& x, Double_t& y) const;  // input and output in meters
-  void WedgeToLab (Double_t& x, Double_t& y) const;  // input and output in meters
+  void LabToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+  void BoxToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
 
+  Bool_t Contains (Double_t x, Double_t y, Double_t z) const;
+  
  private:
   void SetRotations();
 
-  Double_t fR0R0;
-  Double_t fR1R1;
-  Double_t fPhi0;
-  Double_t fTPhi0;
-  Double_t fPhi1;
-  Double_t fTPhi1;
+  Double_t fD0;
+  Double_t fDX;
+  Double_t fDY;
+  Double_t fThetaH;
+  Double_t fThetaV;
 
-  std::vector < Double_t > fOrigin;   // x, y
-  std::vector < Double_t > fSize;     // x, y
-
-  // Trig functions for rotations
-  Double_t fCLW; // cos (lab to wedge angle)
-  Double_t fSLW; // sin...
-};
-
-namespace NSBSBox
-{
-  const Double_t gPI = 4 * atan (1.0);;
-  Int_t CmpAng (Double_t x, Double_t y, Double_t phi, Double_t tphi);
+  TVector3 fOrigin;
+  TVector3 fSize;
+  
+  // matrices for rotations
+  TMatrixD* fRotMat_BL; 
+  TMatrixD* fRotMat_LB; 
 };
 
 #endif

@@ -62,8 +62,8 @@ class TSBSGEMPlane : public THaSubDetector {
 	TClonesArray *GetClusters() { return fClusters; }
 
 	Int_t Decode( const THaEvData &);
-	TSBSBox& GetWedge() const {return *fWedge;};
-	Double_t GetAngle() const {return fWedge->GetAngle();}; // rotation angle between lab and wedge frame
+	TSBSBox& GetBox() const {return *fBox;};
+	//Double_t GetAngle() const {return fWedge->GetAngle();}; // rotation angle between lab and wedge frame
 
 	Int_t    GetNStrips()  const { return fNStrips; }
 	Double_t GetSPitch()   const { return fSPitch; } // in meters
@@ -74,16 +74,20 @@ class TSBSGEMPlane : public THaSubDetector {
 	Double_t GetSAngleComp() const { return 2*atan(1) - GetSAngle(); }
 
 	// Frame conversions
-	void LabToPlane (Double_t& x, Double_t& y) const {fWedge->LabToWedge (x, y);};  // input and output in meters
+	void LabToPlane (Double_t& x, Double_t& y, Double_t& z) const {
+	  fBox->LabToBox (x, y, z);
+	};  // input and output in meters
 	void PlaneToStrip (Double_t& x, Double_t& y) const; // input and output in meters
-	void LabToStrip (Double_t& x, Double_t& y) const;  // input and output in meters
-	void StripToLab (Double_t& x, Double_t& y) const;  // input and output in meters
+	void LabToStrip (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+	void StripToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
 	void StripToPlane (Double_t& x, Double_t& y) const;  // input and output in meters
-	void PlaneToLab (Double_t& x, Double_t& y) const {fWedge->WedgeToLab (x, y);};  // input and output in meters
+	void PlaneToLab (Double_t& x, Double_t& y, Double_t& z) const {
+	  fBox->BoxToLab (x, y, z);
+	};  // input and output in meters
 
 	Double_t StripNumtoStrip( Int_t num );
 
-	Double_t StriptoProj( Double_t s );
+	Double_t StriptoProj( Double_t s );//a reverifier si c'est pas trop debile
 	Double_t StripNumtoProj( Int_t s );
 
 	// Edges of strip, in strip frame, in meters
@@ -96,7 +100,8 @@ class TSBSGEMPlane : public THaSubDetector {
 
 	// Strip number corresponding to coordinates x, y in 
 	// strip frame, or -1 if outside (2-d) bounds
-	Int_t GetStrip (Double_t x, Double_t y) const;
+	Int_t GetStrip (Double_t x, Double_t y, Double_t z) const;
+	//a reverifier si c'est pas trop debile
 
 	void Print() const;
 	void SetRotations();
@@ -108,13 +113,15 @@ class TSBSGEMPlane : public THaSubDetector {
 	Int_t    fNStrips;  // Number of strips
 	Double_t fSPitch;   // Strip pitch (m)
 	Double_t fSBeg;     // X coordinate of lower edge of first strip
-	TSBSBox* fWedge;  // Wedge geometry
+	TSBSBox* fBox;  // Box geometry
 
 	// Trig functions for rotations
-	Double_t fCLS; // cos lab to strip angle)
-	Double_t fCWS; // ... wedge to strip
-	Double_t fSLS; // sin...
-	Double_t fSWS;
+	// matrices for rotations
+	TMatrixD* fRotMat_SL; 
+	TMatrixD* fRotMat_LS; 
+	
+	Double_t fCBS; // ... box to strip
+	Double_t fSBS;
 	
     public:
 	ClassDef(TSBSGEMPlane,0)
@@ -125,8 +132,8 @@ inline void
 TSBSGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
 {
   register Double_t temp = x;
-  x = fCWS * x - fSWS * y;
-  y = fSWS * temp + fCWS * y;
+  x = fCBS * x - fSBS * y;
+  y = fSBS * temp + fCBS * y;
   return;
 }
 

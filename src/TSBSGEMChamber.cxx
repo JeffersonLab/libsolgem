@@ -15,7 +15,7 @@ TSBSGEMChamber::TSBSGEMChamber( const char *name, const char *desc )
   // For now at least we just hard wire two chambers
   fNPlanes = 2;
   fPlanes = new TSBSGEMPlane*[fNPlanes];
-  fWedge = new TSBSBox;
+  fBox = new TSBSBox;
 
   return;
 }
@@ -25,7 +25,7 @@ TSBSGEMChamber::~TSBSGEMChamber()
   for (UInt_t i = 0; i < fNPlanes; ++i)
     delete fPlanes[i];
   delete[] fPlanes;
-  delete fWedge;
+  delete fBox;
 }
 
 
@@ -66,19 +66,19 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   if (err)
     return err;
 
-  Double_t r0 = -999.0;
-  Double_t r1 = -999.0;
-  Double_t phi0 = -999.0;
-  Double_t dphi = -999.0;
-  Double_t z0 = -999.0;
+  Double_t d0 = -999.0;
+  Double_t dx = -999.0;
+  Double_t dy = -999.0;
+  Double_t thetaH = -999.0;
+  Double_t thetaV = -999.0;
   Double_t depth = -999.0;
   const DBRequest request[] =
     {
-      {"r0",          &r0,           kDouble, 0, 1},
-      {"r1",          &r1,           kDouble, 0, 1},
-      {"phi0",        &phi0,         kDouble, 0, 1},
-      {"dphi",        &dphi,         kDouble, 0, 1},
-      {"z0",          &z0,           kDouble, 0, 1},
+      {"d0",          &d0,           kDouble, 0, 1},
+      {"dx",          &dx,           kDouble, 0, 1},
+      {"dy",          &dy,           kDouble, 0, 1},
+      {"thetaH",      &thetaH,       kDouble, 0, 1},
+      {"thetaV",      &thetaV,       kDouble, 0, 1},
       {"depth",       &depth,        kDouble, 0, 1},
       {0}
     };
@@ -89,16 +89,16 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
 
   // Database specifies angles in degrees, convert to radians
   Double_t torad = atan(1) / 45.0;
-  phi0 *= torad;
-  dphi *= torad;
+  thetaH *= torad;
+  thetaV *= torad;
 
-  fWedge->SetGeometry (r0, r1, phi0, dphi);
+  fBox->SetGeometry (d0, dx, dy, thetaH, thetaV);
 
-  fOrigin[0] = (fWedge->GetOrigin())[0];
-  fOrigin[1] = (fWedge->GetOrigin())[1];
-  fOrigin[2] = z0;
-  fSize[0] = (fWedge->GetSize())[0];
-  fSize[1] = (fWedge->GetSize())[1];
+  fOrigin[0] = (fBox->GetOrigin())[0];
+  fOrigin[1] = (fBox->GetOrigin())[1];
+  fOrigin[2] = (fBox->GetOrigin())[2];
+  fSize[0] = (fBox->GetSize())[0];
+  fSize[1] = (fBox->GetSize())[1];
   fSize[2] = depth;
 
   return kOK;
@@ -140,10 +140,11 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
 #endif
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
-  cout << "  Wedge geometry: r0: " << fWedge->GetR0()
-       << " r1: " << fWedge->GetR1()
-       << " phi0: " << fWedge->GetPhi0()*TMath::RadToDeg()
-       << " dphi: " << fWedge->GetDPhi()*TMath::RadToDeg()
+  cout << "  Box geometry: D0: " << fBox->GetD0()
+       << " DX: " << fBox->GetDX()
+       << " DY: " << fBox->GetDY()
+       << " thetaH: " << fBox->GetThetaH()*TMath::RadToDeg()
+       << " dphi: " << fBox->GetThetaV()*TMath::RadToDeg()
        << endl;
 
   if (printplanes)

@@ -31,7 +31,7 @@ class TSBSGEMPlane;
 class TSBSGEMChamber : public THaDetector {
  public:
   TSBSGEMChamber(const char *name, const char *desc);
-  TSBSGEMChamber() : fPlanes(0), fNPlanes(0), fWedge(0) {} // for ROOT RTTI
+  TSBSGEMChamber() : fPlanes(0), fNPlanes(0), fBox(0) {} // for ROOT RTTI
 
   virtual ~TSBSGEMChamber();
 
@@ -47,12 +47,16 @@ class TSBSGEMChamber : public THaDetector {
   Double_t GetUpperEdgeX() const {return +(GetSize())[0];}
   Double_t GetUpperEdgeY() const {return +(GetSize())[1];}
 
-  TSBSBox& GetWedge() const {return *fWedge;};
-  Double_t GetAngle() const {return fWedge->GetAngle();}; // rotation angle between lab and wedge frame
+  TSBSBox& GetBox() const {return *fBox;};
+  //Double_t GetAngle() const {return fBox->GetAngle();}; // rotation angle between lab and wedge frame
 
   // Frame conversions
-  void LabToPlane (Double_t& x, Double_t& y) const {fWedge->LabToWedge (x, y);};  // input and output in meters
-  void PlaneToLab (Double_t& x, Double_t& y) const {fWedge->WedgeToLab (x, y);};  // input and output in meters
+  void LabToPlane (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->LabToBox (x, y, z);
+  };  // input and output in meters
+  void PlaneToLab (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->BoxToLab (x, y, z);
+  };  // input and output in meters
 
   UInt_t GetNPlanes() const {return fNPlanes;};
 
@@ -63,7 +67,7 @@ class TSBSGEMChamber : public THaDetector {
  private:
   TSBSGEMPlane** fPlanes; // List of chambers
   UInt_t fNPlanes;
-  TSBSBox* fWedge;  // Wedge geometry
+  TSBSBox* fBox;  // Box geometry
 
   ClassDef(TSBSGEMChamber,0)
 
