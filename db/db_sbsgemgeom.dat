@@ -8,3 +8,7 @@ gZ0:                      3.435510
 gDoCalo:                  0
 gCaloZ:                   6.800000
 gCaloRes:                 0.010000
+
+YIntegralStepsPerPitch:  10
+SNormNsigma:              3
+MAX_IONS:               200

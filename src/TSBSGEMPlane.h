@@ -63,8 +63,7 @@ class TSBSGEMPlane : public THaSubDetector {
 
 	Int_t Decode( const THaEvData &);
 	TSBSBox& GetBox() const {return *fBox;};
-	//Double_t GetAngle() const {return fWedge->GetAngle();}; // rotation angle between lab and wedge frame
-
+	
 	Int_t    GetNStrips()  const { return fNStrips; }
 	Double_t GetSPitch()   const { return fSPitch; } // in meters
 	Double_t GetSAngle()   const; // Angle (rad) between horizontal axis
@@ -74,16 +73,31 @@ class TSBSGEMPlane : public THaSubDetector {
 	Double_t GetSAngleComp() const { return 2*atan(1) - GetSAngle(); }
 
 	// Frame conversions
+	void LabToStrip (Double_t& x, Double_t& y, Double_t& z) const;//done
+	// input and output in meters
 	void LabToPlane (Double_t& x, Double_t& y, Double_t& z) const {
 	  fBox->LabToBox (x, y, z);
 	};  // input and output in meters
+	void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const {
+	  fBox->LabToSpec (x, y, z);
+	};  // input and output in meters
+	void SpecToPlane (Double_t& x, Double_t& y) const {
+	  fBox->SpecToBox (x, y);
+	};  // input and output in meters
 	void PlaneToStrip (Double_t& x, Double_t& y) const; // input and output in meters
-	void LabToStrip (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
-	void StripToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+	void SpecToStrip (Double_t& x, Double_t& y) const;  // input and output in meters
+	void StripToSpec (Double_t& x, Double_t& y) const;  // input and output in meters
 	void StripToPlane (Double_t& x, Double_t& y) const;  // input and output in meters
+	void PlaneToSpec (Double_t& x, Double_t& y) const {
+	  fBox->BoxToSpec (x, y);
+	};  // input and output in meters
+	void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const {
+	  fBox->SpecToLab (x, y, z);
+	};  // input and output in meters
 	void PlaneToLab (Double_t& x, Double_t& y, Double_t& z) const {
 	  fBox->BoxToLab (x, y, z);
 	};  // input and output in meters
+	void StripToLab (Double_t& x, Double_t& y, Double_t& z) const;//done
 
 	Double_t StripNumtoStrip( Int_t num );
 
@@ -100,9 +114,8 @@ class TSBSGEMPlane : public THaSubDetector {
 
 	// Strip number corresponding to coordinates x, y in 
 	// strip frame, or -1 if outside (2-d) bounds
-	Int_t GetStrip (Double_t x, Double_t y, Double_t z) const;
-	//a reverifier si c'est pas trop debile
-
+	Int_t GetStrip (Double_t x, Double_t y) const;
+	
 	void Print() const;
 	void SetRotations();
 

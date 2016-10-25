@@ -133,6 +133,7 @@ class TSBSGeant4File {
   //TChain *fChain;
   g4sbs_gep_tree_with_spin *fTree;// needed to easily unfold root file data
   Int_t fSource;   // User-defined source ID (e.g. MC run number)
+  double fZSpecOffset;
   
   //hit data arrays
   vector<g4sbshitdata *> fg4sbsHitData;

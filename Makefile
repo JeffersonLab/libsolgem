@@ -68,13 +68,14 @@ SRC   = src/TSolAnalyzer.cxx \
         src/TSolSpec.cxx \
         src/TSolSimEvent.cxx \
         src/TSolSimFile.cxx \
-        src/TSolSimG4SBSFile.cxx \
         src/TSolSimDecoder.cxx \
         src/g4sbs_gep_tree_with_spin.cxx \
-        src/TSBSSpec.cxx \
+        src/TSBSBox.cxx \
+        src/TSBSGeant4File.cxx \
         src/TSBSGEMChamber.cxx \
         src/TSBSGEMPlane.cxx \
-        src/TSBSBox.cxx
+        src/TSBSSimGEMDigitization.cxx \
+        src/TSBSSpec.cxx
 
 
 OBJS	= $(SRC:.cxx=.$(ObjSuf)) $(DICT).o

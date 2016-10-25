@@ -7,7 +7,6 @@
 #include "TClonesArray.h"
 
 #include "TSolEVIOFile.h"  // needed for gendata class def
-#include "TSolSimG4SBSFile.h"  // needed for gendata class def
 #include "TSolGEMData.h"
 #include "TSolGEMVStrip.h"
 #include "TSolSpec.h"
@@ -167,7 +166,8 @@ TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
   Init();
   Initialize (spect);
   InitGeomParam(dbpathfile);
-
+  fRIon.resize(fMAX_IONS);
+  
   fEvent = new TSolSimEvent(5);
 }
 
@@ -459,7 +459,6 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
   return 0;
 }
 
-
 void
 TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& spect) // do not digitize event, just fill the tree
 {
@@ -479,6 +478,7 @@ TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& sp
     }
   SetTreeStrips ();
 }
+
 
 
 //.......................................................
@@ -964,31 +964,6 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   fEvent->fSignalSector = fSignalSector;
 }
 
-void
-TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
-				      const TSolSimG4SBSFile& f, Int_t evnum )
-{
-  // Set overall event info.
-  fEvent->Clear("all");
-  fEvent->fRunID = tsgd.GetRun();
-  // FIXME: still makes sense if background added?
-  fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
-  for( UInt_t i=0; i<f.GetNGen(); ++i ) {
-    const g4sbsgendata* gd = f.GetGenData(i);
-    //TODO: get GEANT id?
-    fEvent->AddTrack( i+1, gd->GetPID(),
-		      gd->GetV()*1e-2, // Vertex coordinates in [m]
-		      gd->GetP()*1e-3  // Momentum in [GeV]
-		      );
-  }
-  // FIXME: either only one GenData per event, or multiple weights per event
-  if( f.GetNGen() > 0 )
-    fEvent->fWeight = f.GetGenData(0)->GetWeight();
-
-  fEvent->fSectorsMapped = fDoMapSector;
-  fEvent->fSignalSector = fSignalSector;
-}
-
 Short_t
 TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 				    const TSolSpec& spect,
@@ -1064,7 +1039,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
     else {
       // All background hits are mapped into sector 0
       rot = -sector_angle;
-      clust.fSector = 0;;
+      clust.fSector = 0;
     }
     clust.fP.RotateZ(rot);
     clust.fXEntry.RotateZ(rot);

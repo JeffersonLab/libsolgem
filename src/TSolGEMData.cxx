@@ -67,3 +67,33 @@ TSolGEMData::PrintHit (UInt_t k) const
   cout << "    Particle ID: " << GetParticleID(k) << endl;
   cout << "    Particle type: " << GetParticleType(k) << endl;
 }
+
+//add to the current set of GEM data another GEM data set
+void TSolGEMData::AddGEMData(TSolGEMData* gd)
+{
+  if( !gd ) return;
+  
+  unsigned int i, ngdata;
+  ngdata = GetNHit();
+  for(i=0; i<gd->GetNHit(); i++){
+    SetMomentum(ngdata, gd->GetMomentum(i));
+    SetVertex(ngdata, gd->GetVertex(i));
+    
+    SetHitEntrance(ngdata, gd->GetHitEntrance(i));
+    SetHitExit(ngdata, gd->GetHitExit(i));
+    SetHitReadout(ngdata, gd->GetHitReadout(i));
+
+    SetHitTime(ngdata, gd->GetHitTime(i));
+    SetHitEnergy(ngdata, gd->GetHitEnergy(i));
+    
+    SetParticleID(ngdata, gd->GetParticleID(i));
+    SetParticleType(ngdata, gd->GetParticleType(i));
+    
+    SetHitChamber(ngdata, gd->GetHitChamber(i));
+    
+    ngdata++;
+    
+    SetNHit(ngdata);
+  }
+}
+

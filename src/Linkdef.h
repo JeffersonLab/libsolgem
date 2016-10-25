@@ -18,13 +18,14 @@
 #pragma link C++ defined_in "src/TSolWedge.h";
 #pragma link C++ defined_in "src/TSolSimEvent.h";
 #pragma link C++ defined_in "src/TSolSimFile.h";
-#pragma link C++ defined_in "src/TSolSimG4SBSFile.h";
 #pragma link C++ defined_in "src/TSolSimDecoder.h";
 #pragma link C++ defined_in "src/g4sbs_gep_tree_with_spin.h";
-#pragma link C++ defined_in "src/TSBSSpec.h";
+#pragma link C++ defined_in "src/TSBSBox.h";
+#pragma link C++ defined_in "src/TSBSGeant4File.h";
 #pragma link C++ defined_in "src/TSBSGEMChamber.h";
 #pragma link C++ defined_in "src/TSBSGEMPlane.h";
-#pragma link C++ defined_in "src/TSBSBox.h";
+#pragma link C++ defined_in "src/TSBSSimGEMDigitization.h";
+#pragma link C++ defined_in "src/TSBSSpec.h";
 
 // Limited stuff in EVIO file.  We don't want to be
 // able to call the evio functions in the interpreter

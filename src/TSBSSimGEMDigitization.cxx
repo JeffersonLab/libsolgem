@@ -166,7 +166,8 @@ TSBSSimGEMDigitization::TSBSSimGEMDigitization( const TSBSSpec& spect,
   Init();
   Initialize (spect);
   InitGeomParam(dbpathfile);
-
+  fRIon.resize(fMAX_IONS);
+  
   fEvent = new TSolSimEvent(5);
 }
 
@@ -332,7 +333,7 @@ TSBSSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSBSSpec& spec
       fDP[ic][ip]->Clear();
   }
   fFilledStrips = true;
-
+  
   return AdditiveDigitize( gdata, spect );
 }
 
@@ -340,7 +341,7 @@ Int_t
 TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSpec& spect)
 {
   // Digitize event. Add results to any existing digitized data.
-
+  
   UInt_t nh = gdata.GetNHit();
 
   // For signal data, determine the sector of the primary track
@@ -364,7 +365,10 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 	Error("Digitize", "Null track pointer? Should never happen. Call expert.");
     }
   }
-  if( nh == 0 ) return 0;
+  if( nh == 0 ) {
+    cout << "no hit, doing nothing " << endl;
+    return 0;
+  }
 
   // Map sectors of any background data to the signal sector, if so requested
   bool map_backgr = fDoMapSector && is_background;
@@ -379,7 +383,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     UInt_t igem = gdata.GetHitChamber (ih);
     if (igem >= fNChambers)
       continue;
-
+    
     //FIXME: GetParticleID is a misnomer, should be GetGEANTParticleCounter or similar
     Short_t itype = (gdata.GetParticleID(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
     Short_t isect, iplane;
@@ -388,18 +392,16 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
       // If mapping sectors, skip signal hits that won't end up in sector 0
       continue;
 
+    // These vectors are in the spec frame, we need them in the chamber frame
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
     
-    // These vectors are in the lab frame, we need them in the chamber frame
-    // Also convert to mm
+    // cout << ih << endl; 
+    // vv1.Print();
+    // vv2.Print();
     
-    spect.GetChamber(igem).LabToPlane(vv1);
-    spect.GetChamber(igem).LabToPlane(vv2);
-
-    vv1*= 1000.0;
-    vv2*= 1000.0;
-    
+    spect.GetChamber(igem).SpecToPlane(vv1);
+    spect.GetChamber(igem).SpecToPlane(vv2);
     
     TSolGEMVStrip **dh = NULL;
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
@@ -431,6 +433,11 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     if (fRNIon > 0) {
       dh = AvaModel (igem, spect, vv1, vv2, time_zero);
     }
+    
+    //cout << ih << " t_0 " << time_zero << " RNIon " << fRNIon << ", dh " << dh << endl;
+    // vv1.Print();
+    // vv2.Print();
+    
     // Record MC hits in output event
     Short_t id = SetTreeHit (ih, spect, dh, gdata, time_zero);
 
@@ -503,7 +510,7 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
     return;
 
 #if DBG_ION > 0
-  cout << "E lost = " << elost << ", " << fRNIon << " ions";
+  cout << "E lost = " << elost << ", " << fRNIon << " ions" << endl;
 #endif
   if (fRNIon > fMAX_IONS) {
 #if DBG_ION > 0
@@ -564,13 +571,15 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
     printf("ttime = %e\n", ttime);
 #endif
 #if DBG_ION > 0
-    cout << "x, y = " << ip.X << ", " << ip.Y << " snorm = "
+    cout << " x, y = " << ip.X << ", " << ip.Y << " snorm = "
 	 << ip.SNorm/kSNormNsigma << " charge " << ip.Charge << endl;
     cout << "fRTime0 = " << fRTime0 << endl;
+    cout << "fRion size " << fRIon.size() << " " << i << endl;
 #endif
-
+    
     fRIon[i] = ip;
   }
+  return;
 }
 
 //-------------------------------------------------------
@@ -1004,9 +1013,14 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
   TVector3 hitpos_temp = clust.fMCpos;
   
-  ch.PlaneToLab(hitpos_temp);
+  //hitpos_temp.Print();
+  
+  ch.SpecToLab(hitpos_temp);
   clust.fHitpos = hitpos_temp;
-
+  
+  // cout << "hit in lab" << endl;
+  // hitpos_temp.Print();
+  
   for (UInt_t j = 0; j < 2; j++) {
     if (dh != NULL && dh[j] != NULL)
       {
@@ -1051,10 +1065,14 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   }
   */
   fEvent->fGEMClust.push_back( clust );
-
+  
+  //cout << "cluster plane " << clust.fPlane << ", cluster type " << clust.fType << ", cluster source " << clust.fSource << endl;
+  
   if( clust.fPlane == 0 && clust.fType == 1 && clust.fSource == 0 )
     fEvent->fNSignal++;
-
+  
+  //cout << "Event cluster size " <<  fEvent->fGEMClust.size() << ", Event signal size " << fEvent->fNSignal << endl;
+  
   return clust.fID;
 }
 
@@ -1099,6 +1117,8 @@ TSBSSimGEMDigitization::SetTreeStrips()
       }
     }
   }
+  //cout << " event GEM strip size" << fEvent->fGEMStrips.size() << endl;
+  
   fFilledStrips = true;
 }
 
@@ -1108,6 +1128,8 @@ TSBSSimGEMDigitization::FillTree ()
   if( !fFilledStrips )
     SetTreeStrips();
 
+  //cout << "Fill tree " << fOFile << " " << fOTree << endl;
+  
   if (fOFile && fOTree
       // added this line to not write events where there are no entries
 
@@ -1124,6 +1146,8 @@ TSBSSimGEMDigitization::FillTree ()
 void
 TSBSSimGEMDigitization::WriteTree () const
 {
+  //cout << "write tree " << fOFile << " " << fOTree << endl;
+  
   if (fOFile && fOTree) {
     fOFile->cd();
     fOTree->Write();

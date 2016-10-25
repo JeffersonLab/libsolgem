@@ -189,6 +189,24 @@ TSBSGEMPlane::LabToStrip (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
+TSBSGEMPlane::SpecToStrip (Double_t& x, Double_t& y) const
+{
+  register Double_t temp = x;
+  x = fCBS * x - fSBS * y;
+  y = fSBS * temp + fCBS * y;
+  return;
+}
+
+void
+TSBSGEMPlane::StripToSpec (Double_t& x, Double_t& y) const
+{
+  Double_t temp = x;
+  x = fCBS * x + fSBS * y;
+  y = -fSBS * temp + fCBS * y;
+  return;
+}
+
+void
 TSBSGEMPlane::StripToPlane (Double_t& x, Double_t& y) const
 {
   Double_t temp = x;
@@ -216,8 +234,7 @@ TSBSGEMPlane::StripToLab (Double_t& x, Double_t& y, Double_t& z) const
 Double_t TSBSGEMPlane::StripNumtoStrip( Int_t strip )
 {
     // Gives x coordinate in strip frame of a wire
-  return (strip - GetStrip(0.,0., 0.))*GetSPitch();// attention, c'est peut-etre debile...
-  //ou peut-etre pas...
+  return (strip - GetStrip(0.,0.))*GetSPitch();
 }
 
 
@@ -263,15 +280,15 @@ TSBSGEMPlane::GetStripInRange( Double_t x ) const
 }
     
 Int_t
-TSBSGEMPlane::GetStrip (Double_t x, Double_t yc, Double_t zc) const
+TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
 {
   // Strip number corresponding to coordinates x, y in 
   // strip frame, or -1 if outside (2-d) bounds
 
   Double_t xc = x;
-  StripToLab (xc, yc, zc);
-
-  if (!fBox->Contains (xc, yc, zc))
+  StripToSpec (xc, yc);
+  
+  if (!fBox->Contains (xc, yc))
     return -1;
 
   Int_t s = GetStripUnchecked(x);
@@ -322,10 +339,10 @@ TSBSGEMPlane::SetRotations()
   Double_t thetaH = fBox->GetThetaH();
   Double_t thetaV = fBox->GetThetaV();
 
-  Double_t arr_roty[9] = {cos(thetaH),  0, sin(thetaH),
+  Double_t arr_roty0[9] = {cos(thetaH),  0, sin(thetaH),
 			  0,             1,            0,
 			  -sin(thetaH), 0, cos(thetaH)};//rotation around hall pivot
-  Double_t arr_rotxp[9] = {1,            0,            0,
+  Double_t arr_rotx1[9] = {1,            0,            0,
 			   0, cos(thetaV), -sin(thetaV),
 			   0, sin(thetaV),  cos(thetaV)};//spectrometer "bending"
   Double_t arr_rotsp[9] = {fCBS, fSBS, 0,
@@ -333,14 +350,14 @@ TSBSGEMPlane::SetRotations()
 			   0,        0, 1};
   //rotation to strip; assuming that by convention, x is orthogonal to the strips' extension 
     
-  TMatrixD Roty(3,3,arr_roty);// rotation along y: spectrometer theta
-  TMatrixD Rotxp(3,3,arr_rotxp);// ratotion along x': spectrometer bending
+  TMatrixD Roty0(3,3,arr_roty0);// rotation along y: spectrometer theta
+  TMatrixD Rotx1(3,3,arr_rotx1);// ratotion along x': spectrometer bending
   TMatrixD Rotsp(3,3,arr_rotsp);// ratotion along x': spectrometer bending
-  TMatrixD Rotlp(3,3, arr_roty);
-  fRotMat_SL = new TMatrixD(3,3, arr_roty);
+  TMatrixD Rotlp(3,3,arr_roty0);
+  fRotMat_SL = new TMatrixD(3,3, arr_roty0);
   
   // Set rotation angle trig functions
-  Rotlp.Mult(Roty, Rotxp);
+  Rotlp.Mult(Roty0, Rotx1);
   fRotMat_SL->Mult(Rotlp, Rotsp);
   
   fRotMat_LS = fRotMat_SL;

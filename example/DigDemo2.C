@@ -39,8 +39,7 @@ void DigDemo2(){
     dds->AddGEM (ddy);
 
     dds->Print();
-
-    //ddd = new TSolSimGEMDigitization (*dds,"testdigitization","../db/db_solgemgeom.dat");
+    
     ddd = new TSolSimGEMDigitization (*dds);
     
     ////////////////////////////////////////////////////////////////

@@ -54,7 +54,8 @@ class TSolGEMData
 
   void Print() const;
   void PrintHit (UInt_t k) const;
-
+  void AddGEMData(TSolGEMData* gd);
+  
  private:
 
   UInt_t fRunID, fEvtID;

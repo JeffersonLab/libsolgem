@@ -42,14 +42,13 @@ class TSBSGEMChamber : public THaDetector {
   Int_t Decode( const THaEvData & );
 
   // Return positions of chamber edges, in its own reference frame, in meters
-  Double_t GetLowerEdgeX() const {return -(GetSize())[0];}
-  Double_t GetLowerEdgeY() const {return -(GetSize())[1];}
-  Double_t GetUpperEdgeX() const {return +(GetSize())[0];}
-  Double_t GetUpperEdgeY() const {return +(GetSize())[1];}
+  Double_t GetLowerEdgeX() const {return -(GetSize())[0]/2;}
+  Double_t GetLowerEdgeY() const {return -(GetSize())[1]/2;}
+  Double_t GetUpperEdgeX() const {return +(GetSize())[0]/2;}
+  Double_t GetUpperEdgeY() const {return +(GetSize())[1]/2;}
 
   TSBSBox& GetBox() const {return *fBox;};
-  //Double_t GetAngle() const {return fBox->GetAngle();}; // rotation angle between lab and wedge frame
-
+  
   // Frame conversions
   void LabToPlane (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->LabToBox (x, y, z);
@@ -58,6 +57,29 @@ class TSBSGEMChamber : public THaDetector {
     fBox->BoxToLab (x, y, z);
   };  // input and output in meters
 
+  void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->LabToSpec (x, y, z);
+  };  // input and output in meters
+  void SpecToPlane (Double_t& x, Double_t& y, Double_t& z) const {
+    z = z-fBox->GetD0();
+    fBox->SpecToBox (x, y);
+  };  // input and output in meters
+  void PlaneToSpec (Double_t& x, Double_t& y, Double_t& z) const {
+    z = z+fBox->GetD0();
+    fBox->BoxToSpec (x, y);
+  };  // input and output in meters
+  void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->SpecToLab (x, y, z);
+  };  // input and output in meters
+
+  void LabToPlane (TVector3& X_) const;
+  void PlaneToLab (TVector3& X_) const;
+  
+  void LabToSpec (TVector3& X_) const;
+  void SpecToPlane (TVector3& X_) const;
+  void PlaneToSpec (TVector3& X_) const;
+  void SpecToLab (TVector3& X_) const;
+  
   UInt_t GetNPlanes() const {return fNPlanes;};
 
   TSBSGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};

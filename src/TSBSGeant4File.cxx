@@ -15,6 +15,7 @@ TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
 
 TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
+  fZSpecOffset = 3.38551;
 }
 
 TSBSGeant4File::~TSBSGeant4File() {
@@ -150,15 +151,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_in = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3, // in mm
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3, // in mm
-		      fTree->Harm_FT_hit_z->at(i) *1.0e3);// in mm
+		      (fTree->Harm_FT_hit_z->at(i)+fZSpecOffset)*1.0e3);// in mm
       
       X_out = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		       fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
-		       fTree->Harm_FT_hit_z->at(i) *1.0e3+3.0);// in mm
+		       (fTree->Harm_FT_hit_z->at(i)+fZSpecOffset)*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
-		      fTree->Harm_FT_hit_z->at(i) *1.0e3+9.185);// in mm
+		      (fTree->Harm_FT_hit_z->at(i)+fZSpecOffset)*1.0e3+9.185);// in mm
       
       Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vy->at(i)*1.0e3, // in mm
@@ -255,15 +256,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_in = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3, // in mm
 		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3, // in mm
-		      fTree->Harm_FPP1_hit_z->at(i) *1.0e3);// in mm
+		      (fTree->Harm_FPP1_hit_z->at(i)+fZSpecOffset)*1.0e3);// in mm
       
       X_out = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i), 
 		       fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i), 
-		       fTree->Harm_FPP1_hit_z->at(i) *1.0e3+3.0);// in mm
+		       (fTree->Harm_FPP1_hit_z->at(i)+fZSpecOffset)*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3*9.185*fTree->Harm_FPP1_hit_txp->at(i), 
 		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3*9.185*fTree->Harm_FPP1_hit_typ->at(i), 
-		      fTree->Harm_FPP1_hit_z->at(i) *1.0e3+9.185);// in mm
+		      (fTree->Harm_FPP1_hit_z->at(i)+fZSpecOffset)*1.0e3+9.185);// in mm
       
       Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP1_hit_vy->at(i)*1.0e3, // in mm
@@ -553,8 +554,8 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	// printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
 	
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
-	gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
-	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
+	gd->SetParticleID(ngdata, (UInt_t) h->GetData(13) );// actually type...
+	gd->SetParticleType(ngdata, (UInt_t) h->GetData(18) );// actually PID
 	
 	gd->SetHitChamber(ngdata,  h->GetDetID()*10+h->GetData(0)-1);
 	

@@ -59,8 +59,13 @@ class TSBSBox
     
   // Frame conversions
   void LabToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+  void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+  void SpecToBox (Double_t& x, Double_t& y) const {return;};  // input and output in meters
+  void BoxToSpec (Double_t& x, Double_t& y) const {return;};  // input and output in meters
+  void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
   void BoxToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
 
+  Bool_t Contains (Double_t x, Double_t y) const;
   Bool_t Contains (Double_t x, Double_t y, Double_t z) const;
   
  private:
