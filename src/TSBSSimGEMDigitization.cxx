@@ -13,7 +13,7 @@
 #include "TSBSGEMChamber.h"
 #include "TSBSGEMPlane.h"
 #include "TSolSimAux.h"
-#include "TSolSimEvent.h"
+#include "TSBSSimEvent.h"
 
 #include <cmath>
 #include <iomanip>
@@ -168,7 +168,7 @@ TSBSSimGEMDigitization::TSBSSimGEMDigitization( const TSBSSpec& spect,
   InitGeomParam(dbpathfile);
   fRIon.resize(fMAX_IONS);
   
-  fEvent = new TSolSimEvent(5);
+  fEvent = new TSBSSimEvent(5);
 }
 
 //-----------------------------------------------------------------------------
@@ -354,7 +354,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
       if( ntrk > 1 )
 	Warning("Digitize", "Multiple primary tracks in signal run?");
 
-      TSolSimTrack* trk = static_cast<TSolSimTrack*>( fEvent->fMCTracks->At(0) );
+      TSBSSimTrack* trk = static_cast<TSBSSimTrack*>( fEvent->fMCTracks->At(0) );
       if( trk ) {
 	Double_t ph = trk->PPhi();
 	// Assumes phi doesn't change between vertex and GEMs (no field) and the
@@ -943,7 +943,7 @@ TSBSSimGEMDigitization::InitTree (const TSBSSpec& spect, const TString& ofile)
 
   // create the tree variables
 
-  fOTree->Branch( eventBranchName, "TSolSimEvent", &fEvent );
+  fOTree->Branch( eventBranchName, "TSBSSimEvent", &fEvent );
 
 }
 
@@ -982,7 +982,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // Sets the variables in fEvent->fGEMClust describing a hit
   // This is later used to fill the tree.
 
-  TSolSimEvent::GEMCluster clust;
+  TSBSSimEvent::GEMCluster clust;
 
   UInt_t igem = tsgd.GetHitChamber(ih);
   ChamberToSector( igem, clust.fRealSector, clust.fPlane );
@@ -1084,7 +1084,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 
   fEvent->fGEMStrips.clear();
 
-  TSolSimEvent::DigiGEMStrip strip;
+  TSBSSimEvent::DigiGEMStrip strip;
   for (UInt_t ich = 0; ich < GetNChambers(); ++ich) {
     ChamberToSector( ich, strip.fSector, strip.fPlane );
 

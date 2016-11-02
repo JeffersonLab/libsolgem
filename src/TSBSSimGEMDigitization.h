@@ -18,7 +18,7 @@ class TTree;
 class TSolGEMData;
 class TSolGEMVStrip;
 class TSBSSpec;
-class TSolSimEvent;
+class TSBSSimEvent;
 class TSolEVIOFile;
 class TSBSGeant4File;
 
@@ -139,7 +139,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   const std::vector<Short_t>& GetStripClusters(UInt_t ich, UInt_t ip, UInt_t n) const
   { return fDP[ich][ip]->GetStripClusters(n); }
 
-  TSolSimEvent* GetEvent() const { return fEvent; }
+  TSBSSimEvent* GetEvent() const { return fEvent; }
 
   Bool_t IsMapSector() const { return fDoMapSector; }
   void SetMapSector( Bool_t b = true ) { fDoMapSector = b; }
@@ -213,7 +213,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 
   TFile* fOFile;          // Output ROOT file
   TTree* fOTree;          // Output tree
-  TSolSimEvent* fEvent;   // Output event structure, written to tree
+  TSBSSimEvent* fEvent;   // Output event structure, written to tree
 
   Bool_t fFilledStrips;   // True if no data changed since last SetTreeStrips
 

@@ -74,6 +74,8 @@ SRC   = src/TSolAnalyzer.cxx \
         src/TSBSGeant4File.cxx \
         src/TSBSGEMChamber.cxx \
         src/TSBSGEMPlane.cxx \
+        src/TSBSSimDecoder.cxx \
+        src/TSBSSimEvent.cxx \
         src/TSBSSimGEMDigitization.cxx \
         src/TSBSSpec.cxx
 

@@ -24,6 +24,8 @@
 #pragma link C++ defined_in "src/TSBSGeant4File.h";
 #pragma link C++ defined_in "src/TSBSGEMChamber.h";
 #pragma link C++ defined_in "src/TSBSGEMPlane.h";
+#pragma link C++ defined_in "src/TSBSSimDecoder.h";
+#pragma link C++ defined_in "src/TSBSSimEvent.h";
 #pragma link C++ defined_in "src/TSBSSimGEMDigitization.h";
 #pragma link C++ defined_in "src/TSBSSpec.h";
 

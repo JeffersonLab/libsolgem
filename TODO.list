@@ -3,7 +3,7 @@ Do not hesitate to update and complete, if needed, this list.
 
 
 > - Modify/rewrite libsolgem for Cartesian geometry
- => TO-DO
+ => Mostly done, not fully tested yet.
 
 > - Modify libsolgem to take input from SBS simulation output. The SoLID
 > simulations produced EVIO files; I understand that g4sbs writes ROOT

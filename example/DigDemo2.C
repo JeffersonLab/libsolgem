@@ -86,18 +86,20 @@ void DigDemo2(){
 	int backidx = 0;
 	// Add some number of background events
 	while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){
-	    gb = fback->GetGEMData();
-
-	    // Randomize times based on gate width
-	    for( int bidx = 0; bidx < gb->GetNHit(); bidx++ ){
-		double timeshift = gRandom->Uniform(-ddd->GetGateWidth(), 75.0 );//ns
-		gb->SetHitTime(bidx, gb->GetHitTime(bidx) + timeshift );
-	    }
-
-	    gd->AddGEMData(gb);
-	    backidx++;
+	  //while( backidx < nbacktoadd ){
+	  //hadback = fback->ReadNextEvent();
+	  gb = fback->GetGEMData();
+	  
+	  // Randomize times based on gate width
+	  for( int bidx = 0; bidx < gb->GetNHit(); bidx++ ){
+	    double timeshift = gRandom->Uniform(-ddd->GetGateWidth(), 75.0 );//ns
+	    gb->SetHitTime(bidx, gb->GetHitTime(bidx) + timeshift );
+	  }
+	  
+	  gd->AddGEMData(gb);
+	  backidx++;
 	}
-
+	
 	if( backidx != nbacktoadd ){
 	    printf("Warning:  Not enough background events to be added (%d)\n", backidx);
 	}
@@ -108,6 +110,7 @@ void DigDemo2(){
     }
     printf("Completed %d events\n", ndata);
 
+    ddd->FillTree();
     ddd->WriteTree();
     ddd->CloseTree();
 
