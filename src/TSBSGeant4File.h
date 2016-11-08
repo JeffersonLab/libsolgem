@@ -126,6 +126,8 @@ class TSBSGeant4File {
   //get GEM data
   TSolGEMData *GetGEMData();
   void GetGEMData(TSolGEMData* gd);
+
+  double FindGasRange(double p);
   
  private:
   char  fFilename[255];
@@ -134,6 +136,9 @@ class TSBSGeant4File {
   g4sbs_gep_tree_with_spin *fTree;// needed to easily unfold root file data
   Int_t fSource;   // User-defined source ID (e.g. MC run number)
   double fZSpecOffset;
+  
+  vector<double> feMom;
+  vector<double> fgasErange;
   
   //hit data arrays
   vector<g4sbshitdata *> fg4sbsHitData;

@@ -41,7 +41,8 @@ public:
   Int_t     fSource;    // MC data set source (0 = signal, >0 background)
   Int_t     fType;      // GEANT particle counter (1 = primary)
   Int_t     fPID;       // PDG ID of particle generating the cluster
-  TVector3  fP;         // Momentum of particle generating the cluster
+  TVector3  fP;         // Momentum of particle generating the cluster in the lab [GeV]
+  //TVector3  fPspec;     // Momentum of particle generating the cluster in the spec [GeV]
   TVector3  fXEntry;    // Track at chamber entrance in lab coords [m]
   TVector3  fMCpos;     // Approx. truth position of hit in lab [m]
   TVector3  fHitpos;    // fMCpos in Tracker frame [m]

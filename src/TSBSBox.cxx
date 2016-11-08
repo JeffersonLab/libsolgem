@@ -181,12 +181,12 @@ TSBSBox::SetRotations()
   TMatrixD Roty0(3,3,arr_roty0);// rotation along hall pivot (spectrometer theta)
   TMatrixD Rotx1(3,3,arr_rotx1);// ratotion along x': spectrometer bending
   TMatrixD Rotz2(3,3,arr_rotz2);// ratotion along x': spectrometer bending
-  TMatrixD Rotyx(3,3,arr_roty0);
+  TMatrixD Rotzx(3,3,arr_rotz2);
   fRotMat_BL = new TMatrixD(3,3, arr_roty0);
 
   // Set rotation angle trig functions
-  Rotyx.Mult(Roty0, Rotx1);
-  fRotMat_BL->Mult(Rotyx, Rotz2);
+  Rotzx.Mult(Rotz2, Rotx1);
+  fRotMat_BL->Mult(Rotzx, Roty0);
   
   fRotMat_LB = fRotMat_BL;
   fRotMat_LB->Invert();

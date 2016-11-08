@@ -76,11 +76,14 @@ void DigDemo2(){
     while( f->ReadNextEvent() && hadback ){
 	gd = f->GetGEMData();
 	gen = f->GetGenData(0);
-
+	
+	gd->Print();
+	cout << " n gen " << f->GetNGen() << endl;
+	//ddd->SetTreeEvent((*gd), (*f), nevent);
 	// Access to generated vertex and momentum
-	gen->GetV();
-	gen->GetP();
-	gen->GetWeight();
+	//gen->GetV();
+	//gen->GetP();
+	//gen->GetWeight();
 
 	int nbacktoadd = 1;
 	int backidx = 0;

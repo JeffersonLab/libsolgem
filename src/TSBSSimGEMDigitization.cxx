@@ -366,7 +366,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     }
   }
   if( nh == 0 ) {
-    cout << "no hit, doing nothing " << endl;
+    //cout << "no hit, doing nothing " << endl;
     return 0;
   }
 
@@ -397,7 +397,9 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     TVector3 vv2 = gdata.GetHitExit (ih);
     
     // cout << ih << endl; 
+    // cout << " hit entrance ";
     // vv1.Print();
+    // cout << " hit exit ";
     // vv2.Print();
     
     spect.GetChamber(igem).SpecToPlane(vv1);
@@ -624,6 +626,10 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 
   Double_t nsigma = fAvalancheFiducialBand; // coverage factor
 
+#if DBG_AVA > 0
+  cout << "fRSMax, nsigma " << fRSMax << " " << nsigma << endl;
+#endif
+
   Double_t x0,y0,x1,y1; // lower and upper corners of avalanche diffusion area
 
   if (xi.X()<xo.X()) {
@@ -647,11 +653,11 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
   // larger than the wedge's active area (section of a ring)
 
   const TSBSGEMChamber& chamber = spect.GetChamber(ic);
-  Double_t glx = chamber.GetLowerEdgeX() * 1000.0;
-  Double_t gly = chamber.GetLowerEdgeY() * 1000.0;
-  Double_t gux = chamber.GetUpperEdgeX() * 1000.0;
-  Double_t guy = chamber.GetUpperEdgeY() * 1000.0;
-
+  Double_t glx = (chamber.GetLowerEdgeX()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  Double_t gly = (chamber.GetLowerEdgeY()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  Double_t gux = (chamber.GetUpperEdgeX()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  Double_t guy = (chamber.GetUpperEdgeY()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of the sector's bounding box
     cerr << __FILE__ << " " << __FUNCTION__ << ": out of sector, "
@@ -688,7 +694,13 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       pl.PlaneToStrip (xs0, ys0);
       xs0 *= 1e3; ys0 *= 1e3;
       Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
+#if DBG_AVA > 0
+      cout << "xs1 ys1 before transf " << xs1 << " " << ys1 << endl;
+#endif
       pl.PlaneToStrip (xs1, ys1);
+#if DBG_AVA > 0
+      cout << "xs1 ys1 after transf " << xs1 << " " << ys1 << endl;
+#endif
       xs1 *= 1e3; ys1 *= 1e3;
 
 #if DBG_AVA > 0
@@ -959,9 +971,12 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const g4sbsgendata* gd = f.GetGenData(i);
     //TODO: get GEANT id?
+    // cout << "SBS G4 file: track " << i << ", PID " <<  gd->GetPID() << endl;
+    // cout << "Vertex     ";gd->GetV().Print();
+    // cout << "Momentum   ";gd->GetP().Print();
     fEvent->AddTrack( i+1, gd->GetPID(),
-		      gd->GetV()*1e-2, // Vertex coordinates in [m]
-		      gd->GetP()*1e-3  // Momentum in [GeV]
+		      gd->GetV(), // Vertex coordinates in [m]
+		      gd->GetP()  // Momentum in [GeV]
 		      );
   }
   // FIXME: either only one GenData per event, or multiple weights per event
@@ -991,11 +1006,13 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fType     = tsgd.GetParticleID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
+  //clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
   // ionization region
   clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m]
-
+  clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m]
+  
   // Calculate hit position in the Tracker frame. This is fMCpos relative to
   // the origin of first plane of the sector, but rotated by the nominal
   // (non-offset) sector angle.
@@ -1011,15 +1028,20 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fTime   = t0;  // [ns]
 
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
+  
   TVector3 hitpos_temp = clust.fMCpos;
+
+  ch.SpecToLab(clust.fMCpos);
+  //ch.SpecToLab(clust.fP);
   
   //hitpos_temp.Print();
+  ch.SpecToPlane(clust.fHitpos);
   
-  ch.SpecToLab(hitpos_temp);
-  clust.fHitpos = hitpos_temp;
+  //cout << "hit in lab" << endl;
+  //hitpos_temp.Print();
   
-  // cout << "hit in lab" << endl;
-  // hitpos_temp.Print();
+  //clust.fHitpos = hitpos_temp;
+  
   
   for (UInt_t j = 0; j < 2; j++) {
     if (dh != NULL && dh[j] != NULL)
@@ -1040,7 +1062,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   }
 
   clust.fID     = fEvent->fGEMClust.size()+1;
-  clust.fVertex = tsgd.GetVertex (ih);
+  clust.fVertex = tsgd.GetVertex (ih) * 1e-3;//[m]
   /*
   if( fDoMapSector ) {
     // If sector mapping requested:
@@ -1064,11 +1086,30 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
     clust.fMCpos.RotateZ(rot);
   }
   */
+  
+  /*
+  cout << endl << "Cluster ID " << clust.fID << ", sector (realsector) " 
+       << clust.fSector << " " << clust.fRealSector
+       << ", source " << clust.fSource << ", plane " << clust.fPlane << endl;
+  cout << "particle type (primary==0) " << clust.fType << ", G4 PID " << clust.fPID << endl;
+  cout << "momentum (GeV) in lab frame: " << clust.fP.X() << " " << clust.fP.Y() << " "  << clust.fP.Z() << " norm ("  << tsgd.GetMomentum(ih).Mag()*1e-3 << ")" << endl;
+  //cout << "momentum (GeV) in spec frame: " << clust.fPspec.X() << " " << clust.fPspec.Y() << " "  << clust.fPspec.Z() << endl;
+  cout << "vertex (m)" << clust.fVertex.X() << " " << clust.fVertex.Y() << " "  << clust.fVertex.Z() << endl;
+  cout << "hit charge (?): " << clust.fCharge << ", time (ns): " << clust.fTime << endl;
+  cout << "corresponding hit energy (eV): " << tsgd.GetHitEnergy(ih) << endl;
+  cout << "position: at entrance (m): " << clust.fXEntry.X() << " " << clust.fXEntry.Y() << " "  << clust.fXEntry.Z() << endl;
+  cout << "position: in lab (m): " << clust.fMCpos.X() << " " << clust.fMCpos.Y() << " "  << clust.fMCpos.Z() << endl;
+  cout << "position: in tracker frame (m): " << clust.fHitpos.X() << " " << clust.fHitpos.Y() << " "  << clust.fHitpos.Z() << endl;
+  cout << "Strips sizes (1, 2): " << clust.fSize[0] << " " << clust.fSize[1] 
+       << ", starts (1, 2): " << clust.fStart[0] << " " << clust.fStart[1]
+       << ", Xproj (1, 2): " << clust.fXProj[0] << " " << clust.fXProj[1] << endl << endl;
+  */
+    
   fEvent->fGEMClust.push_back( clust );
   
   //cout << "cluster plane " << clust.fPlane << ", cluster type " << clust.fType << ", cluster source " << clust.fSource << endl;
   
-  if( clust.fPlane == 0 && clust.fType == 1 && clust.fSource == 0 )
+  if( clust.fType == 1 && clust.fSource == 0 )
     fEvent->fNSignal++;
   
   //cout << "Event cluster size " <<  fEvent->fGEMClust.size() << ", Event signal size " << fEvent->fNSignal << endl;

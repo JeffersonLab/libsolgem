@@ -284,7 +284,7 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
 {
   // Strip number corresponding to coordinates x, y in 
   // strip frame, or -1 if outside (2-d) bounds
-
+  
   Double_t xc = x;
   StripToSpec (xc, yc);
   
@@ -292,6 +292,7 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
     return -1;
 
   Int_t s = GetStripUnchecked(x);
+  //cout << x << " " << xc << " " << yc << " " << s << " " << GetNStrips() << endl;
   assert( s >= 0 && s < GetNStrips() ); // by construction in ReadGeometry()
   return s;
 }

@@ -4,10 +4,12 @@
 //#include "evioFileChannel.hxx"
 
 #include "g4sbs_types.h"
+#include "fstream"
 //#include "g4sbs_gep_tree_with_spin.h"
 
 #ifndef __CINT__
 
+//#define DEBUG 1
 
 TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
   fFilename[0] = '\0';
@@ -16,6 +18,33 @@ TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
 TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
   fZSpecOffset = 3.38551;
+  
+  double D_gas;
+  double T, p, R;
+  
+  //TODO: put in DB...
+  ifstream in("gasErange.txt");
+  if(!in.is_open()){
+    cout << "file gasErange.txt does not exist, exit" << endl;
+    exit(-1);
+  }
+  in.ignore(100,';');
+  in >> D_gas;
+  in.ignore(50,';');
+  
+  p = -10.0;
+  while(T<0.1){
+    in >> T >> R;
+    if(!in.good())break;
+
+    p = T*sqrt(1.0+2.0*0.511/T)*1.0e-3;// in GeV
+    feMom.push_back(p);
+    fgasErange.push_back(R/D_gas*1.0e-2);// in m...
+  }
+  
+  // for(uint i = 0; i<feMom.size(); i++){
+  //   cout << i << ", Momentum: " << feMom.at(i) << ", Range: " << fgasErange.at(i) << endl;
+  // }
 }
 
 TSBSGeant4File::~TSBSGeant4File() {
@@ -90,6 +119,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     Clear();
     
     int n_hits = 0;
+    int n_gen = 0;
+    bool newtrk, dupli;
     bool res = false;
     
     //cout << fEvNum << endl;
@@ -131,6 +162,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     double hit_data_temp[23];
     double gen_data_temp[8];
     
+    //variables for the correction of hits given by very small momenta
+    double eRangeSlope;
+    double eRangeGas;
+    double temp;
+    
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 0;
       
@@ -161,6 +197,34 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
 		      (fTree->Harm_FT_hit_z->at(i)+fZSpecOffset)*1.0e3+9.185);// in mm
       
+      //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Harm_FT_hit_pid->at(i))==11 && fTree->Harm_FT_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_FT_hit_txp->at(i), 2)+pow(fTree->Harm_FT_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_FT_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
+
+	  X_RO.SetX(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  //cout << "Coucou ! FT" << endl;
+       	}
+      }
+      
+      if(fabs(X_out.X())>=749.99){
+	cout << "event " << fEvNum << " hit " << i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FT_hit_txp->at(i) << endl;
+	temp = fabs(X_out.X());
+	X_out[0]*=749.99/temp;
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=199.99){
+	cout << "event " << fEvNum << " hit " << i << ", X_in.Y() = " << X_in.Y() << ", dY = " << fTree->Harm_FT_hit_typ->at(i) << endl;
+	temp = fabs(X_out.Y());
+	X_out[1]*=199.99/temp;
+	X_RO.SetY(X_out.Y());
+      }
+      
       Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vz->at(i)*1.0e3);// in mm
@@ -186,6 +250,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
+      n_hits++;
       
       gen_data_temp[0] = pid;
       for(int k = 0; k<3; k++){
@@ -194,14 +259,42 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[7] = weight;
       
-      fg4sbsGenData.push_back(new g4sbsgendata());
-      
-      for(int j = 0; j<8; j++){
-	fg4sbsGenData[n_hits]->SetData(j, gen_data_temp[j]);
+      if(n_gen==0){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }else{
+	newtrk = true; 
+	for(int z = n_gen-1; z>=0; z--){
+	  dupli = true;
+	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	    dupli=false;
+	  }else{
+	    for(int j = 4; j<8; j++){
+	      if(fg4sbsGenData[n_gen-1]->GetData(j)!=gen_data_temp[j]){
+		dupli=false;
+		break;
+	      }
+	    }
+	  }
+	  if(dupli){
+	    newtrk = false;
+	    break;
+	  }
+	}
+	
+	if(newtrk){
+	  fg4sbsGenData.push_back(new g4sbsgendata());
+	  for(int j = 0; j<8; j++){
+	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	  }
+	  n_gen++;
+	}
       }
-      n_hits++;
       
-#ifdef  DEBUG
+#if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (eV): " << edep << endl;
@@ -262,10 +355,39 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		       fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i), 
 		       (fTree->Harm_FPP1_hit_z->at(i)+fZSpecOffset)*1.0e3+3.0);// in mm
       
-      X_RO = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3*9.185*fTree->Harm_FPP1_hit_txp->at(i), 
-		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3*9.185*fTree->Harm_FPP1_hit_typ->at(i), 
+      X_RO = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_txp->at(i), 
+		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_typ->at(i), 
 		      (fTree->Harm_FPP1_hit_z->at(i)+fZSpecOffset)*1.0e3+9.185);// in mm
       
+      //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_FPP1_hit_txp->at(i), 2)+pow(fTree->Harm_FPP1_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_FPP1_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+       	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  //cout << "Coucou ! FPP1 " << endl;
+       	}
+      }
+         
+      if(fabs(X_out.X())>=999.99){
+	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FPP1_hit_txp->at(i) << endl;
+	temp = fabs(X_out.X());
+	X_out[0]*=999.99/temp;
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=299.99){
+	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ", X_in.Y() = " << X_in.Y() << ", dY = " << fTree->Harm_FPP1_hit_typ->at(i) << endl;
+	temp = fabs(X_out.Y());
+	X_out[1]*=299.99/temp;
+	X_RO.SetY(X_out.Y());
+	cout << X_out[1] << " " << X_out.Y() << endl;
+      }
+
       Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP1_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP1_hit_vz->at(i)*1.0e3);// in mm
@@ -291,6 +413,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
+      n_hits++;
       
       gen_data_temp[0] = pid;
       for(int k = 0; k<3; k++){
@@ -299,14 +422,34 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[7] = weight;
       
-      fg4sbsGenData.push_back(new g4sbsgendata());
-      
-      for(int j = 0; j<8; j++){
-	fg4sbsGenData[n_hits]->SetData(j, gen_data_temp[j]);
+      newtrk = true; 
+      for(int z = n_gen-1; z>=0; z--){
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  dupli=false;
+	}else{
+	  for(int j = 4; j<8; j++){
+	    if(fg4sbsGenData[n_gen-1]->GetData(j)!=gen_data_temp[j]){
+	      dupli=false;
+	      break;
+	    }
+	  }
+	}
+	if(dupli){
+	  newtrk = false;
+	  break;
+	}
       }
-      n_hits++;
       
-#ifdef DEBUG
+      if(newtrk){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
+      
+#if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (MeV): " << edep << endl;
@@ -314,7 +457,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       for(int k = 0; k<3; k++){
 	cout << Mom[k] << ", ";
       }
-      cout << " norm " << p << endl;
+      cout << " norm " << fTree->Harm_FPP1_hit_p->at(i) << endl;
       cout << "hit position at drift entrance (mm): ";
       for(int k = 0; k<3; k++){
 	cout << X_in[k] << ", ";
@@ -381,11 +524,39 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_out = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
 		       fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		       fTree->Harm_FPP2_hit_z->at(i) *1.0e3+3.0);// in mm
+		       (fTree->Harm_FPP2_hit_z->at(i)+fZSpecOffset)*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_txp->at(i), // in mm
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		      fTree->Harm_FPP2_hit_z->at(i) *1.0e3+9.185);// in mm
+		      (fTree->Harm_FPP2_hit_z->at(i)+fZSpecOffset)*1.0e3+9.185);// in mm
+      
+      //cout << "FPP2: momentum: " << fTree->Harm_FPP2_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_FPP2_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+       	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  //cout << "Coucou ! FPP2" << endl;
+       	}
+      }
+      
+      if(fabs(X_out.X())>=999.99){
+	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FPP1_hit_nhits+i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FPP2_hit_txp->at(i) << endl;
+	temp = fabs(X_out.X());
+	X_out[0]*=999.99/temp;
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=299.99){
+	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FPP1_hit_nhits+i << ", X_in.Y() = " << X_in.Y() << ", dY = " << fTree->Harm_FPP2_hit_typ->at(i) << endl;
+	temp = fabs(X_out.Y());
+	X_out[1]*=299.99/temp;
+	X_RO.SetY(X_out.Y());
+      }
       
       Vtx = TVector3(fTree->Harm_FPP2_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP2_hit_vy->at(i)*1.0e3, // in mm
@@ -419,15 +590,36 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	gen_data_temp[k+4] = Vtx[k];
       }
       gen_data_temp[7] = weight;
-      
-      fg4sbsGenData.push_back(new g4sbsgendata());
-      
-      for(int j = 0; j<8; j++){
-	fg4sbsGenData[n_hits]->SetData(j, gen_data_temp[j]);
-      }
       n_hits++;
+
+      newtrk = true; 
+      for(int z = n_gen-1; z>=0; z--){
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  dupli=false;
+	}else{
+	  for(int j = 4; j<8; j++){
+	    if(fg4sbsGenData[n_gen-1]->GetData(j)!=gen_data_temp[j]){
+	      dupli=false;
+	      break;
+	    }
+	  }
+	}
+	if(dupli){
+	  newtrk = false;
+	  break;
+	}
+      }
       
-#ifdef  DEBUG
+      if(newtrk){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
+      
+#if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (eV): " << edep << endl;
@@ -435,7 +627,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       for(int k = 0; k<3; k++){
 	cout << Mom[k] << ", ";
       }
-      cout << " norm " << p << endl;
+      cout << " norm " << fTree->Harm_FPP2_hit_p->at(i) << endl;
       cout << "hit position at drift entrance (mm): ";
       for(int k = 0; k<3; k++){
 	cout << X_in[k] << ", ";
@@ -489,6 +681,29 @@ void TSBSGeant4File::Clear(){
 #endif//DEBUG
 
     return;
+}
+
+double TSBSGeant4File::FindGasRange(double p)
+{
+  //find the electron range in the gas. Useful for very low energy electrons. 
+  //momentum cut set rather high (~1.1 MeV) should be more than enough
+  double res = -10.0;
+
+  if(p<feMom.at(0)){
+    //cout << "Momentum " << p << " < " << feMom.at(0) << endl;
+    res = fgasErange.at(0)*exp(log(p/feMom.at(0))*log(fgasErange.at(1)/fgasErange.at(0))/log(feMom.at(1)/feMom.at(0)));
+    return (res);
+  }
+  
+  for(uint i = 1; i<feMom.size(); i++){
+    if(feMom.at(i-1)<= p && p<feMom.at(i)){
+      res = fgasErange.at(i-1)*exp(log(p/feMom.at(i-1))*log(fgasErange.at(i)/fgasErange.at(i-1))/log(feMom.at(i)/feMom.at(i-1)));
+      //cout << "Momentum: " << feMom.at(i-1) << " < " << p << " < " << feMom.at(i) << endl;
+      //cout << "Range: " << fgasErange.at(i-1) << " <? " << res << " <? " << fgasErange.at(i) << endl;
+      return(res);
+    }
+  }
+  return(res);
 }
 
 

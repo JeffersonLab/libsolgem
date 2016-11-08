@@ -19,7 +19,6 @@ class TSolGEMData;
 class TSolGEMVStrip;
 class TSBSSpec;
 class TSBSSimEvent;
-class TSolEVIOFile;
 class TSBSGeant4File;
 
 // First an auxiliary class

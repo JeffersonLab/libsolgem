@@ -29,6 +29,7 @@ TSBSSimTrack::TSBSSimTrack() : Podd::MCTrack()
 {
 }
 
+/*
 //-----------------------------------------------------------------------------
 Double_t TSBSSimTrack::MCFitR() const
 {
@@ -69,6 +70,7 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 {
   return TVector3( fRcFitPar[1], fRcFitPar[3], 1.0 ).Phi();
 }
+*/
 
 //-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent()
@@ -168,7 +170,8 @@ void TSBSSimEvent::Print( const Option_t* opt ) const
 	   << ", start = (" << c.fStart[0] << ", " << c.fStart[1] << ")"
 	   << ", coord = (" << c.fXProj[0] << ", " << c.fXProj[1] << ")"
 	   << endl;
-      cout << " mom    = "; c.fP.Print();
+      cout << " mom lab  = "; c.fP.Print();
+      //cout << " mom spec = "; c.fPspec.Print();
       cout << " mcpos  = "; c.fMCpos.Print();
       cout << " hitpos = "; c.fHitpos.Print();
     }

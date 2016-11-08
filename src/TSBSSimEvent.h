@@ -26,17 +26,17 @@ public:
 		const TVector3& vertex, const TVector3& momentum );
   TSBSSimTrack();
 
-  // Accessors for SoLID-specific parameters
-  Double_t MCFitR()        const;
-  Double_t MCFitPhi()      const;
-  Double_t MCFitThetaDir() const;
-  Double_t MCFitPhiDir()   const;
+  // Accessors for SBS-specific parameters
+  /* Double_t MCFitR()     const; */
+  /* Double_t MCFitPhi()     const; */
+  /* Double_t MCFitThetaDir()  const; */
+  /* Double_t MCFitPhiDir()  const; */
 
-  Double_t RcFitR()        const;
-  Double_t RcFitPhi()      const;
-  Double_t RcFitThetaDir() const;
-  Double_t RcFitPhiDir()   const;
-
+  /* Double_t RcFitR()     const; */
+  /* Double_t RcFitPhi()     const; */
+  /* Double_t RcFitThetaDir()  const; */
+  /* Double_t RcFitPhiDir()  const; */
+  
   ClassDef(TSBSSimTrack,3)  // A MC physics track in SBS
 };
 
@@ -92,7 +92,8 @@ public:
     Int_t     fSource;    // MC data set source (0 = signal, >0 background)
     Int_t     fType;      // GEANT particle counter (1 = primary)
     Int_t     fPID;       // PDG ID of particle generating the cluster
-    TVector3  fP;         // Momentum of particle generating the cluster [GeV]
+    TVector3  fP;         // Momentum of particle generating the cluster in the lab [GeV]
+    //TVector3  fPspec;     // Momentum of particle generating the cluster in the spec [GeV]
     TVector3  fXEntry;    // Track at chamber entrance in lab coords [m]
     TVector3  fMCpos;     // Approx. truth position of hit in lab [m]
     TVector3  fHitpos;    // fMCpos in Tracker frame [m]
