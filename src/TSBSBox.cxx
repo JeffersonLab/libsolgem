@@ -30,17 +30,12 @@ TSBSBox::Contains (Double_t x, Double_t y) const
 Bool_t
 TSBSBox::Contains (Double_t x, Double_t y, Double_t z) const
 {
-  // Is (x, y) within the box?
-  
+  //tarnsform the point from the Lab to the Box coordinates
   LabToBox(x, y, z);
   
-  if(fabs(x)>fDX/2 || fabs(y)>fDY/2){
-    return false;
-  }else{
-    return true;
-  }
-  
+  return Contains(x, y);
 }
+
 
 void
 TSBSBox::SetGeometry (const Double_t d0,
@@ -57,14 +52,13 @@ TSBSBox::SetGeometry (const Double_t d0,
 
   SetRotations();
    
-  fOrigin = TVector3(0.0, 0.0, 0.0);
-  
   Double_t x0 = 0.0; 
   Double_t y0 = 0.0; 
   Double_t z0 = fD0; 
   
-  LabToBox(x0, y0, z0);
+  LabToSpec(x0, y0, z0);
   
+  // Evaluate the central point (in the lab) and the size of the Box
   fOrigin = TVector3(x0, y0, z0);
   fSize = TVector3(fDX, fDY, 0.016);
 }
@@ -78,6 +72,8 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
   TMatrixD m_res(3, 1, r_temp);
   m_res.Mult((*fRotMat_LB), m_temp);
   
+  // LabToBox and LabToSpec are pretty similar. The only difference is that in the former, 
+  // the box origin is subtracted from the new coordinates
   x = m_res(0, 0) - fOrigin.X();
   y = m_res(1, 0) - fOrigin.Y();
   z = m_res(2, 0) - fOrigin.Z();
@@ -101,37 +97,40 @@ TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
   return;
 }
 
-// void
-// TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
-// {
-//   Double_t r_temp[3] = {x, y, z};
-//   TMatrixD m_temp(3, 1, r_temp);
+/*
+void
+TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
+{
+  Double_t r_temp[3] = {x, y, z};
+  TMatrixD m_temp(3, 1, r_temp);
   
-//   TMatrixD m_res(3, 1, r_temp);
-//   m_res.Mult((*fRotMat_LB), m_temp);
+  TMatrixD m_res(3, 1, r_temp);
+  m_res.Mult((*fRotMat_LB), m_temp);
   
-//   x = m_res(0, 0);
-//   y = m_res(1, 0);
-//   z = m_res(2, 0);
+  x = m_res(0, 0);
+  y = m_res(1, 0);
+  z = m_res(2, 0);
   
-//   return;
-// }
-
-// void
-// TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const
-// {
-//   Double_t r_temp[3] = {x, y, z};
-//   TMatrixD m_temp(3, 1, r_temp);
+  return;
+}
+*/
+/*
+void
+TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const
+{
+  Double_t r_temp[3] = {x, y, z};
+  TMatrixD m_temp(3, 1, r_temp);
   
-//   TMatrixD m_res(3, 1, r_temp);
-//   m_res.Mult((*fRotMat_LB), m_temp);
+  TMatrixD m_res(3, 1, r_temp);
+  m_res.Mult((*fRotMat_LB), m_temp);
   
-//   x = m_res(0, 0);
-//   y = m_res(1, 0);
-//   z = m_res(2, 0);
+  x = m_res(0, 0);
+  y = m_res(1, 0);
+  z = m_res(2, 0);
   
-//   return;
-// }
+  return;
+}
+*/
 
 void
 TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
@@ -152,6 +151,7 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
 void
 TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
 {
+  //See comment in LabToBox method.
   Double_t r_temp[3] = {x+fOrigin.X(), y+fOrigin.Y(), z+fOrigin.Z()};
   TMatrixD m_temp(3, 1, r_temp);
   
@@ -168,6 +168,7 @@ TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
 void
 TSBSBox::SetRotations()
 {
+  // arrays of variables for the matrices
   Double_t arr_roty0[9] = {cos(fThetaH),  0, sin(fThetaH),
 			  0,             1,            0,
 			  -sin(fThetaH), 0, cos(fThetaH)};
@@ -178,16 +179,19 @@ TSBSBox::SetRotations()
 			   1,  0,  0,
 			   0,  0,  1};
   
-  TMatrixD Roty0(3,3,arr_roty0);// rotation along hall pivot (spectrometer theta)
-  TMatrixD Rotx1(3,3,arr_rotx1);// ratotion along x': spectrometer bending
-  TMatrixD Rotz2(3,3,arr_rotz2);// ratotion along x': spectrometer bending
+  // the three following rotations are described in the lonc comment section 
+  // in the class header file. 
+  // Note that to obtain the rotation matrix from the box to the lab, 
+  // the following matrices are multiplied in the reverse order they are declared.
+  TMatrixD Roty0(3,3,arr_roty0);// rotation along hall pivot (y): spectrometer theta
+  TMatrixD Rotx1(3,3,arr_rotx1);// rotation along x': spectrometer bending
+  TMatrixD Rotz2(3,3,arr_rotz2);// rotation along z": box rotation
   TMatrixD Rotzx(3,3,arr_rotz2);
   fRotMat_BL = new TMatrixD(3,3, arr_roty0);
 
-  // Set rotation angle trig functions
   Rotzx.Mult(Rotz2, Rotx1);
-  fRotMat_BL->Mult(Rotzx, Roty0);
+  fRotMat_BL->Mult(Rotzx, Roty0);// Box to Lab transformation
   
   fRotMat_LB = fRotMat_BL;
-  fRotMat_LB->Invert();
+  fRotMat_LB->Invert();// Lab to Box transformation
 }
