@@ -9,6 +9,7 @@
 
 using namespace std;
 
+//Recommanded constructor
 TSBSGEMChamber::TSBSGEMChamber( const char *name, const char *desc )
   : THaDetector (name, desc)
 {
@@ -36,10 +37,13 @@ const char* TSBSGEMChamber::GetDBFileName() const {
     else
       return fPrefix;
 }
-
+  
 Int_t
 TSBSGEMChamber::ReadDatabase (const TDatime& date)
 {
+  //Read the geometry for the TSBSBox
+  //Calls read geometry which, as it name indicates, actually reads the parameters
+ 
   FILE* file = OpenFile (date);
   if (!file) return kFileError;
 
@@ -86,12 +90,13 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
 
   if (err)
     return err;
-
+  
   // Database specifies angles in degrees, convert to radians
   Double_t torad = atan(1) / 45.0;
   thetaH *= torad;
   thetaV *= torad;
-
+  
+  // Set the geometry for the dependent TSBSBox
   fBox->SetGeometry (d0, dx, dy, thetaH, thetaV);
 
   fOrigin[0] = (fBox->GetOrigin())[0];
@@ -104,13 +109,13 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   return kOK;
 }
 
-
+//
 Int_t
 TSBSGEMChamber::Decode (const THaEvData& ed )
 {
   for (UInt_t i = 0; i < GetNPlanes(); ++i)
     {
-      GetPlane (i).Decode (ed);
+      GetPlane (i).Decode (ed);//"Neutralized" function: does nothing and returns 0.
     }
   return 0;
 }
@@ -118,6 +123,7 @@ TSBSGEMChamber::Decode (const THaEvData& ed )
 Int_t
 TSBSGEMChamber::InitPlane (const UInt_t i, const char* name, const char* desc)
 {
+  //Initialize TSBSGEMPlane number i
   fPlanes[i] = new TSBSGEMPlane (name, desc, this);
   fPlanes[i]->SetName (name);
   return fPlanes[i]->Init();
@@ -126,6 +132,7 @@ TSBSGEMChamber::InitPlane (const UInt_t i, const char* name, const char* desc)
 void
 TSBSGEMChamber::Print (const Bool_t printplanes)
 {
+  //Print TSBSGEMChamber (and dependent TSBSGEMPlanes) info
   cout << "I'm a GEM chamber named " << GetName() << endl;
   TVector3 o (GetOrigin());
   cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
@@ -153,6 +160,8 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
 	fPlanes[i]->Print();
       }
 }
+
+//Transformations: frame conversions
 
 void 
 TSBSGEMChamber::LabToPlane (TVector3& X_) const {

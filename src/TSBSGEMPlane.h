@@ -14,40 +14,30 @@ class TClonesArray;
 // In the present implementation we assume strips in a plane are
 // uniform pitch and parallel to one another.
 
-// A plane is a "wedge" (section of an annulus). It is characterized by
-// the minimum and maximum radius (r0 and r1), the minimum angle (phi0),
-// the angular width (dphi), the z coordinate of the front face (z0),
-// the thickness in z (depth), strip angle (of normal to strip's long axis, 
-// with respect to symmetry axis of wedge) and strip pitch (normal to strip's
-// long axis).
+// In the SBS geometry, a plane is a box (as defined it TSBSBox class). 
+// Refer to the comment in the header of TSBSBox class for more info.
 
-// The inner and outer arcs are always centered on (x, y) = (0, 0) in the
-// lab frame. 
+// In the code, TSBSGEMPlane contains the information about the strips and such 
+// NB: the GEM chamber and its GEM planes share the same size. 
 
-// Typically and always in the present implementation, r0, r1, phi0, and
-// dphi are the same as the parent chamber, if there is one.
+// It uses many of the methods from this class (namely the transformations methods).
+// In addition to this it bears transformations to go from lab, spec, or box to the "strip" frame,
+// Which is rotated wrt the box frame by the strip angle.
 
-// Derived from these quantities is a rectangular prism bounding box,
-// one of whose sides is parallel to the symmetry axis of the wedge,
-// described by a "size" which is half the transverse sizes and the
-// full z size, and an "origin" which is the center of the front face of the 
-// bounding box.
+// TSBSGEMPlane also inherits form THaSubDetector, which grants it all the functions from its class
+// (see http://hallaweb.jlab.org/podd/doc/html_v16/ClassIndex.html for more info).
 
-// The "wedge frame" is the frame whose x/y origin is the center of
-// the bounding box and whose x axis lies along the symmetry axis of
-// the wedge.
-
-// The "strip frame" is the wedge frame additionally rotated by the
-// strip angle, so the strips are parallel to y and measure position in x.
+// The "strip frame" is the box frame additionally rotated by the
+// strip angle, so the x strips are parallel to y and measure position in x.
 
 // The "projection frame" is a 1D coordinate system parallel to the x axis
 // of the strip frame where 0 coincides with the the strip frame x coordinate 
-// that runs through the lab origin.  This frame is equivalent for all wedges 
+// that runs through the lab origin.  This frame is equivalent for all boxes
 // of the same wire  orientation regardless of position, so it is the frame
 // to do tracking in
 
-// The origin and phi0 are specified in the lab frame. The size is in the
-// wedge frame.
+// The origin is specified in the spectrometer frame. The size is in the
+// box frame.
 
 class TSBSGEMPlane : public THaSubDetector {
     public:
@@ -55,7 +45,8 @@ class TSBSGEMPlane : public THaSubDetector {
 	TSBSGEMPlane(const char *name, const char *desc,
 		     THaDetectorBase* parent);
 	virtual ~TSBSGEMPlane();
-
+	
+	//Read the geometry for the TSBSBox AND the strips parameters in the data base
 	Int_t ReadDatabase (const TDatime& date);
 	Int_t ReadGeometry (FILE* file, const TDatime& date,
 			    Bool_t required = kFALSE);
@@ -64,8 +55,8 @@ class TSBSGEMPlane : public THaSubDetector {
 	Int_t Decode( const THaEvData &);
 	TSBSBox& GetBox() const {return *fBox;};
 	
-	Int_t    GetNStrips()  const { return fNStrips; }
-	Double_t GetSPitch()   const { return fSPitch; } // in meters
+	Int_t    GetNStrips()  const { return fNStrips; }// number of strips
+	Double_t GetSPitch()   const { return fSPitch; } // pitch: distance between the middle of two strips
 	Double_t GetSAngle()   const; // Angle (rad) between horizontal axis
 	                              // in wedge frame
                                       // and normal to strips in dir of
@@ -101,7 +92,7 @@ class TSBSGEMPlane : public THaSubDetector {
 
 	Double_t StripNumtoStrip( Int_t num );
 
-	Double_t StriptoProj( Double_t s );//a reverifier si c'est pas trop debile
+	Double_t StriptoProj( Double_t s );
 	Double_t StripNumtoProj( Int_t s );
 
 	// Edges of strip, in strip frame, in meters
@@ -141,6 +132,8 @@ class TSBSGEMPlane : public THaSubDetector {
 
 };
 
+// NB: I ignore zhy this is here and the rest is in the cxx file. 
+// This is "inherithed" from TSolGEMPlane.
 inline void
 TSBSGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
 {

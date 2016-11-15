@@ -40,6 +40,9 @@ TSBSGEMPlane::~TSBSGEMPlane()
 Int_t 
 TSBSGEMPlane::ReadDatabase (const TDatime& date)
 {
+  //Read the geometry for the TSBSBox AND the strips parameters in the data base
+  //Calls read geometry which, as it name indicates, actually reads the parameters
+  
   FILE* file = OpenFile (date);
   if (!file) return kFileError;
 
@@ -172,6 +175,7 @@ TSBSGEMPlane::GetSAngle()   const
   return fSAngle;
 }
 
+//Frame Transformations: strip to lab, spec, plane
 void
 TSBSGEMPlane::LabToStrip (Double_t& x, Double_t& y, Double_t& z) const
 {
@@ -300,6 +304,7 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
 void 
 TSBSGEMPlane::Print() const
 {
+  //Print GEM plane info
   cout << "I'm a GEM plane named " << GetName() << endl;
 
   TVector3 o (GetOrigin());
@@ -333,33 +338,47 @@ TSBSGEMPlane::Print() const
 void
 TSBSGEMPlane::SetRotations()
 {
+  // Calculate the rotations from the strip to the lab and vice versa.
+  // This is very similar to what is made in TSBSBox
+  
   // Set rotation angle trig functions
   fCBS = cos (-GetSAngle());
   fSBS = sin (-GetSAngle());
-
+  
   Double_t thetaH = fBox->GetThetaH();
   Double_t thetaV = fBox->GetThetaV();
 
-  Double_t arr_roty0[9] = {cos(thetaH),  0, sin(thetaH),
-			  0,             1,            0,
-			  -sin(thetaH), 0, cos(thetaH)};//rotation around hall pivot
-  Double_t arr_rotx1[9] = {1,            0,            0,
+  // arrays of variables for the matrices
+  Double_t arr_roty0[9] = {cos(thetaH), 0, sin(thetaH),
+			  0,            1,           0,
+			  -sin(thetaH), 0, cos(thetaH)};
+  Double_t arr_rotx1[9] = {1,           0,            0,
 			   0, cos(thetaV), -sin(thetaV),
-			   0, sin(thetaV),  cos(thetaV)};//spectrometer "bending"
-  Double_t arr_rotsp[9] = {fCBS, fSBS, 0,
+			   0, sin(thetaV),  cos(thetaV)};
+  Double_t arr_rotz2[9] = {0, -1,  0,
+			   1,  0,  0,
+			   0,  0,  1};
+
+  Double_t arr_rotsp[9] = {fCBS,  fSBS, 0,
 			   fSBS, -fCBS, 0,
 			   0,        0, 1};
   //rotation to strip; assuming that by convention, x is orthogonal to the strips' extension 
-    
-  TMatrixD Roty0(3,3,arr_roty0);// rotation along y: spectrometer theta
-  TMatrixD Rotx1(3,3,arr_rotx1);// ratotion along x': spectrometer bending
+  
+  TMatrixD Roty0(3,3,arr_roty0);// rotation along hall pivot (y): spectrometer theta
+  TMatrixD Rotx1(3,3,arr_rotx1);// rotation along x': spectrometer bending
+  TMatrixD Rotz2(3,3,arr_rotz2);// rotation along z": box rotation
   TMatrixD Rotsp(3,3,arr_rotsp);// ratotion along x': spectrometer bending
-  TMatrixD Rotlp(3,3,arr_roty0);
+
+  TMatrixD Rotzx(3,3,arr_rotz2);
+  TMatrixD Rotsz(3,3,arr_rotsp);
+  
   fRotMat_SL = new TMatrixD(3,3, arr_roty0);
   
   // Set rotation angle trig functions
-  Rotlp.Mult(Roty0, Rotx1);
-  fRotMat_SL->Mult(Rotlp, Rotsp);
+  Rotsz.Mult(Rotsp, Rotz2);
+  Rotzx.Mult(Rotsz, Rotx1);
+  
+  fRotMat_SL->Mult(Rotzx, Roty0);
   
   fRotMat_LS = fRotMat_SL;
   fRotMat_LS->Invert();

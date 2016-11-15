@@ -14,12 +14,14 @@ class TDatime;
 // This class is derivated from the "TSolWedge" class, 
 // to implement the SBS geometry, instead of the SoLID one. 
 // Its main utility is to provide the transformation matrices 
-// from the GEM plane frames to the lab.
+// from the GEM plane frames to the spectrometer frames or to the lab.
 
 // It is basically just a box, characterized by an extension in x (dx) and y (dy)
-// and by two angles: 
+// and by three parameters for its location: 
+// d0, the distance of the box center to the target, and two angles: 
 // one of horizontal rotation (thetaH), which translates the SBS angle,
 // one of vertical rotation (thetaV), translating the "bending" of the SBS wrt the xOz plane.
+// 
 // Warning: the x direction of the box is actually in the -y direction of the lab, 
 //          the y direction of the box being in the + x direction of the lab 
 

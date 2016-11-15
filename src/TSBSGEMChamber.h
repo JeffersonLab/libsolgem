@@ -7,34 +7,25 @@
 class THaEvData;
 class TSBSGEMPlane;
 
-// A chamber is a "wedge" (section of an annulus). It is characterized by
-// the minimum and maximum radius (r0 and r1), the minimum angle (phi0),
-// the angular width (dphi), the z coordinate of the front face (z0),
-// and the thickness in z (depth)
+// In the SBS geometry, a chamber is a box (as defined it TSBSBox class). 
+// Refer to the comment in the header of TSBSBox class for more info.
 
-// The inner and outer arcs are always centered on (x, y) = (0, 0) in the
-// lab frame. 
+// It uses many of the methods from this class (namely the transformations methods),
+// which it completes by offering the options to use these methods
+// with a TVector3 object as an input instead of 3 doubles.
 
-// Derived from these quantities is a rectangular prism bounding box,
-// one of whose sides is parallel to the symmetry axis of the wedge,
-// described by a "size" which is half the transverse sizes and the
-// full z size, and an "origin" which is the center of the front face of the 
-// bounding box.
-
-// The "wedge frame" or "plane frame" is the frame whose x/y origin is
-// the center of the bounding box and whose x axis lies along the
-// symmetry axis of the wedge.
-
-// The origin and phi0 are specified in the lab frame. The size is in the
-// wedge frame.
+// TSBSGEMChamber also inherits form THaDetector, which grants it all the functions from its class
+// (see http://hallaweb.jlab.org/podd/doc/html_v16/ClassIndex.html for more info).
 
 class TSBSGEMChamber : public THaDetector {
  public:
-  TSBSGEMChamber(const char *name, const char *desc);
+  //Constructors and destructor
+  TSBSGEMChamber(const char *name, const char *desc);//It is recommended to use this constructor
   TSBSGEMChamber() : fPlanes(0), fNPlanes(0), fBox(0) {} // for ROOT RTTI
 
   virtual ~TSBSGEMChamber();
-
+  
+  //Read the geometry for the TSBSBox in the data base
   Int_t ReadDatabase (const TDatime& date);
   Int_t ReadGeometry (FILE* file, const TDatime& date, Bool_t required);
   const char* GetDBFileName() const;
@@ -72,6 +63,7 @@ class TSBSGEMChamber : public THaDetector {
     fBox->SpecToLab (x, y, z);
   };  // input and output in meters
 
+  //Frame conversions with TVector3 objects as inputs
   void LabToPlane (TVector3& X_) const;
   void PlaneToLab (TVector3& X_) const;
   
@@ -80,14 +72,16 @@ class TSBSGEMChamber : public THaDetector {
   void PlaneToSpec (TVector3& X_) const;
   void SpecToLab (TVector3& X_) const;
   
-  UInt_t GetNPlanes() const {return fNPlanes;};
-
+  // Access to the info of TSBSGEMPlane which is regarded as a subdetector of TSBSGEMChamber.
+  // (see comments in the code of class TSBSGEMPlane)
+   UInt_t GetNPlanes() const {return fNPlanes;};
+    
   TSBSGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};
   Int_t InitPlane (const UInt_t i, const char* name, const char* desc);
   void Print (const Bool_t printplanes = kTRUE);
 
  private:
-  TSBSGEMPlane** fPlanes; // List of chambers
+  TSBSGEMPlane** fPlanes; // List of planes
   UInt_t fNPlanes;
   TSBSBox* fBox;  // Box geometry
 
