@@ -2,20 +2,7 @@
 #define __TSBSGEANT4FILE_H
 
 // Put prototypes here first so that it doens't freak out
-// over the hidden code
-
-
-/* #ifdef  __CINT__ */
-/* namespace evio { */
-/*     class evioFileChannel; */
-/*     class evioDOMNodeList; */
-/* } */
-/* #endif//__CINT__ */
-
-/* // Hide these from the ROOT interpreter */
-/* // we don't need them anyways */
 #ifndef __CINT__
-//#include "evioFileChannel.hxx"
 #include "evioUtil.hxx"
 #endif//__CINT__
 
@@ -26,7 +13,6 @@
 
 #include "TSolGEMData.h"
 
-
 #define __DEFAULT_DATA_SIZE 32
 
 ////////////////////////////////////////////////////////////////////////////
@@ -35,52 +21,56 @@
 // Stores an arbitrary double data in dynamically allocated
 // arrays.  Allows us to add in data as we get it and then check
 // to make sure all entries in the array are filled
+// // ___________________________________________________________ //
+// // hit_data: {GEM plane, E deposited, X_RO_x, X_RO_y, X_RO_z, 
+// //            X_in_x, X_in_y, X_in_z, tmin,
+// //            X_out_x, X_out_y, X_out_z, tmax,
+// //            type (prim, second), x_vtx, y_vtx, z_vtx,
+// //            (???), Particle ID, (???), 
+// //            px, py, pz}
+// // the strucutre of the data array is identical to the structure 
+// // of the hitdata array defined in TSolEVIOFile class
 
 class g4sbshitdata {
     public:
-	g4sbshitdata( int detid, unsigned int size = __DEFAULT_DATA_SIZE );
+        //Default constructor. The size may depend on the data we examine (GEM, CDET, ECal)
+        //TO-DO: at some point, include CDET and ECal hits
+  	g4sbshitdata( int detid, unsigned int size = __DEFAULT_DATA_SIZE );
 	virtual ~g4sbshitdata();
-
+	
+	//Get detector ID
 	int     GetDetID() const { return fDetID;}
 
+	// Get/set one specific element of the data for this hit
 	void    SetData( unsigned int, double );
 	double  GetData( unsigned int ) const ;
-	double *GetData(){ return fData; }
-
+	double *GetData(){ return fData; }//Get all data array 
+	
 	bool    IsFilled() const ;
-
+	
     protected:
-	int     fDetID;
-	unsigned int     fSize;
+	int     fDetID;//detector ID
+	unsigned int     fSize;//data array size;
 	long long int fFillbits;
-	double *fData;
+	double *fData;//data array: See in .cxx the sequence of this data array for g4sbs GEMs
 };
 
 ////////////////////////////////////////////////////////////////////////////
 // Auxilliary class for storing generated track data
-//
+// // ___________________________________________________________ //
+// //gendata: {PID, px, py, pz, x_vtx, y_vtx, z_vtx, weight};
+// // the strucutre of this data array is identical to the structure 
+// // of the gendata array defined in TSolEVIOFile class
 
 class g4sbsgendata : public g4sbshitdata {
     public:
 	g4sbsgendata();
 	~g4sbsgendata(){;}
 	
-	int	GetPID() const { return IsFilled()? (int) fData[0] : -1e9; }
-	double  GetWeight() const { return fData[7]; }
-	TVector3 GetP() const { return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); }
-	TVector3 GetV() const { return IsFilled()? TVector3(fData[4], fData[5], fData[6]) : TVector3(-1e9, -1e9, -1e9 ); }
-	
-	/* int	GetPID() const { return IsFilled()? (int) fData[0] : -1e9; } */
-	/* int	GetMID() const { return IsFilled()? (int) fData[1] : -1e9; } */
-	/* int	GetTRID() const { return IsFilled()? (int) fData[2] : -1e9; } */
-	/* //TVector3 GetP() const { return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); } */
-	/* double GetP() const { return IsFilled()? fData[3] : -1e9; } */
-	/* double GetBeta() const { return IsFilled()? fData[4] : -1e9; } */
-	/* TVector2 GetDXDY() const { return IsFilled()? TVector2(fData[5], fData[6]) : TVector2(-1e9, -1e9 ); } */
-	/* TVector2 GetTrueXY() const { return IsFilled()? TVector2(fData[7], fData[8]) : TVector2(-1e9, -1e9 ); } */
-	/* TVector3 GetV() const { return IsFilled()? TVector3(fData[9], fData[10], fData[11]) : TVector3(-1e9, -1e9, -1e9 ); } */
-	/* TVector3 GetS() const { return IsFilled()? TVector3(fData[12], fData[13], fData[14]) : TVector3(-1e9, -1e9, -1e9 ); } */
-	/* double  GetWeight() const { return fData[15]; } */
+	int	GetPID() const { return IsFilled()? (int) fData[0] : -1e9; }//G4 particle ID
+	double  GetWeight() const { return fData[7]; }//cross section
+	TVector3 GetP() const { return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); }//Track momentum 3-vector
+	TVector3 GetV() const { return IsFilled()? TVector3(fData[4], fData[5], fData[6]) : TVector3(-1e9, -1e9, -1e9 ); }//Track vtx 3-vector
 };
 
 
@@ -90,11 +80,11 @@ class g4sbsgendata : public g4sbshitdata {
 class TSBSGeant4File {
 
  public:
-  TSBSGeant4File();//default constructor
-  TSBSGeant4File( const char *name );//constructor with input file name: recommanded
-  virtual ~TSBSGeant4File();//default destructor
+  TSBSGeant4File();// Default constructor
+  TSBSGeant4File( const char *name );// Constructor with input file name: recommanded
+  virtual ~TSBSGeant4File();// Default destructor
   
-  //standard getters and setters
+  // Standard getters and setters
   void  SetFilename( const char *name );
   void  SetSource( Int_t i ) { fSource = i; }
   void  Clear();
@@ -105,13 +95,7 @@ class TSBSGeant4File {
   Int_t GetSource() const { return fSource; }
   
   // This is actually where the data is read: 
-  // perhaps need additional functions to do the job
   Int_t ReadNextEvent();
-  
-  /* void  ExtractDetIDs( evio::evioDOMNodeList *, int );// to be replaced */
-  /* void  BuildData( evio::evioDOMNodeList * );// to be replaced */
-  /* void  BuildGenerated( evio::evioDOMNodeList * );// to be replaced */
-  // void  AddDatum(int crate, int slot, int chan, double data );
   
   //return the size of the hit arrays
   UInt_t GetNData() const { return fg4sbsHitData.size(); }
@@ -130,13 +114,19 @@ class TSBSGeant4File {
   double FindGasRange(double p);
   
  private:
+  // Members
   char  fFilename[255];
   TFile *fFile;
-  //TChain *fChain;
   g4sbs_gep_tree_with_spin *fTree;// needed to easily unfold root file data
-  Int_t fSource;   // User-defined source ID (e.g. MC run number)
-  double fZSpecOffset;
+  Int_t fSource;   // User-defined source ID (e.g. MC run number)  // Temp: Do we use that ?
+  double fZSpecOffset; // Offset with which the GEM hits are registered in g4sbs for GEP.
   
+  // These two parameters are used to calculate the range in the gas 
+  // for very low momentum particles (electrons).
+  // This avoids to calculate stupid values for the particle position 
+  // at the exit of the GEM ionizable gas (since it is not included in g4sbs output).
+  // -> Shall it be ?
+  // This is not necessary for TSolEVIOFile as the hit exit is included in evio files.
   vector<double> feMom;
   vector<double> fgasErange;
   

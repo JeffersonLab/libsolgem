@@ -1,15 +1,12 @@
 #include "TSBSGeant4File.h"
-
-//#include "evioUtil.hxx"
-//#include "evioFileChannel.hxx"
-
 #include "g4sbs_types.h"
 #include "fstream"
 //#include "g4sbs_gep_tree_with_spin.h"
 
 #ifndef __CINT__
 
-//#define DEBUG 1
+// uncomment follozing line to print out the data read by the file.
+//#define DEBUG 1 
 
 TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
   fFilename[0] = '\0';
@@ -17,12 +14,13 @@ TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
 
 TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
-  fZSpecOffset = 3.38551;
+  fZSpecOffset = 3.38551;// TO-DO: have this input by a DB, and not hardcoded.
   
+  //Filling the table that will be used to calculate the low energy electron range in the gas. 
   double D_gas;
   double T, p, R;
   
-  //TODO: put in DB...
+  //TO-DO: put in DB...
   ifstream in("gasErange.txt");
   if(!in.is_open()){
     cout << "file gasErange.txt does not exist, exit" << endl;
@@ -33,18 +31,15 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   in.ignore(50,';');
   
   p = -10.0;
-  while(T<0.1){
+  while(T<0.1){//Kinetic energy cut to 0.1 MeV
     in >> T >> R;
     if(!in.good())break;
-
+    
     p = T*sqrt(1.0+2.0*0.511/T)*1.0e-3;// in GeV
     feMom.push_back(p);
     fgasErange.push_back(R/D_gas*1.0e-2);// in m...
   }
   
-  // for(uint i = 0; i<feMom.size(); i++){
-  //   cout << i << ", Momentum: " << feMom.at(i) << ", Range: " << fgasErange.at(i) << endl;
-  // }
 }
 
 TSBSGeant4File::~TSBSGeant4File() {
@@ -61,29 +56,21 @@ Int_t TSBSGeant4File::Open(){
     // Return 0 on fail, 1 on success
     if( fFilename[0] == '\0' ){ return 0; }
 
-    //try {
-	// SPR - Unclear to me what a good value to use for the 
-	// buffer size is.  I picked something that works...
     delete fFile;
-    fFile = new TFile(fFilename);//evio::evioFileChannel(fFilename, "r", 1<<24 );
+    fFile = new TFile(fFilename);
     
     if( !fFile->IsOpen() ){ 
       fprintf(stderr, "%s: File could not be made\n",__PRETTY_FUNCTION__);
       return 0; 
     }
     
-    TChain* C1 = (TChain*)fFile->Get("T");
+    TChain* C1 = (TChain*)fFile->Get("T");//Get the tree from the file
 
     fTree = new g4sbs_gep_tree_with_spin(C1, false);
+    // g4sbs_gep_tree_with_spin declare all variables, branches, etc... 
+    // to read, event by event, the varaibles stored in the tree. 
+    // See comments in g4sbs_gep_tree_with_spin for more details...
 
-    //fFile->open();
-    //}  catch (evio::evioException e) {
-    // 	// Problem opening
-    // 	fprintf(stderr, "%s %s line %d:  %s\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, e.toString().data() );
-    // 	delete fFile; fFile = 0;
-    // 	return 0;
-    // }
-    
     fEvNum = -1;
  
     return 1;
@@ -92,15 +79,10 @@ Int_t TSBSGeant4File::Open(){
 Int_t TSBSGeant4File::Close(){
     // Return 0 on fail, 1 on success
     Int_t ret = 1;
-    //try {
+    
     if( !fFile->IsOpen() ){ return 0; }
     
     fFile->Close();
-    // } catch (evio::evioException e) {
-    // 	// Problem closing
-    // 	fprintf(stderr, "%s\n", e.toString().data() );
-    // 	ret = 0;
-    // }
     
     delete fFile; fFile = 0;
     return ret;
@@ -118,19 +100,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 
     Clear();
     
-    int n_hits = 0;
-    int n_gen = 0;
-    bool newtrk, dupli;
+    int n_hits = 0;//total number of hits at the end of the event
+    int n_gen = 0;//total number of tracks at the end of the event
+    bool newtrk, dupli;// These variables help avoid store many times the same MC track info
     bool res = false;
-    
-    //cout << fEvNum << endl;
     
     fEvNum++;
     
-    //cout << fEvNum << endl;
-    
     res = fTree->GetEntry(fEvNum);
-    
+    //Test that the next entry exist
     if( !res ){
       // Don't need to print this out.  Not really an error
 #ifdef  DEBUG
@@ -167,6 +145,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     double eRangeGas;
     double temp;
     
+    //Loop on the Forward Tracker detector hits: detectors 0 to 5
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 0;
       
@@ -198,6 +177,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      (fTree->Harm_FT_hit_z->at(i)+fZSpecOffset)*1.0e3+9.185);// in mm
       
       //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      
+      //Calculation of very low momentum electrons range ingas.
       if(fabs(fTree->Harm_FT_hit_pid->at(i))==11 && fTree->Harm_FT_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FT_hit_txp->at(i), 2)+pow(fTree->Harm_FT_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Harm_FT_hit_p->at(i));//m
@@ -212,6 +193,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
        	}
       }
       
+      //Correcting X_out x and y if out of the GEM plane...
       if(fabs(X_out.X())>=749.99){
 	cout << "event " << fEvNum << " hit " << i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FT_hit_txp->at(i) << endl;
 	temp = fabs(X_out.X());
@@ -228,7 +210,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vz->at(i)*1.0e3);// in mm
-      
+
+      //Filling hit_data temporary array...
       hit_data_temp[0] = (double)plane;
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
@@ -247,11 +230,13 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
 
+      // ... to copy it in the actual g4sbsHitData structure.
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
       
+      //Filling gen_data temporary array...
       gen_data_temp[0] = pid;
       for(int k = 0; k<3; k++){
 	gen_data_temp[k+1] = Mom[k];
@@ -259,13 +244,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[7] = weight;
       
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store new MC tracks
       if(n_gen==0){
 	fg4sbsGenData.push_back(new g4sbsgendata());
 	for(int j = 0; j<8; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
-      }else{
+      }else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
@@ -294,6 +281,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
       }
       
+      // Print out block
 #if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
@@ -329,6 +317,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #endif//DEBUG
     }
     
+    //Loop on the Focal Plane Polarimeter 1 hits: detectors 10 to 14
+    // This block is not well commented, 
+    // as it is very similar to the previous block of instructions
+    // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
       det_id = 1;
       
@@ -500,6 +492,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #endif//DEBUG      
     }
     
+    //Loop on the Focal Plane Polarimeter 2 hits: detectors 15 to 19
+    // This block is not well commented, 
+    // as it is very similar to the previous block of instructions
+    // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
       det_id = 1;
       
@@ -770,7 +766,8 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
 	gd->SetParticleID(ngdata, (UInt_t) h->GetData(13) );// actually type...
-	gd->SetParticleType(ngdata, (UInt_t) h->GetData(18) );// actually PID
+	gd->SetParticleType(ngdata, (UInt_t) h->GetData(18) );// actually PID 
+	// TO-DO (or to be discussed): shall those two data be inverted to avoid confusions ?
 	
 	gd->SetHitChamber(ngdata,  h->GetDetID()*10+h->GetData(0)-1);
 	
