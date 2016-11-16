@@ -767,7 +767,7 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
 	gd->SetParticleID(ngdata, (UInt_t) h->GetData(13) );// actually type...
 	gd->SetParticleType(ngdata, (UInt_t) h->GetData(18) );// actually PID 
-	// TO-DO (or to be discussed): shall those two data be inverted to avoid confusions ?
+	// TO-DO (???): shall those two data be inverted to avoid confusions ?
 	
 	gd->SetHitChamber(ngdata,  h->GetDetID()*10+h->GetData(0)-1);
 	

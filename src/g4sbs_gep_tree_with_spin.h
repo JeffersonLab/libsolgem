@@ -12,6 +12,18 @@
 #include <TChain.h>
 #include <TFile.h>
 
+// ----------------------------
+// This class is useful to activate *all* variables from the tree 
+// stored in g4sbs output root files. 
+// In libsolgem (libsbsgem) it is used by the class TSBSGeant4File.
+// Note it can perfectly be used in standalone.
+// 
+// It is more particularly dedicated to unfold files obtained with GEp setup.
+// It includes information of CDET, GEp ECal, FT, FPP1&2, HCal.
+// For more info check the following link: 
+// https://hallaweb.jlab.org/wiki/index.php/Documentation_of_g4sbs#ROOT_Tree_Structure 
+// 
+
 // Header file for the classes stored in the TTree if any.
 #include <vector>
 // Fixed size dimensions of array or collections stored in the TTree if any.
@@ -23,6 +35,8 @@ public :
    bool            fEcalBox;// needed to turn on/off the reading of the H(E)CAL_box data
 
    // Declaration of leaf types
+   
+   // Event variables
    Double_t        ev_count;
    Double_t        ev_rate;
    Double_t        ev_solang;
@@ -73,6 +87,7 @@ public :
    Double_t        gen_dsbstrkr;
    Double_t        gen_Ebeam;
    
+   // Coordinate detector hits
    Int_t           Earm_CDET_hit_nhits;
    std::vector<int>     *Earm_CDET_hit_PMT;
    std::vector<int>     *Earm_CDET_hit_row;
@@ -110,6 +125,7 @@ public :
    std::vector<double>  *Earm_CDET_Scint_hit_tmin;
    std::vector<double>  *Earm_CDET_Scint_hit_tmax;
    
+   // GEp Electromagnetic calorimeter hits
    Int_t           Earm_ECAL_hit_nhits;
    std::vector<int>     *Earm_ECAL_hit_PMT;
    std::vector<int>     *Earm_ECAL_hit_row;
@@ -167,6 +183,7 @@ public :
    std::vector<double>  *Earm_ECalTF1_hit_tmin;
    std::vector<double>  *Earm_ECalTF1_hit_tmax;
    
+   // Focal Plane Polarimeter 1 hits
    Int_t           Harm_FPP1_hit_nhits;
    std::vector<int>     *Harm_FPP1_hit_plane;
    std::vector<int>     *Harm_FPP1_hit_strip;
@@ -217,6 +234,7 @@ public :
    std::vector<double>  *Harm_FPP1_Track_Xpfit;
    std::vector<double>  *Harm_FPP1_Track_Ypfit;
    
+   // Focal Plane Polarimeter 2 hits
    Int_t           Harm_FPP2_hit_nhits;
    std::vector<int>     *Harm_FPP2_hit_plane;
    std::vector<int>     *Harm_FPP2_hit_strip;
@@ -267,6 +285,7 @@ public :
    std::vector<double>  *Harm_FPP2_Track_Xpfit;
    std::vector<double>  *Harm_FPP2_Track_Ypfit;
    
+   // Forward Tracker hits
    Int_t           Harm_FT_hit_nhits;
    std::vector<int>     *Harm_FT_hit_plane;
    std::vector<int>     *Harm_FT_hit_strip;
@@ -317,6 +336,7 @@ public :
    std::vector<double>  *Harm_FT_Track_Xpfit;
    std::vector<double>  *Harm_FT_Track_Ypfit;
    
+   // Hadronic calorimeter hits
    Int_t           Harm_HCAL_box_hit_nhits;
    std::vector<int>     *Harm_HCAL_box_hit_row;
    std::vector<int>     *Harm_HCAL_box_hit_col;
