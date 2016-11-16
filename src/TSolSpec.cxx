@@ -33,7 +33,7 @@ TSolSpec::AddGEM (TSolGEMChamber* pdet)
   fChambers.push_back(pdet);
   return 0;
 }
-
+/*
 Int_t TSolSpec::CoarseTrack(){
     // Needs work
 
@@ -59,23 +59,27 @@ Int_t TSolSpec::CoarseTrack(){
 
     return 0;
 }
-
+*/
+/*
 Int_t TSolSpec::CoarseReconstruct(){
     return 0;
 }
-
+*/
+/*
 Int_t TSolSpec::Track(){
     return 0;
 }
-
-
+*/
+/*
 Int_t TSolSpec::Reconstruct(){
     return 0;
 }
-
+*/
+/*
 Int_t TSolSpec::FindVertices(TClonesArray &a){
     return 0;
 }
+*/
 
 void
 TSolSpec::Print() const

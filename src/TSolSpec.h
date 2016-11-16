@@ -15,15 +15,16 @@ class TSolSpec : public THaSpectrometer {
 
 	Int_t AddGEM (TSolGEMChamber* pdet);
 
-	Int_t CoarseTrack();
-	Int_t CoarseReconstruct();
-	Int_t Track();
-	Int_t Reconstruct();
+	// Useless: the actual job is done by TreeSearch.
+	/* Int_t CoarseTrack(); */
+	/* Int_t CoarseReconstruct(); */
+	/* Int_t Track(); */
+	/* Int_t Reconstruct(); */
 
-	Int_t TrackCalc() { return 0; }
+	/* Int_t TrackCalc() { return 0; } */
 
-	Int_t FindVertices(TClonesArray &);
-//	void MakePrefix(){ return; }
+	/* Int_t FindVertices(TClonesArray &); */
+	/* void MakePrefix(){ return; } */
 
 	UInt_t GetNChambers() const { return fChambers.size(); }
 	TSolGEMChamber &GetChamber(Int_t i) const { return *(fChambers.at(i)); }

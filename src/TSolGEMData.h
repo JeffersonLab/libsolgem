@@ -33,7 +33,7 @@ class TSolGEMData
   void SetHitEnergy (UInt_t k, Double_t e)     { fHitData[k].fEdep = e; }
   void SetHitTime(UInt_t k, Double_t t)        { fHitData[k].fTime = t; }
   void SetHitChamber (UInt_t k, UInt_t c)      { fHitData[k].fGem  = c; }
-  void SetParticleID (UInt_t k, Int_t pid)     { fHitData[k].fPID  = pid; }
+  void SetTrackID (UInt_t k, Int_t trid)     { fHitData[k].fTRID  = trid; }
   void SetParticleType (UInt_t k, UInt_t type) { fHitData[k].fType = type; }
 
   UInt_t GetNHit()   const { return fHitData.size(); }
@@ -49,7 +49,7 @@ class TSolGEMData
   Double_t GetHitEnergy (UInt_t k)    const { return fHitData[k].fEdep; }
   Double_t GetHitTime(UInt_t k)       const { return fHitData[k].fTime; }
   UInt_t GetHitChamber (UInt_t k)     const { return fHitData[k].fGem; }
-  Int_t  GetParticleID (Int_t k)      const { return fHitData[k].fPID; }
+  Int_t  GetTrackID (Int_t k)      const { return fHitData[k].fTRID; }
   UInt_t GetParticleType (UInt_t k)   const { return fHitData[k].fType; }
 
   void Print() const;
@@ -66,7 +66,7 @@ class TSolGEMData
     UInt_t    fGem;
     Double_t  fEdep;  // energy lost in drift
     Double_t  fTime;  // hit time
-    Int_t     fPID;   // particle ID
+    Int_t     fTRID;   // particle ID
     UInt_t    fType;  // particle counter: 1 = primary, >1 secondaries
     TVector3  fXi;    // entrance point in drift
     TVector3  fXo;    // exit point in drift

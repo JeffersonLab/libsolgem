@@ -380,8 +380,8 @@ void TSolEVIOFile::GetGEMData(TSolGEMData* gd)
 	//	    printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
 
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
-	gd->SetParticleID(ngdata, (UInt_t) h->GetData(18) );
-	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );
+	gd->SetTrackID(ngdata, (UInt_t) h->GetData(18) );//Track type (primary, secondary)
+	gd->SetParticleType(ngdata, (UInt_t) h->GetData(13) );//PID
 
 	// Chamber ID starts indexing a 0 whereas we start conventionally at 1 
 	gd->SetHitChamber(ngdata, h->GetDetID()/100 - 1 );
