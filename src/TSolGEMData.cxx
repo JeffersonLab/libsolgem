@@ -68,7 +68,10 @@ TSolGEMData::PrintHit (UInt_t k) const
   cout << "    Particle type: " << GetParticleType(k) << endl;
 }
 
-//add to the current set of GEM data another GEM data set
+
+/*
+// Add to the current set of GEM data another GEM data set 
+// Necessary ??? probably redundant with TSol(SBS)SimGEMDigitization::AdditiveDigitize()
 void TSolGEMData::AddGEMData(TSolGEMData* gd)
 {
   if( !gd ) return;
@@ -96,4 +99,4 @@ void TSolGEMData::AddGEMData(TSolGEMData* gd)
     SetNHit(ngdata);
   }
 }
-
+*/

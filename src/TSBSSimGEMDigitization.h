@@ -31,16 +31,16 @@ private:
   // ADC sampled value of strip array of each axis
 
   //TODO: make this a struct inside an STL vector or similar
-  TArrayI fStripADC;
-  Short_t *fType;
-  Int_t   *fTotADC;
+  TArrayI fStripADC;  
+  Short_t *fType;  // Type of track (primary, secondary) which left the hit for each strip
+  Int_t   *fTotADC;  // number of ADC counts for each strip
 
-  Float_t *fCharge;
-  Float_t *fTime;
+  Float_t *fCharge;  // charge for each strip
+  Float_t *fTime;   // time for each strip
 
-  UShort_t fNSamples;
-  UShort_t fNStrips;
-  Int_t    fThreshold;
+  UShort_t fNSamples;   // number of ADC samples
+  UShort_t fNStrips;   // number of strips in the plane
+  Int_t    fThreshold;  // ADC threshold 
 
   UShort_t  fNOT;   // # strips over threshold
   Short_t*  fOverThr;  // # list of strips over threshold
@@ -57,7 +57,8 @@ public:
 
   // cumulate hits (strips signals)
   void Cumulate (const TSolGEMVStrip *vv, Short_t type, Short_t clusterID );
-
+  
+  //standard getters
   Short_t  GetType (Int_t n) const {return fType[n];}
   Int_t    GetTotADC (Int_t n) const {return fTotADC[n];}
   Float_t  GetTime (Int_t n) const {return fTime[n];}
@@ -79,23 +80,26 @@ public:
 class TSBSSimGEMDigitization: public THaAnalysisObject
 {
  public:
+  //Constructor and destructor
   TSBSSimGEMDigitization( const TSBSSpec& spect,
 			  const char* name = "testdigitization",
 			  const char* dbpathfile = "");
   virtual ~TSBSSimGEMDigitization();
-
+  
+  //full initialization of all parameters with database
   void InitGeomParam(const char* dbpath);
   void Initialize(const TSBSSpec& spect);
   Int_t ReadDatabase (const TDatime& date);
-
+  
+  //This is in those three functions that the job is done, more specifically in AddititveDigitize
   Int_t Digitize (const TSolGEMData& gdata, const TSBSSpec& spect); // digitize event
   Int_t AdditiveDigitize (const TSolGEMData& gdata, const TSBSSpec& spect); // add more digitized data, e.g. background
   void NoDigitize (const TSolGEMData& gdata, const TSBSSpec& spect); // do not digitize event, just fill tree
-  const TSBSDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);};
-  void Print() const;
+  const TSBSDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);}; 
+  void Print() const;// print info
   void PrintCharges() const;
   void PrintSamples() const;
-
+  
   Double_t GetGateWidth(){ return fGateWidth; }
 
   // Tree methods
@@ -182,7 +186,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   // Geometry
   Double_t fRoutZ;            // z-distance hit entrance to readout plane [mm]
 
-  // Sector mapping
+  // Sector mapping // (???) are these relevant ?
   Bool_t   fDoMapSector;
   Int_t    fSignalSector;
 
@@ -200,6 +204,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
     Double_t R2;      // = SNorm^2 : radius of numerical integration area
     Double_t ggnorm;  // = Charge/R2/pi : charge per unit area
   };
+  //Ionization parameters
   std::vector<IonPar_t> fRIon;
   Double_t fRSMax;
   Double_t fRTotalCharge;

@@ -29,7 +29,6 @@ TSBSSimTrack::TSBSSimTrack() : Podd::MCTrack()
 {
 }
 
-/*
 //-----------------------------------------------------------------------------
 Double_t TSBSSimTrack::MCFitR() const
 {
@@ -70,7 +69,7 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 {
   return TVector3( fRcFitPar[1], fRcFitPar[3], 1.0 ).Phi();
 }
-*/
+
 
 //-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent()

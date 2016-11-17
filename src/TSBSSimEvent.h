@@ -27,15 +27,15 @@ public:
   TSBSSimTrack();
 
   // Accessors for SBS-specific parameters
-  /* Double_t MCFitR()     const; */
-  /* Double_t MCFitPhi()     const; */
-  /* Double_t MCFitThetaDir()  const; */
-  /* Double_t MCFitPhiDir()  const; */
+  Double_t MCFitR()     const;
+  Double_t MCFitPhi()     const;
+  Double_t MCFitThetaDir()  const;
+  Double_t MCFitPhiDir()  const;
 
-  /* Double_t RcFitR()     const; */
-  /* Double_t RcFitPhi()     const; */
-  /* Double_t RcFitThetaDir()  const; */
-  /* Double_t RcFitPhiDir()  const; */
+  Double_t RcFitR()     const;
+  Double_t RcFitPhi()     const;
+  Double_t RcFitThetaDir()  const;
+  Double_t RcFitPhiDir()  const;
   
   ClassDef(TSBSSimTrack,3)  // A MC physics track in SBS
 };

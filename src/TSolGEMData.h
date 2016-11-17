@@ -54,8 +54,11 @@ class TSolGEMData
 
   void Print() const;
   void PrintHit (UInt_t k) const;
-  void AddGEMData(TSolGEMData* gd);
-  
+
+  // Add to the current set of GEM data another GEM data set 
+  // Necessary ??? probably redundant with TSol(SBS)SimGEMDigitization::AdditiveDigitize()
+  //void AddGEMData(TSolGEMData* gd);
+
  private:
 
   UInt_t fRunID, fEvtID;

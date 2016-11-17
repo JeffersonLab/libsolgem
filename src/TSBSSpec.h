@@ -8,9 +8,12 @@
 
 class TSBSGEMChamber;
 
-// Class TSBS Spec is more or less a "container" to store the information of all GEM chambers.
+// Class TSBSSpec is more or less a "container" to store the information of all GEM chambers.
 // Ultimately, it will also contain information on reconstrcuted tracks, 
 // but that needs more work.
+// This class inherits from class THaSpectrometer, 
+// which grants it all the functions from its class
+// (see http://hallaweb.jlab.org/podd/doc/html_v16/ClassIndex.html for more info).
 
 class TSBSSpec : public THaSpectrometer {
     public:
@@ -21,14 +24,16 @@ class TSBSSpec : public THaSpectrometer {
 	Int_t AddGEM (TSBSGEMChamber* pdet);
 
 	// Useless: the actual job is done by TreeSearch.
-	/* Int_t CoarseTrack(); */
-	/* Int_t CoarseReconstruct(); */
-	/* Int_t Track(); */
-	/* Int_t Reconstruct(); */
-
-	/* Int_t TrackCalc() { return 0; } */
-
-	/* Int_t FindVertices(TClonesArray &); */
+	// However, those methods seem to have to be declared, 
+	// perhaps for reasons of inheritence from THaSpectrometer
+	Int_t CoarseTrack();
+	Int_t CoarseReconstruct();
+	Int_t Track();
+	Int_t Reconstruct();
+	
+	Int_t TrackCalc() { return 0; }
+	
+	Int_t FindVertices(TClonesArray &);
 	/* void MakePrefix(){ return; } */
 	
 	//Access to GEM chambers info 

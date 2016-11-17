@@ -34,7 +34,6 @@ TSBSSpec::AddGEM (TSBSGEMChamber* pdet)
   return 0;
 }
 
-/*
 Int_t TSBSSpec::CoarseTrack(){
     // Needs work
 
@@ -60,27 +59,22 @@ Int_t TSBSSpec::CoarseTrack(){
 
     return 0;
 }
-*/
-/*
+
 Int_t TSBSSpec::CoarseReconstruct(){
     return 0;
 }
-*/
-/*
+
 Int_t TSBSSpec::Track(){
     return 0;
 }
-*/
-/*
+
 Int_t TSBSSpec::Reconstruct(){
     return 0;
 }
-*/
-/*
+
 Int_t TSBSSpec::FindVertices(TClonesArray &a){
     return 0;
 }
-*/
 
 void
 TSBSSpec::Print() const

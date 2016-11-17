@@ -28,7 +28,11 @@
 using namespace std;
 
 // Misc. parameters/constants, some of which should probably be in database
-static UInt_t   fNSECTORS;
+static UInt_t   fNSECTORS;// EFuchey 2016/11/17: This parameter shall not be relevant in the case of TSBS. 
+                          // But it is hardcoded in so many places in the code 
+                          // (including probably code in common with SoLID), 
+                          // that I would rather leave it here for the time being, and set it to 1.
+                          //TO-DO: find relevance of this parameter for SBS, remove it if not necessary.
 static UInt_t   kYIntegralStepsPerPitch;
 static Double_t kSNormNsigma;
 static UInt_t   fMAX_IONS;
@@ -38,17 +42,11 @@ static UInt_t   fMAX_IONS;
 inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
-  // Conversion from chamber index to sector/plane indices.
-  // The meaning of the chamber index is not defined anywhere else this code.
-  // The only requirement is that the database for TSBSSpec matches whatever
-  // is defined in the MC used to generate the input.
-  // The database floating around at this time (February 2013) uses the definition
-  // ich = is + nsectors*ipl (is = sector, ipl = plane).
-  // The number of sectors is implied to be 30.
-
-  div_t d = div( chamber, fNSECTORS );
-  sector = d.rem;
-  plane  = d.quot;
+  //This function is, for the time being, useless (see comment above). it is left in as of now.
+  //TO-DO: find relevance of this function for SBS, remove it if not necessary.
+  sector = 0;
+  plane = chamber;
+  
 }
 
 inline
@@ -66,6 +64,7 @@ TSBSDigitizedPlane::TSBSDigitizedPlane (UShort_t nstrip,
 					Int_t threshold )
   : fNSamples(nsample), fNStrips(nstrip), fThreshold(threshold)
 {
+  // initialization of all arrays
   fType = new Short_t[nstrip];
   fCharge = new Float_t[nstrip];
   fTime = new Float_t[nstrip];
@@ -106,6 +105,7 @@ void
 TSBSDigitizedPlane::Cumulate (const TSolGEMVStrip *vv, Short_t type,
 			      Short_t clusterID )
 {
+  // cumulate hits (strips signals)
   if (vv) {
     for( Int_t j=0; j < vv->GetSize(); j++ ) {
       Int_t idx = vv->GetIdx(j);
@@ -455,7 +455,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
       for (UInt_t j = 0; j < 2; j++) {
 	fDP[igem][j]->Cumulate (dh[j], itype, id );
       }
-      // TODO: make dh[2] a member variable & clear it here to avoid the constant
+      // TO-DO: make dh[2] a member variable & clear it here to avoid the constant
       // construction and deletion
       delete dh[0];
       delete dh[1];
@@ -1005,21 +1005,16 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fType     = tsgd.GetTrackID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
-  //clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
+  // Momentum vector in spec frame; TO-DO: add momentum vector in lab frame (following line)
+  //clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV] 
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
   // ionization region
-  clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m]
-  clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m]
+  clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m] 
+  // Position of hit in Lab frame, transformed at (1)
+  clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m] 
+  // Position of the hit in plane frame, transformed at (2)
   
-  // Calculate hit position in the Tracker frame. This is fMCpos relative to
-  // the origin of first plane of the sector, but rotated by the nominal
-  // (non-offset) sector angle.
-  // NB: assumes even sector spacing, clockwise numbering and sector 0 at 0 deg
-  //Double_t sector_angle = TMath::TwoPi()*clust.fSector/fNSECTORS;
-  //clust.fHitpos = clust.fMCpos;// - spect.GetChamber(clust.fSector).GetOrigin();
-  //clust.fHitpos.RotateZ(-sector_angle);
-
   if (dh != NULL && dh[0] != NULL)
     clust.fCharge = dh[0]->GetHitCharge();
   else
@@ -1028,13 +1023,11 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
   
-  TVector3 hitpos_temp = clust.fMCpos;
-
-  ch.SpecToLab(clust.fMCpos);
+  ch.SpecToLab(clust.fMCpos); // (1)
   //ch.SpecToLab(clust.fP);
   
   //hitpos_temp.Print();
-  ch.SpecToPlane(clust.fHitpos);
+  ch.SpecToPlane(clust.fHitpos); // (2)
   
   //cout << "hit in lab" << endl;
   //hitpos_temp.Print();
@@ -1062,6 +1055,8 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
 
   clust.fID     = fEvent->fGEMClust.size()+1;
   clust.fVertex = tsgd.GetVertex (ih) * 1e-3;//[m]
+  
+  // EFuchey 2016/11/17: this has been commented for the time being. It is probably useless for SBS
   /*
   if( fDoMapSector ) {
     // If sector mapping requested:
