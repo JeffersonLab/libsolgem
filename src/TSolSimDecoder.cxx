@@ -79,7 +79,8 @@ TSolSimDecoder::~TSolSimDecoder() {
 }
 
 //-----------------------------------------------------------------------------
-// method to fill
+// TO-DO: have all this stuff read in a database, 
+// similarly to how it is done in the next function
 void TSolSimDecoder::InitGeomParam(const char* dbpath) {
   ifstream in(dbpath);
   if(!in.is_open()){
