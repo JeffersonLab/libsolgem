@@ -418,6 +418,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
       // Trigger time jitter, including an arbitrary offset to align signal timing
       Double_t trigger_jitter = fTrnd.Gaus(fTriggerOffset, fTriggerJitter);
       if( is_background ) {
+	
 	// For background data, uniformly randomize event time between
 	// -fGateWidth to +75 ns (assuming 3 useful 25 ns samples).
 	event_time[itime] = fTrnd.Uniform(fGateWidth + 3*fEleSamplingPeriod)
@@ -430,7 +431,13 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     }
     // Time of the leading edge of this hit's avalance relative to the trigger
     Double_t time_zero = event_time[itime] + gdata.GetHitTime(ih) + fRTime0*1e9;
-
+    
+    // cout << "time_zero " << time_zero 
+    // 	 << "; evt time " << event_time[itime] 
+    // 	 << "; hit time " << gdata.GetHitTime(ih)
+    // 	 << "; drift time " << fRTime0*1e9
+    // 	 << endl;
+    
     if (fRNIon > 0) {
       dh = AvaModel (igem, spect, vv1, vv2, time_zero);
     }
@@ -1174,6 +1181,7 @@ TSBSSimGEMDigitization::FillTree ()
       )
     {
       fOFile->cd();
+      //fEvent->Print("all");
       fOTree->Fill();
     }
 }

@@ -118,7 +118,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       return 0;
     }
     
-    double weight = fTree->ev_solang*fTree->ev_sigma;
+    double weight = fTree->ev_solang*fTree->ev_sigma; 
+    
     int det_id;//0: FT, 1: FPPs
     
     int pid;
@@ -260,7 +261,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	    dupli=false;
 	  }else{
 	    for(int j = 4; j<8; j++){
-	      if(fg4sbsGenData[n_gen-1]->GetData(j)!=gen_data_temp[j]){
+	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 		dupli=false;
 		break;
 	      }
@@ -421,7 +422,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	  dupli=false;
 	}else{
 	  for(int j = 4; j<8; j++){
-	    if(fg4sbsGenData[n_gen-1]->GetData(j)!=gen_data_temp[j]){
+	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 	      dupli=false;
 	      break;
 	    }
@@ -537,7 +538,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	  
 	  X_RO.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
 	  X_RO.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
-	  //cout << "Coucou ! FPP2" << endl;
        	}
       }
       
@@ -595,7 +595,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	  dupli=false;
 	}else{
 	  for(int j = 4; j<8; j++){
-	    if(fg4sbsGenData[n_gen-1]->GetData(j)!=gen_data_temp[j]){
+	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 	      dupli=false;
 	      break;
 	    }
@@ -766,7 +766,7 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	
 	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
 	gd->SetTrackID(ngdata, (UInt_t) h->GetData(13) );// track type...
-	gd->SetParticleType(ngdata, (UInt_t) h->GetData(18) );//  PID 
+	gd->SetParticleType(ngdata, h->GetData(18) );//  PID 
 		
 	gd->SetHitChamber(ngdata,  h->GetDetID()*10+h->GetData(0)-1);
 	
