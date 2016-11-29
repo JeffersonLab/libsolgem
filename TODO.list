@@ -3,7 +3,7 @@ Do not hesitate to update and complete, if needed, this list.
 
 
 > - Modify/rewrite libsolgem for Cartesian geometry
- => Mostly done, not fully tested yet.
+ => DONE.
 
 > - Modify libsolgem to take input from SBS simulation output. The SoLID
 > simulations produced EVIO files; I understand that g4sbs writes ROOT
@@ -12,7 +12,7 @@ Do not hesitate to update and complete, if needed, this list.
 
 > - Modify TSolSimEvent and TSolSimDecoder data structures for SBS, if
 > necessary. (Might be ok, but could be optimized.)
- => TO-DO
+ => TO-DO ? Is it necessary ?
 
 > - Modify TSolSimDecoder to understand the SBS geometry.
  => TO-DO
