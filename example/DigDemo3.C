@@ -97,7 +97,7 @@ void DigDemo3(int Nmax = 10000, bool print = true){
       // gen->GetWeight();
       
       // Add some number of background events
-      int nbacktoadd = 1000;
+      int nbacktoadd = 1;
       int backidx = 0;
       
       //while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){

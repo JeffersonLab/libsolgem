@@ -160,7 +160,7 @@ TSBSSimGEMDigitization::TSBSSimGEMDigitization( const TSBSSpec& spect,
 						const char* name,
 						const char* dbpathfile)
   : THaAnalysisObject(name, "GEM simulation digitizer"),
-    fDoMapSector(false), fSignalSector(0), fDP(0), fNChambers(0), fNPlanes(0),
+    fDoMapSector(false), fSignalSector(0), fDP(0), fdh(0), fNChambers(0), fNPlanes(0),
     fRNIon(0), fRIon(fMAX_IONS), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
@@ -232,6 +232,7 @@ void TSBSSimGEMDigitization::DeleteObjects()
       delete[] fDP[ic];
     }
   delete[] fDP;       fDP = 0;
+  delete[] fdh;       fdh = 0;
   delete[] fNPlanes;  fNPlanes = 0;
 
   delete fOFile;      fOFile = 0;
@@ -262,6 +263,8 @@ TSBSSimGEMDigitization::Initialize(const TSBSSpec& spect)
 				  0 );                // threshold is zero for now
       }
     }
+  
+  fdh = NULL;
 
   // Estimated max size of the charge collection area in AvaModel
   Double_t pitch = 0.4; // [mm]
@@ -404,7 +407,6 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     spect.GetChamber(igem).SpecToPlane(vv1);
     spect.GetChamber(igem).SpecToPlane(vv2);
     
-    TSolGEMVStrip **dh = NULL;
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
 
     // Generate randomized event time (for background) and trigger time jitter
@@ -439,18 +441,18 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     // 	 << endl;
     
     if (fRNIon > 0) {
-      dh = AvaModel (igem, spect, vv1, vv2, time_zero);
+      fdh = AvaModel (igem, spect, vv1, vv2, time_zero);
     }
     
-    //cout << ih << " t_0 " << time_zero << " RNIon " << fRNIon << ", dh " << dh << endl;
+    //cout << ih << " t_0 " << time_zero << " RNIon " << fRNIon << ", fdh " << fdh << endl;
     // vv1.Print();
     // vv2.Print();
     
     // Record MC hits in output event
-    Short_t id = SetTreeHit (ih, spect, dh, gdata, time_zero);
-
+    Short_t id = SetTreeHit (ih, spect, fdh, gdata, time_zero);
+    
     // Record digitized strip signals in output event
-    if (dh) {
+    if (fdh) {
       // If requested via fDoMapSector, accumulate all data in sector 0
       if( fDoMapSector ) {
 	igem = MapSector(igem);
@@ -460,13 +462,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 	}
       }
       for (UInt_t j = 0; j < 2; j++) {
-	fDP[igem][j]->Cumulate (dh[j], itype, id );
+	fDP[igem][j]->Cumulate (fdh[j], itype, id );
       }
-      // TO-DO: make dh[2] a member variable & clear it here to avoid the constant
-      // construction and deletion
-      delete dh[0];
-      delete dh[1];
-      delete[] dh;
     }
   }
   fFilledStrips = false;
@@ -485,10 +482,9 @@ TSBSSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSBSSpec& sp
       UInt_t igem = gdata.GetHitChamber (ih);
       if (igem >= fNChambers)
 	continue;
-
-      TSolGEMVStrip **dh = NULL;
+      
       // Short_t id =
-      SetTreeHit (ih, spect, dh, gdata, 0.0);
+      SetTreeHit (ih, spect, fdh, gdata, 0.0);
     }
   SetTreeStrips ();
 }
@@ -719,7 +715,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       // Check for (part of) the avalanche area being outside of the strip region
       if( iL < 0 && iU < 0 ) {
 	// All of the avalanche outside -> nothing to do
-	// TODO: what if this happens for only one strip coordinate (ipl)?
+	// TO-DO: what if this happens for only one strip coordinate (ipl)?
 #if DBG_AVA > 0
 	cerr << __FILE__ << " " << __FUNCTION__ << ": out of active area, "
 	     << "chamber " << ic << " sector " << ic%30 << " plane " << ic/30 << endl
@@ -976,7 +972,7 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const g4sbsgendata* gd = f.GetGenData(i);
-    //TODO: get GEANT id?
+    //TO-DO: get GEANT id?
     // cout << "SBS G4 file: track " << i << ", PID " <<  gd->GetPID() << endl;
     // cout << "Vertex     ";gd->GetV().Print();
     // cout << "Momentum   ";gd->GetP().Print();

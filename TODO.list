@@ -12,7 +12,7 @@ Do not hesitate to update and complete, if needed, this list.
 
 > - Modify TSolSimEvent and TSolSimDecoder data structures for SBS, if
 > necessary. (Might be ok, but could be optimized.)
- => TO-DO ? Is it necessary ?
+ => TO-DO
 
 > - Modify TSolSimDecoder to understand the SBS geometry.
  => TO-DO

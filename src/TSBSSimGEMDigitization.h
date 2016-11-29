@@ -191,7 +191,8 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Int_t    fSignalSector;
 
   TSBSDigitizedPlane*** fDP; // 2D array of plane pointers indexed by chamber, plane #
-
+  TSolGEMVStrip** fdh;// array of U & V GEM strips
+  
   UInt_t fNChambers;  // # chambers
   UInt_t* fNPlanes;   // # planes in each chamber
   TRandom3 fTrnd;     // time randomizer
