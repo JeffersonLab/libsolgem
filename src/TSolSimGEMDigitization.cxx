@@ -160,7 +160,7 @@ TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
 						const char* name,
 						const char* dbpathfile)
   : THaAnalysisObject(name, "GEM simulation digitizer"),
-    fDoMapSector(false), fSignalSector(0), fDP(0), fNChambers(0), fNPlanes(0),
+    fDoMapSector(false), fSignalSector(0), fDP(0),  fdh(0), fNChambers(0), fNPlanes(0),
     fRNIon(0), fRIon(fMAX_IONS), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
@@ -232,6 +232,7 @@ void TSolSimGEMDigitization::DeleteObjects()
       delete[] fDP[ic];
     }
   delete[] fDP;       fDP = 0;
+  delete[] fdh;       fdh = 0;
   delete[] fNPlanes;  fNPlanes = 0;
 
   delete fOFile;      fOFile = 0;
@@ -262,7 +263,8 @@ TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
 				  0 );                // threshold is zero for now
       }
     }
-
+  fdh = NULL;
+  
   // Estimated max size of the charge collection area in AvaModel
   Double_t pitch = 0.4; // [mm]
   Double_t f = ( 2 * fAvalancheFiducialBand * 0.1 /* fRSMax */ ) / pitch + 6 /* track slope */;
@@ -401,7 +403,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
     vv1.RotateZ (-angle);
     vv2.RotateZ (-angle);
 
-    TSolGEMVStrip **dh = NULL;
+    //TSolGEMVStrip **dh = NULL;
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
 
     // Generate randomized event time (for background) and trigger time jitter
@@ -429,13 +431,13 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
     Double_t time_zero = event_time[itime] + gdata.GetHitTime(ih) + fRTime0*1e9;
 
     if (fRNIon > 0) {
-      dh = AvaModel (igem, spect, vv1, vv2, time_zero);
+      fdh = AvaModel (igem, spect, vv1, vv2, time_zero);
     }
     // Record MC hits in output event
-    Short_t id = SetTreeHit (ih, spect, dh, gdata, time_zero);
+    Short_t id = SetTreeHit (ih, spect, fdh, gdata, time_zero);
 
     // Record digitized strip signals in output event
-    if (dh) {
+    if (fdh) {
       // If requested via fDoMapSector, accumulate all data in sector 0
       if( fDoMapSector ) {
 	igem = MapSector(igem);
@@ -445,13 +447,8 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
 	}
       }
       for (UInt_t j = 0; j < 2; j++) {
-	fDP[igem][j]->Cumulate (dh[j], itype, id );
+	fDP[igem][j]->Cumulate (fdh[j], itype, id );
       }
-      // TODO: make dh[2] a member variable & clear it here to avoid the constant
-      // construction and deletion
-      delete dh[0];
-      delete dh[1];
-      delete[] dh;
     }
   }
   fFilledStrips = false;
@@ -470,10 +467,9 @@ TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& sp
       UInt_t igem = gdata.GetHitChamber (ih);
       if (igem >= fNChambers)
 	continue;
-
-      TSolGEMVStrip **dh = NULL;
+      
       // Short_t id =
-      SetTreeHit (ih, spect, dh, gdata, 0.0);
+      SetTreeHit (ih, spect, fdh, gdata, 0.0);
     }
   SetTreeStrips ();
 }

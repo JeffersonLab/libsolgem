@@ -263,9 +263,8 @@ TSBSSimGEMDigitization::Initialize(const TSBSSpec& spect)
 				  0 );                // threshold is zero for now
       }
     }
-  
   fdh = NULL;
-
+  
   // Estimated max size of the charge collection area in AvaModel
   Double_t pitch = 0.4; // [mm]
   Double_t f = ( 2 * fAvalancheFiducialBand * 0.1 /* fRSMax */ ) / pitch + 6 /* track slope */;
