@@ -27,8 +27,8 @@
 
 using namespace std;
 
-// Misc. parameters/constants, some of which should probably be in database
-static UInt_t   fNSECTORS;
+static UInt_t   fNSECTORS = 30; // Set fixed for the time being
+//for some reasons, if these parameters are declared as flags in the .h, it doesn't work...
 static UInt_t   kYIntegralStepsPerPitch;
 static Double_t kSNormNsigma;
 static UInt_t   fMAX_IONS;
@@ -157,66 +157,17 @@ TSolDigitizedPlane::Threshold( Int_t thr )
 
 
 TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
-						const char* name,
-						const char* dbpathfile)
+						const char* name)
   : THaAnalysisObject(name, "GEM simulation digitizer"),
     fDoMapSector(false), fSignalSector(0), fDP(0),  fdh(0), fNChambers(0), fNPlanes(0),
     fRNIon(0), fRIon(fMAX_IONS), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
   Initialize (spect);
-  InitGeomParam(dbpathfile);
   fRIon.resize(fMAX_IONS);
   
   fEvent = new TSolSimEvent(5);
 }
-
-//-----------------------------------------------------------------------------
-// method to fill
-void TSolSimGEMDigitization::InitGeomParam(const char* dbpath) {
-  ifstream in(dbpath);
-  if(!in.is_open()){
-    printf("may not read geometry database at %s\n", dbpath);
-    printf("using solid default params");
-    
-    fNSECTORS = 30;
-    kYIntegralStepsPerPitch = 10;
-    kSNormNsigma = 3.0;
-    fMAX_IONS = 200;
-    
-  }else{
-    Float_t dummy;
-    in.ignore(100,':');
-    in >> fNSECTORS;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    
-    in.ignore(100,':');
-    in >> kYIntegralStepsPerPitch;
-    in.ignore(100,':');
-    in >> kSNormNsigma;
-    in.ignore(100,':');
-    in >> fMAX_IONS;
-  }
-  
-  in.close();
-}
-
 
 TSolSimGEMDigitization::~TSolSimGEMDigitization()
 {
@@ -303,7 +254,10 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
       { "pulseshapetau0",            &fPulseShapeTau0,            kDouble },
       { "pulseshapetau1",            &fPulseShapeTau1,            kDouble },
       { "zrout",                     &fRoutZ,                     kDouble },
-      { 0 }
+      { "yintegralstepsperpitch",    &kYIntegralStepsPerPitch,    kInt    },
+      { "snormnsigma",               &kSNormNsigma,               kDouble },
+      { "maxions",                   &fMAX_IONS,                  kInt    },
+     { 0 }
     };
 
   Int_t err = LoadDB (file, date, request, fPrefix);
@@ -403,7 +357,6 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
     vv1.RotateZ (-angle);
     vv2.RotateZ (-angle);
 
-    //TSolGEMVStrip **dh = NULL;
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
 
     // Generate randomized event time (for background) and trigger time jitter

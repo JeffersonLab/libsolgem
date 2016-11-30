@@ -21,3 +21,8 @@ testdigitization.gatewidth = 100.
 testdigitization.pulseshapetau0 = 38.3 # ns
 testdigitization.pulseshapetau1 = 129. #ns
 testdigitization.zrout = 9.185 #mm
+# misc parameters
+testdigitization.yintegralstepsperpitch = 10
+testdigitization.snormnsigma = 3
+testdigitization.maxions = 200
+

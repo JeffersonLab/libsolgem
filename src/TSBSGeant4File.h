@@ -127,6 +127,7 @@ class TSBSGeant4File {
   // at the exit of the GEM ionizable gas (since it is not included in g4sbs output).
   // -> Shall it be ?
   // This is not necessary for TSolEVIOFile as the hit exit is included in evio files.
+  char fgasdatafile[255];
   vector<double> feMom;
   vector<double> fgasErange;
   

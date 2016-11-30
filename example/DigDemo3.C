@@ -31,7 +31,9 @@ void DigDemo3(int Nmax = 10000, bool print = true){
 
     if(print)dds->Print();
 
-    ddd = new TSBSSimGEMDigitization (*dds,"testdigitization","../db/db_sbsgemgeom.dat");
+
+    //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization", "../db/db_sbsgemgeom.dat");
+    ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
     
     ////////////////////////////////////////////////////////////////
     

@@ -20,7 +20,7 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   double D_gas;
   double T, p, R;
   
-  //TO-DO: put in DB...
+  //TO-DO: put in DB, at least the file name and ...
   ifstream in("gasErange.txt");
   if(!in.is_open()){
     cout << "file gasErange.txt does not exist, exit" << endl;

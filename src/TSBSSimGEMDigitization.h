@@ -82,12 +82,11 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
  public:
   //Constructor and destructor
   TSBSSimGEMDigitization( const TSBSSpec& spect,
-			  const char* name = "testdigitization",
-			  const char* dbpathfile = "");
+			  const char* name = "testdigitization");
   virtual ~TSBSSimGEMDigitization();
   
   //full initialization of all parameters with database
-  void InitGeomParam(const char* dbpath);
+  //void InitGeomParam(const char* dbpath);
   void Initialize(const TSBSSpec& spect);
   Int_t ReadDatabase (const TDatime& date);
   

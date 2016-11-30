@@ -63,7 +63,7 @@ TSBSSimDecoder::TSBSSimDecoder(const char* filedbpath)
   fMCTracks   = new TClonesArray( "TSBSSimTrack",       1 );
   fBackTracks = new TClonesArray( "TSBSSimBackTrack",   5 );
   
-  InitGeomParam(filedbpath);
+  InitMiscParam(filedbpath);
   DefineVariables();
 
   gSystem->Load("libEG.so");  // for TDatabasePDG
@@ -81,24 +81,25 @@ TSBSSimDecoder::~TSBSSimDecoder() {
 //-----------------------------------------------------------------------------
 // TO-DO: have all this stuff read in a database, 
 // similarly to how it is done in the next function
-void TSBSSimDecoder::InitGeomParam(const char* dbpath) {
+void TSBSSimDecoder::InitMiscParam(const char* dbpath) {
   ifstream in(dbpath);
   if(!in.is_open()){
     printf("may not read geometry database at %s\n", dbpath);
-    printf("using solid default params");
+    printf("using sbs default params");
     
-    fNPLANES = 5;
-    fNSECTORS = 30;
+    fNPLANES = 16;
+    fNSECTORS = 1;
     fNPROJ = 2;
     fCHAN_PER_SLOT = 1500;
     fmodules_per_readout = 1;
     fmodules_per_chamber = fNPROJ*fmodules_per_readout;
     fchambers_per_crate = (GetMAXSLOT()/fmodules_per_chamber/fNPLANES)*fNPLANES;
-    fgZ0 = 1.571913;
+    fgZ0 = 3.435510;
     fgDoCalo = false;
-    fgCaloZ  = 0.32;
+    fgCaloZ  = 6.8;
     fgCaloRes  = 0.01;
   }else{
+    Float_t dummy;
     in.ignore(100,':');
     in >> fNSECTORS;
     in.ignore(100,':');
@@ -121,13 +122,17 @@ void TSBSSimDecoder::InitGeomParam(const char* dbpath) {
     in.ignore(100,':');
     in >> fgCaloRes;
     
-    Float_t dummy;
     in.ignore(100,':');
     in >> dummy;
     in.ignore(100,':');
     in >> dummy;
     in.ignore(100,':');
     in >> dummy;
+    
+    //in.ignore(100,':');
+    //in >> dummy;
+    //in.ignore(100,':');
+    //in >> dummy;
   }
   
   // cout << fNSECTORS << " " << fNPLANES << " " << fNPROJ << " " << fCHAN_PER_SLOT << " "
@@ -441,10 +446,10 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     crateslot[fSlotClear[i]]->clearEvent();
   if( fDoBench ) fBench->Stop("clearEvent");
 
-  // FIXME: needed?
-  evscaler = 0;
-  event_length = 0;
-
+  // FIXED? needed?
+  // evscaler = 0;
+  // event_length = 0;
+  
   event_type = 1;
   event_num = simEvent->fEvtID;
   recent_event = event_num;

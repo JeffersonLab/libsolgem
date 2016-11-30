@@ -115,7 +115,7 @@ class TSBSSimDecoder : public Podd::SimDecoder {
   TSBSSimDecoder(const char* filedbpath = "");
   virtual ~TSBSSimDecoder();
   
-  void InitGeomParam(const char* dbpath);
+  void InitMiscParam(const char* dbpath);
   
 #if ANALYZER_VERSION_CODE >= 67072 // ANALYZER_VERSION(1,6,0)
   virtual Int_t LoadEvent( const UInt_t* evbuffer );

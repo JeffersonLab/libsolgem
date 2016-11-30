@@ -28,11 +28,12 @@
 using namespace std;
 
 // Misc. parameters/constants, some of which should probably be in database
-static UInt_t   fNSECTORS;// EFuchey 2016/11/17: This parameter shall not be relevant in the case of TSBS. 
+static UInt_t   fNSECTORS = 1;// EFuchey 2016/11/17: This parameter shall not be relevant in the case of TSBS. 
                           // But it is hardcoded in so many places in the code 
                           // (including probably code in common with SoLID), 
-                          // that I would rather leave it here for the time being, and set it to 1.
+                          // that I would rather leave it here for the time being, and set it fixed to 1.
                           //TO-DO: find relevance of this parameter for SBS, remove it if not necessary.
+//for some reasons, if these parameters are declared as flags in the .h, it doesn't work...
 static UInt_t   kYIntegralStepsPerPitch;
 static Double_t kSNormNsigma;
 static UInt_t   fMAX_IONS;
@@ -157,66 +158,17 @@ TSBSDigitizedPlane::Threshold( Int_t thr )
 
 
 TSBSSimGEMDigitization::TSBSSimGEMDigitization( const TSBSSpec& spect,
-						const char* name,
-						const char* dbpathfile)
+						const char* name)
   : THaAnalysisObject(name, "GEM simulation digitizer"),
     fDoMapSector(false), fSignalSector(0), fDP(0), fdh(0), fNChambers(0), fNPlanes(0),
     fRNIon(0), fRIon(fMAX_IONS), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
   Initialize (spect);
-  InitGeomParam(dbpathfile);
   fRIon.resize(fMAX_IONS);
   
   fEvent = new TSBSSimEvent(5);
 }
-
-//-----------------------------------------------------------------------------
-// method to fill
-void TSBSSimGEMDigitization::InitGeomParam(const char* dbpath) {
-  ifstream in(dbpath);
-  if(!in.is_open()){
-    printf("may not read geometry database at %s\n", dbpath);
-    printf("using solid default params");
-    
-    fNSECTORS = 30;
-    kYIntegralStepsPerPitch = 10;
-    kSNormNsigma = 3.0;
-    fMAX_IONS = 200;
-    
-  }else{
-    Float_t dummy;
-    in.ignore(100,':');
-    in >> fNSECTORS;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    
-    in.ignore(100,':');
-    in >> kYIntegralStepsPerPitch;
-    in.ignore(100,':');
-    in >> kSNormNsigma;
-    in.ignore(100,':');
-    in >> fMAX_IONS;
-  }
-  
-  in.close();
-}
-
 
 TSBSSimGEMDigitization::~TSBSSimGEMDigitization()
 {
@@ -303,6 +255,9 @@ TSBSSimGEMDigitization::ReadDatabase (const TDatime& date)
       { "pulseshapetau0",            &fPulseShapeTau0,            kDouble },
       { "pulseshapetau1",            &fPulseShapeTau1,            kDouble },
       { "zrout",                     &fRoutZ,                     kDouble },
+      { "yintegralstepsperpitch",    &kYIntegralStepsPerPitch,    kInt    },
+      { "snormnsigma",               &kSNormNsigma,               kDouble },
+      { "maxions",                   &fMAX_IONS,                  kInt    },
       { 0 }
     };
 
@@ -751,7 +706,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       // Limits in y are y limits of track plus some reasonable margin
       // We do this in units of strip pitch for convenience (even though
       // this is the direction orthogonal to the pitch direction)
-
+      
       // Use y-integration step size of 1/10 of strip pitch (in mm)
       Double_t yq = pl.GetSPitch() * 1000.0 / kYIntegralStepsPerPitch;
       Double_t yb = ys0, yt = ys1;

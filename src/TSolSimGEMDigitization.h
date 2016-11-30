@@ -80,11 +80,9 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 {
  public:
   TSolSimGEMDigitization( const TSolSpec& spect,
-			  const char* name = "testdigitization",
-			  const char* dbpathfile = "");
+			  const char* name = "testdigitization");
   virtual ~TSolSimGEMDigitization();
 
-  void InitGeomParam(const char* dbpath);
   void Initialize(const TSolSpec& spect);
   Int_t ReadDatabase (const TDatime& date);
 
@@ -180,7 +178,7 @@ class TSolSimGEMDigitization: public THaAnalysisObject
 
   // Geometry
   Double_t fRoutZ;            // z-distance hit entrance to readout plane [mm]
-
+  
   // Sector mapping
   Bool_t   fDoMapSector;
   Int_t    fSignalSector;
@@ -204,10 +202,10 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   Double_t fRSMax;
   Double_t fRTotalCharge;
   Double_t fRTime0;
-
+  
   std::vector<Double_t> fSumA;
   std::vector<Short_t>  fDADC;
-
+  
   // Tree
 
   TFile* fOFile;          // Output ROOT file
