@@ -1,6 +1,6 @@
 // Example "replay" script
 
-void DigDemo3(int Nmax = 10000, bool print = true){
+void DigDemo3(int Nmax = 10000, bool print = false){
     printf("\n** This gets called with 'analyzer' and not 'root' **\n");
     printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
 
@@ -30,14 +30,13 @@ void DigDemo3(int Nmax = 10000, bool print = true){
     printf("\n");
 
     if(print)dds->Print();
-
-
-    //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization", "../db/db_sbsgemgeom.dat");
+    
     ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
     
     ////////////////////////////////////////////////////////////////
     
-    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root");
+    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root", "../db/db_g4sbsmiscdata.dat");
+    //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root");
     printf("The filename returned is %s\n", f->GetFileName());
     f->SetSource(0);
     
@@ -51,10 +50,11 @@ void DigDemo3(int Nmax = 10000, bool print = true){
     }
 
     // Hypothetical background run
-    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
+    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root", "../db/db_g4sbsmiscdata.dat");
+    //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
     fback->Open();
     fback->SetSource(1);
-    
+ 
     ////////////////////////////////////////////////////////////////
     
     int nevent = 0;
@@ -72,7 +72,7 @@ void DigDemo3(int Nmax = 10000, bool print = true){
 
     while( f->ReadNextEvent() && hadback && nevent<Nmax){
       
-      if(nevent%100==0)cout << nevent << endl;
+      if(nevent%100==0)cout << "Evt " << nevent << endl;
       
       gd = f->GetGEMData();
       gen = f->GetGenData(0);

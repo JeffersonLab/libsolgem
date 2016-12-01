@@ -1,0 +1,13 @@
+g4sbsmiscdata.NSECTORS = 1
+g4sbsmiscdata.NPLANES = 16
+g4sbsmiscdata.NPROJ = 2
+g4sbsmiscdata.CHAN_PER_SLOT = 1500
+g4sbsmiscdata.modules_per_readout = 1
+
+g4sbsmiscdata.gZ0 = 3.435510
+g4sbsmiscdata.gDoCalo = 0
+g4sbsmiscdata.gCaloZ = 6.800000
+g4sbsmiscdata.gCaloRes = 0.010000
+
+g4sbsmiscdata.ZSpecOffset = 3.38551
+g4sbsmiscdata.gasdatafilename = gasErange.txt

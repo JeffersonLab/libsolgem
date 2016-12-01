@@ -111,6 +111,8 @@ private:
 // SoLID simulation decoder class
 class TSolSimDecoder : public Podd::SimDecoder {
  public:
+  //constructor may be inputed a data file to input some of the paramaters used by SimDecoder
+  //NB: if the second file path does not select a valid file, default parameters will be used.
   TSolSimDecoder(const char* filedbpath = "");
   virtual ~TSolSimDecoder();
   

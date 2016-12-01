@@ -12,18 +12,18 @@ TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
   fFilename[0] = '\0';
 }
 
-TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
+TSBSGeant4File::TSBSGeant4File(const char *f, const char* filedbpath) : fFile(0), fSource(0) {
+  //TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
-  fZSpecOffset = 3.38551;// TO-DO: have this input by a DB, and not hardcoded.
+  InitMiscParam(filedbpath);
   
   //Filling the table that will be used to calculate the low energy electron range in the gas. 
   double D_gas;
   double T, p, R;
   
-  //TO-DO: put in DB, at least the file name and ...
-  ifstream in("gasErange.txt");
+  ifstream in(fgasdatafile);
   if(!in.is_open()){
-    cout << "file gasErange.txt does not exist, exit" << endl;
+    cout << "file " << fgasdatafile << " does not exist, exit" << endl;
     exit(-1);
   }
   in.ignore(100,';');
@@ -40,7 +40,64 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
     fgasErange.push_back(R/D_gas*1.0e-2);// in m...
   }
   
+  cout << "Initialization completed" << endl;
 }
+
+//-----------------------------------------------------------------------------
+// Reading database for miscellaneous parameters.
+// This is done without proper DB request, but there is a set of default parameters.
+// If those have to be used, user will be warned by a warning message.
+// Data should be sorted as in file db/db_g4sbsmiscdata.dat
+// This is the user's responsibility to make sure his input file is read correctly.
+void TSBSGeant4File::InitMiscParam(const char* dbpath) {
+  ifstream in(dbpath);
+  if(!in.is_open()){
+    printf("Warning: May not read database at %s\n", dbpath);
+    printf(" => Using sbs default params\n");
+    
+    fZSpecOffset = 3.38551;
+    strcpy( fgasdatafile, "gasErange.txt");
+  }else{
+    cout << "Info: reading database at location " << dbpath << endl;
+    cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
+    cout << "(same structure, same order of parameters)" << endl;
+    Float_t dummy;
+    //string read_str;
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+    in.ignore(100,'=');
+    in >> dummy;
+    
+    in.ignore(100,'=');
+    in >> fZSpecOffset;
+    in.ignore(100,'=');
+    in >> fgasdatafile;
+    cout << "Gas range data input file: " << fgasdatafile << endl;
+  }
+  
+  
+  // cout << fNSECTORS << " " << fNPLANES << " " << fNPROJ << " " << fCHAN_PER_SLOT << " "
+  // 	 << fmodules_per_readout << "; " << endl;
+  //   << fgZ0 << " " << fgDoCalo << " " << fgCaloZ << " " << fgCaloRes << endl;
+  
+  in.close();
+}
+/**/
 
 TSBSGeant4File::~TSBSGeant4File() {
   Clear();
@@ -196,13 +253,13 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       //Correcting X_out x and y if out of the GEM plane...
       if(fabs(X_out.X())>=749.99){
-	cout << "event " << fEvNum << " hit " << i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FT_hit_txp->at(i) << endl;
+	cout << "Warning: event " << fEvNum << " hit " << i << ": X out.X " << X_out.X() << " outside the plane; setting it at limit : 749.99 mm " << endl;
 	temp = fabs(X_out.X());
 	X_out[0]*=749.99/temp;
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=199.99){
-	cout << "event " << fEvNum << " hit " << i << ", X_in.Y() = " << X_in.Y() << ", dY = " << fTree->Harm_FT_hit_typ->at(i) << endl;
+	cout << "Warning: event " << fEvNum << " hit " << i << ": X out.Y " << X_out.Y() << " outside the plane; setting it at limit : 199.99 mm " << endl;
 	temp = fabs(X_out.Y());
 	X_out[1]*=199.99/temp;
 	X_RO.SetY(X_out.Y());
@@ -368,13 +425,13 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
          
       if(fabs(X_out.X())>=999.99){
-	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FPP1_hit_txp->at(i) << endl;
+	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ": X out.X " << X_out.X() << " outside the plane; setting it at limit : 999.99 mm " << endl;
 	temp = fabs(X_out.X());
 	X_out[0]*=999.99/temp;
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=299.99){
-	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ", X_in.Y() = " << X_in.Y() << ", dY = " << fTree->Harm_FPP1_hit_typ->at(i) << endl;
+	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ": X_out.Y " << X_out.Y() << " outside the plane; setting it at limit : 299.99 mm " << endl;
 	temp = fabs(X_out.Y());
 	X_out[1]*=299.99/temp;
 	X_RO.SetY(X_out.Y());
@@ -542,13 +599,13 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       
       if(fabs(X_out.X())>=999.99){
-	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FPP1_hit_nhits+i << ", X_in.X() = " << X_in.X() << ", dX = " << fTree->Harm_FPP2_hit_txp->at(i) << endl;
+	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FT_hit_nhits+i << ": X_out.X " << X_out.X() << " outside the plane; setting it at limit : 999.99 mm " << endl;
 	temp = fabs(X_out.X());
 	X_out[0]*=999.99/temp;
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=299.99){
-	cout << "event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FPP1_hit_nhits+i << ", X_in.Y() = " << X_in.Y() << ", dY = " << fTree->Harm_FPP2_hit_typ->at(i) << endl;
+	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FT_hit_nhits+i << ": X_out.Y " << X_out.Y() << " outside the plane; setting it at limit : 299.99 mm " << endl;
 	temp = fabs(X_out.Y());
 	X_out[1]*=299.99/temp;
 	X_RO.SetY(X_out.Y());

@@ -79,13 +79,16 @@ TSBSSimDecoder::~TSBSSimDecoder() {
 }
 
 //-----------------------------------------------------------------------------
-// TO-DO: have all this stuff read in a database, 
-// similarly to how it is done in the next function
+// Reading database for miscellaneous parameters.
+// This is done without proper DB request, but there is a set of default parameters.
+// If those have to be used, user will be warned by a warning message.
+// Data should be sorted as in file db/db_g4sbsmiscdata.dat
+// This is the user's responsibility to make sure his input file is read correctly.
 void TSBSSimDecoder::InitMiscParam(const char* dbpath) {
   ifstream in(dbpath);
   if(!in.is_open()){
-    printf("may not read geometry database at %s\n", dbpath);
-    printf("using sbs default params");
+    printf("Warning: May not read database at %s\n", dbpath);
+    printf(" => Using sbs default params\n");
     
     fNPLANES = 16;
     fNSECTORS = 1;
@@ -99,40 +102,36 @@ void TSBSSimDecoder::InitMiscParam(const char* dbpath) {
     fgCaloZ  = 6.8;
     fgCaloRes  = 0.01;
   }else{
+    cout << "Info: reading database at location " << dbpath << endl;
+    cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
+    cout << "(same structure, same order of parameters)" << endl;
     Float_t dummy;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fNSECTORS;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fNPLANES;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fNPROJ;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fCHAN_PER_SLOT;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fmodules_per_readout;
     fmodules_per_chamber = fNPROJ*fmodules_per_readout;
     fchambers_per_crate = (GetMAXSLOT()/fmodules_per_chamber/fNPLANES)*fNPLANES;
 
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fgZ0;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fgDoCalo;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fgCaloZ;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> fgCaloRes;
     
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> dummy;
-    in.ignore(100,':');
+    in.ignore(100,'=');
     in >> dummy;
-    in.ignore(100,':');
-    in >> dummy;
-    
-    //in.ignore(100,':');
-    //in >> dummy;
-    //in.ignore(100,':');
-    //in >> dummy;
   }
   
   // cout << fNSECTORS << " " << fNPLANES << " " << fNPROJ << " " << fCHAN_PER_SLOT << " "
