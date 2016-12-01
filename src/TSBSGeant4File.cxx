@@ -5,8 +5,9 @@
 
 #ifndef __CINT__
 
-// uncomment follozing line to print out the data read by the file.
-//#define DEBUG 1 
+// Set following variables to 1 (and recompile) t get some useful printouts
+#define DEBUG 0
+#define WARNING 1
 
 TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
   fFilename[0] = '\0';
@@ -147,14 +148,14 @@ Int_t TSBSGeant4File::Close(){
 
 Int_t TSBSGeant4File::ReadNextEvent(){
     // Return 1 on success
-
+    
     // Channel not open
     if( !fFile->IsOpen() ){ 
 	fprintf(stderr, "%s %s line %d Channel not open\n",
-		__FILE__,__PRETTY_FUNCTION__,__LINE__ );
+	    __FILE__,__PRETTY_FUNCTION__,__LINE__ );
 	return 0; 
     }
-
+    
     Clear();
     
     int n_hits = 0;//total number of hits at the end of the event
@@ -168,10 +169,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     //Test that the next entry exist
     if( !res ){
       // Don't need to print this out.  Not really an error
-#ifdef  DEBUG
+#if DEBUG>0
       fprintf(stderr, "%s %s line %d: Channel read return is false...  probably end of file\n",
 	      __FILE__, __FUNCTION__, __LINE__ );
-#endif//DEBUG
+#endif //DEBUG
       return 0;
     }
     
@@ -253,15 +254,27 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       //Correcting X_out x and y if out of the GEM plane...
       if(fabs(X_out.X())>=749.99){
-	cout << "Warning: event " << fEvNum << " hit " << i << ": X out.X " << X_out.X() << " outside the plane; setting it at limit : 749.99 mm " << endl;
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane;
+#endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=749.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=199.99){
-	cout << "Warning: event " << fEvNum << " hit " << i << ": X out.Y " << X_out.Y() << " outside the plane; setting it at limit : 199.99 mm " << endl;
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.Y " << X_out.Y() << " outside plane " << plane;
+#endif //WARNING
 	temp = fabs(X_out.Y());
 	X_out[1]*=199.99/temp;
+#ifdef WARNING>0
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;	
+#endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
       
@@ -372,7 +385,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	cout << Vtx[k] << ", ";
       }
       cout << endl;
-#endif//DEBUG
+#endif //DEBUG
     }
     
     //Loop on the Focal Plane Polarimeter 1 hits: detectors 10 to 14
@@ -425,17 +438,28 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
          
       if(fabs(X_out.X())>=999.99){
-	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ": X out.X " << X_out.X() << " outside the plane; setting it at limit : 999.99 mm " << endl;
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << 10+plane;
+#endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=999.99/temp;
+#if WARNING>0
+	cout << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=299.99){
-	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+i << ": X_out.Y " << X_out.Y() << " outside the plane; setting it at limit : 299.99 mm " << endl;
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << 10+plane;
+#endif //WARNING
 	temp = fabs(X_out.Y());
 	X_out[1]*=299.99/temp;
+#if WARNING>0
+	cout << "; set at limit: " << X_out.Y() << " mm " << endl;
+#endif //WARNING
 	X_RO.SetY(X_out.Y());
-	cout << X_out[1] << " " << X_out.Y() << endl;
       }
 
       Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
@@ -547,7 +571,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       cout << "Vertex position (mm): ";
       Vtx.Print();
       cout << endl;
-#endif//DEBUG      
+#endif //DEBUG      
     }
     
     //Loop on the Focal Plane Polarimeter 2 hits: detectors 15 to 19
@@ -599,15 +623,29 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       
       if(fabs(X_out.X())>=999.99){
-	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FT_hit_nhits+i << ": X_out.X " << X_out.X() << " outside the plane; setting it at limit : 999.99 mm " << endl;
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << 10+plane;
+#endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=999.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=299.99){
-	cout << "Warning: event " << fEvNum << " hit " << fTree->Harm_FT_hit_nhits+fTree->Harm_FT_hit_nhits+i << ": X_out.Y " << X_out.Y() << " outside the plane; setting it at limit : 299.99 mm " << endl;
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << 10+plane;
+#endif //WARNING
 	temp = fabs(X_out.Y());
 	X_out[1]*=299.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+#endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
       
@@ -701,7 +739,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	cout << Vtx[k] << ", ";
       }
       cout << endl;
-#endif//DEBUG          
+#endif //DEBUG          
     }
     
     return 1;
@@ -711,10 +749,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 void TSBSGeant4File::Clear(){
     // Clear out hit and generated data
 
-#ifdef  DEBUG
+#if DEBUG>0
 	fprintf(stderr, "%s %s line %d: Deleting hits\n",
 		__FILE__, __FUNCTION__, __LINE__);
-#endif//DEBUG
+#endif //DEBUG
 
     unsigned int i;
     for( i = 0; i < fg4sbsHitData.size(); i++ ){
@@ -728,10 +766,10 @@ void TSBSGeant4File::Clear(){
     fg4sbsHitData.clear();
     fg4sbsGenData.clear();
 
-#ifdef  DEBUG
+#if DEBUG>0
 	fprintf(stderr, "%s %s line %d: Hits deleted\n",
 		__FILE__, __FUNCTION__, __LINE__);
-#endif//DEBUG
+#endif //DEBUG
 
     return;
 }

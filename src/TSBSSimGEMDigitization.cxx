@@ -416,9 +416,13 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 	}
       }
       for (UInt_t j = 0; j < 2; j++) {
+	// cout << j << " " << fDP[igem][j]->GetNStrips() << " " 
+	//      << fdh[j]->GetSize() << " " << fdh[j]->GetIdx(0) << endl;
 	fDP[igem][j]->Cumulate (fdh[j], itype, id );
       }
+      fdh = NULL;
     }
+    
   }
   fFilledStrips = false;
   return 0;

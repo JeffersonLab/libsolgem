@@ -73,7 +73,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     while( f->ReadNextEvent() && hadback && nevent<Nmax){
       
       if(nevent%100==0)cout << "Evt " << nevent << endl;
-      
+            
       gd = f->GetGEMData();
       gen = f->GetGenData(0);
       
@@ -99,7 +99,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
       // gen->GetWeight();
       
       // Add some number of background events
-      int nbacktoadd = 1;
+      int nbacktoadd = 0;
       int backidx = 0;
       
       //while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){

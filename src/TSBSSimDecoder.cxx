@@ -33,7 +33,6 @@ using namespace std;
 using namespace Podd;
 
 // Constants for conversion of strip (plane,sector,proj,chan) to (crate,slot,chan)
-// FIXME: make parameters configurable!
 static Int_t fNPLANES;
 static Int_t fNSECTORS;
 static Int_t fNPROJ;
