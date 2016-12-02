@@ -15,20 +15,20 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     dds = new TSBSSpec ("spectrometer", "SBS spectrometer");
     dds->Init();
     
-    for(int i_ch = 0; i_ch<6; i_ch++){
-      ddy = new TSBSGEMChamber (Form("g4sbs.gem%d",i_ch),Form("Test chamber %d", i_ch));
-      ddy->Init();
-      dds->AddGEM (ddy);
-    }
-    printf("\n");
-    
-    for(int i_ch = 10; i_ch<20; i_ch++){
+    for(int i_ch = 0; i_ch<10; i_ch++){
       ddy = new TSBSGEMChamber (Form("g4sbs.gem%d",i_ch),Form("Test chamber %d", i_ch));
       ddy->Init();
       dds->AddGEM (ddy);
     }
     printf("\n");
 
+    for(int i_ch = 10; i_ch<16; i_ch++){
+      ddy = new TSBSGEMChamber (Form("g4sbs.gem%d",i_ch),Form("Test chamber %d", i_ch));
+      ddy->Init();
+      dds->AddGEM (ddy);
+    }
+    printf("\n");
+    
     if(print)dds->Print();
     
     ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");

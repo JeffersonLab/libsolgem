@@ -204,9 +204,9 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     double eRangeGas;
     double temp;
     
-    //Loop on the Forward Tracker detector hits: detectors 0 to 5
+    //Loop on the Forward Tracker detector hits: detectors 10 to 15
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
-      det_id = 0;
+      det_id = 1;
       
       pid = fTree->Harm_FT_hit_pid->at(i);
       type = fTree->Harm_FT_hit_mid->at(i)+1;
@@ -256,7 +256,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       if(fabs(X_out.X())>=749.99){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane;
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << 10+plane;
 #endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=749.99/temp;
@@ -268,11 +268,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       if(fabs(X_out.Y())>=199.99){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.Y " << X_out.Y() << " outside plane " << plane;
+	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << 10+plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
 	X_out[1]*=199.99/temp;
-#ifdef WARNING>0
+#if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;	
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
@@ -388,12 +388,12 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #endif //DEBUG
     }
     
-    //Loop on the Focal Plane Polarimeter 1 hits: detectors 10 to 14
+    //Loop on the Focal Plane Polarimeter 1 hits: detectors 0 to 4
     // This block is not well commented, 
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
-      det_id = 1;
+      det_id = 0;
       
       pid = fTree->Harm_FPP1_hit_pid->at(i);
       type = fTree->Harm_FPP1_hit_mid->at(i)+1;
@@ -440,7 +440,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       if(fabs(X_out.X())>=999.99){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << 10+plane;
+	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=999.99/temp;
@@ -452,7 +452,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       if(fabs(X_out.Y())>=299.99){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << 10+plane;
+	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
 	X_out[1]*=299.99/temp;
@@ -574,12 +574,12 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #endif //DEBUG      
     }
     
-    //Loop on the Focal Plane Polarimeter 2 hits: detectors 15 to 19
+    //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
     // This block is not well commented, 
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
-      det_id = 1;
+      det_id = 0;
       
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       type = fTree->Harm_FPP2_hit_mid->at(i)+1;
@@ -626,7 +626,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " 
 	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << 10+plane;
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=999.99/temp;
@@ -639,7 +639,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " 
 	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << 10+plane;
+	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
 	X_out[1]*=299.99/temp;
@@ -833,10 +833,10 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 
       if( h->GetData(1)>0.0 ){
 	
-	// Chamber IDs are tagged as 
-	// xy  where x is the det id (0 for FT, 1 for FPPs) y the plane number, 
+	// Chamber IDs are numbered as 
+	// xy  where x is the det id (1 for FT, 0 for FPPs) y the plane number, 
 	// labeled from 0 to 9 instead of 1 to 10, for convenience reasons:
-	// FT: chambers 0-5, FPPs: chambers 10-19
+	// FPPs: chambers 0-9, FT: chambers 10-15.
 	
 	//if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
 	// Vector information
