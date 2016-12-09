@@ -19,17 +19,19 @@
 #define __FLUX_TAG 800
 
 #define __GENERATED_SIZE 7
-
+#define __ECDATA_SIZE 6
+#define __FAEC_VIRTUAL_ID 3110000
+#define __LAEC_VIRTUAL_ID 3210000
 #define __GEM_DRIFT_ID 6
 #define __GEM_COPPER_FRONT_ID 5
 #define __GEM_COPPER_BACK_ID 7
 #define __GEM_STRIP_ID 19
 
-int __gemc_types_datasize[NBANKS] = {23,21};
-int __gemc_types_detidnum[NBANKS] = {23,21};
+static int __gemc_types_datasize[NBANKS] = {23,21};
+static int __gemc_types_detidnum[NBANKS] = {23,21};
 
 // FIXME:  Need to do this better,  map?
-int data_size(int tag){
+static int data_size(int tag){
     if( tag == __GEM_TAG ) {
 	return __gemc_types_datasize[0];
     }
@@ -41,7 +43,7 @@ int data_size(int tag){
     return 0;
 }
 
-int data_detid(int tag){
+static int data_detid(int tag){
     if( tag == __GEM_TAG ) {
 	return __gemc_types_detidnum[0];
     } 

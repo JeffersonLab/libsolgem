@@ -1,7 +1,7 @@
 #include "TSBSGeant4File.h"
-#include "g4sbs_types.h"
+//#include "g4sbs_types.h"
+#include "gemc_types.h"
 #include "fstream"
-//#include "g4sbs_gep_tree_with_spin.h"
 
 #ifndef __CINT__
 
@@ -299,7 +299,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	hit_data_temp[k+20] = Mom[k];
       }
       
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
 
       // ... to copy it in the actual g4sbsHitData structure.
       for(int j = 0; j<23; j++){
@@ -482,7 +482,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	hit_data_temp[k+20] = Mom[k];
       }
       
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
 
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
@@ -669,11 +669,12 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	hit_data_temp[k+20] = Mom[k];
       }
       
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  g4sbs_data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id, data_size(__GEM_TAG)));
       
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
+      n_hits++;
       
       gen_data_temp[0] = pid;
       for(int k = 0; k<3; k++){
@@ -681,7 +682,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	gen_data_temp[k+4] = Vtx[k];
       }
       gen_data_temp[7] = weight;
-      n_hits++;
 
       newtrk = true; 
       for(int z = n_gen-1; z>=0; z--){
