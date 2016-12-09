@@ -25,27 +25,29 @@ public:
     void LoadGeneralInfo(const string& fileName);
     //void LoadGeoInfo(const string& fileName);
     
-    const int    &   DoMapSector()         { return fDoMapSector; }
-    const int    &   DoSelfDefineSector()  { return fDoSelfDefinedSector; }
-    const int    &   GetSectorMapped()     { return fMappedSector; }
-    const int    &   GetNTracker()         { return fNTracker; }
-    const int    &   GetNSector()          { return fNSector; }
-    const int    &   GetNReadOut()         { return fNReadOut; }
-    const int    &   GetGEMDriftID()       { return fGEMDriftID; }
-    const int    &   GetGEMCopperFrontID() { return fGEMCopperFrontID; }
-    const int    &   GetGEMCopperBackID()  { return fGEMCopperBackID; }
-    const int    &   GetGEMStripID()       { return fGEMStripID; }
-    const int    &   GetNSigParticle()     { return fNSigParticle; }
-    const int    &   GetFAECID()           { return fFAECID; }
-    const int    &   GetLAECID()           { return fLAECID; }
-    const int    &   GetChanPerSlot()      { return fChanPerSlot; }
-    const int    &   GetModulesPerReadOut(){ return fModulesPerReadOut; }
-    const int    &   GetModulesPerChamber(){ return fModulesPerChamber; }
-    const int    &   GetChambersPerCrate() { return fChambersPerCrate; }
+    const int    &   DoMapSector()          { return fDoMapSector;         }
+    const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
+    const int    &   GetSectorMapped()      { return fMappedSector;        }
+    const int    &   GetNTracker()          { return fNTracker;            }
+    const int    &   GetNSector()           { return fNSector;             }
+    const int    &   GetNReadOut()          { return fNReadOut;            }
+    const int    &   GetGEMDriftID()        { return fGEMDriftID;          }
+    const int    &   GetGEMCopperFrontID()  { return fGEMCopperFrontID;    }
+    const int    &   GetGEMCopperBackID()   { return fGEMCopperBackID;     }
+    const int    &   GetGEMStripID()        { return fGEMStripID;          }
+    const int    &   GetNSigParticle()      { return fNSigParticle;        }
+    const int    &   GetFAECID()            { return fFAECID;              }
+    const int    &   GetLAECID()            { return fLAECID;              }
+    const int    &   GetChanPerSlot()       { return fChanPerSlot;         }
+    const int    &   GetModulesPerReadOut() { return fModulesPerReadOut;   }
+    const int    &   GetModulesPerChamber() { return fModulesPerChamber;   }
+    const int    &   GetChambersPerCrate()  { return fChambersPerCrate;    }
     
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
+    const double &   GetZspecOffset()       { return fZSpecOffset;         }
+    const string &   GetGasDataFilename()   { return fGasDataFilename;     }
     /* const double &   GetSectorZ(int i, int j); */
     /* const double &   GetSectorRMin(int i, int j); */
     /* const double &   GetSectorRMax(int i, int j); */
@@ -84,6 +86,9 @@ protected:
     int    fModulesPerReadOut;
     int    fModulesPerChamber;
     int    fChambersPerCrate;
+
+    double fZSpecOffset;
+    string fGasDataFilename;
     
     int    fErrID;
     double fErrVal;
