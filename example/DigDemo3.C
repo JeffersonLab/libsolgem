@@ -11,27 +11,37 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     TSBSGEMChamber *ddy;
     TSBSSpec *dds;
     TSBSSimGEMDigitization *ddd;
-
-    dds = new TSBSSpec ("spectrometer", "SBS spectrometer");
+    TSBSSimDecoder *dde;
+    
+    dds = new TSBSSpec ("g4sbs", "SBS spectrometer");
     dds->Init();
     
     for(int i_ch = 0; i_ch<10; i_ch++){
-      ddy = new TSBSGEMChamber (Form("g4sbs.gem%d",i_ch),Form("Test chamber %d", i_ch));
-      ddy->Init();
+      ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
+      ddy->SetApparatus(dds);
+      if( ddy->Init() )
+	return;
       dds->AddGEM (ddy);
     }
     printf("\n");
 
     for(int i_ch = 10; i_ch<16; i_ch++){
-      ddy = new TSBSGEMChamber (Form("g4sbs.gem%d",i_ch),Form("Test chamber %d", i_ch));
-      ddy->Init();
+      ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
+      ddy->SetApparatus(dds);
+      if( ddy->Init() )
+	return;
       dds->AddGEM (ddy);
     }
     printf("\n");
     
     if(print)dds->Print();
     
-    ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
+    ddd = new TSBSSimGEMDigitization (*dds,"ratedig");
+    //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
+    ddd->SetMapSector(false);
+    
+    dde = new TSBSSimDecoder ("../db/db_g4sbsmiscdata.dat");
+    dde->SetCrateMapName("db_solsim_cratemap.dat");
     
     ////////////////////////////////////////////////////////////////
     

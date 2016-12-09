@@ -86,7 +86,7 @@ TSolSimDecoder::~TSolSimDecoder() {
 void TSolSimDecoder::InitGeomParam(const char* dbpath) {
   ifstream in(dbpath);
   if(!in.is_open()){
-    printf("may not read geometry database at %s\n", dbpath);
+    printf("TSolSimDecoder Warning: May not read geometry database at %s\n", dbpath);
     printf("using solid default params");
     
     fNPLANES = 5;
@@ -101,7 +101,7 @@ void TSolSimDecoder::InitGeomParam(const char* dbpath) {
     fgCaloZ  = 0.32;
     fgCaloRes  = 0.01;
   }else{
-    cout << "Info: reading database at location " << dbpath << endl;
+    cout << "TSolSimDecoder Info: reading database at location " << dbpath << endl;
     cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
     cout << "(same structure, same order of parameters)" << endl;
     Float_t dummy;

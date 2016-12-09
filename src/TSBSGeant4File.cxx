@@ -24,7 +24,7 @@ TSBSGeant4File::TSBSGeant4File(const char *f, const char* filedbpath) : fFile(0)
   
   ifstream in(fgasdatafile);
   if(!in.is_open()){
-    cout << "file " << fgasdatafile << " does not exist, exit" << endl;
+    cout << "TSBSGeant4File Fatal Error: file " << fgasdatafile << " does not exist, exit" << endl;
     exit(-1);
   }
   in.ignore(100,';');
@@ -53,13 +53,13 @@ TSBSGeant4File::TSBSGeant4File(const char *f, const char* filedbpath) : fFile(0)
 void TSBSGeant4File::InitMiscParam(const char* dbpath) {
   ifstream in(dbpath);
   if(!in.is_open()){
-    printf("Warning: May not read database at %s\n", dbpath);
+    printf("TSBSGeant4File Warning: May not read database at %s\n", dbpath);
     printf(" => Using sbs default params\n");
     
     fZSpecOffset = 3.38551;
     strcpy( fgasdatafile, "gasErange.txt");
   }else{
-    cout << "Info: reading database at location " << dbpath << endl;
+    cout << "TSBSGeant4File Info: reading database at location " << dbpath << endl;
     cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
     cout << "(same structure, same order of parameters)" << endl;
     Float_t dummy;

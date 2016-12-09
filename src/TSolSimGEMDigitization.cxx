@@ -27,11 +27,13 @@
 
 using namespace std;
 
+//static TSolDBManager* manager = TSolDBManager::GetInstance();// CHECK ?
 static UInt_t   fNSECTORS = 30; // Set fixed for the time being
 //for some reasons, if these parameters are declared as flags in the .h, it doesn't work...
-static UInt_t   kYIntegralStepsPerPitch;
-static Double_t kSNormNsigma;
-static UInt_t   fMAX_IONS;
+Int_t    TSolSimGEMDigitization::fDoCrossTalk = 0;
+Int_t    TSolSimGEMDigitization::fNCStripApart = 0;
+Double_t TSolSimGEMDigitization::fCrossFactor = 0.;
+Double_t TSolSimGEMDigitization::fCrossSigma = 0.;
 
 // Chamber number -> sector/plane helper functions
 
@@ -46,6 +48,7 @@ static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
   // ich = is + nsectors*ipl (is = sector, ipl = plane).
   // The number of sectors is implied to be 30.
 
+  //div_t d = div( chamber, manager->GetNSector() );// CHECK ?
   div_t d = div( chamber, fNSECTORS );
   sector = d.rem;
   plane  = d.quot;
@@ -55,7 +58,7 @@ inline
 static UInt_t MapSector( UInt_t chamber )
 {
   // Convert the true chamber index to one with sector = 0
-
+  //return manager->GetNSector() * UInt_t(chamber/manager->GetNSector());// CHECK ?
   return fNSECTORS * UInt_t(chamber/fNSECTORS);
 }
 
@@ -74,7 +77,7 @@ TSolDigitizedPlane::TSolDigitizedPlane (UShort_t nstrip,
 
   fStripADC.Set(fNSamples*fNStrips);
   fStripClusters.resize(fNStrips);
-
+  fRan.SetSeed(0);
   Clear();
 };
 
@@ -129,6 +132,44 @@ TSolDigitizedPlane::Cumulate (const TSolGEMVStrip *vv, Short_t type,
       }
       fStripClusters[idx].push_back(clusterID);
     }
+    
+    //do cross talk if requested, a big signal along the strips 
+    //will induce a smaller signal as the bigger one going to the APV, 
+    //the smaller signal will appear on strips that is 
+    //about 32 channels away from the big signal
+    if (!TSolSimGEMDigitization::fDoCrossTalk) return;
+    Int_t isLeft = fRan.Uniform(1.) < 0.5 ? -1 : 1;
+    Double_t factor = TSolSimGEMDigitization::fCrossFactor +
+      fRan.Gaus(0., TSolSimGEMDigitization::fCrossSigma);
+    if (factor <= 0.) return; //no induced signal
+    
+    for( Int_t j=0; j < vv->GetSize(); j++ ) {
+      Int_t idx = vv->GetIdx(j);
+      assert( idx >= 0 && idx < fNStrips );
+      
+      Int_t idxInduce = idx + isLeft*TSolSimGEMDigitization::fNCStripApart;
+      if (idxInduce < 0 || idxInduce >= fNStrips ) continue; //outside the readout
+      
+      SETBIT(fType[idxInduce], kInducedStrip);
+      //same time as the main signal strip
+      fTime[idxInduce] = (fTime[idx] < vv->GetTime()) ? fTime[idx] : vv->GetTime();
+      fCharge[idxInduce] += factor*vv->GetCharge(j);
+      bool was_below = !( fTotADC[idxInduce] > fThreshold );
+      for( UInt_t k=0; k<fNSamples; k++ ) {
+	Int_t nnn = vv->GetADC(j,k);
+	assert( nnn >= 0 );
+	nnn *= factor;
+	if( nnn == 0 ) continue;
+	Int_t iadc = idxInduce*fNSamples+k;
+	fStripADC[iadc] = fStripADC[iadc] + nnn;
+	fTotADC[idxInduce] += nnn;
+      }
+      if( was_below && fTotADC[idxInduce] > fThreshold ) {
+	assert( fNOT < fNStrips );
+	fOverThr[fNOT] = idxInduce;
+	++fNOT;
+      }
+    }
   }
 };
 
@@ -157,14 +198,14 @@ TSolDigitizedPlane::Threshold( Int_t thr )
 
 
 TSolSimGEMDigitization::TSolSimGEMDigitization( const TSolSpec& spect,
-						const char* name)
+						const char* name )
   : THaAnalysisObject(name, "GEM simulation digitizer"),
     fDoMapSector(false), fSignalSector(0), fDP(0),  fdh(0), fNChambers(0), fNPlanes(0),
-    fRNIon(0), fRIon(fMAX_IONS), fOFile(0), fOTree(0), fEvent(0)
+    fRNIon(0), fOFile(0), fOTree(0), fEvent(0)
 {
   Init();
   Initialize (spect);
-  fRIon.resize(fMAX_IONS);
+  fRIon.resize(fMaxNIon);
   
   fEvent = new TSolSimEvent(5);
 }
@@ -219,7 +260,7 @@ TSolSimGEMDigitization::Initialize(const TSolSpec& spect)
   // Estimated max size of the charge collection area in AvaModel
   Double_t pitch = 0.4; // [mm]
   Double_t f = ( 2 * fAvalancheFiducialBand * 0.1 /* fRSMax */ ) / pitch + 6 /* track slope */;
-  Int_t est_area = TMath::Nint( kYIntegralStepsPerPitch * f*f );
+  Int_t est_area = TMath::Nint( fYIntegralStepsPerPitch * f*f );
   est_area = 128 * TMath::CeilNint( est_area/128. );
   fSumA.reserve(est_area);
 
@@ -247,6 +288,9 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
       { "elesamplingpoints",         &fEleSamplingPoints,         kInt    },
       { "elesamplingperiod",         &fEleSamplingPeriod,         kDouble },
       { "pulsenoisesigma",           &fPulseNoiseSigma,           kDouble },
+      { "pulsenoiseperiod",          &fPulseNoisePeriod,          kDouble },
+      { "pulsenoiseampconst",        &fPulseNoiseAmpConst,        kDouble },
+      { "pulsenoiseampsigma",        &fPulseNoiseAmpSigma,        kDouble },
       { "adcoffset",                 &fADCoffset,                 kDouble },
       { "adcgain",                   &fADCgain,                   kDouble },
       { "adcbits",                   &fADCbits,                   kInt    },
@@ -254,9 +298,19 @@ TSolSimGEMDigitization::ReadDatabase (const TDatime& date)
       { "pulseshapetau0",            &fPulseShapeTau0,            kDouble },
       { "pulseshapetau1",            &fPulseShapeTau1,            kDouble },
       { "zrout",                     &fRoutZ,                     kDouble },
-      { "yintegralstepsperpitch",    &kYIntegralStepsPerPitch,    kInt    },
-      { "snormnsigma",               &kSNormNsigma,               kDouble },
-      { "maxions",                   &fMAX_IONS,                  kInt    },
+      { "use_tracker_frame",         &fUseTrackerFrame,           kInt    },
+      { "entrance_ref",              &fEntranceRef,               kDouble },
+      { "avalateraluncertainty",     &fLateralUncertainty,        kDouble },
+      { "max_ion",                   &fMaxNIon,                   kUInt   },
+      { "y_integral_step_per_pitch", &fYIntegralStepsPerPitch,    kUInt   },
+      { "x_integral_step_per_pitch", &fXIntegralStepsPerPitch,    kUInt   },
+      { "avalanche_range",           &fSNormNsigma,               kDouble },
+      { "ava_model",                 &fAvaModel,                  kInt    },
+      { "ava_gain",                  &fAvaGain,                   kDouble },
+      { "do_crosstalk",              &fDoCrossTalk,               kInt    },
+      { "crosstalk_mean",            &fCrossFactor,               kDouble },
+      { "crosstalk_sigma",           &fCrossSigma,                kDouble },
+      { "crosstalk_strip_apart",     &fNCStripApart,              kInt    },
      { 0 }
     };
 
@@ -303,6 +357,12 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
   // For signal data, determine the sector of the primary track
   bool is_background = gdata.GetSource() != 0;
   if( fDoMapSector && !is_background ) {
+    //originally the fSignalSector is determine from the phi angle of the track
+    //at vertex, this is good if there is no field. When there is, we cannot do it
+    //that way. So I changed it to the following. But still it doesn't work in there
+    //are more than 1 primary signal particle, hopefully we don't need to consider this
+    //-- Weizhi
+
     Int_t ntrk = fEvent->GetNtracks();
     if( ntrk == 0 && nh > 0 ) {
       Warning("Digitize", "Signal data without a primary track?");
@@ -312,6 +372,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
 
       TSolSimTrack* trk = static_cast<TSolSimTrack*>( fEvent->fMCTracks->At(0) );
       if( trk ) {
+        //fSignalSector = gdata.GetSigSector();// CHECK ?
 	Double_t ph = trk->PPhi();
 	// Assumes phi doesn't change between vertex and GEMs (no field) and the
 	// nominal angle (i.e. without offset) of sector 0 is 0 degrees
@@ -327,6 +388,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
   bool map_backgr = fDoMapSector && is_background;
 
   // Randomize the event time for background events
+  //UInt_t vsize = ( map_backgr ) ? manager->GetNSector() : 1;// CHECK ?
   UInt_t vsize = ( map_backgr ) ? fNSECTORS : 1;
   vector<Float_t> event_time(vsize);
   vector<bool> time_set(vsize,false);
@@ -343,7 +405,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
     if( fDoMapSector && !is_background && isect != fSignalSector )
       // If mapping sectors, skip signal hits that won't end up in sector 0
       continue;
-
+    
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
 
@@ -387,7 +449,8 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
       fdh = AvaModel (igem, spect, vv1, vv2, time_zero);
     }
     // Record MC hits in output event
-    Short_t id = SetTreeHit (ih, spect, fdh, gdata, time_zero);
+    //Short_t id = SetTreeHit (ih, spect, fdh, gdata, time_zero);
+    Short_t id = SetTreeHit (ih, spect, gdata, time_zero);
 
     // Record digitized strip signals in output event
     if (fdh) {
@@ -422,7 +485,8 @@ TSolSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSolSpec& sp
 	continue;
       
       // Short_t id =
-      SetTreeHit (ih, spect, fdh, gdata, 0.0);
+      //SetTreeHit (ih, spect, fdh, gdata, 0.0);
+      SetTreeHit (ih, spect, gdata, 0.0);
     }
   SetTreeStrips ();
 }
@@ -454,12 +518,12 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
 #if DBG_ION > 0
   cout << "E lost = " << elost << ", " << fRNIon << " ions";
 #endif
-  if (fRNIon > fMAX_IONS) {
+  if (fRNIon > fMaxNIon) {
 #if DBG_ION > 0
     cout << __FUNCTION__ << ": WARNING: too many primary ions " << fRNIon << " limit to "
-	 << fMAX_IONS << endl;
+	 << fMaxNIon << endl;
 #endif
-    fRNIon = fMAX_IONS;
+    fRNIon = fMaxNIon;
   }
 
   fRSMax = 0.;
@@ -470,17 +534,23 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
     IonPar_t ip;
 
     Double_t lion = rnd.Uniform(0.,1.); // position of the hit along the track segment (fraction)
-
-    ip.X = vseg.X()*lion+xi.X();
-    ip.Y = vseg.Y()*lion+xi.Y();
+    
+    //In principle, the lateral uncertainty should have been put in the Ava model, but not here
+    //But since we are not simulating the details of the avalanche, I think it is ok (Weizhi)
+    ip.X = vseg.X()*lion+xi.X() + rnd.Gaus(0., fLateralUncertainty);
+    ip.Y = vseg.Y()*lion+xi.Y() + rnd.Gaus(0., fLateralUncertainty);
 
     // Note the definition of fRoutZ is the distance from xi.Z() to xrout.Z():
-    // xi               xo   xrout
-    //  |<-----vseg----->|    |
-    //  |<-----fRoutZ----|--->|
-    //  |<-lion*vseg->   |    |
-    //  |             <--LL-->|
-    Double_t LL = TMath::Abs(fRoutZ - vseg.Z()*lion);
+    //        xi               xo   xrout
+    // |<-LD->|<-----vseg----->|    |
+    // |<-------fRoutZ---------|--->|
+    // |      |<-lion*vseg->   |    |
+    // |      |             <--LL-->|
+
+    Double_t LD = TMath::Abs(xi.Z() - fEntranceRef);//usually should be 0,
+                                            //unless particle is produced inside the gas layer
+
+    Double_t LL = TMath::Abs(fRoutZ - LD - vseg.Z()*lion);
     Double_t ttime = LL/fGasDriftVelocity; // traveling time from the drift gap to the readout
 
     fRTime0 = TMath::Min(ttime, fRTime0); // minimum traveling time [s]
@@ -503,7 +573,7 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
     fRSMax = TMath::Max(ip.SNorm, fRSMax);
 
     // Derived quantities needed by the numerical integration in AvaModel
-    ip.SNorm *= kSNormNsigma;
+    ip.SNorm *= fSNormNsigma;
     ip.R2 = ip.SNorm * ip.SNorm;
     ip.ggnorm = ip.Charge * TMath::InvPi() / ip.R2; // normalized charge
 
@@ -514,7 +584,7 @@ TSolSimGEMDigitization::IonModel(const TVector3& xi,
 #endif
 #if DBG_ION > 0
     cout << "x, y = " << ip.X << ", " << ip.Y << " snorm = "
-	 << ip.SNorm/kSNormNsigma << " charge " << ip.Charge << endl;
+	 << ip.SNorm/fSNormNsigma << " charge " << ip.Charge << endl;
     cout << "fRTime0 = " << fRTime0 << endl;
 #endif
 
@@ -613,184 +683,242 @@ TSolSimGEMDigitization::AvaModel(const Int_t ic,
 
   TSolGEMVStrip **virs;
   virs = new TSolGEMVStrip *[fNPlanes[ic]];
-  for (UInt_t ipl = 0; ipl < fNPlanes[ic]; ++ipl)
-    {
+  for (UInt_t ipl = 0; ipl < fNPlanes[ic]; ++ipl){
 #if DBG_AVA > 0
-      cout << "coordinate " << ipl << " =========================" << endl;
+    cout << "coordinate " << ipl << " =========================" << endl;
+#endif
+    
+    // Compute strips affected by the avalanche
+
+    const TSolGEMPlane& pl = chamber.GetPlane(ipl);
+
+    // Positions in strip frame
+    Double_t xs0 = x0 * 1e-3; Double_t ys0 = y0 * 1e-3;
+    pl.PlaneToStrip (xs0, ys0);
+    xs0 *= 1e3; ys0 *= 1e3;
+    Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
+    pl.PlaneToStrip (xs1, ys1);
+    xs1 *= 1e3; ys1 *= 1e3;
+
+#if DBG_AVA > 0
+    cout << "xs0 ys0 xs1 ys1 " << xs0 << " " << ys0 << " " << xs1 << " " << ys1 << endl;
 #endif
 
-      // Compute strips affected by the avalanche
+    Int_t iL = pl.GetStrip (xs0 * 1e-3, ys0 * 1e-3);
+    Int_t iU = pl.GetStrip (xs1 * 1e-3, ys1 * 1e-3);
 
-      const TSolGEMPlane& pl = chamber.GetPlane(ipl);
-
-      // Positions in strip frame
-      Double_t xs0 = x0 * 1e-3; Double_t ys0 = y0 * 1e-3;
-      pl.PlaneToStrip (xs0, ys0);
-      xs0 *= 1e3; ys0 *= 1e3;
-      Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
-      pl.PlaneToStrip (xs1, ys1);
-      xs1 *= 1e3; ys1 *= 1e3;
-
+    // Check for (part of) the avalanche area being outside of the strip region
+    if( iL < 0 && iU < 0 ) {
+      // All of the avalanche outside -> nothing to do
+      // TODO: what if this happens for only one strip coordinate (ipl)?
 #if DBG_AVA > 0
-      cout << "xs0 ys0 xs1 ys1 " << xs0 << " " << ys0 << " " << xs1 << " " << ys1 << endl;
+      cerr << __FILE__ << " " << __FUNCTION__ << ": out of active area, "
+	   << "chamber " << ic << " sector " << ic%30 << " plane " << ic/30 << endl
+	   << "iL_raw " << pl.GetStripUnchecked(xs0*1e-3) << " "
+	   << "iU_raw " << pl.GetStripUnchecked(xs1*1e-3) << endl
+	   << "r " << sqrt(x0*x0+y0*y0) << " phi " << atan(y0/x0)*TMath::RadToDeg()
+	   << endl << endl;
 #endif
+      if( ipl == 1 ) delete virs[0];
+      delete [] virs;
+      return 0;
+    }
+    bool clipped = ( iL < 0 || iU < 0 );
+    if( iL < 0 )
+      iL = pl.GetStripInRange( xs0 * 1e-3 );
+    else if( iU < 0 )
+      iU = pl.GetStripInRange( xs1 * 1e-3 );
 
-      Int_t iL = pl.GetStrip (xs0 * 1e-3, ys0 * 1e-3);
-      Int_t iU = pl.GetStrip (xs1 * 1e-3, ys1 * 1e-3);
+    if (iL > iU)
+      swap( iL, iU );
 
-      // Check for (part of) the avalanche area being outside of the strip region
-      if( iL < 0 && iU < 0 ) {
-	// All of the avalanche outside -> nothing to do
-	// TODO: what if this happens for only one strip coordinate (ipl)?
+    //
+    // Bounds of rectangular avalanche region, in strip frame
+    //
+
+    // Limits in x are low edge of first strip to high edge of last
 #if DBG_AVA > 0
-	cerr << __FILE__ << " " << __FUNCTION__ << ": out of active area, "
-	     << "chamber " << ic << " sector " << ic%30 << " plane " << ic/30 << endl
-	     << "iL_raw " << pl.GetStripUnchecked(xs0*1e-3) << " "
-	     << "iU_raw " << pl.GetStripUnchecked(xs1*1e-3) << endl
-	     << "r " << sqrt(x0*x0+y0*y0) << " phi " << atan(y0/x0)*TMath::RadToDeg()
-	     << endl << endl;
+    cout << "iL gsle " << iL << " " << pl.GetStripLowerEdge (iL) << endl;
+    cout << "iU gsue " << iU << " " << pl.GetStripUpperEdge (iU) << endl;
 #endif
-	if( ipl == 1 ) delete virs[0];
-	delete [] virs;
-	return 0;
-      }
-      bool clipped = ( iL < 0 || iU < 0 );
-      if( iL < 0 )
-	iL = pl.GetStripInRange( xs0 * 1e-3 );
-      else if( iU < 0 )
-	iU = pl.GetStripInRange( xs1 * 1e-3 );
+    Double_t xl = pl.GetStripLowerEdge (iL) * 1000.0;
+    Double_t xr = pl.GetStripUpperEdge (iU) * 1000.0;
 
-      if (iL > iU)
-	swap( iL, iU );
+    // Limits in y are y limits of track plus some reasonable margin
+    // We do this in units of strip pitch for convenience (even though
+    // this is the direction orthogonal to the pitch direction)
 
-      //
-      // Bounds of rectangular avalanche region, in strip frame
-      //
+    // Use y-integration step size of 1/10 of strip pitch (in mm)
+    Double_t yq = pl.GetSPitch() * 1000.0 / fYIntegralStepsPerPitch;
+    Double_t yb = ys0, yt = ys1;
+    if (yb > yt)
+      swap( yb, yt );
+    yb = yq * TMath::Floor (yb / yq);
+    yt = yq * TMath::Ceil  (yt / yq);
 
-      // Limits in x are low edge of first strip to high edge of last
+    //We should also allow x to have variable bin size based on the db
+    //the new avalanche model (Cauchy-Lorentz) has a very sharp full width
+    //half maximum, so if the bin size is too large, it can introduce
+    //fairly large error on the charge deposition. Setting fXIntegralStepsPerPitch
+    //to 1 will go back to the original version -- Weizhi Xiong
+
+    Int_t nstrips = iU - iL + 1;
+    Int_t nx = (iU - iL + 1) * fXIntegralStepsPerPitch;
+    Int_t ny = TMath::Nint( (yt - yb)/yq );
 #if DBG_AVA > 0
-      cout << "iL gsle " << iL << " " << pl.GetStripLowerEdge (iL) << endl;
-      cout << "iU gsue " << iU << " " << pl.GetStripUpperEdge (iU) << endl;
+    cout << "xr xl yt yb nx ny "
+	 << xr << " " << xl << " " << yt << " " << yb
+	 << " " << nx << " " << ny << endl;
 #endif
-      Double_t xl = pl.GetStripLowerEdge (iL) * 1000.0;
-      Double_t xr = pl.GetStripUpperEdge (iU) * 1000.0;
+    assert( nx > 0 && ny > 0 );
 
-      // Limits in y are y limits of track plus some reasonable margin
-      // We do this in units of strip pitch for convenience (even though
-      // this is the direction orthogonal to the pitch direction)
+    // define function, gaussian and sum of gaussian
 
-      // Use y-integration step size of 1/10 of strip pitch (in mm)
-      Double_t yq = pl.GetSPitch() * 1000.0 / kYIntegralStepsPerPitch;
-      Double_t yb = ys0, yt = ys1;
-      if (yb > yt)
-	swap( yb, yt );
-      yb = yq * TMath::Floor (yb / yq);
-      yt = yq * TMath::Ceil  (yt / yq);
-
-      // # of coarse histogram bins: 1 per pitch x-direction, 10 per pitch in y
-      Int_t nx = iU - iL + 1;
-      Int_t ny = TMath::Nint( (yt - yb)/yq );
+    Double_t xbw = (xr - xl) / nx;
+    Double_t ybw = (yt - yb) / ny;
 #if DBG_AVA > 0
-      cout << "xr xl yt yb nx ny "
-	   << xr << " " << xl << " " << yt << " " << yb
-	   << " " << nx << " " << ny << endl;
+    cout << "xbw ybw " << xbw << " " << ybw << endl;
 #endif
-      assert( nx > 0 && ny > 0 );
-
-      // define function, gaussian and sum of gaussian
-
-      Double_t xbw = (xr - xl) / nx;
-      Double_t ybw = (yt - yb) / ny;
-#if DBG_AVA > 0
-      cout << "xbw ybw " << xbw << " " << ybw << endl;
-#endif
-      fSumA.resize(nx*ny);
-      memset (&fSumA[0], 0, fSumA.size() * sizeof (Double_t));
-      for (UInt_t i = 0; i < fRNIon; i++)
-	{
-	  Double_t frxs = fRIon[i].X * 1e-3;
-	  Double_t frys = fRIon[i].Y * 1e-3;
-	  pl.PlaneToStrip (frxs, frys);
-	  frxs *= 1e3; frys *= 1e3;
-	  // bin containing center and # bins each side to process
-	  Int_t ix = (frxs-xl) / xbw;
-	  Int_t iy = (frys-yb) / ybw;
-	  Int_t dx = fRIon[i].SNorm / xbw  + 1;
-	  Int_t dy = fRIon[i].SNorm / ybw  + 1;
+    fSumA.resize(nx*ny);
+    memset (&fSumA[0], 0, fSumA.size() * sizeof (Double_t));
+    for (UInt_t i = 0; i < fRNIon; i++){
+      Double_t frxs = fRIon[i].X * 1e-3;
+      Double_t frys = fRIon[i].Y * 1e-3;
+      pl.PlaneToStrip (frxs, frys);
+      frxs *= 1e3; frys *= 1e3;
+      // bin containing center and # bins each side to process
+      Int_t ix = (frxs-xl) / xbw;
+      Int_t iy = (frys-yb) / ybw;
+      Int_t dx = fRIon[i].SNorm / xbw  + 1;
+      Int_t dy = fRIon[i].SNorm / ybw  + 1;
 #if DBG_AVA > 1
-	  cout << "ix dx iy dy " << ix << " " << dx << " " << iy << " " << dy << endl;
-#endif
-	  Double_t ggnorm = fRIon[i].ggnorm;
-	  Double_t r2 = fRIon[i].R2;
-	  // xc and yc are center of current bin
-	  Int_t jx = max(ix-dx,0);
-	  Double_t xc = xl + (jx+0.5) * xbw;
-	  // Loop over bins
-	  for (; jx < min(ix+dx+1,nx); ++jx, xc += xbw)
-	    {
-	      Double_t xd2 = frxs-xc; xd2 *= xd2;
-	      if( xd2 > r2 ) continue;
-	      Int_t jy = max(iy-dy,0);
-	      Double_t yc = yb + (jy+0.5) * ybw;
-	      for (; jy < min(iy+dy+1,ny); ++jy, yc += ybw)
-		{
-		  if( xd2 + (frys-yc)*(frys-yc) <= r2 ) {
-		    if( (clipped || bb_clipped) && !IsInActiveArea(pl,xc*1e-3,yc*1e-3) )
-		      continue;
-		    fSumA[jx*ny+jy] += ggnorm;
-		  }
-	        }
-	    }
-	}
-
-#if DBG_AVA > 0
-      cout << "t0 = " << t0
-	   << endl;
+      cout << "ix dx iy dy " << ix << " " << dx << " " << iy << " " << dy << endl;
 #endif
 
-      virs[ipl] = new TSolGEMVStrip(nx,fEleSamplingPoints);
+      //
+      // NL change:
+      //
+      // ggnorm is the avalance charge for the i^th ion, and R2 is the square of the radius of the diffusion 
+      // circle, mutiplied by the kSNormNsigma factor: (ip.SNorm * ip.SNorm)*kSNormNsigma*kSNormNsigma. All 
+      // strips falling within this circle are considered in charge summing. 
+      //
+      // The charge contribution to a given strip by the i^th ion is evaluated by a Lorentzian (or Gaussian)
+      // distribution; the sigma for this distribution is eff_sigma, which is the actual avalance sigma. 
+      //
+      Double_t ggnorm = fRIon[i].ggnorm;
+      Double_t r2 = fRIon[i].R2;
+      Double_t eff_sigma = r2/(fSNormNsigma*fSNormNsigma);
+      // xc and yc are center of current bin
+      Int_t jx = max(ix-dx,0);
+      Double_t xc = xl + (jx+0.5) * xbw;
+      // Loop over bins
+      for (; jx < min(ix+dx+1,nx); ++jx, xc += xbw){
+	Double_t xd2 = frxs-xc; xd2 *= xd2;
+	if( xd2 > r2 ) continue;
+	Int_t jy = max(iy-dy,0);
+	Double_t yc = yb + (jy+0.5) * ybw;
+	
+	for (; jy < min(iy+dy+1,ny); ++jy, yc += ybw){
+	  Double_t yd2 = frys-yc; yd2 *= yd2;
 
-      virs[ipl]->SetTime(t0);
-      virs[ipl]->SetHitCharge(fRTotalCharge);
-
-      Int_t ai=0;
-      Double_t area = xbw * ybw;
-
-      for (Int_t j = 0; j < nx; j++)
-	{
-	  Int_t posflag = 0;
-	  Double_t us = IntegralY( &fSumA[0], j, nx, ny ) * area;
-	  for (Int_t b = 0; b < fEleSamplingPoints; b++)
-	    { // sampling
-	      Double_t pulse =
-		TSolSimAux::PulseShape (fEleSamplingPeriod * b - t0,
-					us,
-					fPulseShapeTau0,
-					fPulseShapeTau1 );
-	      if( fPulseNoiseSigma > 0. )
-		pulse += fTrnd.Gaus(0., fPulseNoiseSigma);
-	      Short_t dadc = TSolSimAux::ADCConvert( pulse,
-						     fADCoffset,
-						     fADCgain,
-						     fADCbits );
-	      fDADC[b] = dadc;
-	      posflag += dadc;
+	  if( xd2 + (frys-yc)*(frys-yc) <= r2 ) {
+	    if( (clipped || bb_clipped) && !IsInActiveArea(pl,xc*1e-3,yc*1e-3) )
+	      continue;
+	    switch (fAvaModel){
+	    case 0:
+	      // Original Heavyside distribution 
+	      fSumA[jx*ny+jy] += ggnorm;
+	      break;
+	    case 1:
+	      // Gaussian with no extra multiplier
+	      fSumA[jx*ny+jy] += 
+		fAvaGain*ggnorm*exp(-1.*(xd2+yd2)/(2.*r2/(fSNormNsigma*fSNormNsigma)));
+	      break;
+	    default:
+	      // Cauchy-Larentz: 
+	      fSumA[jx*ny+jy] += 
+		fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)
+		/((xd2+yd2)+eff_sigma*eff_sigma);
 	    }
-	  if (posflag > 0)
-	    { // store only strip with signal
-	      for (Int_t b = 0; b < fEleSamplingPoints; b++)
-		virs[ipl]->AddSampleAt (fDADC[b], b, ai);
-	      virs[ipl]->AddStripAt (iL+j, ai);
-	      virs[ipl]->AddChargeAt (us, ai);
-	      ai++;
-	    }
+	  }
 	}
-      virs[ipl]->SetSize(ai);
+      }
     }
 
+#if DBG_AVA > 0
+    cout << "t0 = " << t0 << " plane " << ipl 
+	 << endl;
+#endif
+
+    virs[ipl] = new TSolGEMVStrip(nx,fEleSamplingPoints);
+
+    virs[ipl]->SetTime(t0);
+    virs[ipl]->SetHitCharge(fRTotalCharge);
+
+    Int_t ai=0;
+    Double_t area = xbw * ybw;
+
+    //when we integrate in order to get the signal pulse, we want all charge
+    //deposition on the area of a single strip -- Weizhi
+    for (Int_t j = 0; j < nstrips; j++){
+      Int_t posflag = 0;
+      Double_t us = 0.;
+      for (UInt_t k=0; k<fXIntegralStepsPerPitch; k++){
+	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
+      }
+            
+      //generate the random pedestal phase and amplitude
+      Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
+      Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
+
+      for (Int_t b = 0; b < fEleSamplingPoints; b++){
+	Double_t pulse =
+	  TSolSimAux::PulseShape (fEleSamplingPeriod * b - t0,
+				  us,
+				  fPulseShapeTau0,
+				  fPulseShapeTau1 );
+
+	//nx is larger than the size of the strips that are actually being hit,
+	//however, this way of adding noise will add signals to those strips that were not hit
+	//and the cluster size will essentially equal to nx
+	//not sure if this is what we what...
+	// if( fPulseNoiseSigma > 0.)
+	// pulse += fTrnd.Gaus(0., fPulseNoiseSigma);
+
+	//add noise only to those strips that are hit,
+	if( fPulseNoiseSigma > 0. && pulse > 0. )
+	  pulse += GetPedNoise(phase, amp, b);
+
+	Short_t dadc = TSolSimAux::ADCConvert( pulse,
+					       fADCoffset,
+					       fADCgain,
+					       fADCbits );
+
+	fDADC[b] = dadc;
+	posflag += dadc;
+      }
+      if (posflag > 0) { // store only strip with signal
+	for (Int_t b = 0; b < fEleSamplingPoints; b++)
+	  virs[ipl]->AddSampleAt (fDADC[b], b, ai);
+	virs[ipl]->AddStripAt (iL+j, ai);
+	virs[ipl]->AddChargeAt (us, ai);
+	ai++;
+      }
+    }
+
+    virs[ipl]->SetSize(ai);
+  }
+  
   return virs;
 }
-
+//___________________________________________________________________________________
+inline Double_t TSolSimGEMDigitization::GetPedNoise(Double_t &phase, Double_t& amp, Int_t& isample)
+{
+  Double_t thisPhase = phase + isample*fEleSamplingPeriod;
+  return fTrnd.Gaus(0., fPulseNoiseSigma)
+         + amp*sin(2.*TMath::Pi()/fPulseNoisePeriod*thisPhase);
+}
+//___________________________________________________________________________________
 void
 TSolSimGEMDigitization::Print() const
 {
@@ -809,12 +937,17 @@ TSolSimGEMDigitization::Print() const
   cout << "    Trigger jitter: " << fTriggerJitter << endl;
   cout << "    Sampling Period: " << fEleSamplingPeriod << endl;
   cout << "    Sampling Points: " << fEleSamplingPoints   << endl;
-  cout << "    Pulse Noise width: " << fPulseNoiseSigma << endl;
   cout << "    ADC offset: " << fADCoffset << endl;
   cout << "    ADC gain: " << fADCgain << endl;
   cout << "    ADC bits: " << fADCbits << endl;
   cout << "    Gate width: " << fGateWidth << endl;
 
+  cout << "  GEM pedestal noise parameters: "<<endl;
+  cout << "    Pulse Noise period: " << fPulseNoisePeriod << endl;
+  cout << "    Pulse Noise amplitude sigma: " << fPulseNoiseAmpSigma << endl;
+  cout << "    Pulse Noise amplitude constant: " << fPulseNoiseAmpConst << endl;
+  cout << "    Additional Pulse Noise width: " << fPulseNoiseSigma << endl;
+  
   cout << "  Pulse shaping parameters:" << endl;
   cout << "    Pulse shape tau0: " << fPulseShapeTau0 << endl;
   cout << "    Pulse shape tau1: " << fPulseShapeTau1 << endl;
@@ -900,7 +1033,7 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
     const gendata* gd = f.GetGenData(i);
     //TODO: get GEANT id?
     fEvent->AddTrack( i+1, gd->GetPID(),
-		      gd->GetV()*1e-2, // Vertex coordinates in [m]
+		      gd->GetV()*1e-3, // Vertex coordinates in [m]
 		      gd->GetP()*1e-3  // Momentum in [GeV]
 		      );
   }
@@ -909,13 +1042,14 @@ TSolSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
     fEvent->fWeight = f.GetGenData(0)->GetWeight();
 
   fEvent->fSectorsMapped = fDoMapSector;
+  //fEvent->fSignalSector = tsgd.GetSigSector();//CHECK ?
   fEvent->fSignalSector = fSignalSector;
 }
 
 Short_t
 TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
 				    const TSolSpec& spect,
-				    TSolGEMVStrip* const *dh,
+				    //TSolGEMVStrip* const *dh,
 				    const TSolGEMData& tsgd,
 				    Double_t t0 )
 {
@@ -940,22 +1074,27 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // the origin of first plane of the sector, but rotated by the nominal
   // (non-offset) sector angle.
   // NB: assumes even sector spacing, clockwise numbering and sector 0 at 0 deg
+  //Double_t sector_angle = TMath::TwoPi()*clust.fSector/manager->GetNSector();//CHECK ?
   Double_t sector_angle = TMath::TwoPi()*clust.fSector/fNSECTORS;
-  clust.fHitpos = clust.fMCpos - spect.GetChamber(clust.fSector).GetOrigin();
+  if (!fUseTrackerFrame){
+    clust.fHitpos = clust.fMCpos;// - spect.GetChamber(clust.fSector).GetOrigin(); //let's not use this tracker frame, Weizhi Xiong
+  }else{
+    clust.fHitpos = clust.fMCpos - spect.GetChamber(clust.fSector).GetOrigin();
+  }
   clust.fHitpos.RotateZ(-sector_angle);
 
-  if (dh != NULL && dh[0] != NULL)
-    clust.fCharge = dh[0]->GetHitCharge();
+  if (fdh != NULL && fdh[0] != NULL)
+    clust.fCharge = fdh[0]->GetHitCharge();
   else
     clust.fCharge = 0;
   clust.fTime   = t0;  // [ns]
 
   const TSolGEMChamber& ch = spect.GetChamber(igem);
   for (UInt_t j = 0; j < 2; j++) {
-    if (dh != NULL && dh[j] != NULL)
+    if (fdh != NULL && fdh[j] != NULL)
       {
-	clust.fSize[j]  = dh[j]->GetSize();
-	clust.fStart[j] = (clust.fSize[j] > 0) ? dh[j]->GetIdx(0) : -1;
+	clust.fSize[j]  = fdh[j]->GetSize();
+	clust.fStart[j] = (clust.fSize[j] > 0) ? fdh[j]->GetIdx(0) : -1;
       }
     else
       {
@@ -982,6 +1121,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
       rot = -TMath::TwoPi()*fSignalSector/fNSECTORS;
       clust.fSector -= fSignalSector;
       if( clust.fSector < 0 )
+	//clust.fSector += manager->GetNSector();//CHECK ?
 	clust.fSector += fNSECTORS;
     }
     else {
@@ -1051,7 +1191,8 @@ TSolSimGEMDigitization::FillTree ()
 {
   if( !fFilledStrips )
     SetTreeStrips();
-
+  
+  //fOFile = fOTree->GetCurrentFile();//CHECK ?
   if (fOFile && fOTree
       // added this line to not write events where there are no entries
 

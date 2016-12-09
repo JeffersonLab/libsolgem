@@ -47,6 +47,9 @@ private:
 
   std::vector< std::vector<Short_t> > fStripClusters; // Clusters associated with each strip
 
+  //used to simulate cross talk of APV25
+  TRandom3 fRan;
+
 public:
   // init and reset physics strips arrays
   TSBSDigitizedPlane (UShort_t nstrip,
@@ -86,7 +89,6 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   virtual ~TSBSSimGEMDigitization();
   
   //full initialization of all parameters with database
-  //void InitGeomParam(const char* dbpath);
   void Initialize(const TSBSSpec& spect);
   Int_t ReadDatabase (const TDatime& date);
   
@@ -115,7 +117,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 		     Int_t evnum = -1);
   Short_t SetTreeHit (const UInt_t ih,
 		      const TSBSSpec& spect,
-		      TSolGEMVStrip* const *dh,
+		      //TSolGEMVStrip* const *dh,
 		      const TSolGEMData& tsgd,
 		      Double_t t0 ); // called from Digitization
   void SetTreeStrips(); // called from Digitization
@@ -142,11 +144,17 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   { return fDP[ich][ip]->GetStripClusters(n); }
 
   TSBSSimEvent* GetEvent() const { return fEvent; }
-
+  
   Bool_t IsMapSector() const { return fDoMapSector; }
   void SetMapSector( Bool_t b = true ) { fDoMapSector = b; }
 
- private:
+  // APV cross talk parameters
+  static Int_t    fDoCrossTalk;  //whether we want to do cross talk simulation
+  static Int_t    fNCStripApart; // # of strips the induced signal is away from the mean signal
+  static Double_t fCrossFactor;  //reduction factor for the induced signal
+  static Double_t fCrossSigma;   //uncertainty of the reduction factor
+
+  private:
 
   void IonModel (const TVector3& xi,
 		 const TVector3& xo,
@@ -158,6 +166,8 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 			     const TVector3& xo,
 			     const Double_t time_off);
   
+  Double_t GetPedNoise(Double_t& phase, Double_t& amp, Int_t& isample);
+
   // Gas parameters
   Double_t fGasWion;               // eV
   Double_t fGasDiffusion;          // mm2/s
@@ -166,17 +176,32 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Int_t    fAvalancheChargeStatistics;  // 0 Furry, 1 Gaussian
   Double_t fGainMean;
   Double_t fGain0;
-
+  UInt_t   fMaxNIon;               //maximum amount of ion pairs allowed in the digitization
+  
+  Double_t fSNormNsigma;           //fSNormNsigma is an arbitrary multiplicative factor for the avalance radius.
+  Int_t    fAvaModel;              //0 for Heavyside, 1 for Gaussian, 2 for Cauchy-Lorentz
+  Double_t fAvaGain;
   // Electronics parameters
   Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
   Double_t fTriggerJitter;       // trigger sigma jitter (ns)
   Int_t    fEleSamplingPoints;
   Double_t fEleSamplingPeriod;   // ns
-  Double_t fPulseNoiseSigma; // sigma of the amplitude noise distribution on each sample
   Double_t fADCoffset;       // ADC offset
   Double_t fADCgain;         // ADC gain
   Int_t    fADCbits;         // ADC resolutions in bits
   Double_t fGateWidth;       // to be changed , ns - pulse shape width at ~1/10 max
+  Int_t    fUseTrackerFrame;       // tracker frame is used in the original version, but not so in my version
+                                   // Weizhi Xiong
+  Double_t fEntranceRef;           // z position of the copper layer right before the first GEM gas layer,
+                             // relative to the center of the GEM chamber
+  Double_t fLateralUncertainty; // avalanche electrons can only pass through the holes of GEM foil
+                                // which introduce additional uncertainty in the lateral direction
+
+  //parameter for GEM pedestal noise
+  Double_t fPulseNoiseSigma;  // additional sigma term of the pedestal noise
+  Double_t fPulseNoisePeriod; // period of the pedestal noise, assuming sinusoidal function
+  Double_t fPulseNoiseAmpConst;  // constant term of the pedestal noise amplitude
+  Double_t fPulseNoiseAmpSigma;  // sigma term of the pedestal noise amplitude
 
   // Pulse shaping parameters
   Double_t fPulseShapeTau0;   // [ns] GEM model; = 50. in SiD model
@@ -184,11 +209,15 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 
   // Geometry
   Double_t fRoutZ;            // z-distance hit entrance to readout plane [mm]
-
-  // Sector mapping // (???) are these relevant ?
+  
+  // Sector mapping // (???) are these relevant ? probably not (EFuchey 2016/12/05)
   Bool_t   fDoMapSector;
   Int_t    fSignalSector;
 
+  //parameter for numerical integration
+  UInt_t   fYIntegralStepsPerPitch;
+  UInt_t   fXIntegralStepsPerPitch;
+  
   TSBSDigitizedPlane*** fDP; // 2D array of plane pointers indexed by chamber, plane #
   TSolGEMVStrip** fdh;// array of U & V GEM strips
   

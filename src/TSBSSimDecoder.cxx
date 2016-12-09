@@ -86,7 +86,7 @@ TSBSSimDecoder::~TSBSSimDecoder() {
 void TSBSSimDecoder::InitMiscParam(const char* dbpath) {
   ifstream in(dbpath);
   if(!in.is_open()){
-    printf("Warning: May not read database at %s\n", dbpath);
+    printf("TSBSSimDecoder Warning: May not read database at %s\n", dbpath);
     printf(" => Using sbs default params\n");
     
     fNPLANES = 16;
@@ -101,7 +101,7 @@ void TSBSSimDecoder::InitMiscParam(const char* dbpath) {
     fgCaloZ  = 6.8;
     fgCaloRes  = 0.01;
   }else{
-    cout << "Info: reading database at location " << dbpath << endl;
+    cout << "TSBSSimDecoder Info: reading database at location " << dbpath << endl;
     cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
     cout << "(same structure, same order of parameters)" << endl;
     Float_t dummy;
