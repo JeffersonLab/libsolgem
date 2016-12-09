@@ -1,0 +1,22 @@
+generalinfo.do_map_sector = 0
+generalinfo.self_define_sector = 0
+generalinfo.sector_mapped = 0
+generalinfo.ntracker = 16
+generalinfo.nsector = 1
+generalinfo.nreadout = 2
+generalinfo.gem_drift_id = 6
+generalinfo.gem_copper_front_id = 5
+generalinfo.gem_copper_back_id = 7
+generalinfo.gem_strip_id = 19
+generalinfo.faec_id = 3110000
+generalinfo.laec_id = 3210000
+generalinfo.chan_per_slot = 1600
+generalinfo.modules_per_readout = 1
+generalinfo.self_defined_sector = 1
+
+generalinfo.nsignal = 1
+generalinfo.signal1.pid = 11
+generalinfo.signal1.tid = 1
+
+generalinfo.zspecoffset = 3.38551
+generalinfo.gasdatafilename = gasErange.txt

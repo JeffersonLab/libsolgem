@@ -27,8 +27,7 @@
 
 using namespace std;
 
-//static TSolDBManager* manager = TSolDBManager::GetInstance();// CHECK ?
-static UInt_t   fNSECTORS = 1; // Set fixed for the time being
+static TSolDBManager* manager = TSolDBManager::GetInstance();
 //for some reasons, if these parameters are declared as flags in the .h, it doesn't work...
 Int_t    TSBSSimGEMDigitization::fDoCrossTalk = 0;
 Int_t    TSBSSimGEMDigitization::fNCStripApart = 0;
@@ -51,8 +50,8 @@ inline
 static UInt_t MapSector( UInt_t chamber )
 {
   // Convert the true chamber index to one with sector = 0
-
-  return fNSECTORS * UInt_t(chamber/fNSECTORS);
+  
+  return manager->GetNSector() * UInt_t(chamber/manager->GetNSector());
 }
 
 // Auxiliary class
@@ -371,8 +370,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 	Double_t ph = trk->PPhi();
 	// Assumes phi doesn't change between vertex and GEMs (no field) and the
 	// nominal angle (i.e. without offset) of sector 0 is 0 degrees
-	fSignalSector = TMath::FloorNint(ph*fNSECTORS/TMath::TwoPi() + 0.5);
-	if( fSignalSector < 0 ) fSignalSector += fNSECTORS;
+	fSignalSector = TMath::FloorNint(ph*manager->GetNSector()/TMath::TwoPi() + 0.5);
+	if( fSignalSector < 0 ) fSignalSector += manager->GetNSector();
       } else
 	Error("Digitize", "Null track pointer? Should never happen. Call expert.");
     }
@@ -386,7 +385,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
   bool map_backgr = fDoMapSector && is_background;
 
   // Randomize the event time for background events
-  UInt_t vsize = ( map_backgr ) ? fNSECTORS : 1;
+  UInt_t vsize = ( map_backgr ) ? manager->GetNSector() : 1;
   vector<Float_t> event_time(vsize);
   vector<bool> time_set(vsize,false);
   UInt_t itime = 0;

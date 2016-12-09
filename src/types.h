@@ -9,6 +9,7 @@ enum StripSignalType{
   kInducedStrip
 };
 
+/*
 struct GeoInfo{
     double r0;
     double r1;
@@ -22,4 +23,6 @@ struct GeoInfo{
     double pitch_v;
 
 };
+*/
+
 #endif//__TYPES_

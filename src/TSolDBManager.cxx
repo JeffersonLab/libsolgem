@@ -66,17 +66,20 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         if( err ) exit(2); 
     }
     
+    /*
     for (int i=0; i<fNTracker; i++){
          vector<GeoInfo> thisInfo;
          thisInfo.clear();
          fGeoInfo[i] = thisInfo;
     }
+    */
     
     fModulesPerChamber = fModulesPerReadOut * fNReadOut;
     
     fChambersPerCrate  = 
     (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/fNTracker) * fNTracker;
 }
+/*
 //______________________________________________________________
 void TSolDBManager::LoadGeoInfo(const string& fileName)
 {
@@ -129,6 +132,7 @@ void TSolDBManager::LoadGeoInfo(const string& fileName)
         }
     }
 }
+*/
 //______________________________________________________________
 string TSolDBManager::FindKey( ifstream& inp, const string& key )
 {
@@ -149,6 +153,22 @@ string TSolDBManager::FindKey( ifstream& inp, const string& key )
     }
   }
   return empty;
+}
+//_________________________________________________________________________
+bool TSolDBManager::CheckIndex(int i, int j, int k)
+{
+    if (i >= fNTracker || i < 0){
+        cout<<"invalid tracker ID requested: "<<i<<endl;
+        return false;
+    }
+    else if (j >= fNSector || j < 0){
+        cout<<"invalid sector id requested: "<<j<<endl;
+        return false;
+    }
+    else if (k >= fNReadOut || k < 0){
+        cout<<"invalid readout id requested: "<<k<<endl;
+    }
+    return true;
 }
 //_________________________________________________________________
 int TSolDBManager::LoadDB( ifstream& inp, DBRequest* request, const string& prefix )
@@ -202,6 +222,7 @@ const int & TSolDBManager::GetSigTID(unsigned int i)
     }
     return fSigTID[i];
 }
+/*
 //______________________________________________________________________
 const double & TSolDBManager::GetSectorZ(int i, int j)
 {
@@ -246,22 +267,6 @@ const double & TSolDBManager::GetSectorPitch(int i, int j, int k)
     if (k == 0) return fGeoInfo[i].at(j).pitch_u;
     else return fGeoInfo[i].at(j).pitch_u;
 }
-//_________________________________________________________________________
-bool TSolDBManager::CheckIndex(int i, int j, int k)
-{
-    if (i >= fNTracker || i < 0){
-        cout<<"invalid tracker ID requested: "<<i<<endl;
-        return false;
-    }
-    else if (j >= fNSector || j < 0){
-        cout<<"invalid sector id requested: "<<j<<endl;
-        return false;
-    }
-    else if (k >= fNReadOut || k < 0){
-        cout<<"invalid readout id requested: "<<k<<endl;
-    }
-    return true;
-}
 //__________________________________________________________________________
 int TSolDBManager::GetSectorIDFromPos(double& x, double& y, int& itracker)
 {
@@ -279,7 +284,7 @@ int TSolDBManager::GetSectorIDFromPos(double& x, double& y, int& itracker)
     }
     return -1;
 }
-
+*/
 
 
 

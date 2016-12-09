@@ -10,8 +10,8 @@
 #include "TFile.h"
 #include "TChain.h"
 #include "g4sbs_gep_tree_with_spin.h"
-
 #include "TSolGEMData.h"
+#include "TSolDBManager.h"
 
 #define __DEFAULT_DATA_SIZE 32
 

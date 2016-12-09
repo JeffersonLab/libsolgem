@@ -23,7 +23,7 @@ public:
     }
     
     void LoadGeneralInfo(const string& fileName);
-    void LoadGeoInfo(const string& fileName);
+    //void LoadGeoInfo(const string& fileName);
     
     const int    &   DoMapSector()         { return fDoMapSector; }
     const int    &   DoSelfDefineSector()  { return fDoSelfDefinedSector; }
@@ -46,15 +46,15 @@ public:
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
-    const double &   GetSectorZ(int i, int j);
-    const double &   GetSectorRMin(int i, int j);
-    const double &   GetSectorRMax(int i, int j);
-    const double &   GetSectorPhiStart(int i, int j);
-    const double &   GetSectorPhiCover(int i, int j);
-    const double &   GetSectorStripAngle(int i, int j, int k);
-    const double &   GetSectorPitch(int i, int j, int k);
+    /* const double &   GetSectorZ(int i, int j); */
+    /* const double &   GetSectorRMin(int i, int j); */
+    /* const double &   GetSectorRMax(int i, int j); */
+    /* const double &   GetSectorPhiStart(int i, int j); */
+    /* const double &   GetSectorPhiCover(int i, int j); */
+    /* const double &   GetSectorStripAngle(int i, int j, int k); */
+    /* const double &   GetSectorPitch(int i, int j, int k); */
     
-    int              GetSectorIDFromPos(double& x, double& y, int& itracker);
+    /* int              GetSectorIDFromPos(double& x, double& y, int& itracker); */
     
 protected:
     TSolDBManager();
@@ -91,8 +91,8 @@ protected:
     vector<int>    fSigPID;
     vector<int>    fSigTID;
     
-    vector<double> fTrackerZ;
-    map< int, vector<GeoInfo> > fGeoInfo;
+    /* vector<double> fTrackerZ; */
+    /* map< int, vector<GeoInfo> > fGeoInfo; */
     
 };
 

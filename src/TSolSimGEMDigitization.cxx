@@ -14,6 +14,7 @@
 #include "TSolGEMPlane.h"
 #include "TSolSimAux.h"
 #include "TSolSimEvent.h"
+#include "TSolDBManager.h"
 
 #include <cmath>
 #include <iomanip>
@@ -27,8 +28,7 @@
 
 using namespace std;
 
-//static TSolDBManager* manager = TSolDBManager::GetInstance();// CHECK ?
-static UInt_t   fNSECTORS = 30; // Set fixed for the time being
+static TSolDBManager* manager = TSolDBManager::GetInstance();
 //for some reasons, if these parameters are declared as flags in the .h, it doesn't work...
 Int_t    TSolSimGEMDigitization::fDoCrossTalk = 0;
 Int_t    TSolSimGEMDigitization::fNCStripApart = 0;
@@ -48,8 +48,7 @@ static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
   // ich = is + nsectors*ipl (is = sector, ipl = plane).
   // The number of sectors is implied to be 30.
 
-  //div_t d = div( chamber, manager->GetNSector() );// CHECK ?
-  div_t d = div( chamber, fNSECTORS );
+  div_t d = div( chamber, manager->GetNSector() );
   sector = d.rem;
   plane  = d.quot;
 }
@@ -58,8 +57,7 @@ inline
 static UInt_t MapSector( UInt_t chamber )
 {
   // Convert the true chamber index to one with sector = 0
-  //return manager->GetNSector() * UInt_t(chamber/manager->GetNSector());// CHECK ?
-  return fNSECTORS * UInt_t(chamber/fNSECTORS);
+  return manager->GetNSector() * UInt_t(chamber/manager->GetNSector());
 }
 
 // Auxiliary class
@@ -376,8 +374,8 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
 	Double_t ph = trk->PPhi();
 	// Assumes phi doesn't change between vertex and GEMs (no field) and the
 	// nominal angle (i.e. without offset) of sector 0 is 0 degrees
-	fSignalSector = TMath::FloorNint(ph*fNSECTORS/TMath::TwoPi() + 0.5);
-	if( fSignalSector < 0 ) fSignalSector += fNSECTORS;
+	fSignalSector = TMath::FloorNint(ph*manager->GetNSector()/TMath::TwoPi() + 0.5);
+	if( fSignalSector < 0 ) fSignalSector += manager->GetNSector();
       } else
 	Error("Digitize", "Null track pointer? Should never happen. Call expert.");
     }
@@ -388,8 +386,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
   bool map_backgr = fDoMapSector && is_background;
 
   // Randomize the event time for background events
-  //UInt_t vsize = ( map_backgr ) ? manager->GetNSector() : 1;// CHECK ?
-  UInt_t vsize = ( map_backgr ) ? fNSECTORS : 1;
+  UInt_t vsize = ( map_backgr ) ? manager->GetNSector() : 1;
   vector<Float_t> event_time(vsize);
   vector<bool> time_set(vsize,false);
   UInt_t itime = 0;
@@ -1074,8 +1071,7 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // the origin of first plane of the sector, but rotated by the nominal
   // (non-offset) sector angle.
   // NB: assumes even sector spacing, clockwise numbering and sector 0 at 0 deg
-  //Double_t sector_angle = TMath::TwoPi()*clust.fSector/manager->GetNSector();//CHECK ?
-  Double_t sector_angle = TMath::TwoPi()*clust.fSector/fNSECTORS;
+  Double_t sector_angle = TMath::TwoPi()*clust.fSector/manager->GetNSector();
   if (!fUseTrackerFrame){
     clust.fHitpos = clust.fMCpos;// - spect.GetChamber(clust.fSector).GetOrigin(); //let's not use this tracker frame, Weizhi Xiong
   }else{
@@ -1118,11 +1114,10 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
     // the secondaries, though!)
     Double_t rot;
     if( clust.fSource == 0 ) {
-      rot = -TMath::TwoPi()*fSignalSector/fNSECTORS;
+      rot = -TMath::TwoPi()*fSignalSector/manager->GetNSector();
       clust.fSector -= fSignalSector;
       if( clust.fSector < 0 )
-	//clust.fSector += manager->GetNSector();//CHECK ?
-	clust.fSector += fNSECTORS;
+	clust.fSector += manager->GetNSector();
     }
     else {
       // All background hits are mapped into sector 0
