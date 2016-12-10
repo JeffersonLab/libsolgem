@@ -16,6 +16,7 @@
 #include "THaCrateMap.h"
 #include "THaBenchmark.h"
 #include "VarDef.h"
+#include "TSolDBManager.h"
 
 #include "TError.h"
 #include "TSystem.h"
@@ -32,24 +33,12 @@
 using namespace std;
 using namespace Podd;
 
-// Constants for conversion of strip (plane,sector,proj,chan) to (crate,slot,chan)
-static Int_t fNPLANES;
-static Int_t fNSECTORS;
-static Int_t fNPROJ;
-static Int_t fCHAN_PER_SLOT;
-static Int_t fmodules_per_readout;
-static Int_t fmodules_per_chamber;
-static Int_t fchambers_per_crate;
-
+//EFuchey: 2016/12/10: it is necessary to declare the TSolDBManager as a static instance here 
+// (and not make it a member) because it is used by functions whic are defined as "static inline".
+static TSolDBManager* fManager = TSolDBManager::GetInstance();
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
 enum EProjType { kUPlane = 0, kVPlane };
-
-Double_t TSolSimDecoder::fgZ0 = 1.571913;
-
-Bool_t   TSolSimDecoder::fgDoCalo = false;
-Double_t TSolSimDecoder::fgCaloZ  = 0.32;
-Double_t TSolSimDecoder::fgCaloRes  = 0.01;
 
 typedef vector<int>::size_type vsiz_t;
 
@@ -62,7 +51,6 @@ TSolSimDecoder::TSolSimDecoder(const char* filedbpath)
   fMCTracks   = new TClonesArray( "TSolSimTrack",       1 );
   fBackTracks = new TClonesArray( "TSolSimBackTrack",   5 );
   
-  InitGeomParam(filedbpath);
   DefineVariables();
 
   gSystem->Load("libEG.so");  // for TDatabasePDG
@@ -76,70 +64,6 @@ TSolSimDecoder::~TSolSimDecoder() {
   delete fBackTracks;
   // fMCHits and fMCTracks are deleted by SimDecoder destructor
 }
-
-//-----------------------------------------------------------------------------
-// Reading database for miscellaneous parameters.
-// This is done without proper DB request, but there is a set of default parameters.
-// If those have to be used, user will be warned by a warning message.
-// Data should be sorted as in file db/db_g4sbsmiscdata.dat
-// This is the user's responsibility to make sure his input file is read correctly.
-void TSolSimDecoder::InitGeomParam(const char* dbpath) {
-  ifstream in(dbpath);
-  if(!in.is_open()){
-    printf("TSolSimDecoder Warning: May not read geometry database at %s\n", dbpath);
-    printf("using solid default params");
-    
-    fNPLANES = 5;
-    fNSECTORS = 30;
-    fNPROJ = 2;
-    fCHAN_PER_SLOT = 1500;
-    fmodules_per_readout = 1;
-    fmodules_per_chamber = fNPROJ*fmodules_per_readout;
-    fchambers_per_crate = (GetMAXSLOT()/fmodules_per_chamber/fNPLANES)*fNPLANES;
-    fgZ0 = 1.571913;
-    fgDoCalo = false;
-    fgCaloZ  = 0.32;
-    fgCaloRes  = 0.01;
-  }else{
-    cout << "TSolSimDecoder Info: reading database at location " << dbpath << endl;
-    cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
-    cout << "(same structure, same order of parameters)" << endl;
-    Float_t dummy;
-    in.ignore(100,'=');
-    in >> fNSECTORS;
-    in.ignore(100,'=');
-    in >> fNPLANES;
-    in.ignore(100,'=');
-    in >> fNPROJ;
-    in.ignore(100,'=');
-    in >> fCHAN_PER_SLOT;
-    in.ignore(100,':');
-    in >> fmodules_per_readout;
-    fmodules_per_chamber = fNPROJ*fmodules_per_readout;
-    fchambers_per_crate = (GetMAXSLOT()/fmodules_per_chamber/fNPLANES)*fNPLANES;
-
-    in.ignore(100,'=');
-    in >> fgZ0;
-    in.ignore(100,'=');
-    in >> fgDoCalo;
-    in.ignore(100,'=');
-    in >> fgCaloZ;
-    in.ignore(100,'=');
-    in >> fgCaloRes;
-    
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-  }
-  
-  // cout << fNSECTORS << " " << fNPLANES << " " << fNPROJ << " " << fCHAN_PER_SLOT << " "
-  // 	 << fmodules_per_readout << "; " << endl;
-  //   << fgZ0 << " " << fgDoCalo << " " << fgCaloZ << " " << fgCaloRes << endl;
-  
-  in.close();
-}
-
 //-----------------------------------------------------------------------------
 Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
 {
@@ -307,12 +231,12 @@ void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
   // The (crate,slot,chan) assignment must match the detmap definition in
   // the database!  See TreeSearch/dbconvert.cxx
 
-  div_t d = div( s_chan, fCHAN_PER_SLOT );
+  div_t d = div( s_chan, fManager->GetChanPerSlot() );
   Int_t module = d.quot;
   chan = d.rem;
   Int_t ix = module +
-    fmodules_per_readout*( s_proj + fNPROJ*( s_plane + fNPLANES*s_sector ));
-  d = div( ix, fchambers_per_crate*fmodules_per_chamber );
+    fManager->GetModulesPerReadOut()*( s_proj + fManager->GetNReadOut()*( s_plane + fManager->GetNTracker()*s_sector ));
+  d = div( ix, fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
   crate = d.quot;
   slot  = d.rem;
 }
@@ -322,7 +246,7 @@ static inline
 Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan )
 {
   return chan +
-    fCHAN_PER_SLOT*( slot + fchambers_per_crate*fmodules_per_chamber*crate );
+    fManager->GetChanPerSlot()*( slot + fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber()*crate );
 }
 
 //-----------------------------------------------------------------------------
@@ -356,7 +280,7 @@ MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
 
   assert( static_cast<vsiz_t>(istrip) < simEvent->fGEMStrips.size() );
   const TSolSimEvent::DigiGEMStrip& strip = simEvent->fGEMStrips[istrip];
-  assert( strip.fProj >= 0 && strip.fProj < fNPROJ );
+  assert( strip.fProj >= 0 && strip.fProj < fManager->GetNReadOut() );
 
   MCHitInfo mc;
   for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
@@ -492,13 +416,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   assert( GetNMCTracks() > 0 );
 
   // MC hit data ("clusters") and "back tracks"
-  Int_t best_primary = -1, best_primary_plane = fNPLANES, primary_sector = -1;
+  Int_t best_primary = -1, best_primary_plane = fManager->GetNTracker(), primary_sector = -1;
   UInt_t primary_hitbits = 0, ufail = 0, vfail = 0;
   for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
        i < simEvent->fGEMClust.size(); ++i ) {
     const TSolSimEvent::GEMCluster& c = simEvent->fGEMClust[i];
 
-    if( c.fPlane < 0 || c.fPlane >= fNPLANES ) {
+    if( c.fPlane < 0 || c.fPlane >= fManager->GetNTracker() ) {
       Error( here, "Illegal plane number = %d in cluster. "
 	     "Should never happen. Call expert.", c.fPlane );
       simEvent->Print("clust");
@@ -599,24 +523,24 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
     // Use the back track to emulate calorimeter hits.
     // Assumptions:
-    // - Only tracks crossing all fNPLANES GEMs (points in all planes)
+    // - Only tracks crossing all fManager->GetNTracker() GEMs (points in all planes)
     //   make a calorimeter hit. This is a crude model for the trigger.
     // - The track propagates without deflection from the last GEM plane
     //   to the front of the emulated calorimeter.
     // - The measured calorimeter position is independent of the incident
     //   track angle.
-    if( fgDoCalo && trk->fNHits == 2*fNPLANES ) {
+    if( fManager->DoCalo() && trk->fNHits == 2*fManager->GetNTracker() ) {
       // Retrieve last MC track point
-      assert( GetNMCPoints() == 2*fNPLANES );
+      assert( GetNMCPoints() == 2*fManager->GetNTracker() );
       MCTrackPoint* pt =
-	static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*fNPLANES-1) );
+	static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*fManager->GetNTracker()-1) );
       assert( pt );
       const TVector3& pos = pt->fMCPoint;
       TVector3 dir = pt->fMCP.Unit();
-      if( fgCaloZ <= pos.Z() ) {
+      if( fManager->GetCaloZ() <= pos.Z() ) {
 	Error( here, "Calorimeter z = %lf less than z of last GEM plane = %lf. "
 	       "Set correct value with SetCaloZ() or turn off calo emulation.",
-	       fgCaloZ, pos.Z() );
+	       fManager->GetCaloZ(), pos.Z() );
 	return HED_FATAL;
       }
       if( TMath::Abs(dir.Z()) < 1e-6 ) {
@@ -625,13 +549,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	return HED_ERR;
       }
       dir *= 1.0/dir.Z();  // Make dir a transport vector
-      TVector3 hitpos = pos + (fgCaloZ-pos.Z()) * dir;
+      TVector3 hitpos = pos + (fManager->GetCaloZ()-pos.Z()) * dir;
 
       // Smear the position with the given resolution
       // Assumes z-axis normal to calorimeter plane. Otherwise we would have to
       // get the plane's fXax and fYax
-      TVector3 res( gRandom->Gaus(0.0, fgCaloRes),
-		    gRandom->Gaus(0.0, fgCaloRes), 0.0 );
+      TVector3 res( gRandom->Gaus(0.0, fManager->GetCaloRes()),
+		    gRandom->Gaus(0.0, fManager->GetCaloRes()), 0.0 );
       hitpos += res;
 
       // Encode the raw hit data for the dummy GEM planes.
@@ -659,11 +583,11 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       daty.f = static_cast<Float_t>(hitpos.Y());
 
       Int_t crate, slot, chan;
-      StripToROC( 0, fNSECTORS, kUPlane, primary_sector, crate, slot, chan );
+      StripToROC( 0, fManager->GetNSector(), kUPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
 	return HED_ERR;
-      StripToROC( 0, fNSECTORS, kVPlane, primary_sector, crate, slot, chan );
+      StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
 	return HED_ERR;
@@ -724,7 +648,7 @@ Int_t TSolSimBackTrack::Update( const TSolSimEvent::GEMCluster& c )
   // }
 
   if( c.fPlane > 0 ) {
-    Double_t dz = c.fMCpos.Z() - TSolSimDecoder::GetZ0();
+    Double_t dz = c.fMCpos.Z() - fManager->GetZ0();
     if( dz <= 0 ) {
       Error( here, "Illegal fMCpos z-coordinate in plane = %d. "
 	     "Should never happen. Call expert.", c.fPlane );
