@@ -45,7 +45,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     
     ////////////////////////////////////////////////////////////////
     
-    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root", "../db/db_g4sbsmiscdata.dat");
+    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root");
     //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root");
     printf("The filename returned is %s\n", f->GetFileName());
     f->SetSource(0);
@@ -60,7 +60,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     }
 
     // Hypothetical background run
-    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root", "../db/db_g4sbsmiscdata.dat");
+    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
     //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
     fback->Open();
     fback->SetSource(1);

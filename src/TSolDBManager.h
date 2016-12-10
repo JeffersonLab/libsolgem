@@ -46,8 +46,8 @@ public:
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
-    const double &   GetZspecOffset()       { return fZSpecOffset;         }
-    const string &   GetGasDataFilename()   { return fGasDataFilename;     }
+    const double &   GetZSpecOffset()       { return fZSpecOffset;         }
+    //const string &   GetGasDataFilename()   { return fGasDataFilename;     }
     /* const double &   GetSectorZ(int i, int j); */
     /* const double &   GetSectorRMin(int i, int j); */
     /* const double &   GetSectorRMax(int i, int j); */
@@ -88,7 +88,7 @@ protected:
     int    fChambersPerCrate;
 
     double fZSpecOffset;
-    string fGasDataFilename;
+    //string fGasDataFilename;
     
     int    fErrID;
     double fErrVal;

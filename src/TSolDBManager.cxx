@@ -44,7 +44,7 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
         {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
         {"zspecoffset",         &fZSpecOffset         , kDouble, 0, 1},
-        {"gasdatafilename",     &fGasDataFilename     , kString, 0, 1},
+        //{"gasdatafilename",     &fGasDataFilename     , kString, 0, 1},
         { 0 }
     };
     int pid, tid;

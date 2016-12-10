@@ -83,10 +83,10 @@ class TSBSGeant4File {
   //constructor may be inputed a data file to input some of the paramaters used by this class
   //NB: if the second file path does not select a valid file, default parameters will be used.
   TSBSGeant4File();// Default constructor
-  TSBSGeant4File( const char *name, const char* filedbpath = "");// Constructor with input file name: recommanded
+  TSBSGeant4File( const char *name);// Constructor with input file name: recommanded
   virtual ~TSBSGeant4File();// Default destructor
 
-  void InitMiscParam(const char* dbpath);
+  void ReadGasData(const char* filename);
   
   // Standard getters and setters
   void  SetFilename( const char *name );
@@ -140,6 +140,8 @@ class TSBSGeant4File {
   vector<g4sbsgendata *> fg4sbsGenData;
   
   unsigned int fEvNum;// global event incrementer
+
+  TSolDBManager *fManager;
 };
 
 
