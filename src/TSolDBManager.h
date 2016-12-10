@@ -46,8 +46,14 @@ public:
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
-    const double &   GetZSpecOffset()       { return fZSpecOffset;         }
-    //const string &   GetGasDataFilename()   { return fGasDataFilename;     }
+    const double &   GetZg4sbsSpecOffset()  { return fZg4sbsSpecOffset;    }
+    const string &   GetGasDataFilename()   { return fGasDataFilename;     }
+    
+    const double &   GetZ0()                { return fgZ0;                 }
+    const double &   GetCaloZ()             { return fgCaloZ;              }
+    const double &   GetCaloRes()           { return fgCaloRes;            }
+    const int    &   GetDoCalo()            { return fgDoCalo;             }
+    
     /* const double &   GetSectorZ(int i, int j); */
     /* const double &   GetSectorRMin(int i, int j); */
     /* const double &   GetSectorRMax(int i, int j); */
@@ -87,8 +93,16 @@ protected:
     int    fModulesPerChamber;
     int    fChambersPerCrate;
 
-    double fZSpecOffset;
-    //string fGasDataFilename;
+    // Parameters for TSBSGeant4File
+    double fZg4sbsSpecOffset;
+    string fGasDataFilename;
+
+    // Parameters for TSBSSimDecoder
+    // Calorimeter emulation
+    double fgCaloZ;     // z position of emulated calorimeter
+    double fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m)
+    int    fgDoCalo;    // Enable calorimeter emulation
+    double fgZ0;        // z position of first tracker plane
     
     int    fErrID;
     double fErrVal;

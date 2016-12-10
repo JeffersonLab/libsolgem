@@ -17,12 +17,12 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   //TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
   fManager = TSolDBManager::GetInstance();
-  ReadGasData("gasErange.txt");
   //InitMiscParam(filedbpath);
   
-  //string gasdatafilename = fManager->GetGasDataFilename();
-  
-  //cout << " Gas data file name " << gasdatafilename.c_str() << endl;
+  // string gasdatafilename = fManager->GetGasDataFilename();
+  // cout << " Gas data file name " << gasdatafilename.c_str() << endl;
+  // ReadGasData(gasdatafilename.c_str());
+  ReadGasData("gasErange.txt");
   
   //Filling the table that will be used to calculate the low energy electron range in the gas. 
   
@@ -37,7 +37,7 @@ void TSBSGeant4File::ReadGasData(const char* filename){
   //ifstream in(gasdatafilename.c_str());
   //ifstream in(fgasdatafile);
   if(!in.is_open()){
-    cout << "TSBSGeant4File Fatal Error: file " << fgasdatafile << " does not exist, exit" << endl;
+    cout << "TSBSGeant4File Fatal Error: file " << filename << " does not exist, exit" << endl;
     exit(-1);
   }
   in.ignore(100,';');
@@ -238,15 +238,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_in = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3, // in mm
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FT_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3);// in mm
+		      (fTree->Harm_FT_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3);// in mm
       
       X_out = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		       fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
-		       (fTree->Harm_FT_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3+3.0);// in mm
+		       (fTree->Harm_FT_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
-		      (fTree->Harm_FT_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3+9.185);// in mm
+		      (fTree->Harm_FT_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3+9.185);// in mm
       
       //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
       
@@ -425,15 +425,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_in = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3, // in mm
 		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3);// in mm
+		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3);// in mm
       
       X_out = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i), 
 		       fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i), 
-		       (fTree->Harm_FPP1_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3+3.0);// in mm
+		       (fTree->Harm_FPP1_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_txp->at(i), 
 		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_typ->at(i), 
-		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3+9.185);// in mm
+		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3+9.185);// in mm
       
       //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
@@ -611,15 +611,15 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_in = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3, // in mm
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3, // in mm
-		      fTree->Harm_FPP2_hit_z->at(i)+fManager->GetZSpecOffset()*1.0e3);// in mm
+		      fTree->Harm_FPP2_hit_z->at(i)+fManager->GetZg4sbsSpecOffset()*1.0e3);// in mm
       
       X_out = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
 		       fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		       (fTree->Harm_FPP2_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3+3.0);// in mm
+		       (fTree->Harm_FPP2_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_txp->at(i), // in mm
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->GetZSpecOffset())*1.0e3+9.185);// in mm
+		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->GetZg4sbsSpecOffset())*1.0e3+9.185);// in mm
       
       //cout << "FPP2: momentum: " << fTree->Harm_FPP2_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){

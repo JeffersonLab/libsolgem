@@ -114,10 +114,8 @@ class TSBSSimDecoder : public Podd::SimDecoder {
  public:
   //constructor may be inputed a data file to input some of the paramaters used by SimDecoder
   //NB: if the second file path does not select a valid file, default parameters will be used.
-  TSBSSimDecoder(const char* filedbpath = "");
+  TSBSSimDecoder();
   virtual ~TSBSSimDecoder();
-  
-  void InitMiscParam(const char* dbpath);
   
 #if ANALYZER_VERSION_CODE >= 67072 // ANALYZER_VERSION(1,6,0)
   virtual Int_t LoadEvent( const UInt_t* evbuffer );
@@ -167,12 +165,12 @@ protected:
   // Parameters
   // FIXME: any geometry data here are duplicates of the replay database
   static Double_t fgZ0;        // z position of first tracker plane
-
+  
   // Calorimeter emulation
   static Bool_t   fgDoCalo;    // Enable calorimeter emulation
   static Double_t fgCaloZ;     // z position of emulated calorimeter
   static Double_t fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m)
-
+  
 #if ANALYZER_VERSION_CODE >= 67072  // ANALYZER_VERSION(1,6,0)
   Int_t DoLoadEvent( const UInt_t* evbuffer );
 #else
@@ -183,7 +181,7 @@ protected:
   //		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
   Int_t StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const;
   // Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
-
+  
   ClassDef(TSBSSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };
 

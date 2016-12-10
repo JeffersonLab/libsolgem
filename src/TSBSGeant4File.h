@@ -123,7 +123,7 @@ class TSBSGeant4File {
   TFile *fFile;
   g4sbs_gep_tree_with_spin *fTree;// needed to easily unfold root file data
   Int_t fSource;   // User-defined source ID (e.g. MC run number)  // Temp: Do we use that ?
-  double fZSpecOffset; // Offset with which the GEM hits are registered in g4sbs for GEP.
+  //double fZSpecOffset; // Offset with which the GEM hits are registered in g4sbs for GEP.
   
   // These two parameters are used to calculate the range in the gas 
   // for very low momentum particles (electrons).
@@ -131,7 +131,7 @@ class TSBSGeant4File {
   // at the exit of the GEM ionizable gas (since it is not included in g4sbs output).
   // -> Shall it be ?
   // This is not necessary for TSolEVIOFile as the hit exit is included in evio files.
-  char fgasdatafile[255];
+  //char fgasdatafile[255];
   vector<double> feMom;
   vector<double> fgasErange;
   

@@ -43,8 +43,12 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"modules_per_readout", &fModulesPerReadOut   , kInt,    0, 1},
         {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
         {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
-        {"zspecoffset",         &fZSpecOffset         , kDouble, 0, 1},
-        //{"gasdatafilename",     &fGasDataFilename     , kString, 0, 1},
+        {"z_g4sbsspecoffset",   &fZg4sbsSpecOffset    , kDouble, 0, 1},
+        {"gasdatafilename",     &fGasDataFilename     , kString, 0, 1},
+	{"z0",                  &fgZ0                 , kDouble, 0, 1},
+	{"calo_z",              &fgCaloZ              , kDouble, 0, 1},
+	{"calo_res",            &fgCaloRes            , kDouble, 0, 1},
+	{"docalo",              &fgDoCalo             , kInt,    0, 1},
         { 0 }
     };
     int pid, tid;
