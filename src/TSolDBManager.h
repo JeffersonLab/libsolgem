@@ -46,13 +46,13 @@ public:
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
-    const double &   GetZg4sbsSpecOffset()  { return fZg4sbsSpecOffset;    }
+    const double &   Getg4sbsZSpecOffset()  { return fg4sbsZSpecOffset;    }
     const string &   GetGasDataFilename()   { return fGasDataFilename;     }
     
     const double &   GetZ0()                { return fgZ0;                 }
     const double &   GetCaloZ()             { return fgCaloZ;              }
     const double &   GetCaloRes()           { return fgCaloRes;            }
-    const int    &   DoCalo()            { return fgDoCalo;             }
+    const int    &   DoCalo()               { return fgDoCalo;             }
 
     void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
     // Support for calorimeter emulation. Static functions to allow script access
@@ -100,9 +100,9 @@ protected:
     int    fChambersPerCrate;
 
     // Parameters for TSBSGeant4File
-    double fZg4sbsSpecOffset;
+    double fg4sbsZSpecOffset;
     string fGasDataFilename;
-
+    
     // Parameters for TSBSSimDecoder
     // Calorimeter emulation
     double fgCaloZ;     // z position of emulated calorimeter

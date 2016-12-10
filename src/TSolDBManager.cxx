@@ -42,9 +42,8 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"chan_per_slot",       &fChanPerSlot         , kInt,    0, 1},
         {"modules_per_readout", &fModulesPerReadOut   , kInt,    0, 1},
         {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
-        {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
-        {"z_g4sbsspecoffset",   &fZg4sbsSpecOffset    , kDouble, 0, 1},
-        {"gasdatafilename",     &fGasDataFilename     , kString, 0, 1},
+	{"g4sbs_z_specoffset",  &fg4sbsZSpecOffset    , kDouble, 0, 1},
+        //{"gasdatafilename",     &fGasDataFilename     , kString, 0, 1},
 	{"z0",                  &fgZ0                 , kDouble, 0, 1},
 	{"calo_z",              &fgCaloZ              , kDouble, 0, 1},
 	{"calo_res",            &fgCaloRes            , kDouble, 0, 1},
@@ -58,7 +57,7 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         { 0 }
     };
     int err = LoadDB( input, request,  prefix);
-    
+   
     if( err ) exit(2); 
     
     for (int i=0; i<fNSigParticle; i++){
@@ -69,8 +68,8 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         
         fSigPID.push_back(pid);
         fSigTID.push_back(tid);
-        
-        if( err ) exit(2); 
+	
+	if( err ) exit(2); 
     }
     
     /*

@@ -11,8 +11,10 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     TSBSGEMChamber *ddy;
     TSBSSpec *dds;
     TSBSSimGEMDigitization *ddd;
-    //TSBSSimDecoder *dde;
-    TSolSimDecoder *dde;
+    TSBSSimDecoder *dde;
+    
+    TSolDBManager* manager = TSolDBManager::GetInstance();
+    manager->LoadGeneralInfo("db_generalinfo.dat");
     
     dds = new TSBSSpec ("g4sbs", "SBS spectrometer");
     dds->Init();
@@ -41,8 +43,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
     ddd->SetMapSector(false);
     
-    //dde = new TSBSSimDecoder ();
-    dde = new TSolSimDecoder ();
+    dde = new TSBSSimDecoder ();
     dde->SetCrateMapName("db_solsim_cratemap.dat");
     
     ////////////////////////////////////////////////////////////////

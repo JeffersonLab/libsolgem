@@ -18,8 +18,8 @@ generalinfo.nsignal = 1
 generalinfo.signal1.pid = 11
 generalinfo.signal1.tid = 1
 
-generalinfo.z_g4sbsspecoffset = 3.38551
-generalinfo.gasdatafilename = gasErange.txt
+generalinfo.g4sbs_z_specoffset = 3.38551
+generalinfo.gasdatafilename = "gasErange.txt"
 
 generalinfo.calo_z = 6.800000
 generalinfo.calo_res = 0.010000
