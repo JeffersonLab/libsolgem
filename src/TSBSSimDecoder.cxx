@@ -40,11 +40,6 @@ static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
 enum EProjType { kUPlane = 0, kVPlane };
 
-Double_t TSBSSimDecoder::fgCaloZ  = 6.8;
-Double_t TSBSSimDecoder::fgCaloRes  = 0.01;
-Bool_t   TSBSSimDecoder::fgDoCalo = false;
-Double_t TSBSSimDecoder::fgZ0 = 3.435510;
-
 typedef vector<int>::size_type vsiz_t;
 
 //-----------------------------------------------------------------------------
@@ -55,11 +50,6 @@ TSBSSimDecoder::TSBSSimDecoder()
   fMCHits     = new TClonesArray( "TSBSSimGEMHit",    200 );
   fMCTracks   = new TClonesArray( "TSBSSimTrack",       1 );
   fBackTracks = new TClonesArray( "TSBSSimBackTrack",   5 );
-  
-  fgZ0 = fManager->GetZ0();
-  fgDoCalo = fManager->GetDoCalo();
-  fgCaloZ = fManager->GetCaloZ();
-  fgCaloRes = fManager->GetCaloRes();
   
   DefineVariables();
 
@@ -540,7 +530,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     //   to the front of the emulated calorimeter.
     // - The measured calorimeter position is independent of the incident
     //   track angle.
-    if( fgDoCalo && trk->fNHits == 2*fManager->GetNTracker() ) {
+    if( fManager->DoCalo() && trk->fNHits == 2*fManager->GetNTracker() ) {
       // Retrieve last MC track point
       assert( GetNMCPoints() == 2*fManager->GetNTracker() );
       MCTrackPoint* pt =
@@ -548,10 +538,10 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       assert( pt );
       const TVector3& pos = pt->fMCPoint;
       TVector3 dir = pt->fMCP.Unit();
-      if( fgCaloZ <= pos.Z() ) {
+      if( fManager->GetCaloZ() <= pos.Z() ) {
 	Error( here, "Calorimeter z = %lf less than z of last GEM plane = %lf. "
 	       "Set correct value with SetCaloZ() or turn off calo emulation.",
-	       fgCaloZ, pos.Z() );
+	       fManager->GetCaloZ(), pos.Z() );
 	return HED_FATAL;
       }
       if( TMath::Abs(dir.Z()) < 1e-6 ) {
@@ -560,13 +550,13 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	return HED_ERR;
       }
       dir *= 1.0/dir.Z();  // Make dir a transport vector
-      TVector3 hitpos = pos + (fgCaloZ-pos.Z()) * dir;
+      TVector3 hitpos = pos + (fManager->GetCaloZ()-pos.Z()) * dir;
 
       // Smear the position with the given resolution
       // Assumes z-axis normal to calorimeter plane. Otherwise we would have to
       // get the plane's fXax and fYax
-      TVector3 res( gRandom->Gaus(0.0, fgCaloRes),
-		    gRandom->Gaus(0.0, fgCaloRes), 0.0 );
+      TVector3 res( gRandom->Gaus(0.0, fManager->GetCaloRes()),
+		    gRandom->Gaus(0.0, fManager->GetCaloRes()), 0.0 );
       hitpos += res;
 
       // Encode the raw hit data for the dummy GEM planes.
@@ -659,7 +649,7 @@ Int_t TSBSSimBackTrack::Update( const TSBSSimEvent::GEMCluster& c )
   // }
 
   if( c.fPlane > 0 ) {
-    Double_t dz = c.fMCpos.Z() - TSBSSimDecoder::GetZ0();
+    Double_t dz = c.fMCpos.Z() - fManager->GetZ0();
     if( dz <= 0 ) {
       Error( here, "Illegal fMCpos z-coordinate in plane = %d. "
 	     "Should never happen. Call expert.", c.fPlane );

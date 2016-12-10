@@ -52,7 +52,13 @@ public:
     const double &   GetZ0()                { return fgZ0;                 }
     const double &   GetCaloZ()             { return fgCaloZ;              }
     const double &   GetCaloRes()           { return fgCaloRes;            }
-    const int    &   GetDoCalo()            { return fgDoCalo;             }
+    const int    &   DoCalo()            { return fgDoCalo;             }
+
+    void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
+    // Support for calorimeter emulation. Static functions to allow script access
+    void     EmulateCalorimeter( Bool_t f = true ) { fgDoCalo = f; }
+    void     SetCaloZ( Double_t z )     { fgCaloZ   = z; }
+    void     SetCaloRes( Double_t res ) { fgCaloRes = res; }
     
     /* const double &   GetSectorZ(int i, int j); */
     /* const double &   GetSectorRMin(int i, int j); */

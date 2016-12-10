@@ -147,14 +147,14 @@ class TSBSSimDecoder : public Podd::SimDecoder {
   static Int_t GetMAXSLOT() { return MAXSLOT; }
 #endif
 
-  static void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
-  static Double_t GetZ0() { return fgZ0; }
+  /* static void     SetZ0( Double_t z0 ) { fgZ0 = z0; } */
+  /* static Double_t GetZ0() { return fgZ0; } */
 
-  // Support for calorimeter emulation. Static functions to allow script access
-  static void     EmulateCalorimeter( Bool_t f = true ) { fgDoCalo = f; }
-  static void     SetCaloZ( Double_t z )     { fgCaloZ   = z; }
-  static void     SetCaloRes( Double_t res ) { fgCaloRes = res; }
-
+  /* // Support for calorimeter emulation. Static functions to allow script access */
+  /* static void     EmulateCalorimeter( Bool_t f = true ) { fgDoCalo = f; } */
+  /* static void     SetCaloZ( Double_t z )     { fgCaloZ   = z; } */
+  /* static void     SetCaloRes( Double_t res ) { fgCaloRes = res; } */
+  
 protected:
   typedef std::map<Int_t,Int_t> StripMap_t;
 
@@ -163,13 +163,14 @@ protected:
   StripMap_t      fStripMap;   //! Map ROCKey -> index of corresponding strip
 
   // Parameters
-  // FIXME: any geometry data here are duplicates of the replay database
-  static Double_t fgZ0;        // z position of first tracker plane
+  /* // FIXED: any geometry data here are duplicates of the replay database */
+  // Transfered to TSolDBManager
+  /* static Double_t fgZ0;        // z position of first tracker plane */
   
-  // Calorimeter emulation
-  static Bool_t   fgDoCalo;    // Enable calorimeter emulation
-  static Double_t fgCaloZ;     // z position of emulated calorimeter
-  static Double_t fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m)
+  /* // Calorimeter emulation */
+  /* static Bool_t   fgDoCalo;    // Enable calorimeter emulation */
+  /* static Double_t fgCaloZ;     // z position of emulated calorimeter */
+  /* static Double_t fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m) */
   
 #if ANALYZER_VERSION_CODE >= 67072  // ANALYZER_VERSION(1,6,0)
   Int_t DoLoadEvent( const UInt_t* evbuffer );
