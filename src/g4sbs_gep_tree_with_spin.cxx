@@ -6,7 +6,7 @@
 
 // g4sbs_gep_tree_with_spin constructor: the tree will be the 
 // the boolean is a flag to consider(true) or ignore(false) the ECal_box and HCal_box data
-g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool pythia, bool ecalbox, bool hcalbox) : fChain(0) 
+g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, int det_opt, bool pythia, bool ecalbox, bool hcalbox) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -17,6 +17,7 @@ g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool pythia, boo
       }
       f->GetObject("T",tree);
    }
+   fDetOption = det_opt;
    fPythia = pythia;
    fEcalBox = ecalbox;
    fHcalBox = hcalbox;
@@ -62,6 +63,121 @@ void g4sbs_gep_tree_with_spin::Init(TTree *tree)
 
    
    // Set object pointer
+   Earm_BBGEM_hit_plane = 0;
+   Earm_BBGEM_hit_strip = 0;
+   Earm_BBGEM_hit_x = 0;
+   Earm_BBGEM_hit_y = 0;
+   Earm_BBGEM_hit_z = 0;
+   Earm_BBGEM_hit_polx = 0;
+   Earm_BBGEM_hit_poly = 0;
+   Earm_BBGEM_hit_polz = 0;
+   Earm_BBGEM_hit_trms = 0;
+   Earm_BBGEM_hit_tmin = 0;
+   Earm_BBGEM_hit_tmax = 0;
+   Earm_BBGEM_hit_tx = 0;
+   Earm_BBGEM_hit_ty = 0;
+   Earm_BBGEM_hit_txp = 0;
+   Earm_BBGEM_hit_typ = 0;
+   Earm_BBGEM_hit_trid = 0;
+   Earm_BBGEM_hit_mid = 0;
+   Earm_BBGEM_hit_pid = 0;
+   Earm_BBGEM_hit_vx = 0;
+   Earm_BBGEM_hit_vy = 0;
+   Earm_BBGEM_hit_vz = 0;
+   Earm_BBGEM_hit_p = 0;
+   Earm_BBGEM_hit_edep = 0;
+   Earm_BBGEM_hit_beta = 0;
+   
+   Earm_BBGEM_Track_TID = 0;
+   Earm_BBGEM_Track_PID = 0;
+   Earm_BBGEM_Track_MID = 0;
+   Earm_BBGEM_Track_NumHits = 0;
+   Earm_BBGEM_Track_NumPlanes = 0;
+   Earm_BBGEM_Track_NDF = 0;
+   Earm_BBGEM_Track_Chi2fit = 0;
+   Earm_BBGEM_Track_Chi2true = 0;
+   Earm_BBGEM_Track_X = 0;
+   Earm_BBGEM_Track_Y = 0;
+   Earm_BBGEM_Track_Xp = 0;
+   Earm_BBGEM_Track_Yp = 0;
+   Earm_BBGEM_Track_Sx = 0;
+   Earm_BBGEM_Track_Sy = 0;
+   Earm_BBGEM_Track_Sz = 0;
+   Earm_BBGEM_Track_Xfit = 0;
+   Earm_BBGEM_Track_Yfit = 0;
+   Earm_BBGEM_Track_Xpfit = 0;
+   Earm_BBGEM_Track_Ypfit = 0;
+ 
+      Earm_BBPS_hit_PMT = 0;
+   Earm_BBPS_hit_row = 0;
+   Earm_BBPS_hit_col = 0;
+   Earm_BBPS_hit_plane = 0;
+   Earm_BBPS_hit_xcell = 0;
+   Earm_BBPS_hit_ycell = 0;
+   Earm_BBPS_hit_zcell = 0;
+   Earm_BBPS_hit_xgcell = 0;
+   Earm_BBPS_hit_ygcell = 0;
+   Earm_BBPS_hit_zgcell = 0;
+   Earm_BBPS_hit_NumPhotoelectrons = 0;
+   Earm_BBPS_hit_Time_avg = 0;
+   Earm_BBPS_hit_Time_rms = 0;
+   Earm_BBPS_hit_Time_min = 0;
+   Earm_BBPS_hit_Time_max = 0;
+   
+   Earm_BBPSTF1_hit_row = 0;
+   Earm_BBPSTF1_hit_col = 0;
+   Earm_BBPSTF1_hit_cell = 0;
+   Earm_BBPSTF1_hit_plane = 0;
+   Earm_BBPSTF1_hit_xcell = 0;
+   Earm_BBPSTF1_hit_ycell = 0;
+   Earm_BBPSTF1_hit_zcell = 0;
+   Earm_BBPSTF1_hit_xcellg = 0;
+   Earm_BBPSTF1_hit_ycellg = 0;
+   Earm_BBPSTF1_hit_zcellg = 0;
+   Earm_BBPSTF1_hit_xhit = 0;
+   Earm_BBPSTF1_hit_yhit = 0;
+   Earm_BBPSTF1_hit_zhit = 0;
+   Earm_BBPSTF1_hit_sumedep = 0;
+   Earm_BBPSTF1_hit_tavg = 0;
+   Earm_BBPSTF1_hit_trms = 0;
+   Earm_BBPSTF1_hit_tmin = 0;
+   Earm_BBPSTF1_hit_tmax = 0;
+   
+   Earm_BBSH_hit_PMT = 0;
+   Earm_BBSH_hit_row = 0;
+   Earm_BBSH_hit_col = 0;
+   Earm_BBSH_hit_plane = 0;
+   Earm_BBSH_hit_xcell = 0;
+   Earm_BBSH_hit_ycell = 0;
+   Earm_BBSH_hit_zcell = 0;
+   Earm_BBSH_hit_xgcell = 0;
+   Earm_BBSH_hit_ygcell = 0;
+   Earm_BBSH_hit_zgcell = 0;
+   Earm_BBSH_hit_NumPhotoelectrons = 0;
+   Earm_BBSH_hit_Time_avg = 0;
+   Earm_BBSH_hit_Time_rms = 0;
+   Earm_BBSH_hit_Time_min = 0;
+   Earm_BBSH_hit_Time_max = 0;
+   
+   Earm_BBSHTF1_hit_row = 0;
+   Earm_BBSHTF1_hit_col = 0;
+   Earm_BBSHTF1_hit_cell = 0;
+   Earm_BBSHTF1_hit_plane = 0;
+   Earm_BBSHTF1_hit_xcell = 0;
+   Earm_BBSHTF1_hit_ycell = 0;
+   Earm_BBSHTF1_hit_zcell = 0;
+   Earm_BBSHTF1_hit_xcellg = 0;
+   Earm_BBSHTF1_hit_ycellg = 0;
+   Earm_BBSHTF1_hit_zcellg = 0;
+   Earm_BBSHTF1_hit_xhit = 0;
+   Earm_BBSHTF1_hit_yhit = 0;
+   Earm_BBSHTF1_hit_zhit = 0;
+   Earm_BBSHTF1_hit_sumedep = 0;
+   Earm_BBSHTF1_hit_tavg = 0;
+   Earm_BBSHTF1_hit_trms = 0;
+   Earm_BBSHTF1_hit_tmin = 0;
+   Earm_BBSHTF1_hit_tmax = 0;
+
    Earm_CDET_hit_PMT = 0;
    Earm_CDET_hit_row = 0;
    Earm_CDET_hit_col = 0;
@@ -349,6 +465,50 @@ void g4sbs_gep_tree_with_spin::Init(TTree *tree)
    Harm_HCalScint_hit_tmin = 0;
    Harm_HCalScint_hit_tmax = 0;
    
+   Harm_SBSGEM_hit_plane = 0;
+   Harm_SBSGEM_hit_strip = 0;
+   Harm_SBSGEM_hit_x = 0;
+   Harm_SBSGEM_hit_y = 0;
+   Harm_SBSGEM_hit_z = 0;
+   Harm_SBSGEM_hit_polx = 0;
+   Harm_SBSGEM_hit_poly = 0;
+   Harm_SBSGEM_hit_polz = 0;
+   Harm_SBSGEM_hit_trms = 0;
+   Harm_SBSGEM_hit_tmin = 0;
+   Harm_SBSGEM_hit_tmax = 0;
+   Harm_SBSGEM_hit_tx = 0;
+   Harm_SBSGEM_hit_ty = 0;
+   Harm_SBSGEM_hit_txp = 0;
+   Harm_SBSGEM_hit_typ = 0;
+   Harm_SBSGEM_hit_trid = 0;
+   Harm_SBSGEM_hit_mid = 0;
+   Harm_SBSGEM_hit_pid = 0;
+   Harm_SBSGEM_hit_vx = 0;
+   Harm_SBSGEM_hit_vy = 0;
+   Harm_SBSGEM_hit_vz = 0;
+   Harm_SBSGEM_hit_p = 0;
+   Harm_SBSGEM_hit_edep = 0;
+   Harm_SBSGEM_hit_beta = 0;
+   
+   Harm_SBSGEM_Track_TID = 0;
+   Harm_SBSGEM_Track_PID = 0;
+   Harm_SBSGEM_Track_MID = 0;
+   Harm_SBSGEM_Track_NumHits = 0;
+   Harm_SBSGEM_Track_NumPlanes = 0;
+   Harm_SBSGEM_Track_NDF = 0;
+   Harm_SBSGEM_Track_Chi2fit = 0;
+   Harm_SBSGEM_Track_Chi2true = 0;
+   Harm_SBSGEM_Track_X = 0;
+   Harm_SBSGEM_Track_Y = 0;
+   Harm_SBSGEM_Track_Xp = 0;
+   Harm_SBSGEM_Track_Yp = 0;
+   Harm_SBSGEM_Track_Sx = 0;
+   Harm_SBSGEM_Track_Sy = 0;
+   Harm_SBSGEM_Track_Sz = 0;
+   Harm_SBSGEM_Track_Xfit = 0;
+   Harm_SBSGEM_Track_Yfit = 0;
+   Harm_SBSGEM_Track_Xpfit = 0;
+   Harm_SBSGEM_Track_Ypfit = 0;
    
    // Set branch addresses and branch pointers
    if (!tree) return;

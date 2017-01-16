@@ -165,29 +165,11 @@ Int_t TSBSGeant4File::Open(){
     
     TChain* C1 = (TChain*)fFile->Get("T");//Get the tree from the file
 
-    switch(fManager->Getg4sbsDetectorType()){
-    case(1)://BB GEMs
-      cout << "Define g4sbs_tree " << endl;
-      break;
-      
-    case(2)://SIDIS SBS GEMs
-      cout << "Define g4sbs_tree " << endl;
-      break;
-      
-    case(3)://FT+FPP
-      cout << "Define g4sbs_gep_tree_with_spin " << endl;
-      fTree = new g4sbs_gep_tree_with_spin(C1);
-      // g4sbs_gep_tree_with_spin declare all variables, branches, etc... 
-      // to read, event by event, the varaibles stored in the tree. 
-      // See comments in g4sbs_gep_tree_with_spin for more details...
-      break;
-      
-    default:
-      cout << "Invalid defined detector type :" << fManager->Getg4sbsDetectorType() << endl;
-      cout << "remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - GEP SBS GEMs" << endl;
-      return -1;
-      break;
-    }
+    fTree = new g4sbs_gep_tree_with_spin(C1, fManager->Getg4sbsDetectorType());
+    // g4sbs_gep_tree_with_spin declare all variables, branches, etc... 
+    // to read, event by event, the varaibles stored in the tree. 
+    // See comments in g4sbs_gep_tree_with_spin for more details...
+    
     fEvNum = -1;
  
     return 1;

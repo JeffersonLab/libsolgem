@@ -32,6 +32,7 @@ class g4sbs_gep_tree_with_spin {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
+   int             fDetOption;// Choose detector option: 1: BB GEMs, 2: SBS GEMs, 3: GEp GEMs
    bool            fPythia;// needed to turn on/off the reading of the pythia variables
    bool            fEcalBox;// needed to turn on/off the reading of the ECAL_box data
    bool            fHcalBox;// needed to turn on/off the reading of the HCAL_box data
@@ -89,8 +90,131 @@ public :
    Double_t        gen_dsbstrkr;
    Double_t        gen_Ebeam;
    
+   //BB GEMs variables
+   Int_t                 Earm_BBGEM_hit_nhits;
+   std::vector<int>     *Earm_BBGEM_hit_plane;
+   std::vector<int>     *Earm_BBGEM_hit_strip;
+   std::vector<double>  *Earm_BBGEM_hit_x;
+   std::vector<double>  *Earm_BBGEM_hit_y;
+   std::vector<double>  *Earm_BBGEM_hit_z;
+   std::vector<double>  *Earm_BBGEM_hit_polx;
+   std::vector<double>  *Earm_BBGEM_hit_poly;
+   std::vector<double>  *Earm_BBGEM_hit_polz;
+   std::vector<double>  *Earm_BBGEM_hit_trms;
+   std::vector<double>  *Earm_BBGEM_hit_tmin;
+   std::vector<double>  *Earm_BBGEM_hit_tmax;
+   std::vector<double>  *Earm_BBGEM_hit_tx;
+   std::vector<double>  *Earm_BBGEM_hit_ty;
+   std::vector<double>  *Earm_BBGEM_hit_txp;
+   std::vector<double>  *Earm_BBGEM_hit_typ;
+   std::vector<int>     *Earm_BBGEM_hit_trid;
+   std::vector<int>     *Earm_BBGEM_hit_mid;
+   std::vector<int>     *Earm_BBGEM_hit_pid;
+   std::vector<double>  *Earm_BBGEM_hit_vx;
+   std::vector<double>  *Earm_BBGEM_hit_vy;
+   std::vector<double>  *Earm_BBGEM_hit_vz;
+   std::vector<double>  *Earm_BBGEM_hit_p;
+   std::vector<double>  *Earm_BBGEM_hit_edep;
+   std::vector<double>  *Earm_BBGEM_hit_beta;
+   
+   Int_t                 Earm_BBGEM_Track_ntracks;
+   std::vector<int>     *Earm_BBGEM_Track_TID;
+   std::vector<int>     *Earm_BBGEM_Track_PID;
+   std::vector<int>     *Earm_BBGEM_Track_MID;
+   std::vector<int>     *Earm_BBGEM_Track_NumHits;
+   std::vector<int>     *Earm_BBGEM_Track_NumPlanes;
+   std::vector<int>     *Earm_BBGEM_Track_NDF;
+   std::vector<double>  *Earm_BBGEM_Track_Chi2fit;
+   std::vector<double>  *Earm_BBGEM_Track_Chi2true;
+   std::vector<double>  *Earm_BBGEM_Track_X;
+   std::vector<double>  *Earm_BBGEM_Track_Y;
+   std::vector<double>  *Earm_BBGEM_Track_Xp;
+   std::vector<double>  *Earm_BBGEM_Track_Yp;
+   std::vector<double>  *Earm_BBGEM_Track_Sx;
+   std::vector<double>  *Earm_BBGEM_Track_Sy;
+   std::vector<double>  *Earm_BBGEM_Track_Sz;
+   std::vector<double>  *Earm_BBGEM_Track_Xfit;
+   std::vector<double>  *Earm_BBGEM_Track_Yfit;
+   std::vector<double>  *Earm_BBGEM_Track_Xpfit;
+   std::vector<double>  *Earm_BBGEM_Track_Ypfit;
+ 
+   //BB ECal variables
+   Int_t                 Earm_BBPS_hit_nhits;
+   std::vector<int>     *Earm_BBPS_hit_PMT;
+   std::vector<int>     *Earm_BBPS_hit_row;
+   std::vector<int>     *Earm_BBPS_hit_col;
+   std::vector<int>     *Earm_BBPS_hit_plane;
+   std::vector<double>  *Earm_BBPS_hit_xcell;
+   std::vector<double>  *Earm_BBPS_hit_ycell;
+   std::vector<double>  *Earm_BBPS_hit_zcell;
+   std::vector<double>  *Earm_BBPS_hit_xgcell;
+   std::vector<double>  *Earm_BBPS_hit_ygcell;
+   std::vector<double>  *Earm_BBPS_hit_zgcell;
+   std::vector<int>     *Earm_BBPS_hit_NumPhotoelectrons;
+   std::vector<double>  *Earm_BBPS_hit_Time_avg;
+   std::vector<double>  *Earm_BBPS_hit_Time_rms;
+   std::vector<double>  *Earm_BBPS_hit_Time_min;
+   std::vector<double>  *Earm_BBPS_hit_Time_max;
+   
+   Int_t                 Earm_BBPSTF1_hit_nhits;
+   std::vector<int>     *Earm_BBPSTF1_hit_row;
+   std::vector<int>     *Earm_BBPSTF1_hit_col;
+   std::vector<int>     *Earm_BBPSTF1_hit_cell;
+   std::vector<int>     *Earm_BBPSTF1_hit_plane;
+   std::vector<double>  *Earm_BBPSTF1_hit_xcell;
+   std::vector<double>  *Earm_BBPSTF1_hit_ycell;
+   std::vector<double>  *Earm_BBPSTF1_hit_zcell;
+   std::vector<double>  *Earm_BBPSTF1_hit_xcellg;
+   std::vector<double>  *Earm_BBPSTF1_hit_ycellg;
+   std::vector<double>  *Earm_BBPSTF1_hit_zcellg;
+   std::vector<double>  *Earm_BBPSTF1_hit_xhit;
+   std::vector<double>  *Earm_BBPSTF1_hit_yhit;
+   std::vector<double>  *Earm_BBPSTF1_hit_zhit;
+   std::vector<double>  *Earm_BBPSTF1_hit_sumedep;
+   std::vector<double>  *Earm_BBPSTF1_hit_tavg;
+   std::vector<double>  *Earm_BBPSTF1_hit_trms;
+   std::vector<double>  *Earm_BBPSTF1_hit_tmin;
+   std::vector<double>  *Earm_BBPSTF1_hit_tmax;
+   
+   Int_t                 Earm_BBSH_hit_nhits;
+   std::vector<int>     *Earm_BBSH_hit_PMT;
+   std::vector<int>     *Earm_BBSH_hit_row;
+   std::vector<int>     *Earm_BBSH_hit_col;
+   std::vector<int>     *Earm_BBSH_hit_plane;
+   std::vector<double>  *Earm_BBSH_hit_xcell;
+   std::vector<double>  *Earm_BBSH_hit_ycell;
+   std::vector<double>  *Earm_BBSH_hit_zcell;
+   std::vector<double>  *Earm_BBSH_hit_xgcell;
+   std::vector<double>  *Earm_BBSH_hit_ygcell;
+   std::vector<double>  *Earm_BBSH_hit_zgcell;
+   std::vector<int>     *Earm_BBSH_hit_NumPhotoelectrons;
+   std::vector<double>  *Earm_BBSH_hit_Time_avg;
+   std::vector<double>  *Earm_BBSH_hit_Time_rms;
+   std::vector<double>  *Earm_BBSH_hit_Time_min;
+   std::vector<double>  *Earm_BBSH_hit_Time_max;
+   
+   Int_t                 Earm_BBSHTF1_hit_nhits;
+   std::vector<int>     *Earm_BBSHTF1_hit_row;
+   std::vector<int>     *Earm_BBSHTF1_hit_col;
+   std::vector<int>     *Earm_BBSHTF1_hit_cell;
+   std::vector<int>     *Earm_BBSHTF1_hit_plane;
+   std::vector<double>  *Earm_BBSHTF1_hit_xcell;
+   std::vector<double>  *Earm_BBSHTF1_hit_ycell;
+   std::vector<double>  *Earm_BBSHTF1_hit_zcell;
+   std::vector<double>  *Earm_BBSHTF1_hit_xcellg;
+   std::vector<double>  *Earm_BBSHTF1_hit_ycellg;
+   std::vector<double>  *Earm_BBSHTF1_hit_zcellg;
+   std::vector<double>  *Earm_BBSHTF1_hit_xhit;
+   std::vector<double>  *Earm_BBSHTF1_hit_yhit;
+   std::vector<double>  *Earm_BBSHTF1_hit_zhit;
+   std::vector<double>  *Earm_BBSHTF1_hit_sumedep;
+   std::vector<double>  *Earm_BBSHTF1_hit_tavg;
+   std::vector<double>  *Earm_BBSHTF1_hit_trms;
+   std::vector<double>  *Earm_BBSHTF1_hit_tmin;
+   std::vector<double>  *Earm_BBSHTF1_hit_tmax;
+   
    // Coordinate detector hits
-   Int_t           Earm_CDET_hit_nhits;
+   Int_t                 Earm_CDET_hit_nhits;
    std::vector<int>     *Earm_CDET_hit_PMT;
    std::vector<int>     *Earm_CDET_hit_row;
    std::vector<int>     *Earm_CDET_hit_col;
@@ -107,7 +231,7 @@ public :
    std::vector<double>  *Earm_CDET_hit_Time_min;
    std::vector<double>  *Earm_CDET_hit_Time_max;
    
-   Int_t           Earm_CDET_Scint_hit_nhits;
+   Int_t                 Earm_CDET_Scint_hit_nhits;
    std::vector<int>     *Earm_CDET_Scint_hit_row;
    std::vector<int>     *Earm_CDET_Scint_hit_col;
    std::vector<int>     *Earm_CDET_Scint_hit_cell;
@@ -128,7 +252,7 @@ public :
    std::vector<double>  *Earm_CDET_Scint_hit_tmax;
    
    // GEp Electromagnetic calorimeter hits
-   Int_t           Earm_ECAL_hit_nhits;
+   Int_t                 Earm_ECAL_hit_nhits;
    std::vector<int>     *Earm_ECAL_hit_PMT;
    std::vector<int>     *Earm_ECAL_hit_row;
    std::vector<int>     *Earm_ECAL_hit_col;
@@ -145,7 +269,7 @@ public :
    std::vector<double>  *Earm_ECAL_hit_Time_min;
    std::vector<double>  *Earm_ECAL_hit_Time_max;
  
-   Int_t           Earm_ECAL_box_hit_nhits;
+   Int_t                 Earm_ECAL_box_hit_nhits;
    std::vector<int>     *Earm_ECAL_box_hit_row;
    std::vector<int>     *Earm_ECAL_box_hit_col;
    std::vector<int>     *Earm_ECAL_box_hit_cell;
@@ -165,7 +289,7 @@ public :
    std::vector<double>  *Earm_ECAL_box_hit_tmin;
    std::vector<double>  *Earm_ECAL_box_hit_tmax;
    
-   Int_t           Earm_ECalTF1_hit_nhits;
+   Int_t                 Earm_ECalTF1_hit_nhits;
    std::vector<int>     *Earm_ECalTF1_hit_row;
    std::vector<int>     *Earm_ECalTF1_hit_col;
    std::vector<int>     *Earm_ECalTF1_hit_cell;
@@ -186,7 +310,7 @@ public :
    std::vector<double>  *Earm_ECalTF1_hit_tmax;
    
    // Focal Plane Polarimeter 1 hits
-   Int_t           Harm_FPP1_hit_nhits;
+   Int_t                 Harm_FPP1_hit_nhits;
    std::vector<int>     *Harm_FPP1_hit_plane;
    std::vector<int>     *Harm_FPP1_hit_strip;
    std::vector<double>  *Harm_FPP1_hit_x;
@@ -213,7 +337,7 @@ public :
    std::vector<double>  *Harm_FPP1_hit_edep;
    std::vector<double>  *Harm_FPP1_hit_beta;
    
-   Int_t           Harm_FPP1_Track_ntracks;
+   Int_t                 Harm_FPP1_Track_ntracks;
    std::vector<int>     *Harm_FPP1_Track_TID;
    std::vector<int>     *Harm_FPP1_Track_PID;
    std::vector<int>     *Harm_FPP1_Track_MID;
@@ -264,7 +388,7 @@ public :
    std::vector<double>  *Harm_FPP2_hit_edep;
    std::vector<double>  *Harm_FPP2_hit_beta;
    
-   Int_t           Harm_FPP2_Track_ntracks;
+   Int_t                 Harm_FPP2_Track_ntracks;
    std::vector<int>     *Harm_FPP2_Track_TID;
    std::vector<int>     *Harm_FPP2_Track_PID;
    std::vector<int>     *Harm_FPP2_Track_MID;
@@ -288,7 +412,7 @@ public :
    std::vector<double>  *Harm_FPP2_Track_Ypfit;
    
    // Forward Tracker hits
-   Int_t           Harm_FT_hit_nhits;
+   Int_t                 Harm_FT_hit_nhits;
    std::vector<int>     *Harm_FT_hit_plane;
    std::vector<int>     *Harm_FT_hit_strip;
    std::vector<double>  *Harm_FT_hit_x;
@@ -339,7 +463,7 @@ public :
    std::vector<double>  *Harm_FT_Track_Ypfit;
    
    // Hadronic calorimeter hits
-   Int_t           Harm_HCAL_box_hit_nhits;
+   Int_t                 Harm_HCAL_box_hit_nhits;
    std::vector<int>     *Harm_HCAL_box_hit_row;
    std::vector<int>     *Harm_HCAL_box_hit_col;
    std::vector<int>     *Harm_HCAL_box_hit_cell;
@@ -359,7 +483,7 @@ public :
    std::vector<double>  *Harm_HCAL_box_hit_tmin;
    std::vector<double>  *Harm_HCAL_box_hit_tmax;
    
-   Int_t           Harm_HCal_hit_nhits;
+   Int_t                 Harm_HCal_hit_nhits;
    std::vector<int>     *Harm_HCal_hit_PMT;
    std::vector<int>     *Harm_HCal_hit_row;
    std::vector<int>     *Harm_HCal_hit_col;
@@ -376,7 +500,7 @@ public :
    std::vector<double>  *Harm_HCal_hit_Time_min;
    std::vector<double>  *Harm_HCal_hit_Time_max;
    
-   Int_t           Harm_HCalScint_hit_nhits;
+   Int_t                 Harm_HCalScint_hit_nhits;
    std::vector<int>     *Harm_HCalScint_hit_row;
    std::vector<int>     *Harm_HCalScint_hit_col;
    std::vector<int>     *Harm_HCalScint_hit_cell;
@@ -396,28 +520,77 @@ public :
    std::vector<double>  *Harm_HCalScint_hit_tmin;
    std::vector<double>  *Harm_HCalScint_hit_tmax;
    
-   Double_t        primaries_Sigma;
-   Double_t        primaries_Ebeam;
-   Double_t        primaries_Eprime;
-   Double_t        primaries_theta_e;
-   Double_t        primaries_phi_e;
-   Double_t        primaries_px_e;
-   Double_t        primaries_py_e;
-   Double_t        primaries_pz_e;
-   Double_t        primaries_vx_e;
-   Double_t        primaries_vy_e;
-   Double_t        primaries_vz_e;
-   Double_t        primaries_Egamma;
-   Double_t        primaries_theta_gamma;
-   Double_t        primaries_phi_gamma;
-   Double_t        primaries_px_gamma;
-   Double_t        primaries_py_gamma;
-   Double_t        primaries_pz_gamma;
-   Double_t        primaries_vx_gamma;
-   Double_t        primaries_vy_gamma;
-   Double_t        primaries_vz_gamma;
+   //SBS GEMs variables
+   Int_t                 Harm_SBSGEM_hit_nhits;
+   std::vector<int>     *Harm_SBSGEM_hit_plane;
+   std::vector<int>     *Harm_SBSGEM_hit_strip;
+   std::vector<double>  *Harm_SBSGEM_hit_x;
+   std::vector<double>  *Harm_SBSGEM_hit_y;
+   std::vector<double>  *Harm_SBSGEM_hit_z;
+   std::vector<double>  *Harm_SBSGEM_hit_polx;
+   std::vector<double>  *Harm_SBSGEM_hit_poly;
+   std::vector<double>  *Harm_SBSGEM_hit_polz;
+   std::vector<double>  *Harm_SBSGEM_hit_trms;
+   std::vector<double>  *Harm_SBSGEM_hit_tmin;
+   std::vector<double>  *Harm_SBSGEM_hit_tmax;
+   std::vector<double>  *Harm_SBSGEM_hit_tx;
+   std::vector<double>  *Harm_SBSGEM_hit_ty;
+   std::vector<double>  *Harm_SBSGEM_hit_txp;
+   std::vector<double>  *Harm_SBSGEM_hit_typ;
+   std::vector<int>     *Harm_SBSGEM_hit_trid;
+   std::vector<int>     *Harm_SBSGEM_hit_mid;
+   std::vector<int>     *Harm_SBSGEM_hit_pid;
+   std::vector<double>  *Harm_SBSGEM_hit_vx;
+   std::vector<double>  *Harm_SBSGEM_hit_vy;
+   std::vector<double>  *Harm_SBSGEM_hit_vz;
+   std::vector<double>  *Harm_SBSGEM_hit_p;
+   std::vector<double>  *Harm_SBSGEM_hit_edep;
+   std::vector<double>  *Harm_SBSGEM_hit_beta;
    
-   Int_t           Primaries_Nprimaries;
+   Int_t                 Harm_SBSGEM_Track_ntracks;
+   std::vector<int>     *Harm_SBSGEM_Track_TID;
+   std::vector<int>     *Harm_SBSGEM_Track_PID;
+   std::vector<int>     *Harm_SBSGEM_Track_MID;
+   std::vector<int>     *Harm_SBSGEM_Track_NumHits;
+   std::vector<int>     *Harm_SBSGEM_Track_NumPlanes;
+   std::vector<int>     *Harm_SBSGEM_Track_NDF;
+   std::vector<double>  *Harm_SBSGEM_Track_Chi2fit;
+   std::vector<double>  *Harm_SBSGEM_Track_Chi2true;
+   std::vector<double>  *Harm_SBSGEM_Track_X;
+   std::vector<double>  *Harm_SBSGEM_Track_Y;
+   std::vector<double>  *Harm_SBSGEM_Track_Xp;
+   std::vector<double>  *Harm_SBSGEM_Track_Yp;
+   std::vector<double>  *Harm_SBSGEM_Track_Sx;
+   std::vector<double>  *Harm_SBSGEM_Track_Sy;
+   std::vector<double>  *Harm_SBSGEM_Track_Sz;
+   std::vector<double>  *Harm_SBSGEM_Track_Xfit;
+   std::vector<double>  *Harm_SBSGEM_Track_Yfit;
+   std::vector<double>  *Harm_SBSGEM_Track_Xpfit;
+   std::vector<double>  *Harm_SBSGEM_Track_Ypfit;
+   
+   //Pythia variables
+   Double_t              primaries_Sigma;
+   Double_t              primaries_Ebeam;
+   Double_t              primaries_Eprime;
+   Double_t              primaries_theta_e;
+   Double_t              primaries_phi_e;
+   Double_t              primaries_px_e;
+   Double_t              primaries_py_e;
+   Double_t              primaries_pz_e;
+   Double_t              primaries_vx_e;
+   Double_t              primaries_vy_e;
+   Double_t              primaries_vz_e;
+   Double_t              primaries_Egamma;
+   Double_t              primaries_theta_gamma;
+   Double_t              primaries_phi_gamma;
+   Double_t              primaries_px_gamma;
+   Double_t              primaries_py_gamma;
+   Double_t              primaries_pz_gamma;
+   Double_t              primaries_vx_gamma;
+   Double_t              primaries_vy_gamma;
+   Double_t              primaries_vz_gamma;
+   
+   Int_t                 Primaries_Nprimaries;
    std::vector<int>     *Primaries_PID;
    std::vector<int>     *Primaries_genflag;
    std::vector<double>  *Primaries_Px;
@@ -436,6 +609,127 @@ public :
    // List of branches
    TBranch        *b_ev;   //!
    TBranch        *b_gen;   //!
+   
+   TBranch        *b_Earm_BBGEM_hit_nhits;   //!
+   TBranch        *b_Earm_BBGEM_hit_plane;   //!
+   TBranch        *b_Earm_BBGEM_hit_strip;   //!
+   TBranch        *b_Earm_BBGEM_hit_x;   //!
+   TBranch        *b_Earm_BBGEM_hit_y;   //!
+   TBranch        *b_Earm_BBGEM_hit_z;   //!
+   TBranch        *b_Earm_BBGEM_hit_polx;   //!
+   TBranch        *b_Earm_BBGEM_hit_poly;   //!
+   TBranch        *b_Earm_BBGEM_hit_polz;   //!
+   TBranch        *b_Earm_BBGEM_hit_trms;   //!
+   TBranch        *b_Earm_BBGEM_hit_tmin;   //!
+   TBranch        *b_Earm_BBGEM_hit_tmax;   //!
+   TBranch        *b_Earm_BBGEM_hit_tx;   //!
+   TBranch        *b_Earm_BBGEM_hit_ty;   //!
+   TBranch        *b_Earm_BBGEM_hit_txp;   //!
+   TBranch        *b_Earm_BBGEM_hit_typ;   //!
+   TBranch        *b_Earm_BBGEM_hit_trid;   //!
+   TBranch        *b_Earm_BBGEM_hit_mid;   //!
+   TBranch        *b_Earm_BBGEM_hit_pid;   //!
+   TBranch        *b_Earm_BBGEM_hit_vx;   //!
+   TBranch        *b_Earm_BBGEM_hit_vy;   //!
+   TBranch        *b_Earm_BBGEM_hit_vz;   //!
+   TBranch        *b_Earm_BBGEM_hit_p;   //!
+   TBranch        *b_Earm_BBGEM_hit_edep;   //!
+   TBranch        *b_Earm_BBGEM_hit_beta;   //!
+   
+   TBranch        *b_Earm_BBGEM_Track_ntracks;   //!
+   TBranch        *b_Earm_BBGEM_Track_TID;   //!
+   TBranch        *b_Earm_BBGEM_Track_PID;   //!
+   TBranch        *b_Earm_BBGEM_Track_MID;   //!
+   TBranch        *b_Earm_BBGEM_Track_NumHits;   //!
+   TBranch        *b_Earm_BBGEM_Track_NumPlanes;   //!
+   TBranch        *b_Earm_BBGEM_Track_NDF;   //!
+   TBranch        *b_Earm_BBGEM_Track_Chi2fit;   //!
+   TBranch        *b_Earm_BBGEM_Track_Chi2true;   //!
+   TBranch        *b_Earm_BBGEM_Track_X;   //!
+   TBranch        *b_Earm_BBGEM_Track_Y;   //!
+   TBranch        *b_Earm_BBGEM_Track_Xp;   //!
+   TBranch        *b_Earm_BBGEM_Track_Yp;   //!
+   TBranch        *b_Earm_BBGEM_Track_Sx;   //!
+   TBranch        *b_Earm_BBGEM_Track_Sy;   //!
+   TBranch        *b_Earm_BBGEM_Track_Sz;   //!
+   TBranch        *b_Earm_BBGEM_Track_Xfit;   //!
+   TBranch        *b_Earm_BBGEM_Track_Yfit;   //!
+   TBranch        *b_Earm_BBGEM_Track_Xpfit;   //!
+   TBranch        *b_Earm_BBGEM_Track_Ypfit;   //!
+   
+   TBranch        *b_Earm_BBPS_hit_nhits;   //!
+   TBranch        *b_Earm_BBPS_hit_PMT;   //!
+   TBranch        *b_Earm_BBPS_hit_row;   //!
+   TBranch        *b_Earm_BBPS_hit_col;   //!
+   TBranch        *b_Earm_BBPS_hit_plane;   //!
+   TBranch        *b_Earm_BBPS_hit_xcell;   //!
+   TBranch        *b_Earm_BBPS_hit_ycell;   //!
+   TBranch        *b_Earm_BBPS_hit_zcell;   //!
+   TBranch        *b_Earm_BBPS_hit_xgcell;   //!
+   TBranch        *b_Earm_BBPS_hit_ygcell;   //!
+   TBranch        *b_Earm_BBPS_hit_zgcell;   //!
+   TBranch        *b_Earm_BBPS_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_avg;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_rms;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_min;   //!
+   TBranch        *b_Earm_BBPS_hit_Time_max;   //!
+   
+   TBranch        *b_Earm_BBPSTF1_hit_nhits;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_row;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_col;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_cell;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_plane;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_xcell;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_ycell;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_zcell;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_xcellg;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_ycellg;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_zcellg;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_xhit;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_yhit;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_zhit;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_sumedep;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_tavg;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_trms;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_tmin;   //!
+   TBranch        *b_Earm_BBPSTF1_hit_tmax;   //!
+   
+   TBranch        *b_Earm_BBSH_hit_nhits;   //!
+   TBranch        *b_Earm_BBSH_hit_PMT;   //!
+   TBranch        *b_Earm_BBSH_hit_row;   //!
+   TBranch        *b_Earm_BBSH_hit_col;   //!
+   TBranch        *b_Earm_BBSH_hit_plane;   //!
+   TBranch        *b_Earm_BBSH_hit_xcell;   //!
+   TBranch        *b_Earm_BBSH_hit_ycell;   //!
+   TBranch        *b_Earm_BBSH_hit_zcell;   //!
+   TBranch        *b_Earm_BBSH_hit_xgcell;   //!
+   TBranch        *b_Earm_BBSH_hit_ygcell;   //!
+   TBranch        *b_Earm_BBSH_hit_zgcell;   //!
+   TBranch        *b_Earm_BBSH_hit_NumPhotoelectrons;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_avg;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_rms;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_min;   //!
+   TBranch        *b_Earm_BBSH_hit_Time_max;   //!
+   
+   TBranch        *b_Earm_BBSHTF1_hit_nhits;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_row;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_col;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_cell;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_plane;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_xcell;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_ycell;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_zcell;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_xcellg;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_ycellg;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_zcellg;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_xhit;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_yhit;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_zhit;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_sumedep;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_tavg;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_trms;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_tmin;   //!
+   TBranch        *b_Earm_BBSHTF1_hit_tmax;   //!
    
    TBranch        *b_Earm_CDET_hit_nhits;   //!
    TBranch        *b_Earm_CDET_hit_PMT;   //!
@@ -737,6 +1031,53 @@ public :
    TBranch        *b_Harm_HCalScint_hit_tmin;   //!
    TBranch        *b_Harm_HCalScint_hit_tmax;   //!
 
+   TBranch        *b_Harm_SBSGEM_hit_nhits;   //!
+   TBranch        *b_Harm_SBSGEM_hit_plane;   //!
+   TBranch        *b_Harm_SBSGEM_hit_strip;   //!
+   TBranch        *b_Harm_SBSGEM_hit_x;   //!
+   TBranch        *b_Harm_SBSGEM_hit_y;   //!
+   TBranch        *b_Harm_SBSGEM_hit_z;   //!
+   TBranch        *b_Harm_SBSGEM_hit_polx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_poly;   //!
+   TBranch        *b_Harm_SBSGEM_hit_polz;   //!
+   TBranch        *b_Harm_SBSGEM_hit_trms;   //!
+   TBranch        *b_Harm_SBSGEM_hit_tmin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_tmax;   //!
+   TBranch        *b_Harm_SBSGEM_hit_tx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_ty;   //!
+   TBranch        *b_Harm_SBSGEM_hit_txp;   //!
+   TBranch        *b_Harm_SBSGEM_hit_typ;   //!
+   TBranch        *b_Harm_SBSGEM_hit_trid;   //!
+   TBranch        *b_Harm_SBSGEM_hit_mid;   //!
+   TBranch        *b_Harm_SBSGEM_hit_pid;   //!
+   TBranch        *b_Harm_SBSGEM_hit_vx;   //!
+   TBranch        *b_Harm_SBSGEM_hit_vy;   //!
+   TBranch        *b_Harm_SBSGEM_hit_vz;   //!
+   TBranch        *b_Harm_SBSGEM_hit_p;   //!
+   TBranch        *b_Harm_SBSGEM_hit_edep;   //!
+   TBranch        *b_Harm_SBSGEM_hit_beta;   //!
+   
+   TBranch        *b_Harm_SBSGEM_Track_ntracks;   //!
+   TBranch        *b_Harm_SBSGEM_Track_TID;   //!
+   TBranch        *b_Harm_SBSGEM_Track_PID;   //!
+   TBranch        *b_Harm_SBSGEM_Track_MID;   //!
+   TBranch        *b_Harm_SBSGEM_Track_NumHits;   //!
+   TBranch        *b_Harm_SBSGEM_Track_NumPlanes;   //!
+   TBranch        *b_Harm_SBSGEM_Track_NDF;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Chi2fit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Chi2true;   //!
+   TBranch        *b_Harm_SBSGEM_Track_X;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Y;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Xp;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Yp;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Sx;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Sy;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Sz;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Xfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Yfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Xpfit;   //!
+   TBranch        *b_Harm_SBSGEM_Track_Ypfit;   //!
+
    TBranch        *b_primaries_Sigma;   //!
    TBranch        *b_primaries_Ebeam;   //!
    TBranch        *b_primaries_Eprime;   //!
@@ -774,7 +1115,7 @@ public :
    TBranch        *b_Primaries_theta;   //!
    TBranch        *b_Primaries_phi;   //!
 
-   g4sbs_gep_tree_with_spin(TTree *tree=0, bool pythia = false, bool ecalbox = false, bool hcalbox = false);
+   g4sbs_gep_tree_with_spin(TTree *tree=0, int det_opt = 0, bool pythia = false, bool ecalbox = false, bool hcalbox = false);
    virtual ~g4sbs_gep_tree_with_spin();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
