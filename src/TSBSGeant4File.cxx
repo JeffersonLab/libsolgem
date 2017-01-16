@@ -245,6 +245,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     double eRangeGas;
     double temp;
     
+    //if(fManager->)
     //Loop on the Forward Tracker detector hits: detectors 10 to 15
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 1;

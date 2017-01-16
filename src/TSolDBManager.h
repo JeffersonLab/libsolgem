@@ -46,8 +46,8 @@ public:
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
+    const int    &   Getg4sbsDetectorType() { return fg4sbsDetectorType;    }
     const double &   Getg4sbsZSpecOffset()  { return fg4sbsZSpecOffset;    }
-    const string &   GetGasDataFilename()   { return fGasDataFilename;     }
     
     const double &   GetZ0()                { return fgZ0;                 }
     const double &   GetCaloZ()             { return fgCaloZ;              }
@@ -100,8 +100,11 @@ protected:
     int    fChambersPerCrate;
 
     // Parameters for TSBSGeant4File
+    int fg4sbsDetectorType;// flag to determine which type of GEM should be read.
+    //Choices are: 1 - BB GEMs
+    //Choices are: 2 - SIDIS SBS GEMs
+    //Choices are: 3 - GEP SBS GEMs
     double fg4sbsZSpecOffset;
-    string fGasDataFilename;
     
     // Parameters for TSBSSimDecoder
     // Calorimeter emulation
