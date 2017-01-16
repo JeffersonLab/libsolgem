@@ -6,7 +6,7 @@
 
 // g4sbs_gep_tree_with_spin constructor: the tree will be the 
 // the boolean is a flag to consider(true) or ignore(false) the ECal_box and HCal_box data
-g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox) : fChain(0) 
+g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox, bool hcalbox) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -18,6 +18,7 @@ g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox) : 
       f->GetObject("T",tree);
    }
    fEcalBox = ecalbox;
+   fHcalBox = hcalbox;
    Init(tree);
 }
 
@@ -603,7 +604,7 @@ void g4sbs_gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.FT.Track.Xpfit", &Harm_FT_Track_Xpfit, &b_Harm_FT_Track_Xpfit);
    fChain->SetBranchAddress("Harm.FT.Track.Ypfit", &Harm_FT_Track_Ypfit, &b_Harm_FT_Track_Ypfit);
    
-   if(fEcalBox){
+   if(fHcalBox){
      fChain->SetBranchAddress("Harm.HCAL_box.hit.nhits", &Harm_HCAL_box_hit_nhits, &b_Harm_HCAL_box_hit_nhits);
      fChain->SetBranchAddress("Harm.HCAL_box.hit.row", &Harm_HCAL_box_hit_row, &b_Harm_HCAL_box_hit_row);
      fChain->SetBranchAddress("Harm.HCAL_box.hit.col", &Harm_HCAL_box_hit_col, &b_Harm_HCAL_box_hit_col);

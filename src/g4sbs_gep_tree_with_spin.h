@@ -33,6 +33,7 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
    bool            fEcalBox;// needed to turn on/off the reading of the H(E)CAL_box data
+   bool            fHcalBox;// needed to turn on/off the reading of the H(E)CAL_box data
 
    // Declaration of leaf types
    
@@ -698,7 +699,7 @@ public :
    TBranch        *b_Harm_HCalScint_hit_tmin;   //!
    TBranch        *b_Harm_HCalScint_hit_tmax;   //!
 
-   g4sbs_gep_tree_with_spin(TTree *tree=0, bool ecalbox = true);
+   g4sbs_gep_tree_with_spin(TTree *tree=0, bool ecalbox = false, bool hcalbox = false);
    virtual ~g4sbs_gep_tree_with_spin();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
