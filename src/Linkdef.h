@@ -20,7 +20,7 @@
 #pragma link C++ defined_in "src/TSolSimEvent.h";
 #pragma link C++ defined_in "src/TSolSimFile.h";
 #pragma link C++ defined_in "src/TSolSimDecoder.h";
-#pragma link C++ defined_in "src/g4sbs_gep_tree_with_spin.h";
+#pragma link C++ defined_in "src/g4sbs_tree.h";
 #pragma link C++ defined_in "src/TSBSBox.h";
 #pragma link C++ defined_in "src/TSBSGeant4File.h";
 #pragma link C++ defined_in "src/TSBSGEMChamber.h";

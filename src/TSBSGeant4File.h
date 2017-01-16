@@ -9,7 +9,7 @@
 #include "TROOT.h"
 #include "TFile.h"
 #include "TChain.h"
-#include "g4sbs_gep_tree_with_spin.h"
+#include "g4sbs_tree.h"
 #include "TSolGEMData.h"
 #include "TSolDBManager.h"
 
@@ -121,7 +121,7 @@ class TSBSGeant4File {
   // Members
   char  fFilename[255];
   TFile *fFile;
-  g4sbs_gep_tree_with_spin *fTree;// needed to easily unfold root file data
+  g4sbs_tree *fTree;// needed to easily unfold root file data
   Int_t fSource;   // User-defined source ID (e.g. MC run number)  // Temp: Do we use that ?
   //double fZSpecOffset; // Offset with which the GEM hits are registered in g4sbs for GEP.
   

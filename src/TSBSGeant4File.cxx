@@ -164,11 +164,17 @@ Int_t TSBSGeant4File::Open(){
     }
     
     TChain* C1 = (TChain*)fFile->Get("T");//Get the tree from the file
-
-    fTree = new g4sbs_gep_tree_with_spin(C1, fManager->Getg4sbsDetectorType());
-    // g4sbs_gep_tree_with_spin declare all variables, branches, etc... 
+    
+    if(fManager->Getg4sbsDetectorType()<1 && fManager->Getg4sbsDetectorType()>3){
+      cout << "Invalid detector option: Set correct option in db_generalinfo.dat" << endl;
+      cout << "(remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - GEP SBS GEMs)" << endl;
+      exit(-1);
+    }
+         
+    fTree = new g4sbs_tree(C1, fManager->Getg4sbsDetectorType());
+    // g4sbs_tree declare all variables, branches, etc... 
     // to read, event by event, the varaibles stored in the tree. 
-    // See comments in g4sbs_gep_tree_with_spin for more details...
+    // See comments in g4sbs_tree for more details...
     
     fEvNum = -1;
  
@@ -792,12 +798,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #endif //DEBUG          
       }
       break;// end case(3)
-      
-    default:
-      cout << "invalid detector type :" << fManager->Getg4sbsDetectorType() << endl;
-      cout << "remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - GEP SBS GEMs" << endl;
-      return -1;
-      break;
       
     }//end switch(fManager->Getg4sbsDetectorType)
     

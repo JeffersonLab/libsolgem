@@ -70,7 +70,7 @@ SRC   = src/TSolAnalyzer.cxx \
         src/TSolSimEvent.cxx \
         src/TSolSimFile.cxx \
         src/TSolSimDecoder.cxx \
-        src/g4sbs_gep_tree_with_spin.cxx \
+        src/g4sbs_tree.cxx \
         src/TSBSBox.cxx \
         src/TSBSGeant4File.cxx \
         src/TSBSGEMChamber.cxx \
