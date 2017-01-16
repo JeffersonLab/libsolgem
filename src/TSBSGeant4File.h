@@ -86,7 +86,7 @@ class TSBSGeant4File {
   TSBSGeant4File( const char *name);// Constructor with input file name: recommanded
   virtual ~TSBSGeant4File();// Default destructor
 
-  void ReadGasData(const char* filename);
+  //void ReadGasData(const char* filename); // NB: See comment lines 128-129 
   
   // Standard getters and setters
   void  SetFilename( const char *name );
@@ -114,8 +114,8 @@ class TSBSGeant4File {
   //get GEM data
   TSolGEMData *GetGEMData();
   void GetGEMData(TSolGEMData* gd);
-
-  double FindGasRange(double p);
+  
+  //double FindGasRange(double p); // NB: See comment lines 128-129 
   
  private:
   // Members
@@ -125,15 +125,17 @@ class TSBSGeant4File {
   Int_t fSource;   // User-defined source ID (e.g. MC run number)  // Temp: Do we use that ?
   //double fZSpecOffset; // Offset with which the GEM hits are registered in g4sbs for GEP.
   
-  // These two parameters are used to calculate the range in the gas 
-  // for very low momentum particles (electrons).
-  // This avoids to calculate stupid values for the particle position 
-  // at the exit of the GEM ionizable gas (since it is not included in g4sbs output).
-  // -> Shall it be ?
+  // NB: 2017/01/16: The use of electron range in ionized gas 
+  // is now deprecated due to the addition of X_in and X_out in the g4sbs data on my side
+  /* // These two parameters are used to calculate the range in the gas  */
+  /* // for very low momentum particles (electrons). */
+  /* // This avoids to calculate stupid values for the particle position  */
+  /* // at the exit of the GEM ionizable gas (since it is not included in g4sbs output). */
+  /* // -> Shall it be ? */
   // This is not necessary for TSolEVIOFile as the hit exit is included in evio files.
   //char fgasdatafile[255];
-  vector<double> feMom;
-  vector<double> fgasErange;
+  /* vector<double> feMom; */
+  /* vector<double> fgasErange; */
   
   //hit data arrays
   vector<g4sbshitdata *> fg4sbsHitData;
