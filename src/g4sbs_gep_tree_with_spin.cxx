@@ -6,7 +6,7 @@
 
 // g4sbs_gep_tree_with_spin constructor: the tree will be the 
 // the boolean is a flag to consider(true) or ignore(false) the ECal_box and HCal_box data
-g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox, bool hcalbox) : fChain(0) 
+g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool pythia, bool ecalbox, bool hcalbox) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -17,6 +17,7 @@ g4sbs_gep_tree_with_spin::g4sbs_gep_tree_with_spin(TTree *tree, bool ecalbox, bo
       }
       f->GetObject("T",tree);
    }
+   fPythia = pythia;
    fEcalBox = ecalbox;
    fHcalBox = hcalbox;
    Init(tree);
@@ -662,6 +663,45 @@ void g4sbs_gep_tree_with_spin::Init(TTree *tree)
    fChain->SetBranchAddress("Harm.HCalScint.hit.trms", &Harm_HCalScint_hit_trms, &b_Harm_HCalScint_hit_trms);
    fChain->SetBranchAddress("Harm.HCalScint.hit.tmin", &Harm_HCalScint_hit_tmin, &b_Harm_HCalScint_hit_tmin);
    fChain->SetBranchAddress("Harm.HCalScint.hit.tmax", &Harm_HCalScint_hit_tmax, &b_Harm_HCalScint_hit_tmax);
+   
+   if(fPythia){
+     fChain->SetBranchAddress("primaries.Sigma", &primaries_Sigma, &b_primaries_Sigma);
+     fChain->SetBranchAddress("primaries.Ebeam", &primaries_Ebeam, &b_primaries_Ebeam);
+     fChain->SetBranchAddress("primaries.Eprime", &primaries_Eprime, &b_primaries_Eprime);
+     fChain->SetBranchAddress("primaries.theta_e", &primaries_theta_e, &b_primaries_theta_e);
+     fChain->SetBranchAddress("primaries.phi_e", &primaries_phi_e, &b_primaries_phi_e);
+     fChain->SetBranchAddress("primaries.px_e", &primaries_px_e, &b_primaries_px_e);
+     fChain->SetBranchAddress("primaries.py_e", &primaries_py_e, &b_primaries_py_e);
+     fChain->SetBranchAddress("primaries.pz_e", &primaries_pz_e, &b_primaries_pz_e);
+     fChain->SetBranchAddress("primaries.vx_e", &primaries_vx_e, &b_primaries_vx_e);
+     fChain->SetBranchAddress("primaries.vy_e", &primaries_vy_e, &b_primaries_vy_e);
+     fChain->SetBranchAddress("primaries.vz_e", &primaries_vz_e, &b_primaries_vz_e);
+     fChain->SetBranchAddress("primaries.Egamma", &primaries_Egamma, &b_primaries_Egamma);
+     fChain->SetBranchAddress("primaries.theta_gamma", &primaries_theta_gamma, &b_primaries_theta_gamma);
+     fChain->SetBranchAddress("primaries.phi_gamma", &primaries_phi_gamma, &b_primaries_phi_gamma);
+     fChain->SetBranchAddress("primaries.px_gamma", &primaries_px_gamma, &b_primaries_px_gamma);
+     fChain->SetBranchAddress("primaries.py_gamma", &primaries_py_gamma, &b_primaries_py_gamma);
+     fChain->SetBranchAddress("primaries.pz_gamma", &primaries_pz_gamma, &b_primaries_pz_gamma);
+     fChain->SetBranchAddress("primaries.vx_gamma", &primaries_vx_gamma, &b_primaries_vx_gamma);
+     fChain->SetBranchAddress("primaries.vy_gamma", &primaries_vy_gamma, &b_primaries_vy_gamma);
+     fChain->SetBranchAddress("primaries.vz_gamma", &primaries_vz_gamma, &b_primaries_vz_gamma);
+     
+     fChain->SetBranchAddress("Primaries.Nprimaries", &Primaries_Nprimaries, &b_Primaries_Nprimaries);
+     fChain->SetBranchAddress("Primaries.PID", &Primaries_PID, &b_Primaries_PID);
+     fChain->SetBranchAddress("Primaries.genflag", &Primaries_genflag, &b_Primaries_genflag);
+     fChain->SetBranchAddress("Primaries.Px", &Primaries_Px, &b_Primaries_Px);
+     fChain->SetBranchAddress("Primaries.Py", &Primaries_Py, &b_Primaries_Py);
+     fChain->SetBranchAddress("Primaries.Pz", &Primaries_Pz, &b_Primaries_Pz);
+     fChain->SetBranchAddress("Primaries.vx", &Primaries_vx, &b_Primaries_vx);
+     fChain->SetBranchAddress("Primaries.vy", &Primaries_vy, &b_Primaries_vy);
+     fChain->SetBranchAddress("Primaries.vz", &Primaries_vz, &b_Primaries_vz);
+     fChain->SetBranchAddress("Primaries.M", &Primaries_M, &b_Primaries_M);
+     fChain->SetBranchAddress("Primaries.E", &Primaries_E, &b_Primaries_E);
+     fChain->SetBranchAddress("Primaries.P", &Primaries_P, &b_Primaries_P);
+     fChain->SetBranchAddress("Primaries.t", &Primaries_t, &b_Primaries_t);
+     fChain->SetBranchAddress("Primaries.theta", &Primaries_theta, &b_Primaries_theta);
+     fChain->SetBranchAddress("Primaries.phi", &Primaries_phi, &b_Primaries_phi);
+   }
    
    Notify();
 }

@@ -32,8 +32,9 @@ class g4sbs_gep_tree_with_spin {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
-   bool            fEcalBox;// needed to turn on/off the reading of the H(E)CAL_box data
-   bool            fHcalBox;// needed to turn on/off the reading of the H(E)CAL_box data
+   bool            fPythia;// needed to turn on/off the reading of the pythia variables
+   bool            fEcalBox;// needed to turn on/off the reading of the ECAL_box data
+   bool            fHcalBox;// needed to turn on/off the reading of the HCAL_box data
 
    // Declaration of leaf types
    
@@ -394,7 +395,44 @@ public :
    std::vector<double>  *Harm_HCalScint_hit_trms;
    std::vector<double>  *Harm_HCalScint_hit_tmin;
    std::vector<double>  *Harm_HCalScint_hit_tmax;
-
+   
+   Double_t        primaries_Sigma;
+   Double_t        primaries_Ebeam;
+   Double_t        primaries_Eprime;
+   Double_t        primaries_theta_e;
+   Double_t        primaries_phi_e;
+   Double_t        primaries_px_e;
+   Double_t        primaries_py_e;
+   Double_t        primaries_pz_e;
+   Double_t        primaries_vx_e;
+   Double_t        primaries_vy_e;
+   Double_t        primaries_vz_e;
+   Double_t        primaries_Egamma;
+   Double_t        primaries_theta_gamma;
+   Double_t        primaries_phi_gamma;
+   Double_t        primaries_px_gamma;
+   Double_t        primaries_py_gamma;
+   Double_t        primaries_pz_gamma;
+   Double_t        primaries_vx_gamma;
+   Double_t        primaries_vy_gamma;
+   Double_t        primaries_vz_gamma;
+   
+   Int_t           Primaries_Nprimaries;
+   std::vector<int>     *Primaries_PID;
+   std::vector<int>     *Primaries_genflag;
+   std::vector<double>  *Primaries_Px;
+   std::vector<double>  *Primaries_Py;
+   std::vector<double>  *Primaries_Pz;
+   std::vector<double>  *Primaries_vx;
+   std::vector<double>  *Primaries_vy;
+   std::vector<double>  *Primaries_vz;
+   std::vector<double>  *Primaries_M;
+   std::vector<double>  *Primaries_E;
+   std::vector<double>  *Primaries_P;
+   std::vector<double>  *Primaries_t;
+   std::vector<double>  *Primaries_theta;
+   std::vector<double>  *Primaries_phi;
+   
    // List of branches
    TBranch        *b_ev;   //!
    TBranch        *b_gen;   //!
@@ -699,7 +737,44 @@ public :
    TBranch        *b_Harm_HCalScint_hit_tmin;   //!
    TBranch        *b_Harm_HCalScint_hit_tmax;   //!
 
-   g4sbs_gep_tree_with_spin(TTree *tree=0, bool ecalbox = false, bool hcalbox = false);
+   TBranch        *b_primaries_Sigma;   //!
+   TBranch        *b_primaries_Ebeam;   //!
+   TBranch        *b_primaries_Eprime;   //!
+   TBranch        *b_primaries_theta_e;   //!
+   TBranch        *b_primaries_phi_e;   //!
+   TBranch        *b_primaries_px_e;   //!
+   TBranch        *b_primaries_py_e;   //!
+   TBranch        *b_primaries_pz_e;   //!
+   TBranch        *b_primaries_vx_e;   //!
+   TBranch        *b_primaries_vy_e;   //!
+   TBranch        *b_primaries_vz_e;   //!
+   TBranch        *b_primaries_Egamma;   //!
+   TBranch        *b_primaries_theta_gamma;   //!
+   TBranch        *b_primaries_phi_gamma;   //!
+   TBranch        *b_primaries_px_gamma;   //!
+   TBranch        *b_primaries_py_gamma;   //!
+   TBranch        *b_primaries_pz_gamma;   //!
+   TBranch        *b_primaries_vx_gamma;   //!
+   TBranch        *b_primaries_vy_gamma;   //!
+   TBranch        *b_primaries_vz_gamma;   //!
+   
+   TBranch        *b_Primaries_Nprimaries;   //!
+   TBranch        *b_Primaries_PID;   //!
+   TBranch        *b_Primaries_genflag;   //!
+   TBranch        *b_Primaries_Px;   //!
+   TBranch        *b_Primaries_Py;   //!
+   TBranch        *b_Primaries_Pz;   //!
+   TBranch        *b_Primaries_vx;   //!
+   TBranch        *b_Primaries_vy;   //!
+   TBranch        *b_Primaries_vz;   //!
+   TBranch        *b_Primaries_M;   //!
+   TBranch        *b_Primaries_E;   //!
+   TBranch        *b_Primaries_P;   //!
+   TBranch        *b_Primaries_t;   //!
+   TBranch        *b_Primaries_theta;   //!
+   TBranch        *b_Primaries_phi;   //!
+
+   g4sbs_gep_tree_with_spin(TTree *tree=0, bool pythia = false, bool ecalbox = false, bool hcalbox = false);
    virtual ~g4sbs_gep_tree_with_spin();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
