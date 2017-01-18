@@ -10,7 +10,7 @@ generalinfo.gem_copper_back_id = 7
 generalinfo.gem_strip_id = 19
 generalinfo.faec_id = 3110000
 generalinfo.laec_id = 3210000
-generalinfo.chan_per_slot = 1600
+generalinfo.chan_per_slot = 2048
 generalinfo.modules_per_readout = 1
 generalinfo.self_defined_sector = 1
 

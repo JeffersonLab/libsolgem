@@ -22,14 +22,15 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   //cout << " Gas data file container: -> " << &gasdatafilename << " <- " << endl;
   //cout << " Gas data file name: -> " << gasdatafilename.c_str() << " <- " << endl;
   //ReadGasData(gasdatafilename.c_str());
-  // ReadGasData("gasErange.txt"); // NB: See comment lines 128-129 of TSBSGeant4File.h 
+  ReadGasData("gasErange.txt"); // NB: See comment lines 128-129 of TSBSGeant4File.h 
   
   //Filling the table that will be used to calculate the low energy electron range in the gas. 
   
   cout << "Initialization completed" << endl;
 }
 
-/* // NB: See comment lines 128-129 of TSBSGeant4File.h 
+// // NB: See comment lines 128-129 of TSBSGeant4File.h 
+// 2017/01/18: Edit: useful again, because changes in G4 were USELESS...
 void TSBSGeant4File::ReadGasData(const char* filename){
   double D_gas;
   double T, p, R;
@@ -83,7 +84,7 @@ void TSBSGeant4File::ReadGasData(const char* filename){
     }
   }
 }
-*/
+
 
 /*
 //-----------------------------------------------------------------------------
@@ -165,13 +166,15 @@ Int_t TSBSGeant4File::Open(){
     }
     
     TChain* C1 = (TChain*)fFile->Get("T");//Get the tree from the file
+
+    cout << "Detector option " << fManager->Getg4sbsDetectorType() << endl;
     
     if(fManager->Getg4sbsDetectorType()<1 && fManager->Getg4sbsDetectorType()>3){
       cout << "Invalid detector option: Set correct option in db_generalinfo.dat" << endl;
       cout << "(remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - GEP SBS GEMs)" << endl;
       exit(-1);
     }
-         
+    
     fTree = new g4sbs_tree(C1, fManager->Getg4sbsDetectorType());
     // g4sbs_tree declare all variables, branches, etc... 
     // to read, event by event, the varaibles stored in the tree. 
@@ -195,737 +198,949 @@ Int_t TSBSGeant4File::Close(){
 }
 
 Int_t TSBSGeant4File::ReadNextEvent(){
-    // Return 1 on success
+  // Return 1 on success
     
-    // Channel not open
-    if( !fFile->IsOpen() ){ 
-	fprintf(stderr, "%s %s line %d Channel not open\n",
+  // Channel not open
+  if( !fFile->IsOpen() ){ 
+    fprintf(stderr, "%s %s line %d Channel not open\n",
 	    __FILE__,__PRETTY_FUNCTION__,__LINE__ );
-	return 0; 
-    }
+    return 0; 
+  }
+  
+  Clear();
     
-    Clear();
+  int n_hits = 0;//total number of hits at the end of the event
+  int n_gen = 0;//total number of tracks at the end of the event
+  bool newtrk, dupli;// These variables help avoid store many times the same MC track info
+  bool res = false;
     
-    int n_hits = 0;//total number of hits at the end of the event
-    int n_gen = 0;//total number of tracks at the end of the event
-    bool newtrk, dupli;// These variables help avoid store many times the same MC track info
-    bool res = false;
-    
-    fEvNum++;
-    
-    res = fTree->GetEntry(fEvNum);
-    //Test that the next entry exist
-    if( !res ){
-      // Don't need to print this out.  Not really an error
-#if DEBUG>0
-      fprintf(stderr, "%s %s line %d: Channel read return is false...  probably end of file\n",
-	      __FILE__, __FUNCTION__, __LINE__ );
-#endif //DEBUG
-      return 0;
-    }
-    
-    double weight = fTree->ev_solang*fTree->ev_sigma; 
-    
-    int det_id;//0: FT, 1: FPPs
-    
-    int pid;
-    int type;
-    int plane;
-    double edep;
-    double tmin;
-    double tmax;
-    
-    TVector3 Mom;
-    double pz;
+  fEvNum++;
 
-    TVector3 X_in;
-    TVector3 X_out;
-    TVector3 X_RO;
+  cout << "Read Next Event: Evt " << fEvNum << endl;
+  
+  cout << fTree << endl;
+  
+  res = fTree->GetEntry(fEvNum);
+  //Test that the next entry exist
+  if( !res ){
+    // Don't need to print this out.  Not really an error
+#if DEBUG>0
+    fprintf(stderr, "%s %s line %d: Channel read return is false...  probably end of file\n",
+	    __FILE__, __FUNCTION__, __LINE__ );
+#endif //DEBUG
+    return 0;
+  }
+  
+  double weight = fTree->ev_solang*fTree->ev_sigma; 
     
-    TVector3 Vtx;
+  int det_id;//0: FT, 1: FPPs
     
-    double hit_data_temp[23];
-    double gen_data_temp[8];
+  int pid;
+  int type;
+  int plane;
+  double edep;
+  double tmin;
+  double tmax;
+    
+  TVector3 Mom;
+  double pz;
+
+  TVector3 X_in;
+  TVector3 X_out;
+  TVector3 X_RO;
+    
+  TVector3 Vtx;
+    
+  double hit_data_temp[23];
+  double gen_data_temp[8];
    
-    // NB: See comment lines 128-129 of TSBSGeant4File.h 
-    // //variables for the correction of hits given by very small momenta
-    // double eRangeSlope;
-    // double eRangeGas;
-    // double temp;
+  // NB: See comment lines 128-129 of TSBSGeant4File.h 
+  //variables for the correction of hits given by very small momenta
+  double eRangeSlope;
+  double eRangeGas;
+  double temp;
+  
+  //cout << "Detector type option: " << fManager->Getg4sbsDetectorType() << endl;
     
-    switch(fManager->Getg4sbsDetectorType()){
+  switch(fManager->Getg4sbsDetectorType()){
       
-    case(1)://BB GEMs
-      for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
-	det_id = 0;
+  case(1)://BB GEMs
+    for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
+      det_id = 0;
 	
-	pid = fTree->Earm_BBGEM_hit_pid->at(i);
-	type = fTree->Earm_BBGEM_hit_mid->at(i)+1;
-	plane = fTree->Earm_BBGEM_hit_plane->at(i);
-	edep = fTree->Earm_BBGEM_hit_edep->at(i)*1.0e3;
-	tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
-	tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
+      pid = fTree->Earm_BBGEM_hit_pid->at(i);
+      type = fTree->Earm_BBGEM_hit_mid->at(i)+1;
+      plane = fTree->Earm_BBGEM_hit_plane->at(i);
+      edep = fTree->Earm_BBGEM_hit_edep->at(i)*1.0e3;
+      tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
+      tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
       
-	pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
-		   ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
-		     pow(fTree->Earm_BBGEM_hit_typ->at(i), 2) + 1.0) );
+      pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
+		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
+		   pow(fTree->Earm_BBGEM_hit_typ->at(i), 2) + 1.0) );
       
-	Mom = TVector3(fTree->Earm_BBGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
-		       fTree->Earm_BBGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
-		       pz*1.0e3);// in MeV
+      Mom = TVector3(fTree->Earm_BBGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
+		     fTree->Earm_BBGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
+		     pz*1.0e3);// in MeV
       
-	X_in = TVector3(fTree->Earm_BBGEM_hit_x_in->at(i)*1.0e3, // in mm
-			fTree->Earm_BBGEM_hit_y_in->at(i)*1.0e3, // in mm
-		       (fTree->Earm_BBGEM_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+      X_in = TVector3(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3, // in mm
+		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3, // in mm
+		      fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() *1.0e3);// in mm
       
-	X_out = TVector3(fTree->Earm_BBGEM_hit_x_out->at(i)*1.0e3, // in mm
-			 fTree->Earm_BBGEM_hit_y_out->at(i)*1.0e3, // in mm
-			(fTree->Earm_BBGEM_hit_z_out->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+      X_out = TVector3(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
+		       fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
+		       (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
       
-	X_RO = TVector3(fTree->Earm_BBGEM_hit_x_in->at(i)*1.0e3+9.185*(fTree->Earm_BBGEM_hit_x_out->at(i)-fTree->Earm_BBGEM_hit_x_in->at(i))/(fTree->Earm_BBGEM_hit_z_out->at(i)-fTree->Earm_BBGEM_hit_z_in->at(i)), // in mm 
-			fTree->Earm_BBGEM_hit_y_in->at(i)*1.0e3+9.185*(fTree->Earm_BBGEM_hit_y_out->at(i)-fTree->Earm_BBGEM_hit_y_in->at(i))/(fTree->Earm_BBGEM_hit_z_out->at(i)-fTree->Earm_BBGEM_hit_z_in->at(i)), // in mm 
-		       (fTree->Earm_BBGEM_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      X_RO = TVector3(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+9.185*fTree->Earm_BBGEM_hit_txp->at(i), // in mm
+		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+9.185*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
+		      (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
       
-	//cout << "SBSGEM: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      //cout << "FPP2: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Earm_BBGEM_hit_pid->at(i))==11 && fTree->Earm_BBGEM_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Earm_BBGEM_hit_txp->at(i), 2)+pow(fTree->Earm_BBGEM_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Earm_BBGEM_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+       	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	}
+      }
       
-	Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
-		       fTree->Earm_BBGEM_hit_vy->at(i)*1.0e3, // in mm
-		       fTree->Earm_BBGEM_hit_vz->at(i)*1.0e3);// in mm
+      if(fabs(X_out.X())>=999.99){//verifier
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.X());
+	X_out[0]*=999.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=299.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.Y());
+	X_out[1]*=299.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetY(X_out.Y());
+      }
 
-	//Filling hit_data temporary array...
-	hit_data_temp[0] = (double)plane;
-	hit_data_temp[1] = edep;
-	hit_data_temp[8] = tmin;
-	hit_data_temp[12] = tmax;
-	hit_data_temp[13] = type;
-	hit_data_temp[17] = -1.0e-9;
-	hit_data_temp[18] = pid;
-	hit_data_temp[19] = -1.0e-9;
-	for(int k = 0; k<3; k++){
-	  hit_data_temp[k+2] = X_RO[k];
-	  hit_data_temp[k+5] = X_in[k];
-	  hit_data_temp[k+9] = X_out[k];
-	  hit_data_temp[k+14] = Vtx[k];
-	  hit_data_temp[k+20] = Mom[k];
-	}
+      //cout << "SBSGEM: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
       
-	fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+      Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
+		     fTree->Earm_BBGEM_hit_vy->at(i)*1.0e3, // in mm
+		     fTree->Earm_BBGEM_hit_vz->at(i)*1.0e3);// in mm
 
-	// ... to copy it in the actual g4sbsHitData structure.
-	for(int j = 0; j<23; j++){
-	  fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
-	}
-	n_hits++;
+      //Filling hit_data temporary array...
+      hit_data_temp[0] = (double)plane;
+      hit_data_temp[1] = edep;
+      hit_data_temp[8] = tmin;
+      hit_data_temp[12] = tmax;
+      hit_data_temp[13] = type;
+      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[18] = pid;
+      hit_data_temp[19] = -1.0e-9;
+      for(int k = 0; k<3; k++){
+	hit_data_temp[k+2] = X_RO[k];
+	hit_data_temp[k+5] = X_in[k];
+	hit_data_temp[k+9] = X_out[k];
+	hit_data_temp[k+14] = Vtx[k];
+	hit_data_temp[k+20] = Mom[k];
+      }
       
-	//Filling gen_data temporary array...
-	gen_data_temp[0] = pid;
-	for(int k = 0; k<3; k++){
-	  gen_data_temp[k+1] = Mom[k];
-	  gen_data_temp[k+4] = Vtx[k];
-	}
-	gen_data_temp[7] = weight;
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+
+      // ... to copy it in the actual g4sbsHitData structure.
+      for(int j = 0; j<23; j++){
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
+      }
+      n_hits++;
       
-	// ... to copy it in the actual g4sbsGenData structure.
-	// only store new MC tracks
-	if(n_gen==0){
+      //Filling gen_data temporary array...
+      gen_data_temp[0] = pid;
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+1] = Mom[k];
+	gen_data_temp[k+4] = Vtx[k];
+      }
+      gen_data_temp[7] = weight;
+      
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store new MC tracks
+      if(n_gen==0){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }else{// this determines if the track is new or not
+	newtrk = true; 
+	for(int z = n_gen-1; z>=0; z--){
+	  dupli = true;
+	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	    dupli=false;
+	  }else{
+	    for(int j = 4; j<8; j++){
+	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+		dupli=false;
+		break;
+	      }
+	    }
+	  }
+	  if(dupli){
+	    newtrk = false;
+	    break;
+	  }
+	}
+	
+	if(newtrk){
 	  fg4sbsGenData.push_back(new g4sbsgendata());
 	  for(int j = 0; j<8; j++){
 	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	  }
 	  n_gen++;
-	}else{// this determines if the track is new or not
-	  newtrk = true; 
-	  for(int z = n_gen-1; z>=0; z--){
-	    dupli = true;
-	    if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
-	      dupli=false;
-	    }else{
-	      for(int j = 4; j<8; j++){
-		if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		  dupli=false;
-		  break;
-		}
+	}
+      }
+
+    }//end loop on hits
+    break;
+      
+  case(2)://SIDIS SBS GEMs
+    for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
+      det_id = 0;
+	
+      pid = fTree->Harm_SBSGEM_hit_pid->at(i);
+      type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;
+      plane = fTree->Harm_SBSGEM_hit_plane->at(i);
+      edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
+      tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
+      tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
+      
+      pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
+		 ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
+		   pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2) + 1.0) );
+      
+      Mom = TVector3(fTree->Harm_SBSGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
+		     fTree->Harm_SBSGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
+		     pz*1.0e3);// in MeV
+      
+      X_in = TVector3(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3, // in mm
+		      fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3, // in mm
+		      fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() *1.0e3);// in mm
+      
+      X_out = TVector3(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm 
+		       fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
+		       (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
+      
+      X_RO = TVector3(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm
+		      fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
+		      (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      
+      //cout << "FPP2: momentum: " << fTree->Harm_SBSGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Harm_SBSGEM_hit_pid->at(i))==11 && fTree->Harm_SBSGEM_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2)+pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_SBSGEM_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+       	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	}
+      }
+      
+      if(fabs(X_out.X())>=999.99){//verifier
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.X());
+	X_out[0]*=999.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=299.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.Y());
+	X_out[1]*=299.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetY(X_out.Y());
+      }
+
+      //cout << "SBSGEM: momentum: " << fTree->Harm_SBSGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      
+      Vtx = TVector3(fTree->Harm_SBSGEM_hit_vx->at(i)*1.0e3, // in mm
+		     fTree->Harm_SBSGEM_hit_vy->at(i)*1.0e3, // in mm
+		     fTree->Harm_SBSGEM_hit_vz->at(i)*1.0e3);// in mm
+
+      //Filling hit_data temporary array...
+      hit_data_temp[0] = (double)plane;
+      hit_data_temp[1] = edep;
+      hit_data_temp[8] = tmin;
+      hit_data_temp[12] = tmax;
+      hit_data_temp[13] = type;
+      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[18] = pid;
+      hit_data_temp[19] = -1.0e-9;
+      for(int k = 0; k<3; k++){
+	hit_data_temp[k+2] = X_RO[k];
+	hit_data_temp[k+5] = X_in[k];
+	hit_data_temp[k+9] = X_out[k];
+	hit_data_temp[k+14] = Vtx[k];
+	hit_data_temp[k+20] = Mom[k];
+      }
+      
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+
+      // ... to copy it in the actual g4sbsHitData structure.
+      for(int j = 0; j<23; j++){
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
+      }
+      n_hits++;
+      
+      //Filling gen_data temporary array...
+      gen_data_temp[0] = pid;
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+1] = Mom[k];
+	gen_data_temp[k+4] = Vtx[k];
+      }
+      gen_data_temp[7] = weight;
+      
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store new MC tracks
+      if(n_gen==0){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }else{// this determines if the track is new or not
+	newtrk = true; 
+	for(int z = n_gen-1; z>=0; z--){
+	  dupli = true;
+	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	    dupli=false;
+	  }else{
+	    for(int j = 4; j<8; j++){
+	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+		dupli=false;
+		break;
 	      }
 	    }
-	    if(dupli){
-	      newtrk = false;
-	      break;
-	    }
 	  }
-	
-	  if(newtrk){
-	    fg4sbsGenData.push_back(new g4sbsgendata());
-	    for(int j = 0; j<8; j++){
-	      fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	    }
-	    n_gen++;
+	  if(dupli){
+	    newtrk = false;
+	    break;
 	  }
 	}
-
-      }//end loop on hits
-      break;
-      
-    case(2)://SIDIS SBS GEMs
-      for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
-	det_id = 0;
 	
-	pid = fTree->Harm_SBSGEM_hit_pid->at(i);
-	type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;
-	plane = fTree->Harm_SBSGEM_hit_plane->at(i);
-	edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
-	tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
-	tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
-      
-	pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
-		   ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
-		     pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2) + 1.0) );
-      
-	Mom = TVector3(fTree->Harm_SBSGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
-		       fTree->Harm_SBSGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
-		       pz*1.0e3);// in MeV
-      
-	X_in = TVector3(fTree->Harm_SBSGEM_hit_x_in->at(i)*1.0e3, // in mm
-			fTree->Harm_SBSGEM_hit_y_in->at(i)*1.0e3, // in mm
-		       (fTree->Harm_SBSGEM_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
-      
-	X_out = TVector3(fTree->Harm_SBSGEM_hit_x_out->at(i)*1.0e3, // in mm
-			 fTree->Harm_SBSGEM_hit_y_out->at(i)*1.0e3, // in mm
-			(fTree->Harm_SBSGEM_hit_z_out->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
-      
-	X_RO = TVector3(fTree->Harm_SBSGEM_hit_x_in->at(i)*1.0e3+9.185*(fTree->Harm_SBSGEM_hit_x_out->at(i)-fTree->Harm_SBSGEM_hit_x_in->at(i))/(fTree->Harm_SBSGEM_hit_z_out->at(i)-fTree->Harm_SBSGEM_hit_z_in->at(i)), // in mm 
-			fTree->Harm_SBSGEM_hit_y_in->at(i)*1.0e3+9.185*(fTree->Harm_SBSGEM_hit_y_out->at(i)-fTree->Harm_SBSGEM_hit_y_in->at(i))/(fTree->Harm_SBSGEM_hit_z_out->at(i)-fTree->Harm_SBSGEM_hit_z_in->at(i)), // in mm 
-		       (fTree->Harm_SBSGEM_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
-      
-	//cout << "SBSGEM: momentum: " << fTree->Harm_SBSGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
-      
-	Vtx = TVector3(fTree->Harm_SBSGEM_hit_vx->at(i)*1.0e3, // in mm
-		       fTree->Harm_SBSGEM_hit_vy->at(i)*1.0e3, // in mm
-		       fTree->Harm_SBSGEM_hit_vz->at(i)*1.0e3);// in mm
-
-	//Filling hit_data temporary array...
-	hit_data_temp[0] = (double)plane;
-	hit_data_temp[1] = edep;
-	hit_data_temp[8] = tmin;
-	hit_data_temp[12] = tmax;
-	hit_data_temp[13] = type;
-	hit_data_temp[17] = -1.0e-9;
-	hit_data_temp[18] = pid;
-	hit_data_temp[19] = -1.0e-9;
-	for(int k = 0; k<3; k++){
-	  hit_data_temp[k+2] = X_RO[k];
-	  hit_data_temp[k+5] = X_in[k];
-	  hit_data_temp[k+9] = X_out[k];
-	  hit_data_temp[k+14] = Vtx[k];
-	  hit_data_temp[k+20] = Mom[k];
-	}
-      
-	fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
-
-	// ... to copy it in the actual g4sbsHitData structure.
-	for(int j = 0; j<23; j++){
-	  fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
-	}
-	n_hits++;
-      
-	//Filling gen_data temporary array...
-	gen_data_temp[0] = pid;
-	for(int k = 0; k<3; k++){
-	  gen_data_temp[k+1] = Mom[k];
-	  gen_data_temp[k+4] = Vtx[k];
-	}
-	gen_data_temp[7] = weight;
-      
-	// ... to copy it in the actual g4sbsGenData structure.
-	// only store new MC tracks
-	if(n_gen==0){
+	if(newtrk){
 	  fg4sbsGenData.push_back(new g4sbsgendata());
 	  for(int j = 0; j<8; j++){
 	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	  }
 	  n_gen++;
-	}else{// this determines if the track is new or not
-	  newtrk = true; 
-	  for(int z = n_gen-1; z>=0; z--){
-	    dupli = true;
-	    if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
-	      dupli=false;
-	    }else{
-	      for(int j = 4; j<8; j++){
-		if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		  dupli=false;
-		  break;
-		}
+	}
+      }
+	
+    }// endl loop on hits
+    break;
+      
+  case(3)://FT+FPP
+    //Loop on the Forward Tracker detector hits: detectors 10 to 15
+    for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
+      det_id = 1;
+      
+      pid = fTree->Harm_FT_hit_pid->at(i);
+      type = fTree->Harm_FT_hit_mid->at(i)+1;
+      plane = fTree->Harm_FT_hit_plane->at(i);
+      edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
+      tmin = fTree->Harm_FT_hit_tmin->at(i);
+      tmax = fTree->Harm_FT_hit_tmax->at(i);
+      
+      pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
+		 ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
+		   pow(fTree->Harm_FT_hit_typ->at(i), 2) + 1.0) );
+      
+      Mom = TVector3(fTree->Harm_FT_hit_txp->at(i)*pz*1.0e3, // in MeV
+		     fTree->Harm_FT_hit_typ->at(i)*pz*1.0e3, // in MeV
+		     pz*1.0e3);// in MeV
+      
+      X_in = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3, // in mm
+		      fTree->Harm_FT_hit_ty->at(i)*1.0e3, // in mm
+		      (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+      
+      X_out = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i), // in mm 
+		       fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
+		       (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
+      
+      X_RO = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
+		      fTree->Harm_FT_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
+		      (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      
+      //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      
+      //Calculation of very low momentum electrons range ingas.
+      if(fabs(fTree->Harm_FT_hit_pid->at(i))==11 && fTree->Harm_FT_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_FT_hit_txp->at(i), 2)+pow(fTree->Harm_FT_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_FT_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
+
+	  X_RO.SetX(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  //cout << "Coucou ! FT" << endl;
+       	}
+      }
+      
+      //Correcting X_out x and y if out of the GEM plane...
+      if(fabs(X_out.X())>=749.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << 10+plane;
+#endif //WARNING
+	temp = fabs(X_out.X());
+	X_out[0]*=749.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=199.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << 10+plane;
+#endif //WARNING
+	temp = fabs(X_out.Y());
+	X_out[1]*=199.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;	
+#endif //WARNING
+	X_RO.SetY(X_out.Y());
+      }
+      
+      Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
+		     fTree->Harm_FT_hit_vy->at(i)*1.0e3, // in mm
+		     fTree->Harm_FT_hit_vz->at(i)*1.0e3);// in mm
+
+      //Filling hit_data temporary array...
+      hit_data_temp[0] = (double)plane;
+      hit_data_temp[1] = edep;
+      hit_data_temp[8] = tmin;
+      hit_data_temp[12] = tmax;
+      hit_data_temp[13] = type;
+      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[18] = pid;
+      hit_data_temp[19] = -1.0e-9;
+      for(int k = 0; k<3; k++){
+	hit_data_temp[k+2] = X_RO[k];
+	hit_data_temp[k+5] = X_in[k];
+	hit_data_temp[k+9] = X_out[k];
+	hit_data_temp[k+14] = Vtx[k];
+	hit_data_temp[k+20] = Mom[k];
+      }
+      
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+
+      // ... to copy it in the actual g4sbsHitData structure.
+      for(int j = 0; j<23; j++){
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
+      }
+      n_hits++;
+      
+      //Filling gen_data temporary array...
+      gen_data_temp[0] = pid;
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+1] = Mom[k];
+	gen_data_temp[k+4] = Vtx[k];
+      }
+      gen_data_temp[7] = weight;
+      
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store new MC tracks
+      if(n_gen==0){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }else{// this determines if the track is new or not
+	newtrk = true; 
+	for(int z = n_gen-1; z>=0; z--){
+	  dupli = true;
+	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	    dupli=false;
+	  }else{
+	    for(int j = 4; j<8; j++){
+	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+		dupli=false;
+		break;
 	      }
 	    }
-	    if(dupli){
-	      newtrk = false;
-	      break;
-	    }
 	  }
-	
-	  if(newtrk){
-	    fg4sbsGenData.push_back(new g4sbsgendata());
-	    for(int j = 0; j<8; j++){
-	      fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	    }
-	    n_gen++;
+	  if(dupli){
+	    newtrk = false;
+	    break;
 	  }
 	}
 	
-      }// endl loop on hits
-      break;
-      
-    case(3)://FT+FPP
-      //Loop on the Forward Tracker detector hits: detectors 10 to 15
-      for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
-	det_id = 1;
-      
-	pid = fTree->Harm_FT_hit_pid->at(i);
-	type = fTree->Harm_FT_hit_mid->at(i)+1;
-	plane = fTree->Harm_FT_hit_plane->at(i);
-	edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
-	tmin = fTree->Harm_FT_hit_tmin->at(i);
-	tmax = fTree->Harm_FT_hit_tmax->at(i);
-      
-	pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
-		   ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
-		     pow(fTree->Harm_FT_hit_typ->at(i), 2) + 1.0) );
-      
-	Mom = TVector3(fTree->Harm_FT_hit_txp->at(i)*pz*1.0e3, // in MeV
-		       fTree->Harm_FT_hit_typ->at(i)*pz*1.0e3, // in MeV
-		       pz*1.0e3);// in MeV
-	
-	X_in = TVector3(fTree->Harm_FT_hit_x_in->at(i)*1.0e3, // in mm
-			fTree->Harm_FT_hit_y_in->at(i)*1.0e3, // in mm
-			(fTree->Harm_FT_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
-      
-	X_out = TVector3(fTree->Harm_FT_hit_x_out->at(i)*1.0e3, // in mm
-			 fTree->Harm_FT_hit_y_out->at(i)*1.0e3, // in mm
-			(fTree->Harm_FT_hit_z_out->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
-      
-	X_RO = TVector3(fTree->Harm_FT_hit_x_in->at(i)*1.0e3+9.185*(fTree->Harm_FT_hit_x_out->at(i)-fTree->Harm_FT_hit_x_in->at(i))/(fTree->Harm_FT_hit_z_out->at(i)-fTree->Harm_FT_hit_z_in->at(i)), // in mm 
-			fTree->Harm_FT_hit_y_in->at(i)*1.0e3+9.185*(fTree->Harm_FT_hit_y_out->at(i)-fTree->Harm_FT_hit_y_in->at(i))/(fTree->Harm_FT_hit_z_out->at(i)-fTree->Harm_FT_hit_z_in->at(i)), // in mm 
-		       (fTree->Harm_FT_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
-      
-	Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
-		       fTree->Harm_FT_hit_vy->at(i)*1.0e3, // in mm
-		       fTree->Harm_FT_hit_vz->at(i)*1.0e3);// in mm
-
-	//Filling hit_data temporary array...
-	hit_data_temp[0] = (double)plane;
-	hit_data_temp[1] = edep;
-	hit_data_temp[8] = tmin;
-	hit_data_temp[12] = tmax;
-	hit_data_temp[13] = type;
-	hit_data_temp[17] = -1.0e-9;
-	hit_data_temp[18] = pid;
-	hit_data_temp[19] = -1.0e-9;
-	for(int k = 0; k<3; k++){
-	  hit_data_temp[k+2] = X_RO[k];
-	  hit_data_temp[k+5] = X_in[k];
-	  hit_data_temp[k+9] = X_out[k];
-	  hit_data_temp[k+14] = Vtx[k];
-	  hit_data_temp[k+20] = Mom[k];
-	}
-      
-	fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
-
-	// ... to copy it in the actual g4sbsHitData structure.
-	for(int j = 0; j<23; j++){
-	  fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
-	}
-	n_hits++;
-      
-	//Filling gen_data temporary array...
-	gen_data_temp[0] = pid;
-	for(int k = 0; k<3; k++){
-	  gen_data_temp[k+1] = Mom[k];
-	  gen_data_temp[k+4] = Vtx[k];
-	}
-	gen_data_temp[7] = weight;
-      
-	// ... to copy it in the actual g4sbsGenData structure.
-	// only store new MC tracks
-	if(n_gen==0){
+	if(newtrk){
 	  fg4sbsGenData.push_back(new g4sbsgendata());
 	  for(int j = 0; j<8; j++){
 	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	  }
 	  n_gen++;
-	}else{// this determines if the track is new or not
-	  newtrk = true; 
-	  for(int z = n_gen-1; z>=0; z--){
-	    dupli = true;
-	    if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
-	      dupli=false;
-	    }else{
-	      for(int j = 4; j<8; j++){
-		if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		  dupli=false;
-		  break;
-		}
-	      }
-	    }
-	    if(dupli){
-	      newtrk = false;
-	      break;
-	    }
-	  }
-	
-	  if(newtrk){
-	    fg4sbsGenData.push_back(new g4sbsgendata());
-	    for(int j = 0; j<8; j++){
-	      fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	    }
-	    n_gen++;
-	  }
 	}
+      }
       
-	// Print out block
+      // Print out block
 #if DEBUG>0
-	cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	     << "energy deposit (eV): " << edep << endl;
-	cout << "Momentum (MeV): ";
-	for(int k = 0; k<3; k++){
-	  cout << Mom[k] << ", ";
-	}
-	cout << " norm " << fTree->Harm_FT_hit_p->at(i) << endl
-	     << "dpx/dpz = " << fTree->Harm_FT_hit_txp->at(i)
-	     << ", dpx/dpz = " << fTree->Harm_FT_hit_typ->at(i)
-	     << endl;
-	cout << "hit position at drift entrance (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_in[k] << ", ";
-	}
-	cout << " time : " << tmin << endl;
-	cout << "hit position at drift exit (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_out[k] << " ";
-	}
-	cout << " time : " << tmax << endl;
-	cout << "hit position at readout (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_RO[k] << ", ";
-	}
-	cout << endl;
-	cout << "Vertex position (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << Vtx[k] << ", ";
-	}
-	cout << endl;
+      cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	   << "energy deposit (eV): " << edep << endl;
+      cout << "Momentum (MeV): ";
+      for(int k = 0; k<3; k++){
+	cout << Mom[k] << ", ";
+      }
+      cout << " norm " << fTree->Harm_FT_hit_p->at(i) << endl
+	   << "dpx/dpz = " << fTree->Harm_FT_hit_txp->at(i)
+	   << ", dpx/dpz = " << fTree->Harm_FT_hit_typ->at(i)
+	   << endl;
+      cout << "hit position at drift entrance (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_in[k] << ", ";
+      }
+      cout << " time : " << tmin << endl;
+      cout << "hit position at drift exit (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_out[k] << " ";
+      }
+      cout << " time : " << tmax << endl;
+      cout << "hit position at readout (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_RO[k] << ", ";
+      }
+      cout << endl;
+      cout << "Vertex position (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << Vtx[k] << ", ";
+      }
+      cout << endl;
 #endif //DEBUG
-      }
+    }
     
-      //Loop on the Focal Plane Polarimeter 1 hits: detectors 0 to 4
-      // This block is not well commented, 
-      // as it is very similar to the previous block of instructions
-      // where Forward Tracker data are unfolded.
-      for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
-	det_id = 0;
+    //Loop on the Focal Plane Polarimeter 1 hits: detectors 0 to 4
+    // This block is not well commented, 
+    // as it is very similar to the previous block of instructions
+    // where Forward Tracker data are unfolded.
+    for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
+      det_id = 0;
       
-	pid = fTree->Harm_FPP1_hit_pid->at(i);
-	type = fTree->Harm_FPP1_hit_mid->at(i)+1;
-	plane = fTree->Harm_FPP1_hit_plane->at(i);
-	edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
-	tmin = fTree->Harm_FPP1_hit_tmin->at(i);
-	tmax = fTree->Harm_FPP1_hit_tmax->at(i);
+      pid = fTree->Harm_FPP1_hit_pid->at(i);
+      type = fTree->Harm_FPP1_hit_mid->at(i)+1;
+      plane = fTree->Harm_FPP1_hit_plane->at(i);
+      edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
+      tmin = fTree->Harm_FPP1_hit_tmin->at(i);
+      tmax = fTree->Harm_FPP1_hit_tmax->at(i);
       
-	pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
-		   ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
-		     pow(fTree->Harm_FPP1_hit_typ->at(i), 2) + 1.0) );
+      pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
+		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
+		   pow(fTree->Harm_FPP1_hit_typ->at(i), 2) + 1.0) );
       
-	Mom = TVector3(fTree->Harm_FPP1_hit_txp->at(i)*pz*1.0e3, // in MeV
-		       fTree->Harm_FPP1_hit_typ->at(i)*pz*1.0e3, // in MeV
-		       pz*1.0e3);// in MeV
-	
-	X_in = TVector3(fTree->Harm_FPP1_hit_x_in->at(i)*1.0e3, // in mm
-			fTree->Harm_FPP1_hit_y_in->at(i)*1.0e3, // in mm
-			(fTree->Harm_FPP1_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
-	
-	X_out = TVector3(fTree->Harm_FPP1_hit_x_out->at(i)*1.0e3, // in mm
-			 fTree->Harm_FPP1_hit_y_out->at(i)*1.0e3, // in mm
-			(fTree->Harm_FPP1_hit_z_out->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+      Mom = TVector3(fTree->Harm_FPP1_hit_txp->at(i)*pz*1.0e3, // in MeV
+		     fTree->Harm_FPP1_hit_typ->at(i)*pz*1.0e3, // in MeV
+		     pz*1.0e3);// in MeV
       
-	X_RO = TVector3(fTree->Harm_FPP1_hit_x_in->at(i)*1.0e3+9.185*(fTree->Harm_FPP1_hit_x_out->at(i)-fTree->Harm_FPP1_hit_x_in->at(i))/(fTree->Harm_FPP1_hit_z_out->at(i)-fTree->Harm_FPP1_hit_z_in->at(i)), // in mm 
-			fTree->Harm_FPP1_hit_y_in->at(i)*1.0e3+9.185*(fTree->Harm_FPP1_hit_y_out->at(i)-fTree->Harm_FPP1_hit_y_in->at(i))/(fTree->Harm_FPP1_hit_z_out->at(i)-fTree->Harm_FPP1_hit_z_in->at(i)), // in mm 
-		       (fTree->Harm_FPP1_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
-	
-	Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
-		       fTree->Harm_FPP1_hit_vy->at(i)*1.0e3, // in mm
-		       fTree->Harm_FPP1_hit_vz->at(i)*1.0e3);// in mm
+      X_in = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3, // in mm
+		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3, // in mm
+		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
       
-	hit_data_temp[0] = (double)plane;
-	hit_data_temp[1] = edep;
-	hit_data_temp[8] = tmin;
-	hit_data_temp[12] = tmax;
-	hit_data_temp[13] = type;
-	hit_data_temp[17] = -1.0e-9;
-	hit_data_temp[18] = pid;
-	hit_data_temp[19] = -1.0e-9;
-	for(int k = 0; k<3; k++){
-	  hit_data_temp[k+2] = X_RO[k];
-	  hit_data_temp[k+5] = X_in[k];
-	  hit_data_temp[k+9] = X_out[k];
-	  hit_data_temp[k+14] = Vtx[k];
-	  hit_data_temp[k+20] = Mom[k];
-	}
+      X_out = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i), 
+		       fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i), 
+		       (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
       
-	fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+      X_RO = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_txp->at(i), 
+		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_typ->at(i), 
+		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      
+      //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_FPP1_hit_txp->at(i), 2)+pow(fTree->Harm_FPP1_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_FPP1_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+       	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  //cout << "Coucou ! FPP1 " << endl;
+       	}
+      }
+         
+      if(fabs(X_out.X())>=999.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.X());
+	X_out[0]*=999.99/temp;
+#if WARNING>0
+	cout << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=299.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.Y());
+	X_out[1]*=299.99/temp;
+#if WARNING>0
+	cout << "; set at limit: " << X_out.Y() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetY(X_out.Y());
+      }
+      
+      Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
+		     fTree->Harm_FPP1_hit_vy->at(i)*1.0e3, // in mm
+		     fTree->Harm_FPP1_hit_vz->at(i)*1.0e3);// in mm
+      
+      hit_data_temp[0] = (double)plane;
+      hit_data_temp[1] = edep;
+      hit_data_temp[8] = tmin;
+      hit_data_temp[12] = tmax;
+      hit_data_temp[13] = type;
+      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[18] = pid;
+      hit_data_temp[19] = -1.0e-9;
+      for(int k = 0; k<3; k++){
+	hit_data_temp[k+2] = X_RO[k];
+	hit_data_temp[k+5] = X_in[k];
+	hit_data_temp[k+9] = X_out[k];
+	hit_data_temp[k+14] = Vtx[k];
+	hit_data_temp[k+20] = Mom[k];
+      }
+      
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
 
-	for(int j = 0; j<23; j++){
-	  fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
-	}
-	n_hits++;
+      for(int j = 0; j<23; j++){
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
+      }
+      n_hits++;
       
-	gen_data_temp[0] = pid;
-	for(int k = 0; k<3; k++){
-	  gen_data_temp[k+1] = Mom[k];
-	  gen_data_temp[k+4] = Vtx[k];
-	}
-	gen_data_temp[7] = weight;
+      gen_data_temp[0] = pid;
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+1] = Mom[k];
+	gen_data_temp[k+4] = Vtx[k];
+      }
+      gen_data_temp[7] = weight;
       
-	newtrk = true; 
-	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
-	    dupli=false;
-	  }else{
-	    for(int j = 4; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
+      newtrk = true; 
+      for(int z = n_gen-1; z>=0; z--){
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  dupli=false;
+	}else{
+	  for(int j = 4; j<8; j++){
+	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	      dupli=false;
+	      break;
 	    }
 	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
 	}
+	if(dupli){
+	  newtrk = false;
+	  break;
+	}
+      }
       
-	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<8; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+      if(newtrk){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
+	n_gen++;
+      }
       
 #if DEBUG>0
-	cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	     << "energy deposit (MeV): " << edep << endl;
-	cout << "Momentum (MeV): ";
-	for(int k = 0; k<3; k++){
-	  cout << Mom[k] << ", ";
-	}
-	cout << " norm " << fTree->Harm_FPP1_hit_p->at(i) << endl;
-	cout << "hit position at drift entrance (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_in[k] << ", ";
-	}
-	cout << " time : " << tmin << endl;
-	cout << "hit position at drift exit (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_out[k] << " ";
-	}
-	cout << " time : " << tmax << endl;
-	cout << "hit position at readout (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_RO[k] << ", ";
-	}
-	cout << endl;
-	cout << "Vertex position (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << Vtx[k] << ", ";
-	}
-	cout << endl;
+      cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	   << "energy deposit (MeV): " << edep << endl;
+      cout << "Momentum (MeV): ";
+      for(int k = 0; k<3; k++){
+	cout << Mom[k] << ", ";
+      }
+      cout << " norm " << fTree->Harm_FPP1_hit_p->at(i) << endl;
+      cout << "hit position at drift entrance (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_in[k] << ", ";
+      }
+      cout << " time : " << tmin << endl;
+      cout << "hit position at drift exit (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_out[k] << " ";
+      }
+      cout << " time : " << tmax << endl;
+      cout << "hit position at readout (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_RO[k] << ", ";
+      }
+      cout << endl;
+      cout << "Vertex position (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << Vtx[k] << ", ";
+      }
+      cout << endl;
 
-	cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	     << "particle ID: " << pid << ", type (1, primary, >1 secondary: " << type << endl
-	     << "energy deposit (GeV): " << edep << endl;
-	cout << "Momentum (GeV): ";
-	Mom.Print();
-	cout << endl;
-	cout << "hit position at drift entrance (mm): ";
-	X_in.Print();
-	cout << " time : " << tmin << endl;
-	cout << "hit position at drift exit (mm): ";
-	X_out.Print();
-	cout << " time : " << tmax << endl;
-	cout << "hit position at Readout (mm): ";
-	X_RO.Print();
-	cout << endl;
-	cout << "Vertex position (mm): ";
-	Vtx.Print();
-	cout << endl;
+      cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	   << "particle ID: " << pid << ", type (1, primary, >1 secondary: " << type << endl
+	   << "energy deposit (GeV): " << edep << endl;
+      cout << "Momentum (GeV): ";
+      Mom.Print();
+      cout << endl;
+      cout << "hit position at drift entrance (mm): ";
+      X_in.Print();
+      cout << " time : " << tmin << endl;
+      cout << "hit position at drift exit (mm): ";
+      X_out.Print();
+      cout << " time : " << tmax << endl;
+      cout << "hit position at Readout (mm): ";
+      X_RO.Print();
+      cout << endl;
+      cout << "Vertex position (mm): ";
+      Vtx.Print();
+      cout << endl;
 #endif //DEBUG      
-      }
+    }
     
-      //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
-      // This block is not well commented, 
-      // as it is very similar to the previous block of instructions
-      // where Forward Tracker data are unfolded.
-      for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
-	det_id = 0;
+    //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
+    // This block is not well commented, 
+    // as it is very similar to the previous block of instructions
+    // where Forward Tracker data are unfolded.
+    for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
+      det_id = 0;
       
-	pid = fTree->Harm_FPP2_hit_pid->at(i);
-	type = fTree->Harm_FPP2_hit_mid->at(i)+1;
-	plane = 5+fTree->Harm_FPP2_hit_plane->at(i);
-	edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
-	tmin = fTree->Harm_FPP2_hit_tmin->at(i);
-	tmax = fTree->Harm_FPP2_hit_tmax->at(i);
+      pid = fTree->Harm_FPP2_hit_pid->at(i);
+      type = fTree->Harm_FPP2_hit_mid->at(i)+1;
+      plane = 5+fTree->Harm_FPP2_hit_plane->at(i);
+      edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
+      tmin = fTree->Harm_FPP2_hit_tmin->at(i);
+      tmax = fTree->Harm_FPP2_hit_tmax->at(i);
       
-	pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
-		   ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
-		     pow(fTree->Harm_FPP2_hit_typ->at(i), 2) + 1.0) );
+      pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
+		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
+		   pow(fTree->Harm_FPP2_hit_typ->at(i), 2) + 1.0) );
       
-	Mom = TVector3(fTree->Harm_FPP2_hit_txp->at(i)*pz*1.0e3, // in MeV
-		       fTree->Harm_FPP2_hit_typ->at(i)*pz*1.0e3, // in MeV
-		       pz*1.0e3);// in MeV
+      Mom = TVector3(fTree->Harm_FPP2_hit_txp->at(i)*pz*1.0e3, // in MeV
+		     fTree->Harm_FPP2_hit_typ->at(i)*pz*1.0e3, // in MeV
+		     pz*1.0e3);// in MeV
 	
-	X_in = TVector3(fTree->Harm_FPP2_hit_x_in->at(i)*1.0e3, // in mm
-			fTree->Harm_FPP2_hit_y_in->at(i)*1.0e3, // in mm
-			(fTree->Harm_FPP2_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
-	
-	X_out = TVector3(fTree->Harm_FPP2_hit_x_out->at(i)*1.0e3, // in mm
-			 fTree->Harm_FPP2_hit_y_out->at(i)*1.0e3, // in mm
-			(fTree->Harm_FPP2_hit_z_out->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+      X_in = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3, // in mm
+		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3, // in mm
+		      fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() *1.0e3);// in mm
       
-	X_RO = TVector3(fTree->Harm_FPP2_hit_x_in->at(i)*1.0e3+9.185*(fTree->Harm_FPP2_hit_x_out->at(i)-fTree->Harm_FPP2_hit_x_in->at(i))/(fTree->Harm_FPP2_hit_z_out->at(i)-fTree->Harm_FPP2_hit_z_in->at(i)), // in mm 
-			fTree->Harm_FPP2_hit_y_in->at(i)*1.0e3+9.185*(fTree->Harm_FPP2_hit_y_out->at(i)-fTree->Harm_FPP2_hit_y_in->at(i))/(fTree->Harm_FPP2_hit_z_out->at(i)-fTree->Harm_FPP2_hit_z_in->at(i)), // in mm 
-		       (fTree->Harm_FPP2_hit_z_in->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
-	
-	Vtx = TVector3(fTree->Harm_FPP2_hit_vx->at(i)*1.0e3, // in mm
-		       fTree->Harm_FPP2_hit_vy->at(i)*1.0e3, // in mm
-		       fTree->Harm_FPP2_hit_vz->at(i)*1.0e3);// in mm
+      X_out = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
+		       fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm
+		       (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
+      
+      X_RO = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_txp->at(i), // in mm
+		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm
+		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      
+      //cout << "FPP2: momentum: " << fTree->Harm_FPP2_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
+	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
+	eRangeGas = FindGasRange(fTree->Harm_FPP2_hit_p->at(i));//m
+	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+       	if(eRangeSlope>eRangeGas){
+       	  X_out.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	}
+      }
+      
+      if(fabs(X_out.X())>=999.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.X());
+	X_out[0]*=999.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=299.99){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	temp = fabs(X_out.Y());
+	X_out[1]*=299.99/temp;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetY(X_out.Y());
+      }
+      
+      Vtx = TVector3(fTree->Harm_FPP2_hit_vx->at(i)*1.0e3, // in mm
+		     fTree->Harm_FPP2_hit_vy->at(i)*1.0e3, // in mm
+		     fTree->Harm_FPP2_hit_vz->at(i)*1.0e3);// in mm
 
-	hit_data_temp[0] = (double)plane;
-	hit_data_temp[1] = edep;
-	hit_data_temp[8] = tmin;
-	hit_data_temp[12] = tmax;
-	hit_data_temp[13] = type;
-	hit_data_temp[17] = -1.0e-9;
-	hit_data_temp[18] = pid;
-	hit_data_temp[19] = -1.0e-9;
-	for(int k = 0; k<3; k++){
-	  hit_data_temp[k+2] = X_RO[k];
-	  hit_data_temp[k+5] = X_in[k];
-	  hit_data_temp[k+9] = X_out[k];
-	  hit_data_temp[k+14] = Vtx[k];
-	  hit_data_temp[k+20] = Mom[k];
-	}
+      hit_data_temp[0] = (double)plane;
+      hit_data_temp[1] = edep;
+      hit_data_temp[8] = tmin;
+      hit_data_temp[12] = tmax;
+      hit_data_temp[13] = type;
+      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[18] = pid;
+      hit_data_temp[19] = -1.0e-9;
+      for(int k = 0; k<3; k++){
+	hit_data_temp[k+2] = X_RO[k];
+	hit_data_temp[k+5] = X_in[k];
+	hit_data_temp[k+9] = X_out[k];
+	hit_data_temp[k+14] = Vtx[k];
+	hit_data_temp[k+20] = Mom[k];
+      }
       
-	fg4sbsHitData.push_back(new g4sbshitdata(det_id, data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id, data_size(__GEM_TAG)));
       
-	for(int j = 0; j<23; j++){
-	  fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
-	}
-	n_hits++;
+      for(int j = 0; j<23; j++){
+	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
+      }
+      n_hits++;
       
-	gen_data_temp[0] = pid;
-	for(int k = 0; k<3; k++){
-	  gen_data_temp[k+1] = Mom[k];
-	  gen_data_temp[k+4] = Vtx[k];
-	}
-	gen_data_temp[7] = weight;
+      gen_data_temp[0] = pid;
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+1] = Mom[k];
+	gen_data_temp[k+4] = Vtx[k];
+      }
+      gen_data_temp[7] = weight;
 
-	newtrk = true; 
-	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
-	    dupli=false;
-	  }else{
-	    for(int j = 4; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
+      newtrk = true; 
+      for(int z = n_gen-1; z>=0; z--){
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  dupli=false;
+	}else{
+	  for(int j = 4; j<8; j++){
+	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	      dupli=false;
+	      break;
 	    }
 	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
 	}
+	if(dupli){
+	  newtrk = false;
+	  break;
+	}
+      }
       
-	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<8; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+      if(newtrk){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<8; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
+	n_gen++;
+      }
       
 #if DEBUG>0
-	cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	     << "energy deposit (eV): " << edep << endl;
-	cout << "Momentum (MeV): ";
-	for(int k = 0; k<3; k++){
-	  cout << Mom[k] << ", ";
-	}
-	cout << " norm " << fTree->Harm_FPP2_hit_p->at(i) << endl;
-	cout << "hit position at drift entrance (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_in[k] << ", ";
-	}
-	cout << " time : " << tmin << endl;
-	cout << "hit position at drift exit (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_out[k] << " ";
-	}
-	cout << " time : " << tmax << endl;
-	cout << "hit position at readout (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << X_RO[k] << ", ";
-	}
-	cout << endl;
-	cout << "Vertex position (mm): ";
-	for(int k = 0; k<3; k++){
-	  cout << Vtx[k] << ", ";
-	}
-	cout << endl;
-#endif //DEBUG          
+      cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	   << "energy deposit (eV): " << edep << endl;
+      cout << "Momentum (MeV): ";
+      for(int k = 0; k<3; k++){
+	cout << Mom[k] << ", ";
       }
-      break;// end case(3)
+      cout << " norm " << fTree->Harm_FPP2_hit_p->at(i) << endl;
+      cout << "hit position at drift entrance (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_in[k] << ", ";
+      }
+      cout << " time : " << tmin << endl;
+      cout << "hit position at drift exit (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_out[k] << " ";
+      }
+      cout << " time : " << tmax << endl;
+      cout << "hit position at readout (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_RO[k] << ", ";
+      }
+      cout << endl;
+      cout << "Vertex position (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << Vtx[k] << ", ";
+      }
+      cout << endl;
+#endif //DEBUG          
+    }
+    break;// end case(3)
       
-    }//end switch(fManager->Getg4sbsDetectorType)
+  }//end switch(fManager->Getg4sbsDetectorType)
     
-    return 1;
+  return 1;
 }
 
 
 void TSBSGeant4File::Clear(){
-    // Clear out hit and generated data
+  // Clear out hit and generated data
 
 #if DEBUG>0
-	fprintf(stderr, "%s %s line %d: Deleting hits\n",
-		__FILE__, __FUNCTION__, __LINE__);
+  fprintf(stderr, "%s %s line %d: Deleting hits\n",
+	  __FILE__, __FUNCTION__, __LINE__);
 #endif //DEBUG
 
-    unsigned int i;
-    for( i = 0; i < fg4sbsHitData.size(); i++ ){
-	delete fg4sbsHitData[i];
-    }
+  unsigned int i;
+  for( i = 0; i < fg4sbsHitData.size(); i++ ){
+    delete fg4sbsHitData[i];
+  }
 
-    for( i = 0; i < fg4sbsGenData.size(); i++ ){
-	delete fg4sbsGenData[i];
-    }
+  for( i = 0; i < fg4sbsGenData.size(); i++ ){
+    delete fg4sbsGenData[i];
+  }
 
-    fg4sbsHitData.clear();
-    fg4sbsGenData.clear();
+  fg4sbsHitData.clear();
+  fg4sbsGenData.clear();
 
 #if DEBUG>0
-	fprintf(stderr, "%s %s line %d: Hits deleted\n",
-		__FILE__, __FUNCTION__, __LINE__);
+  fprintf(stderr, "%s %s line %d: Hits deleted\n",
+	  __FILE__, __FUNCTION__, __LINE__);
 #endif //DEBUG
 
-    return;
+  return;
 }
 
-/* // NB: See comment lines 128-129 of TSBSGeant4File.h 
+// NB: See comment lines 128-129 of TSBSGeant4File.h  // not valid anymore
 double TSBSGeant4File::FindGasRange(double p)
 {
   //find the electron range in the gas. Useful for very low energy electrons. 
@@ -948,7 +1163,6 @@ double TSBSGeant4File::FindGasRange(double p)
   }
   return(res);
 }
-*/
 
 TSolGEMData* TSBSGeant4File::GetGEMData()
 {

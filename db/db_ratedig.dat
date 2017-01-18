@@ -17,7 +17,7 @@ ratedig.avalanche_range = 3.0
 ratedig.max_ion = 10000
 
 # Electronics parameters:
-ratedig.triggeroffset = 125. # ns #original 125
+ratedig.triggeroffset = 125. # ns 
 ratedig.triggerjitter = 1.  # ns
 ratedig.elesamplingpoints = 10
 ratedig.elesamplingperiod = 25.
