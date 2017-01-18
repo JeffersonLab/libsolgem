@@ -675,9 +675,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
   // larger than the wedge's active area (section of a ring)
 
   const TSBSGEMChamber& chamber = spect.GetChamber(ic);
-  Double_t glx = (chamber.GetLowerEdgeX()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
-  Double_t gly = (chamber.GetLowerEdgeY()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
-  Double_t gux = (chamber.GetUpperEdgeX()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  Double_t glx = (chamber.GetLowerEdgeX()+chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  Double_t gly = (chamber.GetLowerEdgeY()+chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  Double_t gux = (chamber.GetUpperEdgeX()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
   Double_t guy = (chamber.GetUpperEdgeY()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
   
   if (x1<glx || x0>gux ||
@@ -719,6 +719,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     xs1 *= 1e3; ys1 *= 1e3;
 
 #if DBG_AVA > 0
+    cout << "glx gly gux guy " << glx << " " << gly << " " << gux << " " << guy << endl;
     cout << "xs0 ys0 xs1 ys1 " << xs0 << " " << ys0 << " " << xs1 << " " << ys1 << endl;
 #endif
 
