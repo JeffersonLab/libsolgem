@@ -1,0 +1,177 @@
+950101
+
+g4sbs_gep.gem10.d0 = 3.435510
+g4sbs_gep.gem10.dx = 1.500000
+g4sbs_gep.gem10.dy = 0.400000
+g4sbs_gep.gem10.thetaH = 16.900000
+g4sbs_gep.gem10.thetaV = 5.000000
+g4sbs_gep.gem10.depth = 0.015955
+g4sbs_gep.gem10.gem10x.stripangle = 0.0
+g4sbs_gep.gem10.gem10x.pitch = 0.0003906
+g4sbs_gep.gem10.gem10y.stripangle = 90.0
+g4sbs_gep.gem10.gem10y.pitch = 0.0003906
+
+g4sbs_gep.gem11.d0 = 3.525510
+g4sbs_gep.gem11.dx = 1.500000
+g4sbs_gep.gem11.dy = 0.400000
+g4sbs_gep.gem11.thetaH = 16.900000
+g4sbs_gep.gem11.thetaV = 5.000000
+g4sbs_gep.gem11.depth = 0.015955
+g4sbs_gep.gem11.gem11x.stripangle = 0.0
+g4sbs_gep.gem11.gem11x.pitch = 0.0003906
+g4sbs_gep.gem11.gem11y.stripangle = 90.0
+g4sbs_gep.gem11.gem11y.pitch = 0.0003906
+
+g4sbs_gep.gem12.d0 = 3.615510
+g4sbs_gep.gem12.dx = 1.500000
+g4sbs_gep.gem12.dy = 0.400000
+g4sbs_gep.gem12.thetaH = 16.900000
+g4sbs_gep.gem12.thetaV = 5.000000
+g4sbs_gep.gem12.depth = 0.015955
+g4sbs_gep.gem12.gem12x.stripangle = 0.0
+g4sbs_gep.gem12.gem12x.pitch = 0.0003906
+g4sbs_gep.gem12.gem12y.stripangle = 90.0
+g4sbs_gep.gem12.gem12y.pitch = 0.0003906
+
+g4sbs_gep.gem13.d0 = 3.705510
+g4sbs_gep.gem13.dx = 1.500000
+g4sbs_gep.gem13.dy = 0.400000
+g4sbs_gep.gem13.thetaH = 16.900000
+g4sbs_gep.gem13.thetaV = 5.000000
+g4sbs_gep.gem13.depth = 0.015955
+g4sbs_gep.gem13.gem13x.stripangle = 0.0
+g4sbs_gep.gem13.gem13x.pitch = 0.0003906
+g4sbs_gep.gem13.gem13y.stripangle = 90.0
+g4sbs_gep.gem13.gem13y.pitch = 0.0003906
+
+g4sbs_gep.gem14.d0 = 3.795510
+g4sbs_gep.gem14.dx = 1.500000
+g4sbs_gep.gem14.dy = 0.400000
+g4sbs_gep.gem14.thetaH = 16.900000
+g4sbs_gep.gem14.thetaV = 5.000000
+g4sbs_gep.gem14.depth = 0.015955
+g4sbs_gep.gem14.gem14x.stripangle = 0.0
+g4sbs_gep.gem14.gem14x.pitch = 0.0003906
+g4sbs_gep.gem14.gem14y.stripangle = 90.0
+g4sbs_gep.gem14.gem14y.pitch = 0.0003906
+
+g4sbs_gep.gem15.d0 = 3.885510
+g4sbs_gep.gem15.dx = 1.500000
+g4sbs_gep.gem15.dy = 0.400000
+g4sbs_gep.gem15.thetaH = 16.900000
+g4sbs_gep.gem15.thetaV = 5.000000
+g4sbs_gep.gem15.depth = 0.015955
+g4sbs_gep.gem15.gem15x.stripangle = 0.0
+g4sbs_gep.gem15.gem15x.pitch = 0.0003906
+g4sbs_gep.gem15.gem15y.stripangle = 90.0
+g4sbs_gep.gem15.gem15y.pitch = 0.0003906
+
+g4sbs_gep.gem0.d0 = 4.672760
+g4sbs_gep.gem0.dx = 2.000000
+g4sbs_gep.gem0.dy = 0.600000
+g4sbs_gep.gem0.thetaH = 16.900000
+g4sbs_gep.gem0.thetaV = 5.000000
+g4sbs_gep.gem0.depth = 0.015955
+g4sbs_gep.gem0.gem0x.stripangle = 0.0
+g4sbs_gep.gem0.gem0x.pitch = 0.0003072
+g4sbs_gep.gem0.gem0y.stripangle = 90.0
+g4sbs_gep.gem0.gem0y.pitch = 0.0003906
+
+g4sbs_gep.gem1.d0 = 4.765910
+g4sbs_gep.gem1.dx = 2.000000
+g4sbs_gep.gem1.dy = 0.600000
+g4sbs_gep.gem1.thetaH = 16.900000
+g4sbs_gep.gem1.thetaV = 5.000000
+g4sbs_gep.gem1.depth = 0.015955
+g4sbs_gep.gem1.gem1x.stripangle = 0.0
+g4sbs_gep.gem1.gem1x.pitch = 0.0003072
+g4sbs_gep.gem1.gem1y.stripangle = 90.0
+g4sbs_gep.gem1.gem1y.pitch = 0.0003906
+
+g4sbs_gep.gem2.d0 = 4.859060
+g4sbs_gep.gem2.dx = 2.000000
+g4sbs_gep.gem2.dy = 0.600000
+g4sbs_gep.gem2.thetaH = 16.900000
+g4sbs_gep.gem2.thetaV = 5.000000
+g4sbs_gep.gem2.depth = 0.015955
+g4sbs_gep.gem2.gem2x.stripangle = 0.0
+g4sbs_gep.gem2.gem2x.pitch = 0.0003072
+g4sbs_gep.gem2.gem2y.stripangle = 90.0
+g4sbs_gep.gem2.gem2y.pitch = 0.0003906
+
+g4sbs_gep.gem3.d0 = 4.952210
+g4sbs_gep.gem3.dx = 2.000000
+g4sbs_gep.gem3.dy = 0.600000
+g4sbs_gep.gem3.thetaH = 16.900000
+g4sbs_gep.gem3.thetaV = 5.000000
+g4sbs_gep.gem3.depth = 0.015955
+g4sbs_gep.gem3.gem3x.stripangle = 0.0
+g4sbs_gep.gem3.gem3x.pitch = 0.0003072
+g4sbs_gep.gem3.gem3y.stripangle = 90.0
+g4sbs_gep.gem3.gem3y.pitch = 0.0003906
+
+g4sbs_gep.gem4.d0 = 5.045360
+g4sbs_gep.gem4.dx = 2.000000
+g4sbs_gep.gem4.dy = 0.600000
+g4sbs_gep.gem4.thetaH = 16.900000
+g4sbs_gep.gem4.thetaV = 5.000000
+g4sbs_gep.gem4.depth = 0.015955
+g4sbs_gep.gem4.gem4x.stripangle = 0.0
+g4sbs_gep.gem4.gem4x.pitch = 0.0003072
+g4sbs_gep.gem4.gem4y.stripangle = 90.0
+g4sbs_gep.gem4.gem4y.pitch = 0.0003906
+
+g4sbs_gep.gem5.d0 = 5.790460
+g4sbs_gep.gem5.dx = 2.000000
+g4sbs_gep.gem5.dy = 0.600000
+g4sbs_gep.gem5.thetaH = 16.900000
+g4sbs_gep.gem5.thetaV = 5.000000
+g4sbs_gep.gem5.depth = 0.015955
+g4sbs_gep.gem5.gem5x.stripangle = 0.0
+g4sbs_gep.gem5.gem5x.pitch = 0.0003072
+g4sbs_gep.gem5.gem5y.stripangle = 90.0
+g4sbs_gep.gem5.gem5y.pitch = 0.0003906
+
+g4sbs_gep.gem6.d0 = 5.883610
+g4sbs_gep.gem6.dx = 2.000000
+g4sbs_gep.gem6.dy = 0.600000
+g4sbs_gep.gem6.thetaH = 16.900000
+g4sbs_gep.gem6.thetaV = 5.000000
+g4sbs_gep.gem6.depth = 0.015955
+g4sbs_gep.gem6.gem6x.stripangle = 0.0
+g4sbs_gep.gem6.gem6x.pitch = 0.0003072
+g4sbs_gep.gem6.gem6y.stripangle = 90.0
+g4sbs_gep.gem6.gem6y.pitch = 0.0003906
+
+g4sbs_gep.gem7.d0 = 5.976760
+g4sbs_gep.gem7.dx = 2.000000
+g4sbs_gep.gem7.dy = 0.600000
+g4sbs_gep.gem7.thetaH = 16.900000
+g4sbs_gep.gem7.thetaV = 5.000000
+g4sbs_gep.gem7.depth = 0.015955
+g4sbs_gep.gem7.gem7x.stripangle = 0.0
+g4sbs_gep.gem7.gem7x.pitch = 0.0003072
+g4sbs_gep.gem7.gem7y.stripangle = 90.0
+g4sbs_gep.gem7.gem7y.pitch = 0.0003906
+
+g4sbs_gep.gem8.d0 = 6.069910
+g4sbs_gep.gem8.dx = 2.000000
+g4sbs_gep.gem8.dy = 0.600000
+g4sbs_gep.gem8.thetaH = 16.900000
+g4sbs_gep.gem8.thetaV = 5.000000
+g4sbs_gep.gem8.depth = 0.015955
+g4sbs_gep.gem8.gem8x.stripangle = 0.0
+g4sbs_gep.gem8.gem8x.pitch = 0.0003072
+g4sbs_gep.gem8.gem8y.stripangle = 90.0
+g4sbs_gep.gem8.gem8y.pitch = 0.0003906
+
+g4sbs_gep.gem9.d0 = 6.163060
+g4sbs_gep.gem9.dx = 2.000000
+g4sbs_gep.gem9.dy = 0.600000
+g4sbs_gep.gem9.thetaH = 16.900000
+g4sbs_gep.gem9.thetaV = 5.000000
+g4sbs_gep.gem9.depth = 0.015955
+g4sbs_gep.gem9.gem9x.stripangle = 0.0
+g4sbs_gep.gem9.gem9x.pitch = 0.0003072
+g4sbs_gep.gem9.gem9y.stripangle = 90.0
+g4sbs_gep.gem9.gem9y.pitch = 0.0003906
