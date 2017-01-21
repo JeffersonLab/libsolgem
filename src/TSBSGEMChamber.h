@@ -43,25 +43,25 @@ class TSBSGEMChamber : public THaDetector {
   // Frame conversions
   void LabToPlane (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->LabToBox (x, y, z);
-  };  // input and output in meters
+  };  // input and output in mm
   void PlaneToLab (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->BoxToLab (x, y, z);
-  };  // input and output in meters
+  };  // input and output in mm
 
   void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->LabToSpec (x, y, z);
-  };  // input and output in meters
+  };  // input and output in mm
   void SpecToPlane (Double_t& x, Double_t& y, Double_t& z) const {
-    z = z-fBox->GetD0();
+    z = z-fBox->GetD0()*1000;
     fBox->SpecToBox (x, y);
-  };  // input and output in meters
+  };  // input and output in mm
   void PlaneToSpec (Double_t& x, Double_t& y, Double_t& z) const {
-    z = z+fBox->GetD0();
+    z = z+fBox->GetD0()*1000;
     fBox->BoxToSpec (x, y);
-  };  // input and output in meters
+  };  // input and output in mm
   void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->SpecToLab (x, y, z);
-  };  // input and output in meters
+  };  // input and output in mm
 
   //Frame conversions with TVector3 objects as inputs
   void LabToPlane (TVector3& X_) const;

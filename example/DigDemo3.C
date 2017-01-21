@@ -16,7 +16,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     TSolDBManager* manager = TSolDBManager::GetInstance();
     manager->LoadGeneralInfo("db_generalinfo.dat");
     
-    dds = new TSBSSpec ("g4sbs", "SBS spectrometer");
+    dds = new TSBSSpec ("g4sbs_gep", "SBS spectrometer");
     dds->Init();
     
     for(int i_ch = 0; i_ch<10; i_ch++){
@@ -44,7 +44,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     ddd->SetMapSector(false);
     
     dde = new TSBSSimDecoder ();
-    dde->SetCrateMapName("db_solsim_cratemap.dat");
+    dde->SetCrateMapName("db_sbssim_cratemap.dat");
     
     ////////////////////////////////////////////////////////////////
     
@@ -85,7 +85,8 @@ void DigDemo3(int Nmax = 10000, bool print = false){
 
     while( f->ReadNextEvent() && hadback && nevent<Nmax){
       
-      if(nevent%100==0)cout << "Evt " << nevent << endl;
+      //if(nevent%10==0)
+      cout << "Evt " << nevent << endl;
             
       gd = f->GetGEMData();
       gen = f->GetGenData(0);
@@ -152,11 +153,10 @@ void DigDemo3(int Nmax = 10000, bool print = false){
       }
       
       //if(nevent==25)
-      //ddd->GetEvent()->Print("");
-      
       ddd->FillTree();
       
       //if(nevent==25)ddd->GetEvent()->Print("all");
+      if(print)ddd->GetEvent()->Print("all");
       
       delete gd;
       nevent++;

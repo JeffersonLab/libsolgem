@@ -68,11 +68,15 @@ TSolSimAux::PulseShape(Double_t t,
   Double_t x0,x1;
 
   //  cerr << __FUNCTION__ << " " << t << " " << A << " " << tau0 << " " << tau1 << endl;
-
+  
   if (tau1<0) { return PulseShape(t, A, tau0); } // SiD model
   x0 = -t/tau0;
   x1 = -t/tau1;
   v = A * ((tau0+tau1)/tau1/tau1)*(1.-TMath::Exp(x0)) * TMath::Exp(x1);
+  
+  //cout << "x0 " << x0 << ", x1 " << x1 
+  //   << " => " << (1.-TMath::Exp(x0)) << " " << TMath::Exp(x1)
+  //   << " " << A*((tau0+tau1)/tau1/tau1) << " => v = " << v << endl;
   
   return ( v>0. ) ? v : 0.;
  	   

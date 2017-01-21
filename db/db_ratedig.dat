@@ -39,7 +39,7 @@ ratedig.pulseshapetau1 = 129.  # ns
 # Geometry
 ratedig.zrout = 9.185   # mm
 ratedig.use_tracker_frame = 0
-ratedig.entrance_ref = -4.687
+ratedig.entrance_ref = -4.6825
 
 #numerical integration parameter
 #ratedig.y_integral_step_per_pitch = 8

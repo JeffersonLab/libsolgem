@@ -216,9 +216,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     
   fEvNum++;
 
-  cout << "Read Next Event: Evt " << fEvNum << endl;
-  
-  cout << fTree << endl;
+  //cout << "Read Next Event: Evt " << fEvNum << endl;
   
   res = fTree->GetEntry(fEvNum);
   //Test that the next entry exist
@@ -592,7 +590,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_out = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		       fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
-		       (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
+		       (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() )*1.0e3+3.0);// in mm
       
       X_RO = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
@@ -961,7 +959,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	
       X_in = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3, // in mm
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3, // in mm
-		      fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() *1.0e3);// in mm
+		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
       
       X_out = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
 		       fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm

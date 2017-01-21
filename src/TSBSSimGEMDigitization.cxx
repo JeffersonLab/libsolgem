@@ -406,14 +406,21 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
     
-    // cout << ih << endl; 
+    // cout << "GEM number : " << igem << endl;
     // cout << " hit entrance ";
     // vv1.Print();
     // cout << " hit exit ";
     // vv2.Print();
     
+    // cout << "Calling spec to plane  " << endl;
+    // cout << ih << endl; 
     spect.GetChamber(igem).SpecToPlane(vv1);
     spect.GetChamber(igem).SpecToPlane(vv2);
+
+    // cout << " hit entrance (2) ";
+    // vv1.Print();
+    // cout << " hit exit (2) ";
+    // vv2.Print();
     
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
 
@@ -564,7 +571,10 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
 
     Double_t LL = TMath::Abs(fRoutZ - LD - vseg.Z()*lion);
     Double_t ttime = LL/fGasDriftVelocity; // traveling time from the drift gap to the readout
-
+    
+    //cout << " rout Z  (mm?) " << fRoutZ << ", LD (mm?) " << LD << " vseg Z (mm?) " << vseg.Z()  << endl;
+    //cout << " travelling length (mm?) " << LL << ", travelling time:  " <<  ttime << endl;
+    
     fRTime0 = TMath::Min(ttime, fRTime0); // minimum traveling time [s]
 
     ip.SNorm = TMath::Sqrt(2.*fGasDiffusion*ttime); // spatial sigma on readout [mm]
@@ -615,6 +625,7 @@ Double_t IntegralY( Double_t* a, Int_t ix, Int_t nx, Int_t ny )
   register int kx = ix*ny;
   for( Int_t jy = ny; jy != 0; --jy )
     sum += a[kx++];
+
   return sum;
 }
 
@@ -879,13 +890,17 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 
     //when we integrate in order to get the signal pulse, we want all charge
     //deposition on the area of a single strip -- Weizhi
+    
+    //cout << "number of strips: " << nstrips << ", number of samples " << fEleSamplingPoints << " area: " << area << endl;
+    
     for (Int_t j = 0; j < nstrips; j++){
       Int_t posflag = 0;
       Double_t us = 0.;
       for (UInt_t k=0; k<fXIntegralStepsPerPitch; k++){
 	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
+	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
-            
+      
       //generate the random pedestal phase and amplitude
       Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
       Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
@@ -896,18 +911,30 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 				  us,
 				  fPulseShapeTau0,
 				  fPulseShapeTau1 );
-
+	
 	//nx is larger than the size of the strips that are actually being hit,
 	//however, this way of adding noise will add signals to those strips that were not hit
 	//and the cluster size will essentially equal to nx
 	//not sure if this is what we what...
 	// if( fPulseNoiseSigma > 0.)
 	// pulse += fTrnd.Gaus(0., fPulseNoiseSigma);
-
+	
+	// if(us>0)cout << "strip number " << j << ", sampling number " << b << endl
+	// 	     << "sampling period " << fEleSamplingPeriod << " => " << fEleSamplingPeriod * b - t0 << endl
+	// 	     << "pulse shape tau 0 " << fPulseShapeTau0 << " pulse shape tau 1 " << fPulseShapeTau1 
+	// 	     << " value of us " << us << ", pulse value " << pulse << endl;
+	
+	// cout << "x0 " << -(fEleSamplingPeriod * b - t0)/fPulseShapeTau0 
+	//      << ", x1 " << -(fEleSamplingPeriod * b - t0)/fPulseShapeTau1 
+	//      << " => " << (1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0)) 
+	//<< " " << TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1)
+	// << " " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1) 
+	// << " => v = " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1)*(1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0))*TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1) << endl;
+	
 	//add noise only to those strips that are hit,
 	if( fPulseNoiseSigma > 0. && pulse > 0. )
 	  pulse += GetPedNoise(phase, amp, b);
-
+	
 	Short_t dadc = TSolSimAux::ADCConvert( pulse,
 					       fADCoffset,
 					       fADCgain,
@@ -924,7 +951,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	ai++;
       }
     }
-
+    
+    //cout << "number of strips with signal " << ai << endl;
+    
     virs[ipl]->SetSize(ai);
   }
   
@@ -1087,9 +1116,9 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
   // ionization region
-  clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m] 
+  clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of hit in Lab frame, transformed at (1)
-  clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-4; // [m] 
+  clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of the hit in plane frame, transformed at (2)
   
   if (fdh != NULL && fdh[0] != NULL)
@@ -1102,9 +1131,10 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   
   ch.SpecToLab(clust.fMCpos); // (1)
   //ch.SpecToLab(clust.fP);
-  
+  clust.fMCpos = (clust.fMCpos)*1.0e-3;
   //hitpos_temp.Print();
   ch.SpecToPlane(clust.fHitpos); // (2)
+  clust.fHitpos = (clust.fHitpos)*1.0e-3;
   
   //cout << "hit in lab" << endl;
   //hitpos_temp.Print();
@@ -1193,7 +1223,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 {
   // Sets the variables in fEvent->fGEMStrips describing strip signals
   // This is later used to fill the tree.
-
+  
   fEvent->fGEMStrips.clear();
 
   TSBSSimEvent::DigiGEMStrip strip;
@@ -1224,12 +1254,13 @@ TSBSSimGEMDigitization::SetTreeStrips()
 
 	const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
 	strip.fClusters.Set( sc.size(), &sc[0] );
-
+	
+	//cout << "pushing back something: " << &strip << endl;
 	fEvent->fGEMStrips.push_back( strip );
       }
     }
   }
-  //cout << " event GEM strip size" << fEvent->fGEMStrips.size() << endl;
+  //cout << " event GEM strip size " << fEvent->fGEMStrips.size() << endl;
   
   fFilledStrips = true;
 }
