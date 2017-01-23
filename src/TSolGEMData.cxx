@@ -64,8 +64,9 @@ TSolGEMData::PrintHit (UInt_t k) const
        << " mm" << endl;
   cout << "    Hit energy: " << GetHitEnergy(k) << " eV" << endl;
   cout << "    Hit chamber: " << GetHitChamber(k) << endl;
-  cout << "    Track ID: " << GetTrackID(k) << endl;
   cout << "    Particle type: " << GetParticleType(k) << endl;
+  cout << "    Track ID: " << GetTrackID(k) << endl;
+  cout << "    Particle ID: " << GetParticleID(k) << endl;
 }
 
 

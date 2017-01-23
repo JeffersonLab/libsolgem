@@ -396,7 +396,7 @@ TSolSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSolSp
     if (igem >= fNChambers)
       continue;
 
-    Short_t itype = (gdata.GetTrackID(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
+    Short_t itype = (gdata.GetParticleType(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
     Short_t isect, iplane;
     ChamberToSector( igem, isect, iplane );
     if( fDoMapSector && !is_background && isect != fSignalSector )
@@ -1059,8 +1059,9 @@ TSolSimGEMDigitization::SetTreeHit (const UInt_t ih,
   ChamberToSector( igem, clust.fRealSector, clust.fPlane );
   clust.fSector   = clust.fRealSector; // May change if mapped, see below
   clust.fSource   = tsgd.GetSource();  // Source of this hit (0=signal, >0 background)
-  clust.fType     = tsgd.GetTrackID(ih);   // GEANT particle counter
-  clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
+  clust.fType     = tsgd.GetParticleType(ih);   // GEANT particle counter
+  clust.fTRID     = tsgd.GetTrackID(ih);   // GEANT particle counter
+  clust.fPID      = tsgd.GetParticleID(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
