@@ -1074,16 +1074,12 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const g4sbsgendata* gd = f.GetGenData(i);
-    //TODO: get GEANT id?
-    // cout << "SBS G4 file: track " << i << ", PID " <<  gd->GetPID() << endl;
-    // cout << "Vertex     ";gd->GetV().Print();
-    // cout << "Momentum   ";gd->GetP().Print();
-    fEvent->AddTrack( i+1, gd->GetPID(),
+    fEvent->AddTrack( gd->GetTRID(), gd->GetPID(),
 		      gd->GetV(), // Vertex coordinates in [m]
 		      gd->GetP()  // Momentum in [GeV]
 		      );
   }
-  // FIXME: either only one GenData per event, or multiple weights per event
+  
   if( f.GetNGen() > 0 )
     fEvent->fWeight = f.GetGenData(0)->GetWeight();
 

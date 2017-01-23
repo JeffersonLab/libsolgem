@@ -58,7 +58,7 @@ class g4sbshitdata {
 ////////////////////////////////////////////////////////////////////////////
 // Auxilliary class for storing generated track data
 // // ___________________________________________________________ //
-// //gendata: {PID, px, py, pz, x_vtx, y_vtx, z_vtx, weight};
+// //gendata: {TRID, PID, px, py, pz, x_vtx, y_vtx, z_vtx, weight};
 // // the strucutre of this data array is identical to the structure 
 // // of the gendata array defined in TSolEVIOFile class
 
@@ -67,10 +67,11 @@ class g4sbsgendata : public g4sbshitdata {
 	g4sbsgendata();
 	~g4sbsgendata(){;}
 	
-	int	GetPID() const { return IsFilled()? (int) fData[0] : -1e9; }//G4 particle ID
-	double  GetWeight() const { return fData[7]; }//cross section
-	TVector3 GetP() const { return IsFilled()? TVector3(fData[1], fData[2], fData[3]) : TVector3(-1e9, -1e9, -1e9 ); }//Track momentum 3-vector
-	TVector3 GetV() const { return IsFilled()? TVector3(fData[4], fData[5], fData[6]) : TVector3(-1e9, -1e9, -1e9 ); }//Track vtx 3-vector
+	int	GetTRID() const { return IsFilled()? (int) fData[0] : -1e9; }//G4 particle ID
+	int	GetPID() const { return IsFilled()? (int) fData[1] : -1e9; }//G4 particle ID
+	double  GetWeight() const { return fData[8]; }//cross section
+	TVector3 GetP() const { return IsFilled()? TVector3(fData[2], fData[3], fData[4]) : TVector3(-1e9, -1e9, -1e9 ); }//Track momentum 3-vector
+	TVector3 GetV() const { return IsFilled()? TVector3(fData[5], fData[6], fData[7]) : TVector3(-1e9, -1e9, -1e9 ); }//Track vtx 3-vector
 };
 
 

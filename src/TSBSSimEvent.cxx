@@ -170,7 +170,7 @@ void TSBSSimEvent::Print( const Option_t* opt ) const
 	   << ", coord = (" << c.fXProj[0] << ", " << c.fXProj[1] << ")"
 	   << endl;
       cout << " mom lab  = "; c.fP.Print();
-      //cout << " mom spec = "; c.fPspec.Print();
+      cout << " mom spec = "; c.fPspec.Print();
       cout << " mcpos  = "; c.fMCpos.Print();
       cout << " hitpos = "; c.fHitpos.Print();
     }

@@ -234,6 +234,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   int det_id;//0: FT, 1: FPPs
     
   int pid;
+  int trid;
   int type;
   int plane;
   double edep;
@@ -250,7 +251,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   TVector3 Vtx;
     
   double hit_data_temp[23];
-  double gen_data_temp[8];
+  double gen_data_temp[9];
    
   // NB: See comment lines 128-129 of TSBSGeant4File.h 
   //variables for the correction of hits given by very small momenta
@@ -267,7 +268,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       det_id = 0;
 	
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
-      type = fTree->Earm_BBGEM_hit_mid->at(i)+1;
+      trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
+      type = fTree->Earm_BBGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
       plane = fTree->Earm_BBGEM_hit_plane->at(i);
       edep = fTree->Earm_BBGEM_hit_edep->at(i)*1.0e3;
       tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
@@ -366,18 +368,19 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       n_hits++;
       
       //Filling gen_data temporary array...
-      gen_data_temp[0] = pid;
+      gen_data_temp[0] = trid;
+      gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
-	gen_data_temp[k+1] = Mom[k];
-	gen_data_temp[k+4] = Vtx[k];
+	gen_data_temp[k+2] = Mom[k];
+	gen_data_temp[k+5] = Vtx[k];
       }
-      gen_data_temp[7] = weight;
+      gen_data_temp[8] = weight;
       
       // ... to copy it in the actual g4sbsGenData structure.
       // only store new MC tracks
       if(n_gen==0){
 	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<8; j++){
+	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
@@ -385,10 +388,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
 	    dupli=false;
 	  }else{
-	    for(int j = 4; j<8; j++){
+	    for(int j = 5; j<8; j++){
 	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 		dupli=false;
 		break;
@@ -403,7 +406,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	
 	if(newtrk){
 	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<8; j++){
+	  for(int j = 0; j<9; j++){
 	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	  }
 	  n_gen++;
@@ -416,9 +419,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
       det_id = 0;
-	
+      
       pid = fTree->Harm_SBSGEM_hit_pid->at(i);
-      type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;
+      trid = fTree->Harm_SBSGEM_hit_trid->at(i);
+      type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
       plane = fTree->Harm_SBSGEM_hit_plane->at(i);
       edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
@@ -517,18 +521,19 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       n_hits++;
       
       //Filling gen_data temporary array...
-      gen_data_temp[0] = pid;
+      gen_data_temp[0] = trid;
+      gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
-	gen_data_temp[k+1] = Mom[k];
-	gen_data_temp[k+4] = Vtx[k];
+	gen_data_temp[k+2] = Mom[k];
+	gen_data_temp[k+5] = Vtx[k];
       }
-      gen_data_temp[7] = weight;
+      gen_data_temp[8] = weight;
       
       // ... to copy it in the actual g4sbsGenData structure.
       // only store new MC tracks
       if(n_gen==0){
 	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<8; j++){
+	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
@@ -536,10 +541,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
 	    dupli=false;
 	  }else{
-	    for(int j = 4; j<8; j++){
+	    for(int j = 5; j<8; j++){
 	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 		dupli=false;
 		break;
@@ -554,7 +559,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	
 	if(newtrk){
 	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<8; j++){
+	  for(int j = 0; j<9; j++){
 	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	  }
 	  n_gen++;
@@ -570,7 +575,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       det_id = 1;
       
       pid = fTree->Harm_FT_hit_pid->at(i);
-      type = fTree->Harm_FT_hit_mid->at(i)+1;
+      trid = fTree->Harm_FT_hit_trid->at(i);
+      type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
       plane = fTree->Harm_FT_hit_plane->at(i);
       edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FT_hit_tmin->at(i);
@@ -669,18 +675,19 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       n_hits++;
       
       //Filling gen_data temporary array...
-      gen_data_temp[0] = pid;
+      gen_data_temp[0] = trid;
+      gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
-	gen_data_temp[k+1] = Mom[k];
-	gen_data_temp[k+4] = Vtx[k];
+	gen_data_temp[k+2] = Mom[k];
+	gen_data_temp[k+5] = Vtx[k];
       }
-      gen_data_temp[7] = weight;
+      gen_data_temp[8] = weight;
       
       // ... to copy it in the actual g4sbsGenData structure.
       // only store new MC tracks
       if(n_gen==0){
 	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<8; j++){
+	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
@@ -688,10 +695,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
 	    dupli=false;
 	  }else{
-	    for(int j = 4; j<8; j++){
+	    for(int j = 5; j<8; j++){
 	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 		dupli=false;
 		break;
@@ -706,7 +713,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	
 	if(newtrk){
 	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<8; j++){
+	  for(int j = 0; j<9; j++){
 	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	  }
 	  n_gen++;
@@ -757,7 +764,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       det_id = 0;
       
       pid = fTree->Harm_FPP1_hit_pid->at(i);
-      type = fTree->Harm_FPP1_hit_mid->at(i)+1;
+      trid = fTree->Harm_FPP1_hit_trid->at(i);
+      type = fTree->Harm_FPP1_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
       plane = fTree->Harm_FPP1_hit_plane->at(i);
       edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
@@ -850,20 +858,21 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       n_hits++;
       
-      gen_data_temp[0] = pid;
+      gen_data_temp[0] = trid;
+      gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
-	gen_data_temp[k+1] = Mom[k];
-	gen_data_temp[k+4] = Vtx[k];
+	gen_data_temp[k+2] = Mom[k];
+	gen_data_temp[k+5] = Vtx[k];
       }
-      gen_data_temp[7] = weight;
+      gen_data_temp[8] = weight;
       
       newtrk = true; 
       for(int z = n_gen-1; z>=0; z--){
 	dupli = true;
-	if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
 	  dupli=false;
 	}else{
-	  for(int j = 4; j<8; j++){
+	  for(int j = 5; j<8; j++){
 	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 	      dupli=false;
 	      break;
@@ -878,7 +887,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       if(newtrk){
 	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<8; j++){
+	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
@@ -943,7 +952,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       det_id = 0;
       
       pid = fTree->Harm_FPP2_hit_pid->at(i);
-      type = fTree->Harm_FPP2_hit_mid->at(i)+1;
+      trid = fTree->Harm_FPP2_hit_trid->at(i);
+      type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
       plane = 5+fTree->Harm_FPP2_hit_plane->at(i);
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
@@ -1037,20 +1047,21 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       n_hits++;
       
-      gen_data_temp[0] = pid;
+      gen_data_temp[0] = trid;
+      gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
-	gen_data_temp[k+1] = Mom[k];
-	gen_data_temp[k+4] = Vtx[k];
+	gen_data_temp[k+2] = Mom[k];
+	gen_data_temp[k+5] = Vtx[k];
       }
-      gen_data_temp[7] = weight;
+      gen_data_temp[8] = weight;
 
       newtrk = true; 
       for(int z = n_gen-1; z>=0; z--){
 	dupli = true;
-	if(fg4sbsGenData[z]->GetData(0)!=gen_data_temp[0]){
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
 	  dupli=false;
 	}else{
-	  for(int j = 4; j<8; j++){
+	  for(int j = 5; j<8; j++){
 	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
 	      dupli=false;
 	      break;
@@ -1065,7 +1076,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       if(newtrk){
 	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<8; j++){
+	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
@@ -1303,8 +1314,8 @@ g4sbshitdata::~g4sbshitdata(){
 
 // Size is 1 bigger because we are also including the weight
 // Set that default to 1
-g4sbsgendata::g4sbsgendata():g4sbshitdata(-1, __GENERATED_SIZE+1){
-    SetData(7,1.0);
+g4sbsgendata::g4sbsgendata():g4sbshitdata(-1, __GENERATED_SIZE+2){
+    SetData(8,1.0);
 }
 
 #endif//__CINT__
