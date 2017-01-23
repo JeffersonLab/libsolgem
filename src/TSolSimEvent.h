@@ -90,7 +90,8 @@ public:
     Short_t   fPlane;     // Plane number
     Short_t   fRealSector;// Real sector number (may be !=fSector if mapped)
     Int_t     fSource;    // MC data set source (0 = signal, >0 background)
-    Int_t     fType;      // GEANT particle counter (1 = primary)
+    Int_t     fType;      // GEANT particle type (1 = primary)
+    Int_t     fTRID;      // GEANT particle counter
     Int_t     fPID;       // PDG ID of particle generating the cluster
     TVector3  fP;         // Momentum of particle generating the cluster [GeV]
     TVector3  fPspec;     // Momentum of particle generating the cluster in the spec [GeV]

@@ -162,6 +162,7 @@ void TSBSSimEvent::Print( const Option_t* opt ) const
       if( fSectorsMapped ) cout << "->" << c.fSector;
       cout << ", plane = "  << c.fPlane
 	   << ", GID = "    << c.fType
+	   << ", TRID = "   << c.fTRID
 	   << ", PID = "    << c.fPID
 	   << ", chrg = "   << c.fCharge
 	   << ", time = "   << c.fTime

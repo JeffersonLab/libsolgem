@@ -348,7 +348,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
       hit_data_temp[13] = type;
-      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[17] = trid;
       hit_data_temp[18] = pid;
       hit_data_temp[19] = -1.0e-9;
       for(int k = 0; k<3; k++){
@@ -501,7 +501,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
       hit_data_temp[13] = type;
-      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[17] = trid;
       hit_data_temp[18] = pid;
       hit_data_temp[19] = -1.0e-9;
       for(int k = 0; k<3; k++){
@@ -655,7 +655,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
       hit_data_temp[13] = type;
-      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[17] = trid;
       hit_data_temp[18] = pid;
       hit_data_temp[19] = -1.0e-9;
       for(int k = 0; k<3; k++){
@@ -840,7 +840,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
       hit_data_temp[13] = type;
-      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[17] = trid;
       hit_data_temp[18] = pid;
       hit_data_temp[19] = -1.0e-9;
       for(int k = 0; k<3; k++){
@@ -1029,7 +1029,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
       hit_data_temp[13] = type;
-      hit_data_temp[17] = -1.0e-9;
+      hit_data_temp[17] = trid;
       hit_data_temp[18] = pid;
       hit_data_temp[19] = -1.0e-9;
       for(int k = 0; k<3; k++){

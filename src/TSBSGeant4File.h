@@ -26,7 +26,7 @@
 // //            X_in_x, X_in_y, X_in_z, tmin,
 // //            X_out_x, X_out_y, X_out_z, tmax,
 // //            type (prim, second), x_vtx, y_vtx, z_vtx,
-// //            (???), Particle ID, (???), 
+// //            Track ID, Particle ID, (???), 
 // //            px, py, pz}
 // // the strucutre of the data array is identical to the structure 
 // // of the hitdata array defined in TSolEVIOFile class
