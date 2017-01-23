@@ -77,6 +77,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       fSize[1] = (parent->GetSize())[1];
       fSize[2] = (parent->GetSize())[2];
       fBox->SetGeometry (parent->GetBox().GetD0(),
+      			 parent->GetBox().GetXOffset(),
       			 parent->GetBox().GetDX(),
       			 parent->GetBox().GetDY(),
       			 parent->GetBox().GetThetaH(),
@@ -88,6 +89,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   else
     {
       Double_t d0 = -999.0;
+      Double_t xoffset = -999.0;
       Double_t dx = -999.0;
       Double_t dy = -999.0;
       Double_t thetaH = -999.0;
@@ -95,6 +97,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       const DBRequest request[] = 
 	{
 	  {"d0",          &d0,           kDouble, 0, 1},
+	  {"xoffset",     &xoffset,      kDouble, 0, 1},
 	  {"dx",          &dx,           kDouble, 0, 1},
 	  {"dy",          &dy,           kDouble, 0, 1},
 	  {"thetaH",      &thetaH,       kDouble, 0, 1},
@@ -110,7 +113,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       thetaH *= torad;
       thetaV *= torad;
       
-      fBox->SetGeometry (d0, dx, dy, thetaH, thetaV);
+      fBox->SetGeometry (d0, xoffset, dx, dy, thetaH, thetaV);
 
       fOrigin[0] = (fBox->GetOrigin())[0];
       fOrigin[1] = (fBox->GetOrigin())[1];

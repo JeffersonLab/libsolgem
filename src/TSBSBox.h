@@ -17,8 +17,9 @@ class TDatime;
 // from the GEM plane frames to the spectrometer frames or to the lab.
 
 // It is basically just a box, characterized by an extension in x (dx) and y (dy)
-// and by three parameters for its location: 
-// d0, the distance of the box center to the target, and two angles: 
+// and by four parameters for its location: 
+// d0, the distance of the box center to the target, 
+// xOffset, the translation in X (in transport coordinates) of the chamber, and two angles: 
 // one of horizontal rotation (thetaH), which translates the SBS angle,
 // one of vertical rotation (thetaV), translating the "bending" of the SBS wrt the xOz plane.
 // 
@@ -45,12 +46,14 @@ class TSBSBox
 {
  public:
   // Default constructors and destructors.
-  TSBSBox (Double_t d0 = 1.0, Double_t dx = 1.0, Double_t dy = 1.0, 
+  TSBSBox (Double_t d0 = 1.0, Double_t xoffset = 0.0, 
+	   Double_t dx = 1.0, Double_t dy = 1.0, 
 	   Double_t thetaH = 0.0, Double_t thetaV = 0.0);
   virtual ~TSBSBox() {};
   
   // Members getters
   Double_t GetD0() const {return fD0;};
+  Double_t GetXOffset() const {return fXOffset;};
   Double_t GetDX() const {return fDX;};
   Double_t GetDY() const {return fDY;};
   Double_t GetThetaH() const {return fThetaH;};
@@ -62,19 +65,20 @@ class TSBSBox
   // One global member setter. 
   // The box geometry is not supposed to be modified along the way
   void SetGeometry (const Double_t d0,
+		    const Double_t xoffset,
 		    const Double_t dx,
 		    const Double_t dy,
 		    const Double_t thetaH,
 		    const Double_t thetaV);
     
   // Frame conversions methods:  Lab -> Box, Lab -> Spec -> Box, and reverse transformations
-  void LabToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
-  void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+  void LabToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
+  void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   // neutral transformations. 
-  void SpecToBox (Double_t& x, Double_t& y) const {return;};  // input and output in meters
-  void BoxToSpec (Double_t& x, Double_t& y) const {return;};  // input and output in meters
-  void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
-  void BoxToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in meters
+  void SpecToBox (Double_t& x, Double_t& y) const {return;};  // input and output in mm
+  void BoxToSpec (Double_t& x, Double_t& y) const {return;};  // input and output in mm
+  void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
+  void BoxToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   
   // Checker: does the plane contain the hit position ?
   Bool_t Contains (Double_t x, Double_t y) const;//hit position in the box
@@ -86,6 +90,7 @@ class TSBSBox
   
   // Members
   Double_t fD0;
+  Double_t fXOffset;
   Double_t fDX;
   Double_t fDY;
   Double_t fThetaH;

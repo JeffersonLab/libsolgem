@@ -6,14 +6,15 @@ using namespace std;
 #include <TDatime.h>
 #include <TMath.h>
 
-TSBSBox::TSBSBox (Double_t d0, Double_t dx, Double_t dy, Double_t thetaH, Double_t thetaV)
+TSBSBox::TSBSBox (Double_t d0, Double_t xoffset, Double_t dx, Double_t dy, Double_t thetaH, Double_t thetaV)
   : fD0(1),
+    fXOffset(1),
     fDX(1),
     fDY(1),
     fThetaH(0),
     fThetaV(0)
 {
-  SetGeometry (d0, dx, dy, thetaH, thetaV);
+  SetGeometry (d0, xoffset, dx, dy, thetaH, thetaV);
 }
 
 Bool_t
@@ -39,12 +40,14 @@ TSBSBox::Contains (Double_t x, Double_t y, Double_t z) const
 
 void
 TSBSBox::SetGeometry (const Double_t d0,
+		      const Double_t xoffset,
 		      const Double_t dx,
 		      const Double_t dy,
 		      const Double_t thetaH,
 		      const Double_t thetaV)
 {
   fD0 = d0;
+  fXOffset = xoffset;
   fDX = dx;
   fDY = dy;
   fThetaH = thetaH;
@@ -52,7 +55,7 @@ TSBSBox::SetGeometry (const Double_t d0,
 
   SetRotations();
    
-  Double_t x0 = 0.0; 
+  Double_t x0 = xoffset; 
   Double_t y0 = 0.0; 
   Double_t z0 = fD0; 
   
@@ -60,7 +63,7 @@ TSBSBox::SetGeometry (const Double_t d0,
   
   // Evaluate the central point (in the lab) and the size of the Box
   fOrigin = TVector3(x0, y0, z0);
-  fSize = TVector3(fDX, fDY, 0.016);
+  fSize = TVector3(fDX, fDY, 0.015955);
 }
 
 void

@@ -71,6 +71,7 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
     return err;
 
   Double_t d0 = -999.0;
+  Double_t xoffset = -999.0;
   Double_t dx = -999.0;
   Double_t dy = -999.0;
   Double_t thetaH = -999.0;
@@ -79,6 +80,7 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   const DBRequest request[] =
     {
       {"d0",          &d0,           kDouble, 0, 1},
+      {"xoffset",     &xoffset,      kDouble, 0, 1},
       {"dx",          &dx,           kDouble, 0, 1},
       {"dy",          &dy,           kDouble, 0, 1},
       {"thetaH",      &thetaH,       kDouble, 0, 1},
@@ -97,7 +99,7 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   thetaV *= torad;
   
   // Set the geometry for the dependent TSBSBox
-  fBox->SetGeometry (d0, dx, dy, thetaH, thetaV);
+  fBox->SetGeometry (d0, xoffset, dx, dy, thetaH, thetaV);
 
   fOrigin[0] = (fBox->GetOrigin())[0];
   fOrigin[1] = (fBox->GetOrigin())[1];
