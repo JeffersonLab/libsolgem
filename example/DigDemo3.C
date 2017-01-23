@@ -43,8 +43,8 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
     ddd->SetMapSector(false);
     
-    dde = new TSBSSimDecoder ();
-    dde->SetCrateMapName("db_sbssim_cratemap.dat");
+    //dde = new TSBSSimDecoder();
+    //dde->SetCrateMapName("db_sbssim_cratemap.dat");
     
     ////////////////////////////////////////////////////////////////
     

@@ -40,7 +40,7 @@ inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
   //This function is, for the time being, useless (see comment above). it is left in as of now.
-  //TO-DO: find relevance of this function for SBS, remove it if not necessary.
+  //TODO: find relevance of this function for SBS, remove it if not necessary.
   sector = 0;
   plane = chamber;
   
@@ -1074,7 +1074,7 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const g4sbsgendata* gd = f.GetGenData(i);
-    //TO-DO: get GEANT id?
+    //TODO: get GEANT id?
     // cout << "SBS G4 file: track " << i << ", PID " <<  gd->GetPID() << endl;
     // cout << "Vertex     ";gd->GetV().Print();
     // cout << "Momentum   ";gd->GetP().Print();
@@ -1111,8 +1111,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fType     = tsgd.GetTrackID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleType(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
-  // Momentum vector in spec frame; TO-DO: add momentum vector in lab frame (following line)
-  //clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV] 
+  clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV] // Momentum vector in spec frame, transformed at (3); 
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
   // ionization region
@@ -1130,7 +1129,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
   
   ch.SpecToLab(clust.fMCpos); // (1)
-  //ch.SpecToLab(clust.fP);
+  ch.SpecToLab(clust.fP);// (3)
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   //hitpos_temp.Print();
   ch.SpecToPlane(clust.fHitpos); // (2)

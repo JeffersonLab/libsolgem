@@ -34,7 +34,7 @@
 class g4sbshitdata {
     public:
         //Default constructor. The size may depend on the data we examine (GEM, CDET, ECal)
-        //TO-DO: at some point, include CDET and ECal hits
+        //TODO: at some point, include CDET and ECal hits
   	g4sbshitdata( int detid, unsigned int size = __DEFAULT_DATA_SIZE );
 	virtual ~g4sbshitdata();
 	
