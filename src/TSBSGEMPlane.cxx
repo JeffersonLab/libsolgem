@@ -118,8 +118,8 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       fOrigin[0] = (fBox->GetOrigin())[0];
       fOrigin[1] = (fBox->GetOrigin())[1];
       fOrigin[2] = (fBox->GetOrigin())[2];
-      fSize[0] = (fBox->GetSize())[0];
-      fSize[1] = (fBox->GetSize())[1];
+      fSize[0] = fBox->GetDX();
+      fSize[1] = fBox->GetDY();
       depth = -999.0;
     }
 
@@ -142,8 +142,8 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   
   // Get numbers of strips
 
-  Double_t xs0 = (GetSize())[0]/2.0;
-  Double_t ys0 = (GetSize())[1]/2.0;
+  Double_t xs0 = (fBox->GetDX())/2.0;
+  Double_t ys0 = (fBox->GetDY())/2.0;
   Double_t xs[4] = {xs0, xs0, -xs0, -xs0};
   Double_t ys[4] = {ys0, -ys0, ys0, -ys0};
 

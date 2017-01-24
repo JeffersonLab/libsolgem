@@ -63,7 +63,7 @@ TSBSBox::SetGeometry (const Double_t d0,
   
   // Evaluate the central point (in the lab) and the size of the Box
   fOrigin = TVector3(x0, y0, z0);
-  fSize = TVector3(fDX, fDY, 0.015955);
+  //fSize = TVector3(fDX, fDY, 0.015955);
 }
 
 void

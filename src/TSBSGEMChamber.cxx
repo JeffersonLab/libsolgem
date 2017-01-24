@@ -104,8 +104,8 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   fOrigin[0] = (fBox->GetOrigin())[0];
   fOrigin[1] = (fBox->GetOrigin())[1];
   fOrigin[2] = (fBox->GetOrigin())[2];
-  fSize[0] = (fBox->GetSize())[0];
-  fSize[1] = (fBox->GetSize())[1];
+  fSize[0] = fBox->GetDX();
+  fSize[1] = fBox->GetDY();
   fSize[2] = depth;
 
   return kOK;

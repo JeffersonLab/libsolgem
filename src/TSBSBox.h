@@ -60,7 +60,7 @@ class TSBSBox
   Double_t GetThetaV() const {return fThetaV;};
   
   TVector3 GetOrigin() const {return fOrigin;};
-  TVector3 GetSize() const {return fSize;};
+  //TVector3 GetSize() const {return fSize;};
   
   // One global member setter. 
   // The box geometry is not supposed to be modified along the way
@@ -97,7 +97,7 @@ class TSBSBox
   Double_t fThetaV;
 
   TVector3 fOrigin;
-  TVector3 fSize;
+  //TVector3 fSize;
   
   // Matrices for rotations
   TMatrixD* fRotMat_BL; 
