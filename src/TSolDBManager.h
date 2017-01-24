@@ -28,8 +28,12 @@ public:
     const int    &   DoMapSector()          { return fDoMapSector;         }
     const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
     const int    &   GetSectorMapped()      { return fMappedSector;        }
-    const int    &   GetNTracker()          { return fNTracker;            }
-    const int    &   GetNSector()           { return fNSector;             }
+    int GetNTracker();//          { return fNTracker1+fNTracker2;}
+    int GetNSector();//           { return fNSector1+fNSector2;  }
+    const int    &   GetNTracker1()         { return fNTracker1;           }
+    const int    &   GetNSector1()          { return fNSector1;            }
+    const int    &   GetNTracker2()         { return fNTracker2;           }
+    const int    &   GetNSector2()          { return fNSector2;            }
     const int    &   GetNReadOut()          { return fNReadOut;            }
     const int    &   GetGEMDriftID()        { return fGEMDriftID;          }
     const int    &   GetGEMCopperFrontID()  { return fGEMCopperFrontID;    }
@@ -46,7 +50,7 @@ public:
     const int    &   GetSigPID(unsigned int i);
     const int    &   GetSigTID(unsigned int i);
     
-    const int    &   Getg4sbsDetectorType() { return fg4sbsDetectorType;    }
+    const int    &   Getg4sbsDetectorType() { return fg4sbsDetectorType;   }
     const double &   Getg4sbsZSpecOffset()  { return fg4sbsZSpecOffset;    }
     
     const double &   GetZ0()                { return fgZ0;                 }
@@ -83,8 +87,10 @@ protected:
     int fMappedSector;
     int fDoSelfDefinedSector;
     
-    int    fNTracker;
-    int    fNSector;
+    int    fNTracker1;
+    int    fNSector1;
+    int    fNTracker2;
+    int    fNSector2;
     int    fNReadOut;
     int    fNSigParticle;
     int    fGEMDriftID;

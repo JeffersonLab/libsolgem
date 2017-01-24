@@ -29,8 +29,10 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"do_map_sector",       &fDoMapSector         , kInt,    0, 1},
         {"self_define_sector",  &fDoSelfDefinedSector , kInt,    0, 1},
         {"sector_mapped",       &fMappedSector        , kInt,    0, 1},
-        {"ntracker",            &fNTracker            , kInt,    0, 1},
-        {"nsector",             &fNSector             , kInt,    0, 1},
+        {"ntracker1",           &fNTracker1           , kInt,    0, 1},
+        {"nsector1",            &fNSector1            , kInt,    0, 1},
+        {"ntracker2",           &fNTracker2           , kInt,    0, 1},
+        {"nsector2",            &fNSector2            , kInt,    0, 1},
         {"nreadout",            &fNReadOut            , kInt,    0, 1},
         {"gem_drift_id",        &fGEMDriftID          , kInt,    0, 1},
         {"gem_copper_front_id", &fGEMCopperFrontID    , kInt,    0, 1},
@@ -83,7 +85,7 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
     fModulesPerChamber = fModulesPerReadOut * fNReadOut;
     
     fChambersPerCrate  = 
-    (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/fNTracker) * fNTracker;
+      (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/(fNTracker1+fNTracker2)) * (fNTracker1+fNTracker2);
 }
 /*
 //______________________________________________________________
@@ -163,11 +165,11 @@ string TSolDBManager::FindKey( ifstream& inp, const string& key )
 //_________________________________________________________________________
 bool TSolDBManager::CheckIndex(int i, int j, int k)
 {
-    if (i >= fNTracker || i < 0){
+    if (i >= fNTracker1+fNTracker2 || i < 0){
         cout<<"invalid tracker ID requested: "<<i<<endl;
         return false;
     }
-    else if (j >= fNSector || j < 0){
+    else if (j >= fNSector1+fNSector2 || j < 0){
         cout<<"invalid sector id requested: "<<j<<endl;
         return false;
     }
@@ -228,6 +230,20 @@ const int & TSolDBManager::GetSigTID(unsigned int i)
     }
     return fSigTID[i];
 }
+
+//const 
+int TSolDBManager::GetNTracker()
+{ 
+  const int NtrackerTot = fNTracker1+fNTracker2;
+  return NtrackerTot;
+}
+//const 
+int TSolDBManager::GetNSector()
+{
+  const int NSectorTot = fNSector1+fNSector2;
+  return NSectorTot;
+}
+
 /*
 //______________________________________________________________________
 const double & TSolDBManager::GetSectorZ(int i, int j)

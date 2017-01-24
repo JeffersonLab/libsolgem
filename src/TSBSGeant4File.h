@@ -129,8 +129,7 @@ class TSBSGeant4File {
   // These two variables are arrays to store the segmentations of the GEM detectors.
   std::vector<double> fXseg1;
   std::vector<double> fXseg2;
-  int fNSect1, fNSect2;
-  int fNplanes1, fNplanes2;
+  int fNSector1, fNSector2;
   
   // NB: 2017/01/16: The use of electron range in ionized gas 2017/01/18: Not anymore...
   // is now deprecated due to the addition of X_in and X_out in the g4sbs data on my side

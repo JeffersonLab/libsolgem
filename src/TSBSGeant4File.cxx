@@ -176,21 +176,11 @@ Int_t TSBSGeant4File::Open(){
     }
     
     // TODO: set those variables in the DB. 
-    fNSect1 = 1;
-    fNSect2 = 1;
-    for(int k = 0; k<fNSect1+1; k++)fXseg1.push_back(-0.75+k*1.5/fNSect1);
-    if(fManager->Getg4sbsDetectorType()==1){
-      fNplanes1 = 2;
-      fNplanes2 = 2;
-      fNSect2 = 5;
-      for(int k = 0; k<fNSect2+1; k++)fXseg2.push_back(-1.0+k*2.0/fNSect2);
-    }else{
-      fNplanes1 = 6;
-      fNplanes2 = 10;
-      if(fManager->Getg4sbsDetectorType()==2)fNplanes2 = 5;
-      for(int k = 0; k<fNSect2+1; k++)fXseg2.push_back(-1.0+k*2.0/fNSect2);
-    }
+    fNSector1 = fManager->GetNSector1();
+    fNSector2 = fManager->GetNSector2();
     
+    for(int k = 0; k<fNSector1+1; k++)fXseg1.push_back(-0.75+k*1.5/fNSector1);
+    for(int k = 0; k<fNSector2+1; k++)fXseg2.push_back(-1.0+k*2.0/fNSector2);
     
     fTree = new g4sbs_tree(C1, fManager->Getg4sbsDetectorType());
     // g4sbs_tree declare all variables, branches, etc... 
@@ -296,13 +286,13 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       if(plane<2){
 	det_id = 1;
-	for(int k = 0; k<fNSect1; k++){
+	for(int k = 0; k<fNSector1; k++){
 	  if(fXseg1[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg1[k+1]){
 	    sector = k;
 	  }
 	}
       }else{
-	for(int k = 0; k<fNSect2; k++){
+	for(int k = 0; k<fNSector2; k++){
 	  if(fXseg2[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg2[k+1]){
 	    sector = k;
 	  }
@@ -462,7 +452,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
       tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSect2; k++){
+      for(int k = 0; k<fNSector2; k++){
 	if(fXseg2[k]<fTree->Harm_SBSGEM_hit_tx->at(i) && fTree->Harm_SBSGEM_hit_tx->at(i)<fXseg2[k+1]){
 	  sector = k;
 	}
@@ -629,7 +619,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSect1; k++){
+      for(int k = 0; k<fNSector1; k++){
 	if(fXseg1[k]<fTree->Harm_FT_hit_tx->at(i) && fTree->Harm_FT_hit_tx->at(i)<fXseg1[k+1]){
 	  sector = k;
 	}
@@ -835,7 +825,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSect2; k++){
+      for(int k = 0; k<fNSector2; k++){
 	if(fXseg2[k]<fTree->Harm_FPP1_hit_tx->at(i) && fTree->Harm_FPP1_hit_tx->at(i)<fXseg2[k+1]){
 	  sector = k;
 	}
@@ -1053,7 +1043,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSect2; k++){
+      for(int k = 0; k<fNSector2; k++){
 	if(fXseg2[k]<fTree->Harm_FPP2_hit_tx->at(i) && fTree->Harm_FPP2_hit_tx->at(i)<fXseg2[k+1]){
 	  sector = k;
 	}
@@ -1367,7 +1357,7 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	// different number of planes and different number of sectors per plane.
 	// h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
 	// (inherited from a convention that I had set for SBS GEp).
-	int gCID = h->GetDetID()*(fNplanes2*fNSect2+h->GetData(0)*(fNSect1-fNSect2))+h->GetData(19)+h->GetData(0)*fNSect2;
+	int gCID = h->GetDetID()*(fManager->GetNTracker2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;
 	gd->SetHitChamber(ngdata, gCID);
 
 	ngdata++;
