@@ -26,7 +26,7 @@
 // //            X_in_x, X_in_y, X_in_z, tmin,
 // //            X_out_x, X_out_y, X_out_z, tmax,
 // //            type (prim, second), x_vtx, y_vtx, z_vtx,
-// //            Track ID, Particle ID, (???), 
+// //            Track ID, Particle ID, sector, 
 // //            px, py, pz}
 // // the strucutre of the data array is identical to the structure 
 // // of the hitdata array defined in TSolEVIOFile class
@@ -125,6 +125,12 @@ class TSBSGeant4File {
   g4sbs_tree *fTree;// needed to easily unfold root file data
   Int_t fSource;   // User-defined source ID (e.g. MC run number)  // Temp: Do we use that ?
   //double fZSpecOffset; // Offset with which the GEM hits are registered in g4sbs for GEP.
+  
+  // These two variables are arrays to store the segmentations of the GEM detectors.
+  std::vector<double> fXseg1;
+  std::vector<double> fXseg2;
+  int fNSect1, fNSect2;
+  int fNplanes1, fNplanes2;
   
   // NB: 2017/01/16: The use of electron range in ionized gas 2017/01/18: Not anymore...
   // is now deprecated due to the addition of X_in and X_out in the g4sbs data on my side

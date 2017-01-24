@@ -175,6 +175,22 @@ Int_t TSBSGeant4File::Open(){
       exit(-1);
     }
     
+    fNSect1 = 1;
+    fNSect2 = 1;
+    for(int k = 0; k<fNSect1+1; k++)fXseg1.push_back(-0.75+k*1.5/fNSect1);
+    if(fManager->Getg4sbsDetectorType()==1){
+      fNplanes1 = 2;
+      fNplanes2 = 2;
+      fNSect2 = 5;
+      for(int k = 0; k<fNSect2+1; k++)fXseg2.push_back(-1.0+k*2.0/fNSect2);
+    }else{
+      fNplanes1 = 6;
+      fNplanes2 = 10;
+      if(fManager->Getg4sbsDetectorType()==2)fNplanes2 = 5;
+      for(int k = 0; k<fNSect2+1; k++)fXseg2.push_back(-1.0+k*2.0/fNSect2);
+    }
+    
+    
     fTree = new g4sbs_tree(C1, fManager->Getg4sbsDetectorType());
     // g4sbs_tree declare all variables, branches, etc... 
     // to read, event by event, the varaibles stored in the tree. 
@@ -237,6 +253,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   int trid;
   int type;
   int plane;
+  int sector;
   double edep;
   double tmin;
   double tmax;
@@ -266,14 +283,30 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   case(1)://BB GEMs
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
       det_id = 0;
-	
+      sector = -1;	
+      
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
       trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
       type = fTree->Earm_BBGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Earm_BBGEM_hit_plane->at(i);
+      plane = fTree->Earm_BBGEM_hit_plane->at(i)-1;
       edep = fTree->Earm_BBGEM_hit_edep->at(i)*1.0e3;
       tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
       tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
+      
+      if(plane<2){
+	det_id = 1;
+	for(int k = 0; k<fNSect1; k++){
+	  if(fXseg1[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg1[k+1]){
+	    sector = k;
+	  }
+	}
+      }else{
+	for(int k = 0; k<fNSect2; k++){
+	  if(fXseg2[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg2[k+1]){
+	    sector = k;
+	  }
+	}
+      }
       
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
@@ -309,10 +342,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
        	}
       }
       
+      /*
       if(fabs(X_out.X())>=999.99){//verifier
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " 
-	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+cout << "Warning: Evt " << fEvNum << ", hit " << i
 	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.X());
@@ -324,8 +357,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       if(fabs(X_out.Y())>=299.99){
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " 
-	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+cout << "Warning: Evt " << fEvNum << ", hit " << i
 	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
@@ -335,8 +367,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
-
-      //cout << "SBSGEM: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      */
       
       Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Earm_BBGEM_hit_vy->at(i)*1.0e3, // in mm
@@ -347,10 +378,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
-      hit_data_temp[13] = type;
-      hit_data_temp[17] = trid;
-      hit_data_temp[18] = pid;
-      hit_data_temp[19] = -1.0e-9;
+      hit_data_temp[13] = (double)type;
+      hit_data_temp[17] = (double)trid;
+      hit_data_temp[18] = (double)pid;
+      hit_data_temp[19] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -419,14 +450,21 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
       det_id = 0;
+      sector = -1;	
       
       pid = fTree->Harm_SBSGEM_hit_pid->at(i);
       trid = fTree->Harm_SBSGEM_hit_trid->at(i);
       type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_SBSGEM_hit_plane->at(i);
+      plane = fTree->Harm_SBSGEM_hit_plane->at(i)-1;
       edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
       tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
+      
+      for(int k = 0; k<fNSect2; k++){
+	if(fXseg2[k]<fTree->Harm_SBSGEM_hit_tx->at(i) && fTree->Harm_SBSGEM_hit_tx->at(i)<fXseg2[k+1]){
+	  sector = k;
+	}
+      }
       
       pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
@@ -448,7 +486,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
 		      (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
       
-      //cout << "FPP2: momentum: " << fTree->Harm_SBSGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_SBSGEM_hit_pid->at(i))==11 && fTree->Harm_SBSGEM_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2)+pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Harm_SBSGEM_hit_p->at(i));//m
@@ -462,34 +499,40 @@ Int_t TSBSGeant4File::ReadNextEvent(){
        	}
       }
       
-      if(fabs(X_out.X())>=999.99){//verifier
+      if(X_out.X()>fXseg2[sector+1]*1000){
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " 
-	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.X " << X_out.X() << " outside SBS plane " << plane;
 #endif //WARNING
-	temp = fabs(X_out.X());
-	X_out[0]*=999.99/temp;
+	X_out[0] = fXseg2[sector+1]*1000;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=299.99){
+      if(X_out.X()<fXseg2[sector]*1000){
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " 
-	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
+	cout << "Warning: Evt " << fEvNum << ", hit " << i
+	     << ": X_out.X " << X_out.X() << " outside SBS plane " << plane;
+#endif //WARNING
+	X_out[0] = fXseg2[sector]*1000;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=300.00){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit "  << i
+	     << ": X_out.Y " << X_out.Y() << " outside SBS plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=299.99/temp;
+	X_out[1]*=300./temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
-
-      //cout << "SBSGEM: momentum: " << fTree->Harm_SBSGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
       
       Vtx = TVector3(fTree->Harm_SBSGEM_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_SBSGEM_hit_vy->at(i)*1.0e3, // in mm
@@ -500,10 +543,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
-      hit_data_temp[13] = type;
-      hit_data_temp[17] = trid;
-      hit_data_temp[18] = pid;
-      hit_data_temp[19] = -1.0e-9;
+      hit_data_temp[13] = (double)type;
+      hit_data_temp[17] = (double)trid;
+      hit_data_temp[18] = (double)pid;
+      hit_data_temp[19] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -573,14 +616,21 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     //Loop on the Forward Tracker detector hits: detectors 10 to 15
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 1;
+      sector = -1;
       
       pid = fTree->Harm_FT_hit_pid->at(i);
       trid = fTree->Harm_FT_hit_trid->at(i);
       type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_FT_hit_plane->at(i);
+      plane = fTree->Harm_FT_hit_plane->at(i)-1;
       edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
+      
+      for(int k = 0; k<fNSect1; k++){
+	if(fXseg1[k]<fTree->Harm_FT_hit_tx->at(i) && fTree->Harm_FT_hit_tx->at(i)<fXseg1[k+1]){
+	  sector = k;
+	}
+      }
       
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
@@ -619,28 +669,37 @@ Int_t TSBSGeant4File::ReadNextEvent(){
        	}
       }
       
-      //Correcting X_out x and y if out of the GEM plane...
-      if(fabs(X_out.X())>=749.99){
+      if(X_out.X()>fXseg1[sector+1]*1000){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside FT plane " << 10+plane;
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane;
 #endif //WARNING
-	temp = fabs(X_out.X());
-	X_out[0]*=749.99/temp;
+	X_out[0] = fXseg1[sector+1]*1000;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=199.99){
+      if(X_out.X()<fXseg1[sector]*1000){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << 10+plane;
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane;
+#endif //WARNING
+	X_out[0] = fXseg1[sector]*1000;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=200.00){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=199.99/temp;
+	X_out[1]*=200.00/temp;
 #if WARNING>0
-	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;	
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
@@ -654,10 +713,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
-      hit_data_temp[13] = type;
-      hit_data_temp[17] = trid;
-      hit_data_temp[18] = pid;
-      hit_data_temp[19] = -1.0e-9;
+      hit_data_temp[13] = (double)type;
+      hit_data_temp[17] = (double)trid;
+      hit_data_temp[18] = (double)pid;
+      hit_data_temp[19] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -762,14 +821,21 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
       det_id = 0;
+      sector = -1;
       
       pid = fTree->Harm_FPP1_hit_pid->at(i);
       trid = fTree->Harm_FPP1_hit_trid->at(i);
       type = fTree->Harm_FPP1_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_FPP1_hit_plane->at(i);
+      plane = fTree->Harm_FPP1_hit_plane->at(i)-1;
       edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
+      
+      for(int k = 0; k<fNSect2; k++){
+	if(fXseg2[k]<fTree->Harm_FPP1_hit_tx->at(i) && fTree->Harm_FPP1_hit_tx->at(i)<fXseg2[k+1]){
+	  sector = k;
+	}
+      }
       
       pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
@@ -805,28 +871,38 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	  //cout << "Coucou ! FPP1 " << endl;
        	}
       }
-         
-      if(fabs(X_out.X())>=999.99){
+      
+      if(X_out.X()>fXseg2[sector+1]*1000){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane;
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
 #endif //WARNING
-	temp = fabs(X_out.X());
-	X_out[0]*=999.99/temp;
+	X_out[0] = fXseg2[sector+1]*1000;
 #if WARNING>0
-	cout << "; set at limit: " << X_out.X() << " mm " << endl;
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=299.99){
+      if(X_out.X()<fXseg2[sector]*1000){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i  
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	X_out[0] = fXseg2[sector]*1000;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=300.00){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane;
+	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=299.99/temp;
+	X_out[1]*=300.00/temp;
 #if WARNING>0
-	cout << "; set at limit: " << X_out.Y() << " mm " << endl;
+	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
@@ -839,10 +915,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
-      hit_data_temp[13] = type;
-      hit_data_temp[17] = trid;
-      hit_data_temp[18] = pid;
-      hit_data_temp[19] = -1.0e-9;
+      hit_data_temp[13] = (double)type;
+      hit_data_temp[17] = (double)trid;
+      hit_data_temp[18] = (double)pid;
+      hit_data_temp[19] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -941,7 +1017,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       cout << "Vertex position (mm): ";
       Vtx.Print();
       cout << endl;
-#endif //DEBUG      
+#endif //DEBUG 
     }
     
     //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
@@ -950,14 +1026,21 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
       det_id = 0;
+      sector = -1;
       
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       trid = fTree->Harm_FPP2_hit_trid->at(i);
       type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = 5+fTree->Harm_FPP2_hit_plane->at(i);
+      plane = 4+fTree->Harm_FPP2_hit_plane->at(i);
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
+      
+      for(int k = 0; k<fNSect2; k++){
+	if(fXseg2[k]<fTree->Harm_FPP2_hit_tx->at(i) && fTree->Harm_FPP2_hit_tx->at(i)<fXseg2[k+1]){
+	  sector = k;
+	}
+      }
       
       pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
@@ -979,7 +1062,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm
 		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
       
-      //cout << "FPP2: momentum: " << fTree->Harm_FPP2_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Harm_FPP2_hit_p->at(i));//m
@@ -993,27 +1075,38 @@ Int_t TSBSGeant4File::ReadNextEvent(){
        	}
       }
       
-      if(fabs(X_out.X())>=999.99){
+      if(X_out.X()>fXseg2[sector+1]*1000){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " 
 	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
 #endif //WARNING
-	temp = fabs(X_out.X());
-	X_out[0]*=999.99/temp;
+	X_out[0] = fXseg2[sector+1]*1000;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=299.99){
+      if(X_out.X()<fXseg2[sector]*1000){
+#if WARNING>0
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+#endif //WARNING
+	X_out[0] = fXseg2[sector]*1000;
+#if WARNING>0
+	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+#endif //WARNING
+	X_RO.SetX(X_out.X());
+      }
+      if(fabs(X_out.Y())>=300.00){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " 
 	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=299.99/temp;
+	X_out[1]*=300.00/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
@@ -1028,10 +1121,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
       hit_data_temp[12] = tmax;
-      hit_data_temp[13] = type;
-      hit_data_temp[17] = trid;
-      hit_data_temp[18] = pid;
-      hit_data_temp[19] = -1.0e-9;
+      hit_data_temp[13] = (double)type;
+      hit_data_temp[17] = (double)trid;
+      hit_data_temp[18] = (double)pid;
+      hit_data_temp[19] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -1238,9 +1331,11 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	gd->SetParticleType(ngdata, (UInt_t)h->GetData(13) );//  Track type (1 primary, >1 secondary) 
 	gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
 	gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
-		
-	gd->SetHitChamber(ngdata,  h->GetDetID()*10+h->GetData(0)-1);
 	
+	//TODO: comment that line
+	int gCID = h->GetDetID()*(fNplanes2*fNSect2+h->GetData(0)*(fNSect1-fNSect2))+h->GetData(19)+h->GetData(0)*fNSect2;
+	gd->SetHitChamber(ngdata, gCID);
+
 	ngdata++;
       }
     }

@@ -78,7 +78,7 @@ class TSBSGEMPlane : public THaSubDetector {
 	void PlaneToStrip (Double_t& x, Double_t& y) const; // input and output in meters
 	void SpecToStrip (Double_t& x, Double_t& y) const;  // input and output in meters
 	void StripToSpec (Double_t& x, Double_t& y) const;  // input and output in meters
-	void StripToPlane (Double_t& x, Double_t& y) const;  // input and output in meters
+	void StripToPlane (Double_t& x, Double_t& y) const; // input and output in meters
 	void PlaneToSpec (Double_t& x, Double_t& y) const {
 	  fBox->BoxToSpec (x, y);
 	};  // input and output in meters
