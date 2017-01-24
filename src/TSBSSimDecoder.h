@@ -29,9 +29,10 @@ public:
   Double_t X() const { return fMCpos.X(); }
   Double_t Y() const { return fMCpos.Y(); }
   Double_t Z() const { return fMCpos.Z(); }
-  Double_t R()      const { return fMCpos.Perp(); }
-  Double_t Theta()  const { return fMCpos.Theta(); }
-  Double_t Phi()    const { return fMCpos.Phi(); }
+  // EFuchey: 2017/01/24: Those are probably not useful for SBS
+  /* Double_t R()      const { return fMCpos.Perp(); } */
+  /* Double_t Theta()  const { return fMCpos.Theta(); } */
+  /* Double_t Phi()    const { return fMCpos.Phi(); } */
 
   Int_t     fID;        // Cluster number, cross-ref to GEMStrip
   // MC hit data
@@ -70,11 +71,12 @@ public:
   Double_t P()         const { return fMomentum.Mag(); }
   Double_t ThetaT()    const { return fMomentum.Px()/fMomentum.Pz(); }
   Double_t PhiT()      const { return fMomentum.Py()/fMomentum.Pz(); }
-  Double_t R()         const { return fOrigin.Perp(); }
-  Double_t Theta()     const { return fOrigin.Theta(); }
-  Double_t Phi()       const { return fOrigin.Phi(); }
-  Double_t ThetaDir()  const { return fMomentum.Theta(); }
-  Double_t PhiDir()    const { return fMomentum.Phi(); }
+  // EFuchey: 2017/01/24: Those are probably not useful for SBS
+  /* Double_t R()         const { return fOrigin.Perp(); } */
+  /* Double_t Theta()     const { return fOrigin.Theta(); } */
+  /* Double_t Phi()       const { return fOrigin.Phi(); } */
+  /* Double_t ThetaDir()  const { return fMomentum.Theta(); } */
+  /* Double_t PhiDir()    const { return fMomentum.Phi(); } */
   Double_t HX()        const { return fHitpos.X(); }
   Double_t HY()        const { return fHitpos.Y(); }
 

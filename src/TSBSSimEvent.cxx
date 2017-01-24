@@ -29,6 +29,9 @@ TSBSSimTrack::TSBSSimTrack() : Podd::MCTrack()
 {
 }
 
+// Those below are not useful for SBS, which needs X, Y, Xdir, Ydir (unless otherwise demonstrated)
+// refer to comment in TSBSSimEvent.h l. 30-32
+/*
 //-----------------------------------------------------------------------------
 Double_t TSBSSimTrack::MCFitR() const
 {
@@ -69,7 +72,7 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 {
   return TVector3( fRcFitPar[1], fRcFitPar[3], 1.0 ).Phi();
 }
-
+*/
 
 //-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent()

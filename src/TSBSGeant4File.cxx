@@ -175,6 +175,7 @@ Int_t TSBSGeant4File::Open(){
       exit(-1);
     }
     
+    // TODO: set those variables in the DB. 
     fNSect1 = 1;
     fNSect2 = 1;
     for(int k = 0; k<fNSect1+1; k++)fXseg1.push_back(-0.75+k*1.5/fNSect1);
@@ -227,7 +228,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     
   int n_hits = 0;//total number of hits at the end of the event
   int n_gen = 0;//total number of tracks at the end of the event
-  bool newtrk, dupli;// These variables help avoid store many times the same MC track info
+  // bool newtrk, dupli;// These variables help avoid store many times the same MC track info
   bool res = false;
     
   fEvNum++;
@@ -408,14 +409,15 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       gen_data_temp[8] = weight;
       
       // ... to copy it in the actual g4sbsGenData structure.
-      // only store new MC tracks
-      if(n_gen==0){
+      // only store signal, primary MC tracks
+      if(fSource==0 && n_gen==0 && type==1){
 	fg4sbsGenData.push_back(new g4sbsgendata());
 	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
-      }else{// this determines if the track is new or not
+      }
+      /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
@@ -443,7 +445,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
 	  n_gen++;
 	}
       }
-
+      */
     }//end loop on hits
     break;
       
@@ -573,14 +575,15 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       gen_data_temp[8] = weight;
       
       // ... to copy it in the actual g4sbsGenData structure.
-      // only store new MC tracks
-      if(n_gen==0){
+      // only store signal, primary MC tracks
+      if(fSource==0 && n_gen==0 && type==1){
 	fg4sbsGenData.push_back(new g4sbsgendata());
 	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
-      }else{// this determines if the track is new or not
+      }
+      /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
@@ -608,7 +611,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
 	  n_gen++;
 	}
       }
-	
+      */
     }// endl loop on hits
     break;
       
@@ -743,14 +746,15 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       gen_data_temp[8] = weight;
       
       // ... to copy it in the actual g4sbsGenData structure.
-      // only store new MC tracks
-      if(n_gen==0){
+      // only store signal, primary MC tracks
+      if(fSource==0 && n_gen==0 && type==1){
 	fg4sbsGenData.push_back(new g4sbsgendata());
 	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
-      }else{// this determines if the track is new or not
+      }
+      /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
 	  dupli = true;
@@ -778,7 +782,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
 	  n_gen++;
 	}
       }
-      
+      */
       // Print out block
 #if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
@@ -934,6 +938,8 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       }
       n_hits++;
       
+      
+      //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
@@ -942,33 +948,44 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       }
       gen_data_temp[8] = weight;
       
-      newtrk = true; 
-      for(int z = n_gen-1; z>=0; z--){
-	dupli = true;
-	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	  dupli=false;
-	}else{
-	  for(int j = 5; j<8; j++){
-	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-	      dupli=false;
-	      break;
-	    }
-	  }
-	}
-	if(dupli){
-	  newtrk = false;
-	  break;
-	}
-      }
-      
-      if(newtrk){
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store signal, primary MC tracks
+      if(fSource==0 && n_gen==0 && type==1){
 	fg4sbsGenData.push_back(new g4sbsgendata());
 	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
       }
-      
+      /*else{// this determines if the track is new or not
+	newtrk = true; 
+	for(int z = n_gen-1; z>=0; z--){
+	  dupli = true;
+	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	    dupli=false;
+	  }else{
+	    for(int j = 5; j<8; j++){
+	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+		dupli=false;
+		break;
+	      }
+	    }
+	  }
+	  if(dupli){
+	    newtrk = false;
+	    break;
+	  }
+	}
+	
+	if(newtrk){
+	  fg4sbsGenData.push_back(new g4sbsgendata());
+	  for(int j = 0; j<9; j++){
+	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	  }
+	  n_gen++;
+	}
+      }
+      */
 #if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
@@ -1140,6 +1157,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       }
       n_hits++;
       
+      //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
       for(int k = 0; k<3; k++){
@@ -1147,34 +1165,45 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
 	gen_data_temp[k+5] = Vtx[k];
       }
       gen_data_temp[8] = weight;
-
-      newtrk = true; 
-      for(int z = n_gen-1; z>=0; z--){
-	dupli = true;
-	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	  dupli=false;
-	}else{
-	  for(int j = 5; j<8; j++){
-	    if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-	      dupli=false;
-	      break;
-	    }
-	  }
-	}
-	if(dupli){
-	  newtrk = false;
-	  break;
-	}
-      }
       
-      if(newtrk){
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store signal, primary MC tracks
+      if(fSource==0 && n_gen==0 && type==1){
 	fg4sbsGenData.push_back(new g4sbsgendata());
 	for(int j = 0; j<9; j++){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
       }
-      
+      /*else{// this determines if the track is new or not
+	newtrk = true; 
+	for(int z = n_gen-1; z>=0; z--){
+	  dupli = true;
+	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	    dupli=false;
+	  }else{
+	    for(int j = 5; j<8; j++){
+	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+		dupli=false;
+		break;
+	      }
+	    }
+	  }
+	  if(dupli){
+	    newtrk = false;
+	    break;
+	  }
+	}
+	
+	if(newtrk){
+	  fg4sbsGenData.push_back(new g4sbsgendata());
+	  for(int j = 0; j<9; j++){
+	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	  }
+	  n_gen++;
+	}
+      }
+      */
 #if DEBUG>0
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
@@ -1332,7 +1361,12 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
 	gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
 	
-	//TODO: comment that line
+	// E. Fuchey: 2017/01/24.
+	// Determination of global detector index, based on number of planes and number of sectors per plane
+	// NB: it assumes that there are two types of GEM planes with different sizes: 
+	// different number of planes and different number of sectors per plane.
+	// h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
+	// (inherited from a convention that I had set for SBS GEp).
 	int gCID = h->GetDetID()*(fNplanes2*fNSect2+h->GetData(0)*(fNSect1-fNSect2))+h->GetData(19)+h->GetData(0)*fNSect2;
 	gd->SetHitChamber(ngdata, gCID);
 

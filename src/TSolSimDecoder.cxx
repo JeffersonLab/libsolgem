@@ -368,9 +368,9 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     crateslot[fSlotClear[i]]->clearEvent();
   if( fDoBench ) fBench->Stop("clearEvent");
 
-  // FIXED?: needed?
-  //evscaler = 0;
-  //event_length = 0;
+  // FIXME: needed?
+  evscaler = 0;
+  event_length = 0;
 
   event_type = 1;
   event_num = simEvent->fEvtID;

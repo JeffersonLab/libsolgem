@@ -95,45 +95,39 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "tr.flags",  "Reconstruction status", "fMCTracks.TSBSSimTrack.fReconFlags" },
 
     // Results of fit to MC points - measures multiple scattering
-    { "tr.mcfit.r",     "Track x from MC fit [m]",
-                                               "fMCTracks.TSBSSimTrack.MCFitR()" },
-    { "tr.mcfit.phi",   "Track phi from MC fit [rad]",
-                                             "fMCTracks.TSBSSimTrack.MCFitPhi()" },
-    { "tr.mcfit.thdir", "Track dir theta from MC fit [rad]",
-                                        "fMCTracks.TSBSSimTrack.MCFitThetaDir()" },
-    { "tr.mcfit.phdir", "Track x from MC fit [rad]",
-                                          "fMCTracks.TSBSSimTrack.MCFitPhiDir()" },
-    { "tr.mcfit.chi2",  "Chi2 of MC fit",
-                                           "fMCTracks.TSBSSimTrack.fMCFitPar[4]" },
-    { "tr.mcfit.ndof",  "NDoF of MC fit",
-                                           "fMCTracks.TSBSSimTrack.fMCFitPar[5]" },
-    { "tr.mcfit.vx",    "Vertex x from MC fit [m]",
-                                           "fMCTracks.TSBSSimTrack.fMCFitPar[6]" },
-    { "tr.mcfit.vy",    "Vertex y from MC fit [m]",
-                                           "fMCTracks.TSBSSimTrack.fMCFitPar[7]" },
-    { "tr.mcfit.vz",    "Vertex z from MC fit [m]",
-                                           "fMCTracks.TSBSSimTrack.fMCFitPar[8]" },
+    // Those below are not useful for SBS, which needs X, Y, Xdir, Ydir (unless otherwise demonstrated)
+    // refer to comment in TSBSSimEvent.h l. 30-32
+    // { "tr.mcfit.r",     "Track x from MC fit [m]", "fMCTracks.TSBSSimTrack.MCFitR()" },
+    // { "tr.mcfit.phi",   "Track phi from MC fit [rad]", "fMCTracks.TSBSSimTrack.MCFitPhi()" },
+    // { "tr.mcfit.thdir", "Track dir theta from MC fit [rad]", "fMCTracks.TSBSSimTrack.MCFitThetaDir()" },
+    // { "tr.mcfit.phdir", "Track x from MC fit [rad]", "fMCTracks.TSBSSimTrack.MCFitPhiDir()" },
+    { "tr.mcfit.x",     "Track x from MC fit [m]",       "fMCTracks.TSBSSimTrack.fMCFitPar[0]" },
+    { "tr.mcfit.xdir",  "Track dir x from MC fit [rad]", "fMCTracks.TSBSSimTrack.fMCFitPar[1]" },
+    { "tr.mcfit.y",     "Track y from MC fit [rad]",     "fMCTracks.TSBSSimTrack.fMCFitPar[2]" },
+    { "tr.mcfit.ydir",  "Track dir y from MC fit [rad]", "fMCTracks.TSBSSimTrack.fMCFitPar[3]" },
+    { "tr.mcfit.chi2",  "Chi2 of MC fit",                "fMCTracks.TSBSSimTrack.fMCFitPar[4]" },
+    { "tr.mcfit.ndof",  "NDoF of MC fit",                "fMCTracks.TSBSSimTrack.fMCFitPar[5]" },
+    { "tr.mcfit.vx",    "Vertex x from MC fit [m]",      "fMCTracks.TSBSSimTrack.fMCFitPar[6]" },
+    { "tr.mcfit.vy",    "Vertex y from MC fit [m]",      "fMCTracks.TSBSSimTrack.fMCFitPar[7]" },
+    { "tr.mcfit.vz",    "Vertex z from MC fit [m]",      "fMCTracks.TSBSSimTrack.fMCFitPar[8]" },
 
     // Results of fit to reconstructed MC hits - checks hit resolution effects
     // independent of track finding
-    { "tr.fit.r",     "Track x from rec hit fit [m]",
-                                               "fMCTracks.TSBSSimTrack.RcFitR()" },
-    { "tr.fit.phi",   "Track phi from rec hit fit [rad]",
-                                             "fMCTracks.TSBSSimTrack.RcFitPhi()" },
-    { "tr.fit.thdir", "Track dir theta from rec hit fit [rad]",
-                                        "fMCTracks.TSBSSimTrack.RcFitThetaDir()" },
-    { "tr.fit.phdir", "Track x from rec hit fit [rad]",
-                                          "fMCTracks.TSBSSimTrack.RcFitPhiDir()" },
-    { "tr.fit.chi2",  "Chi2 of rec hit fit",
-                                           "fMCTracks.TSBSSimTrack.fRcFitPar[4]" },
-    { "tr.fit.ndof",  "NDoF of rec hit fit",
-                                           "fMCTracks.TSBSSimTrack.fRcFitPar[5]" },
-    { "tr.fit.vx",    "Vertex x from rec hit fit [m]",
-                                           "fMCTracks.TSBSSimTrack.fRcFitPar[6]" },
-    { "tr.fit.vy",    "Vertex y from rec hit fit [m]",
-                                           "fMCTracks.TSBSSimTrack.fRcFitPar[7]" },
-    { "tr.fit.vz",    "Vertex z from rec hit fit [m]",
-                                           "fMCTracks.TSBSSimTrack.fRcFitPar[8]" },
+    // Those below are not useful for SBS, which needs X, Y, Xdir, Ydir (unless otherwise demonstrated)
+    // refer to comment in TSBSSimEvent.h l. 30-32
+    // { "tr.fit.r",     "Track x from rec hit fit [m]", "fMCTracks.TSBSSimTrack.RcFitR()" },
+    // { "tr.fit.phi",   "Track phi from rec hit fit [rad]", "fMCTracks.TSBSSimTrack.RcFitPhi()" },
+    // { "tr.fit.thdir", "Track dir theta from rec hit fit [rad]", "fMCTracks.TSBSSimTrack.RcFitThetaDir()" },
+    // { "tr.fit.phdir", "Track x from rec hit fit [rad]", "fMCTracks.TSBSSimTrack.RcFitPhiDir()" },
+    { "tr.fit.x",     "Track x from rec hit fit [m]",       "fMCTracks.TSBSSimTrack.fRcFitPar[0]" },
+    { "tr.fit.xdir",  "Track dir x from rec hit fit [rad]", "fMCTracks.TSBSSimTrack.fRcFitPar[1]" },
+    { "tr.fit.y",     "Track y from rec hit fit [rad]",     "fMCTracks.TSBSSimTrack.fRcFitPar[2]" },
+    { "tr.fit.ydir",  "Track dir y from rec hit fit [rad]", "fMCTracks.TSBSSimTrack.fRcFitPar[3]" },
+    { "tr.fit.chi2",  "Chi2 of rec hit fit",                "fMCTracks.TSBSSimTrack.fRcFitPar[4]" },
+    { "tr.fit.ndof",  "NDoF of rec hit fit",                "fMCTracks.TSBSSimTrack.fRcFitPar[5]" },
+    { "tr.fit.vx",    "Vertex x from rec hit fit [m]",      "fMCTracks.TSBSSimTrack.fRcFitPar[6]" },
+    { "tr.fit.vy",    "Vertex y from rec hit fit [m]",      "fMCTracks.TSBSSimTrack.fRcFitPar[7]" },
+    { "tr.fit.vz",    "Vertex z from rec hit fit [m]",      "fMCTracks.TSBSSimTrack.fRcFitPar[8]" },
 
     // "Back tracks": hits of the primary particle in the first tracker plane
     { "btr.n",     "Number of back tracks",     "GetNBackTracks()" },
@@ -144,17 +138,17 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "btr.vfail", "Undigitized v planes",      "fBackTracks.TSBSSimBackTrack.fVfailBits" },
     { "btr.sect",  "Sector number",             "fBackTracks.TSBSSimBackTrack.fSector" },
     { "btr.p",     "Track momentum (GeV)",      "fBackTracks.TSBSSimBackTrack.P() "},
-    // Track position in Cartesian/TRANSPORT coordinates, not optimal for SoLID
+    // Track position in Cartesian/TRANSPORT coordinates, optimal for SBS, not for SoLID
     { "btr.x",     "Track pos lab x [m]",       "fBackTracks.TSBSSimBackTrack.X()" },
     { "btr.y",     "Track pos lab y [m]",       "fBackTracks.TSBSSimBackTrack.Y()" },
     { "btr.th",    "Track dir tan(theta)",      "fBackTracks.TSBSSimBackTrack.ThetaT()" },
     { "btr.ph",    "Track dir tan(phi)",        "fBackTracks.TSBSSimBackTrack.PhiT()" },
     // Track position and direction in cylindrical coordinates, good for SoLID
-    { "btr.r",     "Track pos lab r_trans (m)", "fBackTracks.TSBSSimBackTrack.R()" },
-    { "btr.theta", "Track pos lab theta [rad]", "fBackTracks.TSBSSimBackTrack.Theta()" },
-    { "btr.phi",   "Track pos lab phi [rad]",   "fBackTracks.TSBSSimBackTrack.Phi()" },
-    { "btr.thdir", "Track dir theta [rad]",     "fBackTracks.TSBSSimBackTrack.ThetaDir()" },
-    { "btr.phdir", "Track dir phi [rad]",       "fBackTracks.TSBSSimBackTrack.PhiDir()" },
+    // { "btr.r",     "Track pos lab r_trans (m)", "fBackTracks.TSBSSimBackTrack.R()" },
+    // { "btr.theta", "Track pos lab theta [rad]", "fBackTracks.TSBSSimBackTrack.Theta()" },
+    // { "btr.phi",   "Track pos lab phi [rad]",   "fBackTracks.TSBSSimBackTrack.Phi()" },
+    // { "btr.thdir", "Track dir theta [rad]",     "fBackTracks.TSBSSimBackTrack.ThetaDir()" },
+    // { "btr.phdir", "Track dir phi [rad]",       "fBackTracks.TSBSSimBackTrack.PhiDir()" },
     // Hit coordinates in first tracker plane, relative to plane origin
     { "btr.hx",    "Track pos plane x [m]",     "fBackTracks.TSBSSimBackTrack.HX()" },
     { "btr.hy",    "Track pos plane y [m]",     "fBackTracks.TSBSSimBackTrack.HY()" },
@@ -173,9 +167,9 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "hit.y",     "MC hit lab y position [m]",  "fMCHits.TSBSSimGEMHit.Y()" },
     { "hit.z",     "MC hit lab z position [m]",  "fMCHits.TSBSSimGEMHit.Z()" },
     // Hit position in cylindrical/spherical coordinates, good for SoLID
-    { "hit.r",     "MC hit lab r [m]",           "fMCHits.TSBSSimGEMHit.R()" },
-    { "hit.theta", "MC hit lab theta [rad]",     "fMCHits.TSBSSimGEMHit.Theta()" },
-    { "hit.phi",   "MC hit lab phi [rad]",       "fMCHits.TSBSSimGEMHit.Phi()" },
+    // { "hit.r",     "MC hit lab r [m]",           "fMCHits.TSBSSimGEMHit.R()" },
+    // { "hit.theta", "MC hit lab theta [rad]",     "fMCHits.TSBSSimGEMHit.Theta()" },
+    // { "hit.phi",   "MC hit lab phi [rad]",       "fMCHits.TSBSSimGEMHit.Phi()" },
     { "hit.charge","MC hit cluster charge",      "fMCHits.TSBSSimGEMHit.fCharge" },
     { "hit.time",  "MC hit time offset [s]",     "fMCHits.TSBSSimGEMHit.fTime" },
     { "hit.usz",   "MC hit u cluster size",      "fMCHits.TSBSSimGEMHit.fUSize" },
@@ -369,9 +363,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     crateslot[fSlotClear[i]]->clearEvent();
   if( fDoBench ) fBench->Stop("clearEvent");
 
-  // FIXED? needed?
-  // evscaler = 0;
-  // event_length = 0;
+  // FIXME: needed?
+  evscaler = 0;
+  event_length = 0;
   
   event_type = 1;
   event_num = simEvent->fEvtID;

@@ -27,15 +27,18 @@ public:
   TSBSSimTrack();
 
   // Accessors for SBS-specific parameters
-  Double_t MCFitR()     const;
-  Double_t MCFitPhi()     const;
-  Double_t MCFitThetaDir()  const;
-  Double_t MCFitPhiDir()  const;
+  // EFuchey: 2017/01/24:
+  // Those below are not useful for SBS, which needs X, Y, Xdir, Ydir (unless otherwise demonstrated)
+  // Now I'm wondering if TSBSSimTrack is useful at all, but in case, we will stick to that
+  /* Double_t MCFitR()     const; */
+  /* Double_t MCFitPhi()     const; */
+  /* Double_t MCFitThetaDir()  const; */
+  /* Double_t MCFitPhiDir()  const; */
 
-  Double_t RcFitR()     const;
-  Double_t RcFitPhi()     const;
-  Double_t RcFitThetaDir()  const;
-  Double_t RcFitPhiDir()  const;
+  /* Double_t RcFitR()     const; */
+  /* Double_t RcFitPhi()     const; */
+  /* Double_t RcFitThetaDir()  const; */
+  /* Double_t RcFitPhiDir()  const; */
   
   ClassDef(TSBSSimTrack,3)  // A MC physics track in SBS
 };

@@ -1079,10 +1079,10 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
 		      gd->GetP()  // Momentum in [GeV]
 		      );
   }
-  
+  // FIXED: one GenData per event: signal, primary particle
   if( f.GetNGen() > 0 )
     fEvent->fWeight = f.GetGenData(0)->GetWeight();
-
+  
   fEvent->fSectorsMapped = fDoMapSector;
   //fEvent->fSignalSector = tsgd.GetSigSector();//CHECK ?
   fEvent->fSignalSector = fSignalSector;
