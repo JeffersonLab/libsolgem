@@ -69,17 +69,9 @@ TSBSBox::SetGeometry (const Double_t d0,
 void
 TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
 {
-  Double_t r_temp[3] = {x, y, z};
-  TMatrixD m_temp(3, 1, r_temp);
-  
-  TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LB), m_temp);
-  
-  // LabToBox and LabToSpec are pretty similar. The only difference is that in the former, 
-  // the box origin is subtracted from the new coordinates
-  x = m_res(0, 0) - fOrigin.X();
-  y = m_res(1, 0) - fOrigin.Y();
-  z = m_res(2, 0) - fOrigin.Z();
+  LabToSpec(x, y, z);
+  z = z-fD0*1000;
+  SpecToBox(x, y);
   
   return;
 }
@@ -100,40 +92,24 @@ TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
   return;
 }
 
-/*
+
 void
 TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
 {
-  Double_t r_temp[3] = {x, y, z};
-  TMatrixD m_temp(3, 1, r_temp);
-  
-  TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LB), m_temp);
-  
-  x = m_res(0, 0);
-  y = m_res(1, 0);
-  z = m_res(2, 0);
+  x = x-fXOffset;
+  //neutral for y
   
   return;
 }
-*/
-/*
+
 void
 TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const
 {
-  Double_t r_temp[3] = {x, y, z};
-  TMatrixD m_temp(3, 1, r_temp);
-  
-  TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LB), m_temp);
-  
-  x = m_res(0, 0);
-  y = m_res(1, 0);
-  z = m_res(2, 0);
+  x = x+fXOffset;
+  //neutral for y
   
   return;
 }
-*/
 
 void
 TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
@@ -154,17 +130,9 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
 void
 TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
 {
-  //See comment in LabToBox method.
-  Double_t r_temp[3] = {x+fOrigin.X(), y+fOrigin.Y(), z+fOrigin.Z()};
-  TMatrixD m_temp(3, 1, r_temp);
-  
-  TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LB), m_temp);
-  
-  x = m_res(0, 0);
-  y = m_res(1, 0);
-  z = m_res(2, 0);
-  
+  BoxToSpec(x, y);
+  z = z+fD0*1000;
+  SpecToLab(x, y, z);
   return;
 }
 

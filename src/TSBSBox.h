@@ -75,8 +75,8 @@ class TSBSBox
   void LabToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   // neutral transformations. 
-  void SpecToBox (Double_t& x, Double_t& y) const {return;};  // input and output in mm
-  void BoxToSpec (Double_t& x, Double_t& y) const {return;};  // input and output in mm
+  void SpecToBox (Double_t& x, Double_t& y) const; // const {return;};  // input and output in mm
+  void BoxToSpec (Double_t& x, Double_t& y) const; // const {return;};  // input and output in mm
   void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   void BoxToLab (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   
