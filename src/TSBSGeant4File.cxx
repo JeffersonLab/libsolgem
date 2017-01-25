@@ -274,7 +274,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   case(1)://BB GEMs
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
       det_id = 0;
-      sector = -1;	
+      sector = 0;	
       
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
       trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
@@ -284,20 +284,20 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
       tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
       
-      if(plane<2){
-	det_id = 1;
-	for(int k = 0; k<fNSector1; k++){
-	  if(fXseg1[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg1[k+1]){
-	    sector = k;
-	  }
-	}
-      }else{
-	for(int k = 0; k<fNSector2; k++){
-	  if(fXseg2[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg2[k+1]){
-	    sector = k;
-	  }
-	}
-      }
+      // if(plane<2){
+      // 	det_id = 1;
+      // 	for(int k = 0; k<fNSector1; k++){
+      // 	  if(fXseg1[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg1[k+1]){
+      // 	    sector = k;
+      // 	  }
+      // 	}
+      // }else{
+      // 	for(int k = 0; k<fNSector2; k++){
+      // 	  if(fXseg2[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg2[k+1]){
+      // 	    sector = k;
+      // 	  }
+      // 	}
+      // }
       
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
@@ -442,7 +442,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
       det_id = 0;
-      sector = -1;	
+      sector = 0;	
       
       pid = fTree->Harm_SBSGEM_hit_pid->at(i);
       trid = fTree->Harm_SBSGEM_hit_trid->at(i);
@@ -452,11 +452,11 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
       tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSector2; k++){
-	if(fXseg2[k]<fTree->Harm_SBSGEM_hit_tx->at(i) && fTree->Harm_SBSGEM_hit_tx->at(i)<fXseg2[k+1]){
-	  sector = k;
-	}
-      }
+      // for(int k = 0; k<fNSector2; k++){
+      // 	if(fXseg2[k]<fTree->Harm_SBSGEM_hit_tx->at(i) && fTree->Harm_SBSGEM_hit_tx->at(i)<fXseg2[k+1]){
+      // 	  sector = k;
+      // 	}
+      // }
       
       pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
@@ -609,7 +609,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
     //Loop on the Forward Tracker detector hits: detectors 10 to 15
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 1;
-      sector = -1;
+      sector = 0;
       
       pid = fTree->Harm_FT_hit_pid->at(i);
       trid = fTree->Harm_FT_hit_trid->at(i);
@@ -619,11 +619,11 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSector1; k++){
-	if(fXseg1[k]<fTree->Harm_FT_hit_tx->at(i) && fTree->Harm_FT_hit_tx->at(i)<fXseg1[k+1]){
-	  sector = k;
-	}
-      }
+      // for(int k = 0; k<fNSector1; k++){
+      // 	if(fXseg1[k]<fTree->Harm_FT_hit_tx->at(i) && fTree->Harm_FT_hit_tx->at(i)<fXseg1[k+1]){
+      // 	  sector = k;
+      // 	}
+      // }
       
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
@@ -815,7 +815,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
       det_id = 0;
-      sector = -1;
+      sector = 0;
       
       pid = fTree->Harm_FPP1_hit_pid->at(i);
       trid = fTree->Harm_FPP1_hit_trid->at(i);
@@ -825,11 +825,11 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSector2; k++){
-	if(fXseg2[k]<fTree->Harm_FPP1_hit_tx->at(i) && fTree->Harm_FPP1_hit_tx->at(i)<fXseg2[k+1]){
-	  sector = k;
-	}
-      }
+      // for(int k = 0; k<fNSector2; k++){
+      // 	if(fXseg2[k]<fTree->Harm_FPP1_hit_tx->at(i) && fTree->Harm_FPP1_hit_tx->at(i)<fXseg2[k+1]){
+      // 	  sector = k;
+      // 	}
+      // }
       
       pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
@@ -1033,7 +1033,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
       det_id = 0;
-      sector = -1;
+      sector = 0;
       
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       trid = fTree->Harm_FPP2_hit_trid->at(i);
@@ -1043,11 +1043,11 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
       
-      for(int k = 0; k<fNSector2; k++){
-	if(fXseg2[k]<fTree->Harm_FPP2_hit_tx->at(i) && fTree->Harm_FPP2_hit_tx->at(i)<fXseg2[k+1]){
-	  sector = k;
-	}
-      }
+      // for(int k = 0; k<fNSector2; k++){
+      // 	if(fXseg2[k]<fTree->Harm_FPP2_hit_tx->at(i) && fTree->Harm_FPP2_hit_tx->at(i)<fXseg2[k+1]){
+      // 	  sector = k;
+      // 	}
+      // }
       
       pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
