@@ -1,6 +1,7 @@
 generalinfo.do_map_sector = 0
 generalinfo.self_define_sector = 0
 generalinfo.sector_mapped = 0
+generalinfo.ngsector = 1
 generalinfo.ntracker1 = 6
 generalinfo.nsector1 = 1
 generalinfo.ntracker2 = 10

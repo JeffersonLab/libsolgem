@@ -29,7 +29,7 @@ public:
     const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
     const int    &   GetSectorMapped()      { return fMappedSector;        }
     int GetNTracker();//          { return fNTracker1+fNTracker2;}
-    int GetNSector();//           { return fNSector1+fNSector2;  }
+    const int    &   GetNSector()           { return fNgSector;            }
     const int    &   GetNTracker1()         { return fNTracker1;           }
     const int    &   GetNSector1()          { return fNSector1;            }
     const int    &   GetNTracker2()         { return fNTracker2;           }
@@ -87,6 +87,7 @@ protected:
     int fMappedSector;
     int fDoSelfDefinedSector;
     
+    int    fNgSector;
     int    fNTracker1;
     int    fNSector1;
     int    fNTracker2;

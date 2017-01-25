@@ -29,7 +29,8 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"do_map_sector",       &fDoMapSector         , kInt,    0, 1},
         {"self_define_sector",  &fDoSelfDefinedSector , kInt,    0, 1},
         {"sector_mapped",       &fMappedSector        , kInt,    0, 1},
-        {"ntracker1",           &fNTracker1           , kInt,    0, 1},
+	{"ngsector",            &fNgSector            , kInt,    0, 1},
+	{"ntracker1",           &fNTracker1           , kInt,    0, 1},
         {"nsector1",            &fNSector1            , kInt,    0, 1},
         {"ntracker2",           &fNTracker2           , kInt,    0, 1},
         {"nsector2",            &fNSector2            , kInt,    0, 1},
@@ -236,12 +237,6 @@ int TSolDBManager::GetNTracker()
 { 
   const int NtrackerTot = fNTracker1+fNTracker2;
   return NtrackerTot;
-}
-//const 
-int TSolDBManager::GetNSector()
-{
-  const int NSectorTot = fNSector1+fNSector2;
-  return NSectorTot;
 }
 
 /*
