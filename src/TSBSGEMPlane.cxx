@@ -305,31 +305,34 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
 }
 
 void 
-TSBSGEMPlane::Print() const
+TSBSGEMPlane::Print(bool printcham) const
 {
   //Print GEM plane info
   cout << "I'm a GEM plane named " << GetName() << endl;
 
-  TVector3 o (GetOrigin());
-  cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
-       << " (rho,theta,phi)=(" << o.Mag() << "," << o.Theta()*TMath::RadToDeg()
-       << "," << o.Phi()*TMath::RadToDeg() << ")"
-       << endl;
+  if(printcham){
+    TVector3 o (GetOrigin());
+    cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
+	 << " (rho,theta,phi)=(" << o.Mag() << "," << o.Theta()*TMath::RadToDeg()
+	 << "," << o.Phi()*TMath::RadToDeg() << ")"
+	 << endl;
 
 #if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
-  const Double_t* s = GetSize();
+    const Double_t* s = GetSize();
 #else
-  const Float_t* s = GetSize();
+    const Float_t* s = GetSize();
 #endif
-  cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
+    cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
-  cout << "  Box geometry: D0 " << fBox->GetD0()
-       << " DX: " << fBox->GetDX()
-       << " DY: " << fBox->GetDY()
-       << " theta_H: " << fBox->GetThetaH()*TMath::RadToDeg()
-       << " theta_V: " << fBox->GetThetaV()*TMath::RadToDeg() 
-       << endl;
-
+    cout << "  Box geometry: D0 " << fBox->GetD0()
+	 << " XOffset: " << fBox->GetXOffset()
+	 << " DX: " << fBox->GetDX()
+	 << " DY: " << fBox->GetDY()
+	 << " theta_H: " << fBox->GetThetaH()*TMath::RadToDeg()
+	 << " theta_V: " << fBox->GetThetaV()*TMath::RadToDeg() 
+	 << endl;
+  }
+  
   cout << "  " << GetNStrips() << " strips"
        << ", angle " << GetSAngle()*TMath::RadToDeg()
        << ", start " << fSBeg << " " << 0.5*(GetStripLowerEdge(0)+GetStripUpperEdge(0))

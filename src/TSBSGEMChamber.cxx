@@ -150,17 +150,20 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
   cout << "  Size:   " << s[0] << " " << s[1] << " " << s[2] << endl;
 
   cout << "  Box geometry: D0: " << fBox->GetD0()
+       << " XOffset: " << fBox->GetXOffset()
        << " DX: " << fBox->GetDX()
        << " DY: " << fBox->GetDY()
        << " thetaH: " << fBox->GetThetaH()*TMath::RadToDeg()
        << " thetaV: " << fBox->GetThetaV()*TMath::RadToDeg()
        << endl;
 
-  if (printplanes)
+  if (printplanes){
+    cout << "I contain the " << GetNPlanes() << " following planes: " << endl;
     for (UInt_t i = 0; i < GetNPlanes(); ++i)
       {
-	fPlanes[i]->Print();
+	fPlanes[i]->Print(!printplanes);
       }
+  }
 }
 
 //Transformations: frame conversions
