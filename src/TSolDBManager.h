@@ -23,7 +23,7 @@ public:
     }
     
     void LoadGeneralInfo(const string& fileName);
-    //void LoadGeoInfo(const string& fileName);
+    void LoadGeoInfo(const string& prefix);
     
     const int    &   DoMapSector()          { return fDoMapSector;         }
     const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
@@ -127,7 +127,7 @@ protected:
     vector<int>    fSigTID;
     
     /* vector<double> fTrackerZ; */
-    /* map< int, vector<GeoInfo> > fGeoInfo; */
+    map< int, vector<GeoInfo> > fGeoInfo;
     
 };
 

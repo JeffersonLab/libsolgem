@@ -15,6 +15,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     
     TSolDBManager* manager = TSolDBManager::GetInstance();
     manager->LoadGeneralInfo("db_generalinfo.dat");
+    manager->LoadGeoInfo("g4sbs_gep");
     
     int Ncham_tot = manager->GetNTracker1()*manager->GetNSector1()+manager->GetNTracker2()*manager->GetNSector2();
     

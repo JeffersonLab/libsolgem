@@ -75,73 +75,93 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
 	if( err ) exit(2); 
     }
     
-    /*
-    for (int i=0; i<fNTracker; i++){
+    for (int i=0; i<GetNTracker(); i++){
          vector<GeoInfo> thisInfo;
          thisInfo.clear();
          fGeoInfo[i] = thisInfo;
     }
-    */
     
     fModulesPerChamber = fModulesPerReadOut * fNReadOut;
     
     fChambersPerCrate  = 
       (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/(fNTracker1+fNTracker2)) * (fNTracker1+fNTracker2);
 }
-/*
+
 //______________________________________________________________
-void TSolDBManager::LoadGeoInfo(const string& fileName)
+void TSolDBManager::LoadGeoInfo(const string& prefix)
 {
-    ifstream input(fileName.c_str());
-    if (!input.is_open()){
-        cout<<"cannot find general information file "<<fileName
-            <<". Exiting the program"<<endl;
-        exit(0);
+  const string& fileName = "db_"+prefix+".dat";
+    
+  ifstream input(fileName.c_str());
+  if (!input.is_open()){
+    cout<<"cannot find geometry file "<<fileName
+	<<". Exiting the program"<<endl;
+    exit(0);
+  }
+  
+  //const string prefix = "gemc.";
+  
+  GeoInfo thisGeo;
+  
+  DBRequest request[] = {
+    {"d0",          &thisGeo.d0,           kDouble, 0, 1},
+    {"xoffset",     &thisGeo.xoffset,      kDouble, 0, 1},
+    {"dx",          &thisGeo.dx,           kDouble, 0, 1},
+    {"dy",          &thisGeo.dy,           kDouble, 0, 1},
+    {"thetaH",      &thisGeo.thetaH,       kDouble, 0, 1},
+    {"thetaV",      &thisGeo.thetaV,       kDouble, 0, 1},
+    {"depth",       &thisGeo.depth,        kDouble, 0, 1},
+    { 0 }
+  };
+  
+  DBRequest plane_request[] = {
+    { "x.stripangle",     &thisGeo.stripangle_u,   kDouble, 0, 1},
+    { "x.pitch",          &thisGeo.pitch_u,        kDouble, 0, 1},
+    { "y.stripangle",     &thisGeo.stripangle_v,   kDouble, 0, 1},
+    { "y.pitch",          &thisGeo.pitch_v,        kDouble, 0, 1},
+    { 0 }
+  };
+  
+  for (int i=0; i<fNTracker2; i++){
+    map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
+    if (it == fGeoInfo.end()) { cout<<"unexpected tracker id "<<i<<endl; }
+    
+    for (int j=0; j<fNSector2; j++){
+      ostringstream sector_prefix(prefix, ios_base::ate);
+      int idx = i*fNSector2 + j;
+      sector_prefix<<".gem"<<idx<<".";
+      
+      int err = LoadDB(input, request, sector_prefix.str());
+      if( err ) exit(2);
+      
+      sector_prefix<<"gem"<<idx;
+      err = LoadDB(input, plane_request, sector_prefix.str());
+      if (err) exit(2);
+      
+      fGeoInfo[i].push_back(thisGeo);
     }
+  }
+  for (int i=0; i<fNTracker1; i++){
+    map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
+    if (it == fGeoInfo.end()) { cout<<"unexpected tracker id "<<i<<endl; }
     
-    const string prefix = "gemc.";
-    
-    GeoInfo thisGeo;
-    
-    DBRequest request[] = {
-        { "r0",               &thisGeo.r0,             kDouble, 0, 1},
-        { "r1",               &thisGeo.r1,             kDouble, 0, 1},
-        { "phi0",             &thisGeo.phi0,           kDouble, 0, 1},
-        { "dphi",             &thisGeo.dphi,           kDouble, 0, 1},
-        { "z0",                &thisGeo.z,              kDouble, 0, 1},
-        { "depth",            &thisGeo.depth,          kDouble, 0, 1},
-        { 0 }
-    };
-    
-    DBRequest plane_request[] = {
-        { "x.stripangle",     &thisGeo.stripangle_u,   kDouble, 0, 1},
-        { "x.pitch",          &thisGeo.pitch_u,        kDouble, 0, 1},
-        { "y.stripangle",     &thisGeo.stripangle_v,   kDouble, 0, 1},
-        { "y.pitch",          &thisGeo.pitch_v,        kDouble, 0, 1},
-        { 0 }
-    };
-    
-    for (int i=0; i<fNTracker; i++){
-        map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
-        if (it == fGeoInfo.end()) { cout<<"unexpected tracker id "<<i<<endl; }
-    
-        for (int j=0; j<fNSector; j++){
-            ostringstream sector_prefix(prefix, ios_base::ate);
-            int idx = i*fNSector + j;
-            sector_prefix<<"gem"<<idx+1<<".";
-            
-            int err = LoadDB(input, request, sector_prefix.str());
-            if( err ) exit(2);
-            
-            sector_prefix<<"gem"<<idx+1;
-            err = LoadDB(input, plane_request, sector_prefix.str());
-            if (err) exit(2);
-            
-            fGeoInfo[i].push_back(thisGeo);
-        }
+    for (int j=0; j<fNSector1; j++){
+      ostringstream sector_prefix(prefix, ios_base::ate);
+      int idx = fNTracker2*fNSector2 +i*fNSector1 + j;
+      sector_prefix<<".gem"<<idx<<".";
+      
+      int err = LoadDB(input, request, sector_prefix.str());
+      if( err ) exit(2);
+      
+      sector_prefix<<"gem"<<idx;
+      err = LoadDB(input, plane_request, sector_prefix.str());
+      if (err) exit(2);
+      
+      fGeoInfo[i].push_back(thisGeo);
     }
+  }
 }
-*/
+
 //______________________________________________________________
 string TSolDBManager::FindKey( ifstream& inp, const string& key )
 {

@@ -9,20 +9,19 @@ enum StripSignalType{
   kInducedStrip
 };
 
-/*
 struct GeoInfo{
-    double r0;
-    double r1;
-    double phi0;
-    double dphi;
+    double d0;
+    double xoffset;
+    double dx;
+    double dy;
+    double thetaH;
+    double thetaV;
     double z;
     double depth;
     double stripangle_u;
     double stripangle_v;
     double pitch_u;
     double pitch_v;
-
 };
-*/
 
 #endif//__TYPES_
