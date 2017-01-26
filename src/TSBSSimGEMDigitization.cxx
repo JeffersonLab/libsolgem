@@ -416,7 +416,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     // cout << ih << endl; 
     spect.GetChamber(igem).SpecToPlane(vv1);
     spect.GetChamber(igem).SpecToPlane(vv2);
-
+    
     // cout << " hit entrance (2) ";
     // vv1.Print();
     // cout << " hit exit (2) ";
@@ -786,11 +786,11 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     yb = yq * TMath::Floor (yb / yq);
     yt = yq * TMath::Ceil  (yt / yq);
 
-    //We should also allow x to have variable bin size based on the db
-    //the new avalanche model (Cauchy-Lorentz) has a very sharp full width
-    //half maximum, so if the bin size is too large, it can introduce
-    //fairly large error on the charge deposition. Setting fXIntegralStepsPerPitch
-    //to 1 will go back to the original version -- Weizhi Xiong
+    // We should also allow x to have variable bin size based on the db
+    // the new avalanche model (Cauchy-Lorentz) has a very sharp full width
+    // half maximum, so if the bin size is too large, it can introduce
+    // fairly large error on the charge deposition. Setting fXIntegralStepsPerPitch
+    // to 1 will go back to the original version -- Weizhi Xiong
 
     Int_t nstrips = iU - iL + 1;
     Int_t nx = (iU - iL + 1) * fXIntegralStepsPerPitch;
@@ -1243,7 +1243,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 
 	for (UInt_t ss = 0; ss < strip.fNsamp; ++ss)
 	  strip.fADC[ss] = GetADC(ich, ip, idx, ss);
-
+	
 	strip.fSigType = GetType(ich, ip, idx);
 	strip.fCharge  = GetCharge(ich, ip, idx);
 	strip.fTime1   = GetTime(ich, ip, idx);

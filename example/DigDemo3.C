@@ -16,10 +16,14 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     TSolDBManager* manager = TSolDBManager::GetInstance();
     manager->LoadGeneralInfo("db_generalinfo.dat");
     
+    int Ncham_tot = manager->GetNTracker1()*manager->GetNSector1()+manager->GetNTracker2()*manager->GetNSector2();
+    
+    cout << " Total number of chambers " << Ncham_tot << endl;
+    
     dds = new TSBSSpec ("g4sbs_gep", "SBS spectrometer");
     dds->Init();
 
-    for(int i_ch = 0; i_ch<16; i_ch++){
+    for(int i_ch = 0; i_ch<Ncham_tot; i_ch++){
       ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
       ddy->SetApparatus(dds);
       if( ddy->Init() )

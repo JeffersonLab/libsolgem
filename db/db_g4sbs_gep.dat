@@ -80,7 +80,7 @@ g4sbs_gep.gem0.thetaH = 16.900000
 g4sbs_gep.gem0.thetaV = 5.000000
 g4sbs_gep.gem0.depth = 0.015955
 g4sbs_gep.gem0.gem0x.stripangle = 0.0
-g4sbs_gep.gem0.gem0x.pitch = 0.0003072
+g4sbs_gep.gem0.gem0x.pitch = 0.0003255
 g4sbs_gep.gem0.gem0y.stripangle = 90.0
 g4sbs_gep.gem0.gem0y.pitch = 0.0003906
 
@@ -92,7 +92,7 @@ g4sbs_gep.gem1.thetaH = 16.900000
 g4sbs_gep.gem1.thetaV = 5.000000
 g4sbs_gep.gem1.depth = 0.015955
 g4sbs_gep.gem1.gem1x.stripangle = 0.0
-g4sbs_gep.gem1.gem1x.pitch = 0.0003072
+g4sbs_gep.gem1.gem1x.pitch = 0.0003255
 g4sbs_gep.gem1.gem1y.stripangle = 90.0
 g4sbs_gep.gem1.gem1y.pitch = 0.0003906
 
@@ -104,7 +104,7 @@ g4sbs_gep.gem2.thetaH = 16.900000
 g4sbs_gep.gem2.thetaV = 5.000000
 g4sbs_gep.gem2.depth = 0.015955
 g4sbs_gep.gem2.gem2x.stripangle = 0.0
-g4sbs_gep.gem2.gem2x.pitch = 0.0003072
+g4sbs_gep.gem2.gem2x.pitch = 0.0003255
 g4sbs_gep.gem2.gem2y.stripangle = 90.0
 g4sbs_gep.gem2.gem2y.pitch = 0.0003906
 
@@ -116,7 +116,7 @@ g4sbs_gep.gem3.thetaH = 16.900000
 g4sbs_gep.gem3.thetaV = 5.000000
 g4sbs_gep.gem3.depth = 0.015955
 g4sbs_gep.gem3.gem3x.stripangle = 0.0
-g4sbs_gep.gem3.gem3x.pitch = 0.0003072
+g4sbs_gep.gem3.gem3x.pitch = 0.0003255
 g4sbs_gep.gem3.gem3y.stripangle = 90.0
 g4sbs_gep.gem3.gem3y.pitch = 0.0003906
 
@@ -128,7 +128,7 @@ g4sbs_gep.gem4.thetaH = 16.900000
 g4sbs_gep.gem4.thetaV = 5.000000
 g4sbs_gep.gem4.depth = 0.015955
 g4sbs_gep.gem4.gem4x.stripangle = 0.0
-g4sbs_gep.gem4.gem4x.pitch = 0.0003072
+g4sbs_gep.gem4.gem4x.pitch = 0.0003255
 g4sbs_gep.gem4.gem4y.stripangle = 90.0
 g4sbs_gep.gem4.gem4y.pitch = 0.0003906
 
@@ -140,7 +140,7 @@ g4sbs_gep.gem5.thetaH = 16.900000
 g4sbs_gep.gem5.thetaV = 5.000000
 g4sbs_gep.gem5.depth = 0.015955
 g4sbs_gep.gem5.gem5x.stripangle = 0.0
-g4sbs_gep.gem5.gem5x.pitch = 0.0003072
+g4sbs_gep.gem5.gem5x.pitch = 0.0003255
 g4sbs_gep.gem5.gem5y.stripangle = 90.0
 g4sbs_gep.gem5.gem5y.pitch = 0.0003906
 
@@ -152,7 +152,7 @@ g4sbs_gep.gem6.thetaH = 16.900000
 g4sbs_gep.gem6.thetaV = 5.000000
 g4sbs_gep.gem6.depth = 0.015955
 g4sbs_gep.gem6.gem6x.stripangle = 0.0
-g4sbs_gep.gem6.gem6x.pitch = 0.0003072
+g4sbs_gep.gem6.gem6x.pitch = 0.0003255
 g4sbs_gep.gem6.gem6y.stripangle = 90.0
 g4sbs_gep.gem6.gem6y.pitch = 0.0003906
 
@@ -164,7 +164,7 @@ g4sbs_gep.gem7.thetaH = 16.900000
 g4sbs_gep.gem7.thetaV = 5.000000
 g4sbs_gep.gem7.depth = 0.015955
 g4sbs_gep.gem7.gem7x.stripangle = 0.0
-g4sbs_gep.gem7.gem7x.pitch = 0.0003072
+g4sbs_gep.gem7.gem7x.pitch = 0.0003255
 g4sbs_gep.gem7.gem7y.stripangle = 90.0
 g4sbs_gep.gem7.gem7y.pitch = 0.0003906
 
@@ -176,7 +176,7 @@ g4sbs_gep.gem8.thetaH = 16.900000
 g4sbs_gep.gem8.thetaV = 5.000000
 g4sbs_gep.gem8.depth = 0.015955
 g4sbs_gep.gem8.gem8x.stripangle = 0.0
-g4sbs_gep.gem8.gem8x.pitch = 0.0003072
+g4sbs_gep.gem8.gem8x.pitch = 0.0003255
 g4sbs_gep.gem8.gem8y.stripangle = 90.0
 g4sbs_gep.gem8.gem8y.pitch = 0.0003906
 
@@ -188,6 +188,6 @@ g4sbs_gep.gem9.thetaH = 16.900000
 g4sbs_gep.gem9.thetaV = 5.000000
 g4sbs_gep.gem9.depth = 0.015955
 g4sbs_gep.gem9.gem9x.stripangle = 0.0
-g4sbs_gep.gem9.gem9x.pitch = 0.0003072
+g4sbs_gep.gem9.gem9x.pitch = 0.0003255
 g4sbs_gep.gem9.gem9y.stripangle = 90.0
 g4sbs_gep.gem9.gem9y.pitch = 0.0003906

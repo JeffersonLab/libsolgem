@@ -119,10 +119,10 @@ class TSBSGEMPlane : public THaSubDetector {
 	Double_t fSBeg;     // X coordinate of lower edge of first strip
 	TSBSBox* fBox;  // Box geometry
 
-	// Trig functions for rotations
-	// matrices for rotations
-	TMatrixD* fRotMat_SL; 
-	TMatrixD* fRotMat_LS; 
+	/* // Trig functions for rotations */
+	/* // matrices for rotations */
+	/* TMatrixD* fRotMat_SL;  */
+	/* TMatrixD* fRotMat_LS;  */
 	
 	Double_t fCBS; // ... box to strip
 	Double_t fSBS;
@@ -132,7 +132,7 @@ class TSBSGEMPlane : public THaSubDetector {
 
 };
 
-// NB: I ignore zhy this is here and the rest is in the cxx file. 
+// NB: I ignore why this is here and the rest is in the cxx file. 
 // This is "inherithed" from TSolGEMPlane.
 inline void
 TSBSGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const

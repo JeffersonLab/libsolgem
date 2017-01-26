@@ -3,8 +3,10 @@ generalinfo.self_define_sector = 0
 generalinfo.sector_mapped = 0
 generalinfo.ngsector = 1
 generalinfo.ntracker1 = 6
+#generalinfo.nsector1 = 3
 generalinfo.nsector1 = 1
 generalinfo.ntracker2 = 10
+#generalinfo.nsector2 = 4
 generalinfo.nsector2 = 1
 generalinfo.nreadout = 2
 generalinfo.gem_drift_id = 6
@@ -18,7 +20,7 @@ generalinfo.modules_per_readout = 1
 generalinfo.self_defined_sector = 1
 
 generalinfo.nsignal = 1
-generalinfo.signal1.pid = 11
+generalinfo.signal1.pid = 2212
 generalinfo.signal1.tid = 1
 
 generalinfo.g4sbs_detectortype = 3

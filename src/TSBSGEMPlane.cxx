@@ -182,15 +182,17 @@ TSBSGEMPlane::GetSAngle()   const
 void
 TSBSGEMPlane::LabToStrip (Double_t& x, Double_t& y, Double_t& z) const
 {
-  Double_t r_temp[3] = {x, y, z};
-  TMatrixD m_temp(3, 1, r_temp);
+  LabToPlane(x, y, z);
+  PlaneToStrip(x, y);
+  // Double_t r_temp[3] = {x, y, z};
+  // TMatrixD m_temp(3, 1, r_temp);
   
-  TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LS), m_temp);
+  // TMatrixD m_res(3, 1, r_temp);
+  // m_res.Mult((*fRotMat_LS), m_temp);
   
-  x = m_res(0, 0) - fOrigin.X();
-  y = m_res(1, 0) - fOrigin.Y();
-  z = m_res(2, 0) - fOrigin.Z();
+  // x = m_res(0, 0) - fOrigin.X();
+  // y = m_res(1, 0) - fOrigin.Y();
+  // z = m_res(2, 0) - fOrigin.Z();
   
   return;
 }
@@ -198,18 +200,22 @@ TSBSGEMPlane::LabToStrip (Double_t& x, Double_t& y, Double_t& z) const
 void
 TSBSGEMPlane::SpecToStrip (Double_t& x, Double_t& y) const
 {
-  register Double_t temp = x;
-  x = fCBS * x - fSBS * y;
-  y = fSBS * temp + fCBS * y;
+  SpecToPlane(x, y);
+  PlaneToStrip(x, y);
+  // register Double_t temp = x;
+  // x = fCBS * x - fSBS * y;
+  // y = fSBS * temp + fCBS * y;
   return;
 }
 
 void
 TSBSGEMPlane::StripToSpec (Double_t& x, Double_t& y) const
 {
-  Double_t temp = x;
-  x = fCBS * x + fSBS * y;
-  y = -fSBS * temp + fCBS * y;
+  StripToPlane(x, y);
+  PlaneToSpec(x, y);
+  // Double_t temp = x;
+  // x = fCBS * x + fSBS * y;
+  // y = -fSBS * temp + fCBS * y;
   return;
 }
 
@@ -225,15 +231,18 @@ TSBSGEMPlane::StripToPlane (Double_t& x, Double_t& y) const
 void
 TSBSGEMPlane::StripToLab (Double_t& x, Double_t& y, Double_t& z) const
 {
-  Double_t r_temp[3] = {x+fOrigin.X(), y+fOrigin.Y(), z+fOrigin.Z()};
-  TMatrixD m_temp(3, 1, r_temp);
+  StripToPlane(x, y);
+  PlaneToLab(x, y, z);
   
-  TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LS), m_temp);
+  // Double_t r_temp[3] = {x+fOrigin.X(), y+fOrigin.Y(), z+fOrigin.Z()};
+  // TMatrixD m_temp(3, 1, r_temp);
   
-  x = m_res(0, 0);
-  y = m_res(1, 0);
-  z = m_res(2, 0);
+  // TMatrixD m_res(3, 1, r_temp);
+  // m_res.Mult((*fRotMat_LS), m_temp);
+  
+  // x = m_res(0, 0);
+  // y = m_res(1, 0);
+  // z = m_res(2, 0);
   
   return;
 }
@@ -351,6 +360,7 @@ TSBSGEMPlane::SetRotations()
   fCBS = cos (-GetSAngle());
   fSBS = sin (-GetSAngle());
   
+  /*
   Double_t thetaH = fBox->GetThetaH();
   Double_t thetaV = fBox->GetThetaV();
 
@@ -388,4 +398,5 @@ TSBSGEMPlane::SetRotations()
   
   fRotMat_LS = fRotMat_SL;
   fRotMat_LS->Invert();
+  */
 }
