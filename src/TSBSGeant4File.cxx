@@ -287,17 +287,18 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		     fTree->Earm_BBGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3, // in mm
+      X_in = TVector3((fTree->Earm_BBGEM_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3, // in mm
-		      fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() *1.0e3);// in mm
+		      (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, sector))*1.0e3);// in mm
       
-      X_out = TVector3(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
-		       fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
-		       (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
-      
-      X_RO = TVector3(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+9.185*fTree->Earm_BBGEM_hit_txp->at(i), // in mm
-		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+9.185*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
-		      (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      X_out = TVector3(X_in.X()+3.0*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
+		       X_in.Y()+3.0*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
+		       -1.6825);// in mm
+
+      X_RO = TVector3(X_in.X()+9.185*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
+		      X_in.Y()+9.185*fTree->Earm_BBGEM_hit_typ->at(i), // in mm 
+		      4.5025);// in mm      
       
       //cout << "FPP2: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Earm_BBGEM_hit_pid->at(i))==11 && fTree->Earm_BBGEM_hit_p->at(i)<=feMom.back()){
@@ -305,35 +306,37 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	eRangeGas = FindGasRange(fTree->Earm_BBGEM_hit_p->at(i));//m
 	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
        	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	  X_out.SetX(X_in.X()+3.0*fTree->Earm_BBGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(X_in.Y()+3.0*fTree->Earm_BBGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
 	  
-	  X_RO.SetX(fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_RO.SetY(fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Earm_BBGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetX(X_out.X());
+	  X_RO.SetY(X_out.Y());
        	}
       }
       
-      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
@@ -438,52 +441,55 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		     fTree->Harm_SBSGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3, // in mm
+      X_in = TVector3((fTree->Harm_SBSGEM_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3, // in mm
-		      fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() *1.0e3);// in mm
+		      (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, sector))*1.0e3);// in mm
       
-      X_out = TVector3(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm 
-		       fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
-		       (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
-      
-      X_RO = TVector3(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm
-		      fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
-		      (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      X_out = TVector3(X_in.X()+3.0*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm 
+		       X_in.Y()+3.0*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
+		       -1.6825);// in mm
+
+      X_RO = TVector3(X_in.X()+9.185*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm 
+		      X_in.Y()+9.185*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm 
+		      4.5025);// in mm      
       
       if(fabs(fTree->Harm_SBSGEM_hit_pid->at(i))==11 && fTree->Harm_SBSGEM_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2)+pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Harm_SBSGEM_hit_p->at(i));//m
 	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
        	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	  X_out.SetX(X_in.X()+3.0*fTree->Harm_SBSGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_SBSGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
 	  
-	  X_RO.SetX(fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_RO.SetY(fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_SBSGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetX(X_out.X());
+	  X_RO.SetY(X_out.Y());
        	}
       }
       
-      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
@@ -609,36 +615,38 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	eRangeGas = FindGasRange(fTree->Harm_FT_hit_p->at(i));//m
 	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
 	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
-
-	  X_RO.SetX(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_RO.SetY(fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	  X_out.SetX(X_in.X()+3.0*fTree->Harm_FT_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_FT_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  
+	  X_RO.SetX(X_out.X());
+	  X_RO.SetY(X_out.Y());
 	  //cout << "Coucou ! FT" << endl;
        	}
       }
       
-      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FT_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FT_hit_ty->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
@@ -787,7 +795,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       X_out = TVector3(X_in.X()+3.0*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
 		       X_in.Y()+3.0*fTree->Harm_FPP1_hit_typ->at(i), // in mm
 		       -1.6825);// in mm
-
+      
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
@@ -798,37 +806,38 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	eRangeGas = FindGasRange(fTree->Harm_FPP1_hit_p->at(i));//m
 	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
        	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	  X_out.SetX(X_in.X()+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
 	  
-	  X_RO.SetX(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_RO.SetY(fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetX(X_out.X());
+	  X_RO.SetY(X_out.Y());
 	  //cout << "Coucou ! FPP1 " << endl;
        	}
       }
       
-      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout << "; set at limit: " << X_out.X() << " mm " << endl;
 	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP1_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FPP1_hit_ty->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
@@ -1001,36 +1010,38 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	eRangeGas = FindGasRange(fTree->Harm_FPP2_hit_p->at(i));//m
 	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
        	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
+       	  X_out.SetX(X_in.X()+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
+	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
 	  
-	  X_RO.SetX(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_RO.SetY(fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
+	  X_RO.SetX(X_out.X());
+	  X_RO.SetY(X_out.Y());
        	}
       }
       
-      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP2_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " 
 	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FPP2_hit_ty->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
