@@ -326,23 +326,21 @@ const double & TSolDBManager::GetPitch(int i, int j, int k)
     if (k == 0) return fGeoInfo[i].at(j).pitch_u;
     else return fGeoInfo[i].at(j).pitch_u;
 }
-// //__________________________________________________________________________
-// int TSolDBManager::GetSectorIDFromPos(double& x, double& y, int& itracker)
-// {
-//     if (!CheckIndex(itracker)) return fErrVal;
-//     double thisPhi = atan2(y, x);
-//     for (unsigned int i=0; i<fGeoInfo[itracker].size(); i++){
-//         double phiCenter = (fGeoInfo[itracker].at(i).phi0 + 
-//                             fGeoInfo[itracker].at(i).dphi / 2.) /180. *TMath::Pi();
-//         phiCenter = TVector2::Phi_mpi_pi(phiCenter);
-//         double deltaPhi = fabs(TVector2::Phi_mpi_pi(thisPhi - phiCenter));
-//         if (deltaPhi < fGeoInfo[itracker].at(i).dphi / 2. / 180. *TMath::Pi()){
-//             return (int)i;
-//             break;
-//         }
-//     }
-//     return -1;
-// }
+
+//__________________________________________________________________________
+int TSolDBManager::GetSectorIDFromPos(int itracker, double x, double y)
+{
+  if (!CheckIndex(itracker)) return fErrVal;
+
+  double sector = -1;
+  for(int k = 0; k<fGeoInfo[itracker].size(); k++){
+    if(fGeoInfo[itracker].at(k).xoffset-fGeoInfo[itracker].at(k).dx/2.0<x && 
+       x<fGeoInfo[itracker].at(k).xoffset+fGeoInfo[itracker].at(k).dx/2.0){
+      sector = k;
+    }
+  }
+  return sector;
+}
 
 
 

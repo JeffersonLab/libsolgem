@@ -73,7 +73,7 @@ public:
     const double &   GetStripAngle(int i, int j, int k);
     const double &   GetPitch(int i, int j, int k);
     
-    /* int              GetSectorIDFromPos(double& x, double& y, int& itracker); */
+    int GetSectorIDFromPos(int itracker, double x, double y = 0);
     
 protected:
     TSolDBManager();

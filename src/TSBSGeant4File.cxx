@@ -172,24 +172,8 @@ Int_t TSBSGeant4File::Open(){
     if(fManager->Getg4sbsDetectorType()<1 && fManager->Getg4sbsDetectorType()>3){
       cout << "Invalid detector option: Set correct option in db_generalinfo.dat" << endl;
       cout << "(remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - GEP SBS GEMs)" << endl;
-      exit(-1);
+      return 0;
     }
-    
-    // TODO: set those variables in the DB. 
-    fNSector1 = fManager->GetNSector1();
-    fNSector2 = fManager->GetNSector2();
-    
-    for(int k = 0; k<fNSector1+1; k++)fXseg1.push_back(-0.75+k*1.5/fNSector1);
-    for(int k = 0; k<fNSector2+1; k++)fXseg2.push_back(-1.0+k*2.0/fNSector2);
-    
-    // for(int k = 0; k<fNSector1+1; k++){
-    //   cout << fXseg1[k] << endl;
-    //   if(k<fNSector1)cout << (fXseg1[k]+fXseg1[k+1])*5.0e2 << endl;
-    // }
-    // for(int k = 0; k<fNSector2+1; k++){
-    //   cout << fXseg2[k] << endl;
-    //   if(k<fNSector2)cout << (fXseg2[k]+fXseg2[k+1])*5.0e2 << endl;
-    // }
     
     fTree = new g4sbs_tree(C1, fManager->Getg4sbsDetectorType());
     // g4sbs_tree declare all variables, branches, etc... 
@@ -283,7 +267,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   case(1)://BB GEMs
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
       det_id = 0;
-      sector = 0;	
+      sector = -1;	
       
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
       trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
@@ -293,20 +277,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
       tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
       
-      // if(plane<2){
-      // 	det_id = 1;
-      // 	for(int k = 0; k<fNSector1; k++){
-      // 	  if(fXseg1[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg1[k+1]){
-      // 	    sector = k;
-      // 	  }
-      // 	}
-      // }else{
-      // 	for(int k = 0; k<fNSector2; k++){
-      // 	  if(fXseg2[k]<fTree->Earm_BBGEM_hit_tx->at(i) && fTree->Earm_BBGEM_hit_tx->at(i)<fXseg2[k+1]){
-      // 	    sector = k;
-      // 	  }
-      // 	}
-      // }
+      sector = fManager->GetSectorIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
@@ -342,32 +313,30 @@ Int_t TSBSGeant4File::ReadNextEvent(){
        	}
       }
       
-      /*
-      if(fabs(X_out.X())>=999.99){//verifier
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
 #if WARNING>0
-cout << "Warning: Evt " << fEvNum << ", hit " << i
-	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane;
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=999.99/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=299.99){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
 #if WARNING>0
-cout << "Warning: Evt " << fEvNum << ", hit " << i
-	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane;
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=299.99/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetY(X_out.Y());
       }
-      */
       
       Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Earm_BBGEM_hit_vy->at(i)*1.0e3, // in mm
@@ -451,7 +420,6 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
       det_id = 0;
-      sector = 0;	
       
       pid = fTree->Harm_SBSGEM_hit_pid->at(i);
       trid = fTree->Harm_SBSGEM_hit_trid->at(i);
@@ -460,12 +428,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
       tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
-      
-      // for(int k = 0; k<fNSector2; k++){
-      // 	if(fXseg2[k]<fTree->Harm_SBSGEM_hit_tx->at(i) && fTree->Harm_SBSGEM_hit_tx->at(i)<fXseg2[k+1]){
-      // 	  sector = k;
-      // 	}
-      // }
+      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_SBSGEM_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
@@ -500,35 +463,25 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
        	}
       }
       
-      if(X_out.X()>fXseg2[sector+1]*1000){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside SBS plane " << plane;
+	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
-	X_out[0] = fXseg2[sector+1]*1000;
+	temp = fabs(X_out.X());
+	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(X_out.X()<fXseg2[sector]*1000){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i
-	     << ": X_out.X " << X_out.X() << " outside SBS plane " << plane;
-#endif //WARNING
-	X_out[0] = fXseg2[sector]*1000;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
-#endif //WARNING
-	X_RO.SetX(X_out.X());
-      }
-      if(fabs(X_out.Y())>=300.00){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit "  << i
-	     << ": X_out.Y " << X_out.Y() << " outside SBS plane " << plane;
+	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=300./temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
@@ -618,7 +571,6 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
     //Loop on the Forward Tracker detector hits: detectors 10 to 15
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 1;
-      sector = 0;
       
       pid = fTree->Harm_FT_hit_pid->at(i);
       trid = fTree->Harm_FT_hit_trid->at(i);
@@ -627,12 +579,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
-      
-      for(int k = 0; k<fNSector1; k++){
-      	if(fXseg1[k]<fTree->Harm_FT_hit_tx->at(i) && fTree->Harm_FT_hit_tx->at(i)<fXseg1[k+1]){
-      	  sector = k;
-      	}
-      }
+      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
@@ -814,7 +761,6 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
       det_id = 0;
-      sector = 0;
       
       pid = fTree->Harm_FPP1_hit_pid->at(i);
       trid = fTree->Harm_FPP1_hit_trid->at(i);
@@ -823,14 +769,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
-      
-      for(int k = 0; k<fNSector2; k++){
-      	if(fXseg2[k]<fTree->Harm_FPP1_hit_tx->at(i) && fTree->Harm_FPP1_hit_tx->at(i)<fXseg2[k+1]){
-      	  sector = k;
-      	}
-      }
-      
-      //cout << fManager->GetXOffset(plane, sector)*1.0e3 << " " << (fXseg2[sector+1]+fXseg2[sector])/2.0 << endl; 
+      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
@@ -1026,7 +965,6 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
       det_id = 0;
-      sector = 0;
       
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       trid = fTree->Harm_FPP2_hit_trid->at(i);
@@ -1035,12 +973,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
-      
-      for(int k = 0; k<fNSector2; k++){
-      	if(fXseg2[k]<fTree->Harm_FPP2_hit_tx->at(i) && fTree->Harm_FPP2_hit_tx->at(i)<fXseg2[k+1]){
-      	  sector = k;
-      	}
-      }
+      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
