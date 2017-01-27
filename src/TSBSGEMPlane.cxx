@@ -302,7 +302,9 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
   // strip frame, or -1 if outside (2-d) bounds
   
   Double_t xc = x;
-  StripToSpec (xc, yc);
+  StripToPlane (xc, yc);
+  
+  //cout << "gnourf " << xc << " " << yc << endl; 
   
   if (!fBox->Contains (xc, yc))
     return -1;

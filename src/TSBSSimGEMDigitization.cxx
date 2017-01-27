@@ -39,11 +39,16 @@ Double_t TSBSSimGEMDigitization::fCrossSigma = 0.;
 inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
-  //This function is, for the time being, useless (see comment above). it is left in as of now.
-  //TODO: find relevance of this function for SBS, remove it if not necessary.
-  sector = 0;
-  plane = chamber;
-  
+  double np2 = manager->GetNTracker2()*manager->GetNSector2();
+  if(chamber>np2){ 
+    div_t d = div( chamber-np2, manager->GetNSector1() );
+    sector = d.rem;
+    plane  = d.quot+manager->GetNTracker2();
+  }else{
+    div_t d = div(chamber, manager->GetNSector2());
+    sector = d.rem;
+    plane  = d.quot;
+  }
 }
 
 inline
@@ -697,8 +702,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	 << "chamber " << ic << " sector " << ic%30 << " plane " << ic/30 << endl
 	 << "Following relations should hold:" << endl
 	 << "(x1 " << x1 << ">glx " << glx << ") (x0 " << x0 << "<gux " << gux << ")" << endl
-	 << "(y1 " << y1 << ">gly " << gly << ") (y0 " << y0 << "<guy " << guy << ")" << endl
-	 << "r " << sqrt(x0*x0+y0*y0) << " phi " << atan(y0/x0)*TMath::RadToDeg() << endl;
+	 << "(y1 " << y1 << ">gly " << gly << ") (y0 " << y0 << "<guy " << guy << ")" << endl;
     return 0;
   }
 
@@ -746,7 +750,6 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	   << "chamber " << ic << " sector " << ic%30 << " plane " << ic/30 << endl
 	   << "iL_raw " << pl.GetStripUnchecked(xs0*1e-3) << " "
 	   << "iU_raw " << pl.GetStripUnchecked(xs1*1e-3) << endl
-	   << "r " << sqrt(x0*x0+y0*y0) << " phi " << atan(y0/x0)*TMath::RadToDeg()
 	   << endl << endl;
 #endif
       if( ipl == 1 ) delete virs[0];
@@ -1224,7 +1227,9 @@ TSBSSimGEMDigitization::SetTreeStrips()
   TSBSSimEvent::DigiGEMStrip strip;
   for (UInt_t ich = 0; ich < GetNChambers(); ++ich) {
     ChamberToSector( ich, strip.fSector, strip.fPlane );
-
+    
+    //cout << "ich " << ich << " strip sector " <<  strip.fSector << " strip plane " << strip.fPlane << endl;
+    
     // The "plane" here is actually the projection (= readout coordinate).
     // TSBSGEMChamber::ReadDatabase associates the name suffix "x" with
     // the first "plane", and "y", with the second. However, strip angles can
@@ -1236,6 +1241,11 @@ TSBSSimGEMDigitization::SetTreeStrips()
       strip.fNsamp = TMath::Min((UShort_t)MC_MAXSAMP,
 				(UShort_t)GetNSamples(ich, ip));
       UInt_t nover = GetNOverThr(ich, ip);
+      
+      // if(strip.fPlane<10){	  
+      // 	cout << "Nover =  " << nover << " ich " << ich << " strip sector " <<  strip.fSector << " strip plane " << strip.fPlane << endl;
+      // }
+      
       for (UInt_t iover = 0; iover < nover; iover++) {
 	Short_t idx = GetIdxOverThr(ich, ip, iover);
 	strip.fChan = idx;
@@ -1250,13 +1260,10 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
 	strip.fClusters.Set( sc.size(), &sc[0] );
 	
-	//cout << "pushing back something: " << &strip << endl;
 	fEvent->fGEMStrips.push_back( strip );
       }
     }
   }
-  //cout << " event GEM strip size " << fEvent->fGEMStrips.size() << endl;
-  
   fFilledStrips = true;
 }
 
