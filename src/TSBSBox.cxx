@@ -70,7 +70,7 @@ void
 TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
 {
   LabToSpec(x, y, z);
-  z = z-fD0*1000;
+  z = z-fD0*1.0e3;
   SpecToBox(x, y);
   
   return;
@@ -96,7 +96,7 @@ TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
 void
 TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
 {
-  x = x-fXOffset;
+  x = x-fXOffset*1.0e3;
   //neutral for y
   
   return;
@@ -105,9 +105,8 @@ TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
 void
 TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const
 {
-  x = x+fXOffset;
+  x = x+fXOffset*1.0e3;
   //neutral for y
-  
   return;
 }
 
@@ -131,7 +130,7 @@ void
 TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
 {
   BoxToSpec(x, y);
-  z = z+fD0*1000;
+  z = z+fD0*1.0e3;
   SpecToLab(x, y, z);
   return;
 }

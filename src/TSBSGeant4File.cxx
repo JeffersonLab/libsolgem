@@ -1339,8 +1339,16 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	// different number of planes and different number of sectors per plane.
 	// h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
 	// (inherited from a convention that I had set for SBS GEp).
-	int gCID = h->GetDetID()*(fManager->GetNTracker2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;
-	gd->SetHitChamber(ngdata, gCID);
+	// int gCID = h->GetDetID()*(fManager->GetNTracker2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;//a redebugger
+	switch(h->GetDetID()){
+	case(0):
+	  gd->SetHitChamber(ngdata, h->GetData(0)*fManager->GetNSector2()+h->GetData(19));
+	  break;
+	case(1):
+	  gd->SetHitChamber(ngdata, fManager->GetNTracker2()*fManager->GetNSector2()+(h->GetData(0)-fManager->GetNTracker2())*fManager->GetNSector1()+h->GetData(19));
+	  break;
+	}
+	
 
 	ngdata++;
       }

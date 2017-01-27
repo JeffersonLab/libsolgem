@@ -213,11 +213,7 @@ TSBSGEMChamber::SpecToPlane (TVector3& X_) const {
   double y = X_[1];
   double z = X_[2];
   
-  // cout << "Calling GEMchamber::SpecToPlane " << endl;
-  // cout << " z= " << z << endl;
   SpecToPlane (x, y, z);
-  // cout << fBox->GetD0()*1000 << endl;
-  // cout << " z (2) =  " << z << endl;
   
   X_[0] = x;
   X_[1] = y;

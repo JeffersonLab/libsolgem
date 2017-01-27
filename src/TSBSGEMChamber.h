@@ -52,11 +52,11 @@ class TSBSGEMChamber : public THaDetector {
     fBox->LabToSpec (x, y, z);
   };  // input and output in mm
   void SpecToPlane (Double_t& x, Double_t& y, Double_t& z) const {
-    z = z-fBox->GetD0()*1000;
+    z = z-fBox->GetD0()*1.0e3;
     fBox->SpecToBox (x, y);
   };  // input and output in mm
   void PlaneToSpec (Double_t& x, Double_t& y, Double_t& z) const {
-    z = z+fBox->GetD0()*1000;
+    z = z+fBox->GetD0()*1.0e3;
     fBox->BoxToSpec (x, y);
   };  // input and output in mm
   void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const {
