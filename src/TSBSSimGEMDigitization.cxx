@@ -414,8 +414,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     
     // cout << "Calling spec to plane  " << endl;
     // cout << ih << endl; 
-    spect.GetChamber(igem).SpecToPlane(vv1);
-    spect.GetChamber(igem).SpecToPlane(vv2);
+    //spect.GetChamber(igem).SpecToPlane(vv1);
+    //spect.GetChamber(igem).SpecToPlane(vv2);
     
     // cout << " hit entrance (2) ";
     // vv1.Print();

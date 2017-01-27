@@ -64,13 +64,14 @@ public:
     void     SetCaloZ( Double_t z )     { fgCaloZ   = z; }
     void     SetCaloRes( Double_t res ) { fgCaloRes = res; }
     
-    /* const double &   GetSectorZ(int i, int j); */
-    /* const double &   GetSectorRMin(int i, int j); */
-    /* const double &   GetSectorRMax(int i, int j); */
-    /* const double &   GetSectorPhiStart(int i, int j); */
-    /* const double &   GetSectorPhiCover(int i, int j); */
-    /* const double &   GetSectorStripAngle(int i, int j, int k); */
-    /* const double &   GetSectorPitch(int i, int j, int k); */
+    const double &   GetD0(int i, int j);
+    const double &   GetXOffset(int i, int j);
+    const double &   GetDX(int i, int j);
+    const double &   GetDY(int i, int j);
+    const double &   GetThetaH(int i, int j);
+    const double &   GetThetaV(int i, int j);
+    const double &   GetStripAngle(int i, int j, int k);
+    const double &   GetPitch(int i, int j, int k);
     
     /* int              GetSectorIDFromPos(double& x, double& y, int& itracker); */
     

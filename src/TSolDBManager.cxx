@@ -157,9 +157,14 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
       err = LoadDB(input, plane_request, sector_prefix.str());
       if (err) exit(2);
       
-      fGeoInfo[i].push_back(thisGeo);
+      fGeoInfo[fNTracker2+i].push_back(thisGeo);
     }
   }
+  
+  // cout << "fGeo size: " << fGeoInfo.size() << endl;
+  // for(uint i = 0; i<fGeoInfo.size(); i++){
+  //   cout << fGeoInfo[i].size() << endl;
+  // }
 }
 
 //______________________________________________________________
@@ -190,9 +195,13 @@ bool TSolDBManager::CheckIndex(int i, int j, int k)
         cout<<"invalid tracker ID requested: "<<i<<endl;
         return false;
     }
-    else if (j >= fNSector1+fNSector2 || j < 0){
-        cout<<"invalid sector id requested: "<<j<<endl;
-        return false;
+    else if(i<fNTracker2 && j>=fNSector2){
+      cout<<"invalid sector id requested: "<<j<<endl;
+      return false;
+    }
+    else if(i>=fNTracker2 && j>=fNSector1){
+      cout<<"invalid sector id requested: "<<j<<endl;
+      return false;
     }
     else if (k >= fNReadOut || k < 0){
         cout<<"invalid readout id requested: "<<k<<endl;
@@ -259,69 +268,82 @@ int TSolDBManager::GetNTracker()
   return NtrackerTot;
 }
 
-/*
 //______________________________________________________________________
-const double & TSolDBManager::GetSectorZ(int i, int j)
+const double & TSolDBManager::GetD0(int i, int j)
 {
-    if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).z;
+  // cout << "D0: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size() << " ";
+  if (!CheckIndex(i, j)) return fErrVal;
+  // cout << fGeoInfo[i].size() << endl;
+  return fGeoInfo[i].at(j).d0;
 }
-//_______________________________________________________________________
-const double & TSolDBManager::GetSectorRMin(int i, int j)
+//______________________________________________________________________
+const double & TSolDBManager::GetXOffset(int i, int j)
 {
-    if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).r0;
+  // cout << "XOff: i, j " << i << " " << j << " Geo size, Geo[i] size "  << fGeoInfo.size() << " ";
+  if (!CheckIndex(i, j)) return fErrVal;
+  // cout << fGeoInfo[i].size() << endl;
+  return fGeoInfo[i].at(j).xoffset;
 }
-//________________________________________________________________________
-const double & TSolDBManager::GetSectorRMax(int i, int j)
+//______________________________________________________________________
+const double & TSolDBManager::GetDX(int i, int j)
+{
+  //cout << "DX: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size();
+  if (!CheckIndex(i, j)) return fErrVal;
+  // cout << " " << fGeoInfo[i].size() << endl;
+  return fGeoInfo[i].at(j).dx;
+}
+//______________________________________________________________________
+const double & TSolDBManager::GetDY(int i, int j)
+{
+  // cout << "DY: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size();
+  if (!CheckIndex(i, j)) return fErrVal;
+  // cout << " " << fGeoInfo[i].size() << endl;
+  return fGeoInfo[i].at(j).dy;
+}
+//______________________________________________________________________
+const double & TSolDBManager::GetThetaH(int i, int j)
 {
     if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).r1;
+    return fGeoInfo[i].at(j).thetaH;
+}
+//______________________________________________________________________
+const double & TSolDBManager::GetThetaV(int i, int j)
+{
+    if (!CheckIndex(i, j)) return fErrVal;
+    return fGeoInfo[i].at(j).thetaV;
 }
 //_________________________________________________________________________
-const double & TSolDBManager::GetSectorPhiStart(int i, int j)
-{
-    if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).phi0;
-}
-//_________________________________________________________________________
-const double & TSolDBManager::GetSectorPhiCover(int i, int j)
-{
-    if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).dphi;
-}
-//_________________________________________________________________________
-const double & TSolDBManager::GetSectorStripAngle(int i, int j, int k)
+const double & TSolDBManager::GetStripAngle(int i, int j, int k)
 {
     if (!CheckIndex(i, j, k)) return fErrVal;
     if (k == 0) return fGeoInfo[i].at(j).stripangle_u;
     else return fGeoInfo[i].at(j).stripangle_u;
 }
 //_________________________________________________________________________
-const double & TSolDBManager::GetSectorPitch(int i, int j, int k)
+const double & TSolDBManager::GetPitch(int i, int j, int k)
 {
     if (!CheckIndex(i, j, k)) return fErrVal;
     if (k == 0) return fGeoInfo[i].at(j).pitch_u;
     else return fGeoInfo[i].at(j).pitch_u;
 }
-//__________________________________________________________________________
-int TSolDBManager::GetSectorIDFromPos(double& x, double& y, int& itracker)
-{
-    if (!CheckIndex(itracker)) return fErrVal;
-    double thisPhi = atan2(y, x);
-    for (unsigned int i=0; i<fGeoInfo[itracker].size(); i++){
-        double phiCenter = (fGeoInfo[itracker].at(i).phi0 + 
-                            fGeoInfo[itracker].at(i).dphi / 2.) /180. *TMath::Pi();
-        phiCenter = TVector2::Phi_mpi_pi(phiCenter);
-        double deltaPhi = fabs(TVector2::Phi_mpi_pi(thisPhi - phiCenter));
-        if (deltaPhi < fGeoInfo[itracker].at(i).dphi / 2. / 180. *TMath::Pi()){
-            return (int)i;
-            break;
-        }
-    }
-    return -1;
-}
-*/
+// //__________________________________________________________________________
+// int TSolDBManager::GetSectorIDFromPos(double& x, double& y, int& itracker)
+// {
+//     if (!CheckIndex(itracker)) return fErrVal;
+//     double thisPhi = atan2(y, x);
+//     for (unsigned int i=0; i<fGeoInfo[itracker].size(); i++){
+//         double phiCenter = (fGeoInfo[itracker].at(i).phi0 + 
+//                             fGeoInfo[itracker].at(i).dphi / 2.) /180. *TMath::Pi();
+//         phiCenter = TVector2::Phi_mpi_pi(phiCenter);
+//         double deltaPhi = fabs(TVector2::Phi_mpi_pi(thisPhi - phiCenter));
+//         if (deltaPhi < fGeoInfo[itracker].at(i).dphi / 2. / 180. *TMath::Pi()){
+//             return (int)i;
+//             break;
+//         }
+//     }
+//     return -1;
+// }
+
 
 
 

@@ -623,7 +623,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       pid = fTree->Harm_FT_hit_pid->at(i);
       trid = fTree->Harm_FT_hit_trid->at(i);
       type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_FT_hit_plane->at(i)-1;
+      plane = fManager->GetNTracker2()+fTree->Harm_FT_hit_plane->at(i)-1;
       edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
@@ -642,20 +642,18 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
 		     fTree->Harm_FT_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      //cout << (fXseg1[sector+1]-fXseg1[sector])/2.0 << " " << (fXseg1[sector+1]+fXseg1[sector])/2.0 << endl; 
-      
-      X_in = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3-(fXseg1[sector+1]+fXseg1[sector])*5.0e2, // in mm
+      X_in = TVector3((fTree->Harm_FT_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+		      (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, sector))*1.0e3);// in mm
       
-      X_out = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_txp->at(i)-(fXseg1[sector+1]+fXseg1[sector])*5.0e2, // in mm 
-		       fTree->Harm_FT_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
-		       (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset() )*1.0e3+3.0);// in mm
+      X_out = TVector3(X_in.X()+3.0*fTree->Harm_FT_hit_txp->at(i), // in mm 
+		       X_in.Y()+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
+		       -1.6825);// in mm
       
-      X_RO = TVector3(fTree->Harm_FT_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_txp->at(i)-(fXseg1[sector+1]+fXseg1[sector])*5.0e2, // in mm 
-		      fTree->Harm_FT_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
-		      (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
-      
+      X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
+		      X_in.Y()+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
+		      4.5025);// in mm      
       //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
       
       //Calculation of very low momentum electrons range ingas.
@@ -673,25 +671,25 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
        	}
       }
       
-      if(fabs(X_out.X())>=(fXseg1[sector+1]-fXseg1[sector])*5.0e2){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=(fXseg1[sector+1]-fXseg1[sector])*5.0e2/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=200.00){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=200.00/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
@@ -832,6 +830,8 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       	}
       }
       
+      //cout << fManager->GetXOffset(plane, sector)*1.0e3 << " " << (fXseg2[sector+1]+fXseg2[sector])/2.0 << endl; 
+      
       pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FPP1_hit_typ->at(i), 2) + 1.0) );
@@ -840,17 +840,18 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
 		     fTree->Harm_FPP1_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3-(fXseg2[sector+1]+fXseg2[sector])*5.0e2, // in mm
+      X_in = TVector3((fTree->Harm_FPP1_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, sector))*1.0e3);// in mm
       
-      X_out = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_txp->at(i)-(fXseg2[sector+1]+fXseg2[sector])*5.0e2, 
-		       fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP1_hit_typ->at(i), 
-		       (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
-      
-      X_RO = TVector3(fTree->Harm_FPP1_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_txp->at(i)-(fXseg2[sector+1]+fXseg2[sector])*5.0e2, 
-		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP1_hit_typ->at(i), 
-		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      X_out = TVector3(X_in.X()+3.0*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
+		       X_in.Y()+3.0*fTree->Harm_FPP1_hit_typ->at(i), // in mm
+		       -1.6825);// in mm
+
+      X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
+		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
+		      4.5025);// in mm      
       
       //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
@@ -867,26 +868,26 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
        	}
       }
       
-      if(fabs(X_out.X())>=(fXseg2[sector+1]-fXseg2[sector])*5.0e2){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=(fXseg2[sector+1]-fXseg2[sector])*5.0e2/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout << "; set at limit: " << X_out.X() << " mm " << endl;
 	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP1_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=300.00){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=300.00/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
@@ -1030,7 +1031,7 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       trid = fTree->Harm_FPP2_hit_trid->at(i);
       type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = 4+fTree->Harm_FPP2_hit_plane->at(i);
+      plane = fManager->GetNTracker2()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
@@ -1048,18 +1049,19 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
       Mom = TVector3(fTree->Harm_FPP2_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Harm_FPP2_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
-	
-      X_in = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3-(fXseg2[sector+1]+fXseg2[sector])*5.0e2, // in mm
+      
+      X_in = TVector3((fTree->Harm_FPP2_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3);// in mm
+		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, sector))*1.0e3);// in mm
       
-      X_out = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_txp->at(i)-(fXseg2[sector+1]+fXseg2[sector])*5.0e2, // in mm 
-		       fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		       (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+3.0);// in mm
+      X_out = TVector3(X_in.X()+3.0*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
+		       X_in.Y()+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm
+		       -1.6825);// in mm
       
-      X_RO = TVector3(fTree->Harm_FPP2_hit_tx->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_txp->at(i)-(fXseg2[sector+1]+fXseg2[sector])*5.0e2, // in mm
-		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset())*1.0e3+9.185);// in mm
+      X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
+		      X_in.Y()+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm 
+		      4.5025);// in mm      
       
       if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
@@ -1074,26 +1076,26 @@ cout << "Warning: Evt " << fEvNum << ", hit " << i
        	}
       }
       
-      if(fabs(X_out.X())>=(fXseg2[sector+1]-fXseg2[sector])*5.0e2){
+      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
-	X_out[0]*=(fXseg2[sector+1]-fXseg2[sector])*5.0e2/temp;
+	X_out[0]*=fManager->GetDX(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 #endif //WARNING
 	X_RO.SetX(X_out.X());
       }
-      if(fabs(X_out.Y())>=300.00){
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*1.0e3){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " 
 	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.Y());
-	X_out[1]*=300.00/temp;
+	X_out[1]*=fManager->GetDY(plane, sector)*1.0e3/temp;
 #if WARNING>0
 	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 #endif //WARNING
