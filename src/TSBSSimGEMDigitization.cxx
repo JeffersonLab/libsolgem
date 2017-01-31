@@ -1130,7 +1130,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
   
   ch.SpecToLab(clust.fP);// (1)
-  ch.PlaneToLab(clust.fMCpos); // (2)
+  ch.PlaneToHallCenter(clust.fMCpos); // (2)
   clust.fP = (clust.fP)*1.0e-3;
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   clust.fHitpos = (clust.fHitpos)*1.0e-3;

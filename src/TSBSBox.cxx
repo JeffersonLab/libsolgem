@@ -64,7 +64,7 @@ TSBSBox::SetGeometry (const Double_t dmag,
   Double_t y0 = 0.0; 
   Double_t z0 = fD0; 
   
-  SpecToLab(x0, y0, z0);
+  SpecToHallCenter(x0, y0, z0);
   
   // Evaluate the central point (in the lab) and the size of the Box
   fOrigin = TVector3(x0, y0, z0);

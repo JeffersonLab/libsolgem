@@ -169,6 +169,31 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
 }
 
 //Transformations: frame conversions
+void  
+TSBSGEMChamber::HallCenterToPlane (TVector3& X_) const {
+  double x = X_[0];
+  double y = X_[1];
+  double z = X_[2];
+  
+  HallCenterToPlane (x, y, z);
+  
+  X_[0] = x;
+  X_[1] = y;
+  X_[2] = z;
+};  // input and output in mm
+
+void  
+TSBSGEMChamber::HallCenterToSpec (TVector3& X_) const {
+  double x = X_[0];
+  double y = X_[1];
+  double z = X_[2];
+  
+  HallCenterToSpec (x, y, z);
+  
+  X_[0] = x;
+  X_[1] = y;
+  X_[2] = z;
+};  // input and output in mm
 
 void 
 TSBSGEMChamber::LabToPlane (TVector3& X_) const {
@@ -183,13 +208,13 @@ TSBSGEMChamber::LabToPlane (TVector3& X_) const {
   X_[2] = z;
 };  // input and output in meters
 
-void 
-TSBSGEMChamber::PlaneToLab (TVector3& X_) const {
+void  
+TSBSGEMChamber::HallCenterToLab (TVector3& X_) const {
   double x = X_[0];
   double y = X_[1];
   double z = X_[2];
   
-  PlaneToLab (x, y, z);
+  HallCenterToLab (x, y, z);
   
   X_[0] = x;
   X_[1] = y;
@@ -247,3 +272,55 @@ TSBSGEMChamber::SpecToLab (TVector3& X_) const {
   X_[1] = y;
   X_[2] = z;
 };  // input and output in meters
+
+void  
+TSBSGEMChamber::LabToHallCenter (TVector3& X_) const {
+  double x = X_[0];
+  double y = X_[1];
+  double z = X_[2];
+  
+  LabToHallCenter (x, y, z);
+  
+  X_[0] = x;
+  X_[1] = y;
+  X_[2] = z;
+};  // input and output in mm
+
+void 
+TSBSGEMChamber::PlaneToLab (TVector3& X_) const {
+  double x = X_[0];
+  double y = X_[1];
+  double z = X_[2];
+  
+  PlaneToLab (x, y, z);
+  
+  X_[0] = x;
+  X_[1] = y;
+  X_[2] = z;
+};  // input and output in meters
+
+void  
+TSBSGEMChamber::SpecToHallCenter (TVector3& X_) const {
+  double x = X_[0];
+  double y = X_[1];
+  double z = X_[2];
+  
+  SpecToHallCenter (x, y, z);
+  
+  X_[0] = x;
+  X_[1] = y;
+  X_[2] = z;
+};  // input and output in mm
+
+void  
+TSBSGEMChamber::PlaneToHallCenter (TVector3& X_) const {
+  double x = X_[0];
+  double y = X_[1];
+  double z = X_[2];
+  
+  PlaneToHallCenter (x, y, z);
+  
+  X_[0] = x;
+  X_[1] = y;
+  X_[2] = z;
+};  // input and output in mm

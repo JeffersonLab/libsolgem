@@ -41,13 +41,18 @@ class TSBSGEMChamber : public THaDetector {
   TSBSBox& GetBox() const {return *fBox;};
   
   // Frame conversions
+  void HallCenterToPlane (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->HallCenterToBox (x, y, z);
+  };  // input and output in mm
+  void HallCenterToSpec (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->HallCenterToSpec (x, y, z);
+  };  // input and output in mm
   void LabToPlane (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->LabToBox (x, y, z);
   };  // input and output in mm
-  void PlaneToLab (Double_t& x, Double_t& y, Double_t& z) const {
-    fBox->BoxToLab (x, y, z);
+  void HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->HallCenterToLab (x, y, z);
   };  // input and output in mm
-
   void LabToSpec (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->LabToSpec (x, y, z);
   };  // input and output in mm
@@ -62,15 +67,33 @@ class TSBSGEMChamber : public THaDetector {
   void SpecToLab (Double_t& x, Double_t& y, Double_t& z) const {
     fBox->SpecToLab (x, y, z);
   };  // input and output in mm
+  void LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->LabToHallCenter (x, y, z);
+  };  // input and output in mm
+  void PlaneToLab (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->BoxToLab (x, y, z);
+  };  // input and output in mm
+  void SpecToHallCenter (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->SpecToHallCenter (x, y, z);
+  };  // input and output in mm
+  void PlaneToHallCenter (Double_t& x, Double_t& y, Double_t& z) const {
+    fBox->BoxToHallCenter (x, y, z);
+  };  // input and output in mm
 
-  //Frame conversions with TVector3 objects as inputs
-  void LabToPlane (TVector3& X_) const;
-  void PlaneToLab (TVector3& X_) const;
   
+  //Frame conversions with TVector3 objects as inputs
+  void HallCenterToPlane (TVector3& X_) const;  // input and output in mm
+  void HallCenterToSpec (TVector3& X_) const;  // input and output in mm
+  void LabToPlane (TVector3& X_) const;
+  void HallCenterToLab (TVector3& X_) const;  // input and output in mm
   void LabToSpec (TVector3& X_) const;
   void SpecToPlane (TVector3& X_) const;
   void PlaneToSpec (TVector3& X_) const;
   void SpecToLab (TVector3& X_) const;
+  void LabToHallCenter (TVector3& X_) const;  // input and output in mm
+  void PlaneToLab (TVector3& X_) const;
+  void SpecToHallCenter (TVector3& X_) const;  // input and output in mm
+  void PlaneToHallCenter (TVector3& X_) const;  // input and output in mm
   
   // Access to the info of TSBSGEMPlane which is regarded as a subdetector of TSBSGEMChamber.
   // (see comments in the code of class TSBSGEMPlane)
