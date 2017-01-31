@@ -17,12 +17,15 @@ class TDatime;
 // from the GEM plane frames to the spectrometer frames or to the lab.
 
 // It is basically just a box, characterized by an extension in x (dx) and y (dy)
-// and by four parameters for its location: 
-// d0, the distance of the box center to the target, 
+// and by five parameters for its location: 
+// dmag, the distance of the magnet to the target, 
+// which is taken as a refence for the spectrometer coordinates 
+// d0, the distance of the box center to the spectrometer reference, 
 // xOffset, the translation in X (in transport coordinates) of the chamber, and two angles: 
 // one of horizontal rotation (thetaH), which translates the SBS angle,
 // one of vertical rotation (thetaV), translating the "bending" of the SBS wrt the xOz plane.
-// 
+// The "Zero" of the spectrometer is defined as: ( -dmag*sin(thetaH), 0, dmag*cos(thetaH) ); 
+//
 // Warning: the x direction of the box is actually in the -y direction of the lab, 
 //          the y direction of the box being in the + x direction of the lab 
 
@@ -74,6 +77,7 @@ class TSBSBox
 		    const Double_t thetaV);
     
   // Frame conversions methods:  Lab -> Box, Lab -> Spec -> Box, and reverse transformations
+  // NB: "Spec" coordinates are equivalent to "transport" coordinates.
   void HallCenterToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   void HallCenterToSpec (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm
   void LabToBox (Double_t& x, Double_t& y, Double_t& z) const;  // input and output in mm

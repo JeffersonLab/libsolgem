@@ -1112,14 +1112,14 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fPID      = tsgd.GetParticleID(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih); // [MeV] // Momentum vector in spec frame, transformed at (1); 
   clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
-  clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
+  clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m] // in plane frame
   // The best estimate of the "true" hit position is the center of the
   // ionization region
 
   clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of hit in Lab frame, transformed at (2)
   clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
-  // Position of the hit in plane frame
+  // Position of the hit in spec (transport) frame, transformed at (3)
   
   if (fdh != NULL && fdh[0] != NULL)
     clust.fCharge = fdh[0]->GetHitCharge();
@@ -1131,6 +1131,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   
   ch.SpecToLab(clust.fP);// (1)
   ch.PlaneToHallCenter(clust.fMCpos); // (2)
+  ch.PlaneToSpec(clust.fHitpos); // (3)
   clust.fP = (clust.fP)*1.0e-3;
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   clust.fHitpos = (clust.fHitpos)*1.0e-3;
