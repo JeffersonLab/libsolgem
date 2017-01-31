@@ -10,6 +10,7 @@ enum StripSignalType{
 };
 
 struct GeoInfo{
+    double dmag;
     double d0;
     double xoffset;
     double dx;

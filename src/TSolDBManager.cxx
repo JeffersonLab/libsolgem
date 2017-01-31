@@ -104,6 +104,7 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
   GeoInfo thisGeo;
   
   DBRequest request[] = {
+    {"dmag",        &thisGeo.dmag,         kDouble, 0, 1},
     {"d0",          &thisGeo.d0,           kDouble, 0, 1},
     {"xoffset",     &thisGeo.xoffset,      kDouble, 0, 1},
     {"dx",          &thisGeo.dx,           kDouble, 0, 1},
@@ -268,6 +269,14 @@ int TSolDBManager::GetNTracker()
   return NtrackerTot;
 }
 
+//______________________________________________________________________
+const double & TSolDBManager::GetDMag(int i, int j)
+{
+  // cout << "D0: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size() << " ";
+  if (!CheckIndex(i, j)) return fErrVal;
+  // cout << fGeoInfo[i].size() << endl;
+  return fGeoInfo[i].at(j).dmag;
+}
 //______________________________________________________________________
 const double & TSolDBManager::GetD0(int i, int j)
 {

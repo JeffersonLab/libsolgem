@@ -77,7 +77,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     }
 
     // Hypothetical background run
-    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11301/beam_bkgd_0.root");
+    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/14000/beam_bkgd_0.root");
     //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
     fback->Open();
     fback->SetSource(1);
@@ -166,7 +166,6 @@ void DigDemo3(int Nmax = 10000, bool print = false){
         printf("Warning:  Not enough background events to be added (%d)\n", backidx);
       }
       
-      //if(nevent==25)
       ddd->FillTree();
       
       //if(nevent==25)ddd->GetEvent()->Print("all");

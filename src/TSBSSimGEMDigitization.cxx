@@ -1115,6 +1115,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
   // ionization region
+
   clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of hit in Lab frame, transformed at (2)
   clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 

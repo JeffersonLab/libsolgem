@@ -609,6 +609,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      4.5025);// in mm      
       //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
       
+      cout << "Hit number: " << i << " FT: X_global : " 
+	   << fTree->Harm_FT_hit_xg->at(i) << ", " 
+	   << fTree->Harm_FT_hit_yg->at(i) << ", " 
+	   << fTree->Harm_FT_hit_zg->at(i) << endl;
+      
       //Calculation of very low momentum electrons range ingas.
       if(fabs(fTree->Harm_FT_hit_pid->at(i))==11 && fTree->Harm_FT_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FT_hit_txp->at(i), 2)+pow(fTree->Harm_FT_hit_typ->at(i), 2))*3.0e-3;//m
@@ -800,6 +805,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
       
+      cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
+	   << fTree->Harm_FPP1_hit_xg->at(i) << ", " 
+	   << fTree->Harm_FPP1_hit_yg->at(i) << ", " 
+	   << fTree->Harm_FPP1_hit_zg->at(i) << endl;
+      
       //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP1_hit_txp->at(i), 2)+pow(fTree->Harm_FPP1_hit_typ->at(i), 2))*3.0e-3;//m
@@ -817,7 +827,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
@@ -1005,6 +1015,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      X_in.Y()+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
       
+      cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
+	   << fTree->Harm_FPP2_hit_xg->at(i) << ", " 
+	   << fTree->Harm_FPP2_hit_yg->at(i) << ", " 
+	   << fTree->Harm_FPP2_hit_zg->at(i) << endl;
+      
       if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Harm_FPP2_hit_p->at(i));//m
@@ -1020,7 +1035,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	cout << "Warning: Evt " << fEvNum << ", hit " 
+	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());

@@ -6,15 +6,18 @@ using namespace std;
 #include <TDatime.h>
 #include <TMath.h>
 
-TSBSBox::TSBSBox (Double_t d0, Double_t xoffset, Double_t dx, Double_t dy, Double_t thetaH, Double_t thetaV)
-  : fD0(1),
+TSBSBox::TSBSBox (Double_t dmag, Double_t d0, Double_t xoffset, 
+		  Double_t dx, Double_t dy, 
+		  Double_t thetaH, Double_t thetaV)
+  : fDMag(1),
+    fD0(1),
     fXOffset(1),
     fDX(1),
     fDY(1),
     fThetaH(0),
     fThetaV(0)
 {
-  SetGeometry (d0, xoffset, dx, dy, thetaH, thetaV);
+  SetGeometry (dmag, d0, xoffset, dx, dy, thetaH, thetaV);
 }
 
 Bool_t
@@ -39,13 +42,15 @@ TSBSBox::Contains (Double_t x, Double_t y, Double_t z) const
 
 
 void
-TSBSBox::SetGeometry (const Double_t d0,
+TSBSBox::SetGeometry (const Double_t dmag,
+		      const Double_t d0,
 		      const Double_t xoffset,
 		      const Double_t dx,
 		      const Double_t dy,
 		      const Double_t thetaH,
 		      const Double_t thetaV)
 {
+  fDMag = dmag;
   fD0 = d0;
   fXOffset = xoffset;
   fDX = dx;
@@ -59,7 +64,7 @@ TSBSBox::SetGeometry (const Double_t d0,
   Double_t y0 = 0.0; 
   Double_t z0 = fD0; 
   
-  LabToSpec(x0, y0, z0);
+  SpecToLab(x0, y0, z0);
   
   // Evaluate the central point (in the lab) and the size of the Box
   fOrigin = TVector3(x0, y0, z0);
@@ -79,7 +84,7 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
 void
 TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
 {
-  Double_t r_temp[3] = {x, y, z};
+  Double_t r_temp[3] = {x + fDMag*sin(fThetaH)*1.0e3, y, z - fDMag*cos(fThetaH)*1.0e3};
   TMatrixD m_temp(3, 1, r_temp);
   
   TMatrixD m_res(3, 1, r_temp);
@@ -117,11 +122,11 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
   TMatrixD m_temp(3, 1, r_temp);
   
   TMatrixD m_res(3, 1, r_temp);
-  m_res.Mult((*fRotMat_LB), m_temp);
+  m_res.Mult((*fRotMat_BL), m_temp);
   
-  x = m_res(0, 0);
+  x = m_res(0, 0) - fDMag*sin(fThetaH)*1.0e3;
   y = m_res(1, 0);
-  z = m_res(2, 0);
+  z = m_res(2, 0) + fDMag*cos(fThetaH)*1.0e3;
   
   return;
 }
@@ -130,7 +135,7 @@ void
 TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
 {
   BoxToSpec(x, y);
-  z = z+fD0*1.0e3;
+  z = z + fD0*1.0e3;
   SpecToLab(x, y, z);
   return;
 }
@@ -146,8 +151,8 @@ TSBSBox::SetRotations()
 			   0, cos(fThetaV), -sin(fThetaV),
 			   0, sin(fThetaV),  cos(fThetaV)};
   Double_t arr_rotz2[9] = {0, -1,  0,
-			   1,  0,  0,
-			   0,  0,  1};
+  			   1,  0,  0,
+  			   0,  0,  1};
   
   // the three following rotations are described in the lonc comment section 
   // in the class header file. 
@@ -157,11 +162,17 @@ TSBSBox::SetRotations()
   TMatrixD Rotx1(3,3,arr_rotx1);// rotation along x': spectrometer bending
   TMatrixD Rotz2(3,3,arr_rotz2);// rotation along z": box rotation
   TMatrixD Rotzx(3,3,arr_rotz2);
-  fRotMat_BL = new TMatrixD(3,3, arr_roty0);
-
-  Rotzx.Mult(Rotz2, Rotx1);
-  fRotMat_BL->Mult(Rotzx, Roty0);// Box to Lab transformation
+  fRotMat_LB = new TMatrixD(3,3, arr_roty0);
   
-  fRotMat_LB = fRotMat_BL;
-  fRotMat_LB->Invert();// Lab to Box transformation
+  Rotzx.Mult(Rotz2, Rotx1);
+  fRotMat_LB->Mult(Rotzx, Roty0);// Box to Lab transformation
+  
+  // cout << " Lab -> Box " << endl;
+  // fRotMat_LB->Print();
+  
+  fRotMat_BL = fRotMat_LB;
+  fRotMat_BL->Invert();// Lab to Box transformation
+  
+  // cout << " Box -> Lab " << endl;
+  // fRotMat_BL->Print();
 }

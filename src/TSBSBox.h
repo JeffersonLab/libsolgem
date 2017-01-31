@@ -46,12 +46,13 @@ class TSBSBox
 {
  public:
   // Default constructors and destructors.
-  TSBSBox (Double_t d0 = 1.0, Double_t xoffset = 0.0, 
+  TSBSBox (Double_t dmag = 1.0, Double_t d0 = 1.0, Double_t xoffset = 0.0, 
 	   Double_t dx = 1.0, Double_t dy = 1.0, 
 	   Double_t thetaH = 0.0, Double_t thetaV = 0.0);
   virtual ~TSBSBox() {};
   
   // Members getters
+  Double_t GetDMag() const {return fDMag;};
   Double_t GetD0() const {return fD0;};
   Double_t GetXOffset() const {return fXOffset;};
   Double_t GetDX() const {return fDX;};
@@ -64,7 +65,8 @@ class TSBSBox
   
   // One global member setter. 
   // The box geometry is not supposed to be modified along the way
-  void SetGeometry (const Double_t d0,
+  void SetGeometry (const Double_t dmag,
+		    const Double_t d0,
 		    const Double_t xoffset,
 		    const Double_t dx,
 		    const Double_t dy,
@@ -89,6 +91,7 @@ class TSBSBox
   void SetRotations();
   
   // Members
+  Double_t fDMag;
   Double_t fD0;
   Double_t fXOffset;
   Double_t fDX;

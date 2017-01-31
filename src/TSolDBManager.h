@@ -64,6 +64,7 @@ public:
     void     SetCaloZ( Double_t z )     { fgCaloZ   = z; }
     void     SetCaloRes( Double_t res ) { fgCaloRes = res; }
     
+    const double &   GetDMag(int i, int j);
     const double &   GetD0(int i, int j);
     const double &   GetXOffset(int i, int j);
     const double &   GetDX(int i, int j);
