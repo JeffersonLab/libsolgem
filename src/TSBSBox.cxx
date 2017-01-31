@@ -72,6 +72,22 @@ TSBSBox::SetGeometry (const Double_t dmag,
 }
 
 void
+TSBSBox::HallCenterToBox (Double_t& x, Double_t& y, Double_t& z) const
+{
+  HallCenterToLab(x, y, z);
+  LabToBox(x, y, z);
+  return;
+}
+
+void
+TSBSBox::HallCenterToSpec (Double_t& x, Double_t& y, Double_t& z) const
+{
+  HallCenterToLab(x, y, z);
+  LabToSpec(x, y, z);
+  return;
+}
+
+void
 TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
 {
   LabToSpec(x, y, z);
@@ -82,9 +98,19 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
+TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const
+{
+  x = x + fDMag*sin(fThetaH)*1.0e3;
+  // neutral in y
+  z = z - fDMag*cos(fThetaH)*1.0e3;
+  
+  return;
+}
+
+void
 TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
 {
-  Double_t r_temp[3] = {x + fDMag*sin(fThetaH)*1.0e3, y, z - fDMag*cos(fThetaH)*1.0e3};
+  Double_t r_temp[3] = {x, y, z};
   TMatrixD m_temp(3, 1, r_temp);
   
   TMatrixD m_res(3, 1, r_temp);
@@ -96,7 +122,6 @@ TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
   
   return;
 }
-
 
 void
 TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
@@ -124,9 +149,19 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
   TMatrixD m_res(3, 1, r_temp);
   m_res.Mult((*fRotMat_BL), m_temp);
   
-  x = m_res(0, 0) - fDMag*sin(fThetaH)*1.0e3;
+  x = m_res(0, 0);
   y = m_res(1, 0);
-  z = m_res(2, 0) + fDMag*cos(fThetaH)*1.0e3;
+  z = m_res(2, 0);
+  
+  return;
+}
+
+void
+TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
+{
+  x = x - fDMag*sin(fThetaH)*1.0e3;
+  // neutral in y
+  z = z + fDMag*cos(fThetaH)*1.0e3;
   
   return;
 }
@@ -137,6 +172,22 @@ TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
   BoxToSpec(x, y);
   z = z + fD0*1.0e3;
   SpecToLab(x, y, z);
+  return;
+}
+
+void
+TSBSBox::SpecToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
+{
+  SpecToLab(x, y, z);
+  LabToHallCenter(x, y, z);
+  return;
+}
+
+void
+TSBSBox::BoxToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
+{
+  BoxToLab(x, y, z);
+  LabToHallCenter(x, y, z);
   return;
 }
 

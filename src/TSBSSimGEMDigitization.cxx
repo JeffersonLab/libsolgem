@@ -1110,8 +1110,8 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fType     = tsgd.GetParticleType(ih);   // GEANT particle counter
   clust.fTRID     = tsgd.GetTrackID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleID(ih); // PDG PID
-  clust.fP        = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
-  clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV] // Momentum vector in spec frame, transformed at (1); 
+  clust.fP        = tsgd.GetMomentum(ih); // [MeV] // Momentum vector in spec frame, transformed at (1); 
+  clust.fPspec    = tsgd.GetMomentum(ih)    * 1e-3; // [GeV]
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m]
   // The best estimate of the "true" hit position is the center of the
   // ionization region
@@ -1131,8 +1131,8 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   
   ch.SpecToLab(clust.fP);// (1)
   ch.PlaneToLab(clust.fMCpos); // (2)
+  clust.fP = (clust.fP)*1.0e-3;
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
-  //hitpos_temp.Print();
   clust.fHitpos = (clust.fHitpos)*1.0e-3;
   
   //cout << "hit in lab" << endl;

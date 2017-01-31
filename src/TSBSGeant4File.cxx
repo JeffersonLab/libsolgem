@@ -607,12 +607,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
-      //cout << "FT: momentum: " << fTree->Harm_FT_hit_p->at(i) << " < ? " << feMom.back() << endl;
-      
-      cout << "Hit number: " << i << " FT: X_global : " 
-	   << fTree->Harm_FT_hit_xg->at(i) << ", " 
-	   << fTree->Harm_FT_hit_yg->at(i) << ", " 
-	   << fTree->Harm_FT_hit_zg->at(i) << endl;
       
       //Calculation of very low momentum electrons range ingas.
       if(fabs(fTree->Harm_FT_hit_pid->at(i))==11 && fTree->Harm_FT_hit_p->at(i)<=feMom.back()){
@@ -734,6 +728,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       */
       // Print out block
 #if DEBUG>0
+      cout << "Hit number: " << i << " FT: X_global : " 
+	   << fTree->Harm_FT_hit_xg->at(i) << ", " 
+	   << fTree->Harm_FT_hit_yg->at(i) << ", " 
+	   << fTree->Harm_FT_hit_zg->at(i) << endl;
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (eV): " << edep << endl;
@@ -804,11 +802,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
-      
-      cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
-	   << fTree->Harm_FPP1_hit_xg->at(i) << ", " 
-	   << fTree->Harm_FPP1_hit_yg->at(i) << ", " 
-	   << fTree->Harm_FPP1_hit_zg->at(i) << endl;
       
       //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
@@ -928,6 +921,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       */
 #if DEBUG>0
+      cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
+	   << fTree->Harm_FPP1_hit_xg->at(i) << ", " 
+	   << fTree->Harm_FPP1_hit_yg->at(i) << ", " 
+	   << fTree->Harm_FPP1_hit_zg->at(i) << endl;
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (MeV): " << edep << endl;
@@ -955,25 +952,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       for(int k = 0; k<3; k++){
 	cout << Vtx[k] << ", ";
       }
-      cout << endl;
-
-      cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	   << "particle ID: " << pid << ", type (1, primary, >1 secondary: " << type << endl
-	   << "energy deposit (GeV): " << edep << endl;
-      cout << "Momentum (GeV): ";
-      Mom.Print();
-      cout << endl;
-      cout << "hit position at drift entrance (mm): ";
-      X_in.Print();
-      cout << " time : " << tmin << endl;
-      cout << "hit position at drift exit (mm): ";
-      X_out.Print();
-      cout << " time : " << tmax << endl;
-      cout << "hit position at Readout (mm): ";
-      X_RO.Print();
-      cout << endl;
-      cout << "Vertex position (mm): ";
-      Vtx.Print();
       cout << endl;
 #endif //DEBUG 
     }
@@ -1014,11 +992,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
-      
-      cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
-	   << fTree->Harm_FPP2_hit_xg->at(i) << ", " 
-	   << fTree->Harm_FPP2_hit_yg->at(i) << ", " 
-	   << fTree->Harm_FPP2_hit_zg->at(i) << endl;
       
       if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
@@ -1137,6 +1110,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       */
 #if DEBUG>0
+      cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
+	   << fTree->Harm_FPP2_hit_xg->at(i) << ", " 
+	   << fTree->Harm_FPP2_hit_yg->at(i) << ", " 
+	   << fTree->Harm_FPP2_hit_zg->at(i) << endl;
       cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
 	   << "energy deposit (eV): " << edep << endl;
