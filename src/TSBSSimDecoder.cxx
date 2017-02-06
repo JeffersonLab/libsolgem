@@ -80,10 +80,10 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
 
   RVarDef vars[] = {
     // Generated track info
-    //    { "tr.n",      "Number of tracks",      "GetNMCTracks()" },
-    { "tr.x",      "Track origin x (m)",    "fMCTracks.TSBSSimTrack.VX()" },
-    { "tr.y",      "Track origin y (m)",    "fMCTracks.TSBSSimTrack.VY()" },
-    { "tr.z",      "Track origin z (m)",    "fMCTracks.TSBSSimTrack.VZ()" },
+    //{ "tr.n",      "Number of tracks",      "GetNMCTracks()" },  // already defined in Podd::SimDecoder
+    { "tr.vx",     "Track origin x (m)",    "fMCTracks.TSBSSimTrack.VX()" },
+    { "tr.vy",     "Track origin y (m)",    "fMCTracks.TSBSSimTrack.VY()" },
+    { "tr.vz",     "Track origin z (m)",    "fMCTracks.TSBSSimTrack.VZ()" },
     { "tr.p",      "Track momentum (GeV)",  "fMCTracks.TSBSSimTrack.P() "},
     { "tr.theta",  "Track theta_p (rad)",   "fMCTracks.TSBSSimTrack.PTheta()" },
     { "tr.phi",    "Track phi_p (rad)",     "fMCTracks.TSBSSimTrack.PPhi()" },

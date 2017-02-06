@@ -80,9 +80,9 @@ Int_t TSolSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
   RVarDef vars[] = {
     // Generated track info
     //    { "tr.n",      "Number of tracks",      "GetNMCTracks()" },
-    { "tr.x",      "Track origin x (m)",    "fMCTracks.TSolSimTrack.VX()" },
-    { "tr.y",      "Track origin y (m)",    "fMCTracks.TSolSimTrack.VY()" },
-    { "tr.z",      "Track origin z (m)",    "fMCTracks.TSolSimTrack.VZ()" },
+    { "tr.x",     "Track origin x (m)",    "fMCTracks.TSolSimTrack.VX()" },
+    { "tr.y",     "Track origin y (m)",    "fMCTracks.TSolSimTrack.VY()" },
+    { "tr.z",     "Track origin z (m)",    "fMCTracks.TSolSimTrack.VZ()" },
     { "tr.p",      "Track momentum (GeV)",  "fMCTracks.TSolSimTrack.P() "},
     { "tr.theta",  "Track theta_p (rad)",   "fMCTracks.TSolSimTrack.PTheta()" },
     { "tr.phi",    "Track phi_p (rad)",     "fMCTracks.TSolSimTrack.PPhi()" },
