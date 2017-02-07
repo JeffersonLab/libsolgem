@@ -235,7 +235,7 @@ void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
   Int_t module = d.quot;
   chan = d.rem;
   Int_t ix = module +
-    fManager->GetModulesPerReadOut()*( s_proj + fManager->GetNReadOut()*( s_plane + fManager->GetNTracker()*s_sector ));
+    fManager->GetModulesPerReadOut()*( s_proj + fManager->GetNReadOut()*( s_plane + fManager->GetNChamber()*s_sector ));
   d = div( ix, fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
   crate = d.quot;
   slot  = d.rem;
@@ -416,13 +416,13 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   assert( GetNMCTracks() > 0 );
 
   // MC hit data ("clusters") and "back tracks"
-  Int_t best_primary = -1, best_primary_plane = fManager->GetNTracker(), primary_sector = -1;
+  Int_t best_primary = -1, best_primary_plane = fManager->GetNChamber(), primary_sector = -1;
   UInt_t primary_hitbits = 0, ufail = 0, vfail = 0;
   for( vector<TSolSimEvent::GEMCluster>::size_type i = 0;
        i < simEvent->fGEMClust.size(); ++i ) {
     const TSolSimEvent::GEMCluster& c = simEvent->fGEMClust[i];
 
-    if( c.fPlane < 0 || c.fPlane >= fManager->GetNTracker() ) {
+    if( c.fPlane < 0 || c.fPlane >= fManager->GetNChamber() ) {
       Error( here, "Illegal plane number = %d in cluster. "
 	     "Should never happen. Call expert.", c.fPlane );
       simEvent->Print("clust");
@@ -523,17 +523,17 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
     // Use the back track to emulate calorimeter hits.
     // Assumptions:
-    // - Only tracks crossing all fManager->GetNTracker() GEMs (points in all planes)
+    // - Only tracks crossing all fManager->GetNChamber() GEMs (points in all planes)
     //   make a calorimeter hit. This is a crude model for the trigger.
     // - The track propagates without deflection from the last GEM plane
     //   to the front of the emulated calorimeter.
     // - The measured calorimeter position is independent of the incident
     //   track angle.
-    if( fManager->DoCalo() && trk->fNHits == 2*fManager->GetNTracker() ) {
+    if( fManager->DoCalo() && trk->fNHits == 2*fManager->GetNChamber() ) {
       // Retrieve last MC track point
-      assert( GetNMCPoints() == 2*fManager->GetNTracker() );
+      assert( GetNMCPoints() == 2*fManager->GetNChamber() );
       MCTrackPoint* pt =
-	static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*fManager->GetNTracker()-1) );
+	static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*fManager->GetNChamber()-1) );
       assert( pt );
       const TVector3& pos = pt->fMCPoint;
       TVector3 dir = pt->fMCP.Unit();

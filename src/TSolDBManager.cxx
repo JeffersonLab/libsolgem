@@ -30,9 +30,9 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"self_define_sector",  &fDoSelfDefinedSector , kInt,    0, 1},
         {"sector_mapped",       &fMappedSector        , kInt,    0, 1},
 	{"ngsector",            &fNgSector            , kInt,    0, 1},
-	{"ntracker1",           &fNTracker1           , kInt,    0, 1},
+	{"nchamber1",           &fNChamber1           , kInt,    0, 1},
         {"nsector1",            &fNSector1            , kInt,    0, 1},
-        {"ntracker2",           &fNTracker2           , kInt,    0, 1},
+        {"nchamber2",           &fNChamber2           , kInt,    0, 1},
         {"nsector2",            &fNSector2            , kInt,    0, 1},
         {"nreadout",            &fNReadOut            , kInt,    0, 1},
         {"gem_drift_id",        &fGEMDriftID          , kInt,    0, 1},
@@ -75,7 +75,7 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
 	if( err ) exit(2); 
     }
     
-    for (int i=0; i<GetNTracker(); i++){
+    for (int i=0; i<GetNChamber(); i++){
          vector<GeoInfo> thisInfo;
          thisInfo.clear();
          fGeoInfo[i] = thisInfo;
@@ -84,7 +84,7 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
     fModulesPerChamber = fModulesPerReadOut * fNReadOut;
     
     fChambersPerCrate  = 
-      (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/(fNTracker1+fNTracker2)) * (fNTracker1+fNTracker2);
+      (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/(fNChamber1+fNChamber2)) * (fNChamber1+fNChamber2);
 }
 
 //______________________________________________________________
@@ -123,9 +123,9 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
     { 0 }
   };
   
-  for (int i=0; i<fNTracker2; i++){
+  for (int i=0; i<fNChamber2; i++){
     map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
-    if (it == fGeoInfo.end()) { cout<<"unexpected tracker id "<<i<<endl; }
+    if (it == fGeoInfo.end()) { cout<<"unexpected chamber id "<<i<<endl; }
     
     for (int j=0; j<fNSector2; j++){
       ostringstream sector_prefix(prefix, ios_base::ate);
@@ -142,13 +142,13 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
       fGeoInfo[i].push_back(thisGeo);
     }
   }
-  for (int i=0; i<fNTracker1; i++){
+  for (int i=0; i<fNChamber1; i++){
     map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
-    if (it == fGeoInfo.end()) { cout<<"unexpected tracker id "<<i<<endl; }
+    if (it == fGeoInfo.end()) { cout<<"unexpected chamber id "<<i<<endl; }
     
     for (int j=0; j<fNSector1; j++){
       ostringstream sector_prefix(prefix, ios_base::ate);
-      int idx = fNTracker2*fNSector2 +i*fNSector1 + j;
+      int idx = fNChamber2*fNSector2 +i*fNSector1 + j;
       sector_prefix<<".gem"<<idx<<".";
       
       int err = LoadDB(input, request, sector_prefix.str());
@@ -158,7 +158,7 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
       err = LoadDB(input, plane_request, sector_prefix.str());
       if (err) exit(2);
       
-      fGeoInfo[fNTracker2+i].push_back(thisGeo);
+      fGeoInfo[fNChamber2+i].push_back(thisGeo);
     }
   }
   
@@ -192,15 +192,15 @@ string TSolDBManager::FindKey( ifstream& inp, const string& key )
 //_________________________________________________________________________
 bool TSolDBManager::CheckIndex(int i, int j, int k)
 {
-    if (i >= fNTracker1+fNTracker2 || i < 0){
-        cout<<"invalid tracker ID requested: "<<i<<endl;
+    if (i >= fNChamber1+fNChamber2 || i < 0){
+        cout<<"invalid chamber ID requested: "<<i<<endl;
         return false;
     }
-    else if(i<fNTracker2 && j>=fNSector2){
+    else if(i<fNChamber2 && j>=fNSector2){
       cout<<"invalid sector id requested: "<<j<<endl;
       return false;
     }
-    else if(i>=fNTracker2 && j>=fNSector1){
+    else if(i>=fNChamber2 && j>=fNSector1){
       cout<<"invalid sector id requested: "<<j<<endl;
       return false;
     }
@@ -263,10 +263,10 @@ const int & TSolDBManager::GetSigTID(unsigned int i)
 }
 
 //const 
-int TSolDBManager::GetNTracker()
+int TSolDBManager::GetNChamber()
 { 
-  const int NtrackerTot = fNTracker1+fNTracker2;
-  return NtrackerTot;
+  const int NchamberTot = fNChamber1+fNChamber2;
+  return NchamberTot;
 }
 
 //______________________________________________________________________
@@ -337,14 +337,14 @@ const double & TSolDBManager::GetPitch(int i, int j, int k)
 }
 
 //__________________________________________________________________________
-int TSolDBManager::GetSectorIDFromPos(int itracker, double x, double y)
+int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
 {
-  if (!CheckIndex(itracker)) return fErrVal;
+  if (!CheckIndex(ichamber)) return fErrVal;
 
   double sector = -1;
-  for(int k = 0; k<fGeoInfo[itracker].size(); k++){
-    if(fGeoInfo[itracker].at(k).xoffset-fGeoInfo[itracker].at(k).dx/2.0<x && 
-       x<fGeoInfo[itracker].at(k).xoffset+fGeoInfo[itracker].at(k).dx/2.0){
+  for(int k = 0; k<fGeoInfo[ichamber].size(); k++){
+    if(fGeoInfo[ichamber].at(k).xoffset-fGeoInfo[ichamber].at(k).dx/2.0<x && 
+       x<fGeoInfo[ichamber].at(k).xoffset+fGeoInfo[ichamber].at(k).dx/2.0){
       sector = k;
     }
   }

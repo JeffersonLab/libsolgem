@@ -39,11 +39,11 @@ Double_t TSBSSimGEMDigitization::fCrossSigma = 0.;
 inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
-  double np2 = manager->GetNTracker2()*manager->GetNSector2();
+  double np2 = manager->GetNChamber2()*manager->GetNSector2();
   if(chamber>np2){ 
     div_t d = div( chamber-np2, manager->GetNSector1() );
     sector = d.rem;
-    plane  = d.quot+manager->GetNTracker2();
+    plane  = d.quot+manager->GetNChamber2();
   }else{
     div_t d = div(chamber, manager->GetNSector2());
     sector = d.rem;

@@ -17,7 +17,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     manager->LoadGeneralInfo("db_generalinfo.dat");
     manager->LoadGeoInfo("g4sbs_gep");
     
-    int Ncham_tot = manager->GetNTracker1()*manager->GetNSector1()+manager->GetNTracker2()*manager->GetNSector2();
+    int Ncham_tot = manager->GetNChamber1()*manager->GetNSector1()+manager->GetNChamber2()*manager->GetNSector2();
     
     cout << " Total number of chambers " << Ncham_tot << endl;
     

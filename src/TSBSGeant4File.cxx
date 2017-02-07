@@ -581,7 +581,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       pid = fTree->Harm_FT_hit_pid->at(i);
       trid = fTree->Harm_FT_hit_trid->at(i);
       type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fManager->GetNTracker2()+fTree->Harm_FT_hit_plane->at(i)-1;
+      plane = fManager->GetNChamber2()+fTree->Harm_FT_hit_plane->at(i)-1;
       edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
@@ -966,7 +966,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       trid = fTree->Harm_FPP2_hit_trid->at(i);
       type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fManager->GetNTracker2()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
+      plane = fManager->GetNChamber2()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
@@ -1276,13 +1276,13 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 	// different number of planes and different number of sectors per plane.
 	// h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
 	// (inherited from a convention that I had set for SBS GEp).
-	// int gCID = h->GetDetID()*(fManager->GetNTracker2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;//a redebugger
+	// int gCID = h->GetDetID()*(fManager->GetNChamber2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;//a redebugger
 	switch(h->GetDetID()){
 	case(0):
 	  gd->SetHitChamber(ngdata, h->GetData(0)*fManager->GetNSector2()+h->GetData(19));
 	  break;
 	case(1):
-	  gd->SetHitChamber(ngdata, fManager->GetNTracker2()*fManager->GetNSector2()+(h->GetData(0)-fManager->GetNTracker2())*fManager->GetNSector1()+h->GetData(19));
+	  gd->SetHitChamber(ngdata, fManager->GetNChamber2()*fManager->GetNSector2()+(h->GetData(0)-fManager->GetNChamber2())*fManager->GetNSector1()+h->GetData(19));
 	  break;
 	}
 	

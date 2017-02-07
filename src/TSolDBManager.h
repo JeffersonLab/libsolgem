@@ -28,11 +28,11 @@ public:
     const int    &   DoMapSector()          { return fDoMapSector;         }
     const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
     const int    &   GetSectorMapped()      { return fMappedSector;        }
-    int GetNTracker();//          { return fNTracker1+fNTracker2;}
+    int GetNChamber();//          { return fNChamber1+fNChamber2;}
     const int    &   GetNSector()           { return fNgSector;            }
-    const int    &   GetNTracker1()         { return fNTracker1;           }
+    const int    &   GetNChamber1()         { return fNChamber1;           }
     const int    &   GetNSector1()          { return fNSector1;            }
-    const int    &   GetNTracker2()         { return fNTracker2;           }
+    const int    &   GetNChamber2()         { return fNChamber2;           }
     const int    &   GetNSector2()          { return fNSector2;            }
     const int    &   GetNReadOut()          { return fNReadOut;            }
     const int    &   GetGEMDriftID()        { return fGEMDriftID;          }
@@ -74,7 +74,7 @@ public:
     const double &   GetStripAngle(int i, int j, int k);
     const double &   GetPitch(int i, int j, int k);
     
-    int GetSectorIDFromPos(int itracker, double x, double y = 0);
+    int GetSectorIDFromPos(int ichamber, double x, double y = 0);
     
 protected:
     TSolDBManager();
@@ -90,9 +90,9 @@ protected:
     int fDoSelfDefinedSector;
     
     int    fNgSector;
-    int    fNTracker1;
+    int    fNChamber1;
     int    fNSector1;
-    int    fNTracker2;
+    int    fNChamber2;
     int    fNSector2;
     int    fNReadOut;
     int    fNSigParticle;
@@ -120,7 +120,7 @@ protected:
     double fgCaloZ;     // z position of emulated calorimeter
     double fgCaloRes;   // Resolution (sigma) of emulated calorimeter (m)
     int    fgDoCalo;    // Enable calorimeter emulation
-    double fgZ0;        // z position of first tracker plane
+    double fgZ0;        // z position of first chamber plane
     
     int    fErrID;
     double fErrVal;
@@ -128,7 +128,7 @@ protected:
     vector<int>    fSigPID;
     vector<int>    fSigTID;
     
-    /* vector<double> fTrackerZ; */
+    /* vector<double> fChamberZ; */
     map< int, vector<GeoInfo> > fGeoInfo;
     
 };
