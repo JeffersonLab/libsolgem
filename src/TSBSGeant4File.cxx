@@ -111,9 +111,11 @@ Int_t TSBSGeant4File::Open(){
 
     cout << "Detector option " << fManager->Getg4sbsDetectorType() << endl;
     
-    // EFuchey: 2017/02/09: Since this date, the reading, digitization, etc... 
-    // of Forward Tracker data and Focal Plane Polarimeter data are separated.
+    // EFuchey: 2017/02/09: Since this date, the reading, digitization, etc. of the data 
+    // has been splitted for Forward Tracker and Focal Plane Polarimeter.
     // This will make the reconstruction step easier to organize.
+    // This implies an additional option for the detector type flag.
+    // See the printout content below.
     if(fManager->Getg4sbsDetectorType()<1 && fManager->Getg4sbsDetectorType()>4){
       cout << "Invalid detector option: Set correct option in db_generalinfo.dat" << endl;
       cout << "(remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - FT; 4 - FPP)" << endl;
@@ -517,7 +519,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
   case(3)://FT
     //Loop on the Forward Tracker detector hits:
-    cout << fTree->Harm_FT_hit_nhits << endl;
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
       det_id = 3;
       pid = fTree->Harm_FT_hit_pid->at(i);
@@ -711,7 +712,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     break;// end case(3)
     
   case(4):
-    cout << fTree->Harm_FPP1_hit_nhits << " " << fTree->Harm_FPP2_hit_nhits << endl;
     //Loop on the Focal Plane Polarimeter 1 hits: detectors 0 to 4
     // This block is not well commented, 
     // as it is very similar to the previous block of instructions
@@ -1173,8 +1173,6 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
   gd->SetSource(fSource);
   gd->SetEvent(fEvNum);
   
-  cout << "Number of hits ? " << GetNData() << endl;
-  
   if (GetNData() == 0) {
     return;
   }
@@ -1219,13 +1217,9 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
       gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
       gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
 	
-      // E. Fuchey: 2017/01/24.
-      // Determination of global detector index, based on number of planes and number of sectors per plane
-      // NB: it assumes that there are two types of GEM planes with different sizes: 
-      // different number of planes and different number of sectors per plane.
-      // h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
-      // (inherited from a convention that I had set for SBS GEp).
-      // int gCID = h->GetDetID()*(fManager->GetNChamber2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;//a redebugger
+      // E. Fuchey: 2017/02/09.
+      // We now consider FT and FPP separately. No more sector1,2 chamber 1,2, etc.
+      // That simplifies much the determination of the GEM chamber ID.
       gd->SetHitChamber(ngdata, h->GetData(19)*fManager->GetNChamber()+h->GetData(0));
       
       ngdata++;

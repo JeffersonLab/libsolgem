@@ -17,7 +17,17 @@ TSolDBManager::~TSolDBManager()
 }
 //______________________________________________________________
 void TSolDBManager::LoadGeneralInfo(const string& fileName)
-{
+{  
+  // EFuchey: 2017/02/09: Since this date, the reading, digitization, etc. of the data 
+  // has been splitted for Forward Tracker and Focal Plane Polarimeter.
+  // This simplifies the number of parameters for General info.
+  // On the other hand I also changed the ordering of the GEMs reading: 
+  // It used to be: chamber 0: loop on sectors, chmaber 1: loop on sectors...
+  // now it is: sector 0: loop on chambers, sector 1: loop on chambers, etc...
+  // That implied some modifications of the functions retrieving 
+  // a plane parameter as a function of the plane and sector number, 
+  // as well as the function which retrives the sector number from the position
+  
     ifstream input(fileName.c_str());
     if (!input.is_open()){
         cout<<"cannot find general information file "<<fileName

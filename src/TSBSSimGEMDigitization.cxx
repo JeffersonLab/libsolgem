@@ -39,9 +39,10 @@ Double_t TSBSSimGEMDigitization::fCrossSigma = 0.;
 inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
-  div_t d = div( chamber, manager->GetNSector() );
-  sector = d.rem;
-  plane  = d.quot;
+  div_t d = div( chamber, manager->GetNChamber() );
+  sector = d.quot;
+  plane  = d.rem;
+  //cout << "chamber " << chamber << ", sector " << sector << ", plane " << plane << endl;
 }
 
 inline
@@ -396,6 +397,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     Short_t itype = (gdata.GetParticleType(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
     Short_t isect, iplane;
     ChamberToSector( igem, isect, iplane );
+    
     if( fDoMapSector && !is_background && isect != fSignalSector )
       // If mapping sectors, skip signal hits that won't end up in sector 0
       continue;
@@ -403,22 +405,6 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     // These vectors are in the spec frame, we need them in the chamber frame
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
-    
-    // cout << "GEM number : " << igem << endl;
-    // cout << " hit entrance ";
-    // vv1.Print();
-    // cout << " hit exit ";
-    // vv2.Print();
-    
-    // cout << "Calling spec to plane  " << endl;
-    // cout << ih << endl; 
-    //spect.GetChamber(igem).SpecToPlane(vv1);
-    //spect.GetChamber(igem).SpecToPlane(vv2);
-    
-    // cout << " hit entrance (2) ";
-    // vv1.Print();
-    // cout << " hit exit (2) ";
-    // vv2.Print();
     
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
 

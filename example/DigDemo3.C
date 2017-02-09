@@ -23,7 +23,6 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
       dds = new TSBSSpec ("g4sbs_ft", "SBS spectrometer FT");
       outname = "digdemo3_ft.root";
       dds->Init();
-      
       break;
     case(4):
        manager->LoadGeneralInfo("db_generalinfo_fpp.dat");
@@ -38,7 +37,7 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
       break;
     }
     
-    for(int i_ch = 0; i_ch<manager->GetNChamber(); i_ch++){
+    for(int i_ch = 0; i_ch<manager->GetNChamber()*manager->GetNSector(); i_ch++){
       ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
       ddy->SetApparatus(dds);
       if( ddy->Init() )
@@ -47,32 +46,11 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
     }
     printf("\n");
     
-    // for(int i_ch = 0; i_ch<10; i_ch++){
-    //   ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
-    //   ddy->SetApparatus(dds);
-    //   if( ddy->Init() )
-    // 	return;
-    //   dds->AddGEM (ddy);
-    // }
-    // printf("\n");
-
-    // for(int i_ch = 10; i_ch<16; i_ch++){
-    //   ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
-    //   ddy->SetApparatus(dds);
-    //   if( ddy->Init() )
-    // 	return;
-    //   dds->AddGEM (ddy);
-    // }
-    // printf("\n");
-    
     if(print)dds->Print();
     
     ddd = new TSBSSimGEMDigitization (*dds,"ratedig");
     //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
     ddd->SetMapSector(false);
-    
-    // dde = new TSBSSimDecoder();
-    // dde->SetCrateMapName("db_sbssim_cratemap.dat");
     
     ////////////////////////////////////////////////////////////////
     
