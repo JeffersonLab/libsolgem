@@ -28,12 +28,8 @@ public:
     const int    &   DoMapSector()          { return fDoMapSector;         }
     const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
     const int    &   GetSectorMapped()      { return fMappedSector;        }
-    int GetNChamber();//          { return fNChamber1+fNChamber2;}
-    const int    &   GetNSector()           { return fNgSector;            }
-    const int    &   GetNChamber1()         { return fNChamber1;           }
-    const int    &   GetNSector1()          { return fNSector1;            }
-    const int    &   GetNChamber2()         { return fNChamber2;           }
-    const int    &   GetNSector2()          { return fNSector2;            }
+    const int    &   GetNChamber()          { return fNChamber;            }
+    const int    &   GetNSector()           { return fNSector;             }
     const int    &   GetNReadOut()          { return fNReadOut;            }
     const int    &   GetGEMDriftID()        { return fGEMDriftID;          }
     const int    &   GetGEMCopperFrontID()  { return fGEMCopperFrontID;    }
@@ -89,11 +85,8 @@ protected:
     int fMappedSector;
     int fDoSelfDefinedSector;
     
-    int    fNgSector;
-    int    fNChamber1;
-    int    fNSector1;
-    int    fNChamber2;
-    int    fNSector2;
+    int    fNChamber;
+    int    fNSector;
     int    fNReadOut;
     int    fNSigParticle;
     int    fGEMDriftID;
@@ -107,7 +100,7 @@ protected:
     int    fModulesPerReadOut;
     int    fModulesPerChamber;
     int    fChambersPerCrate;
-
+    
     // Parameters for TSBSGeant4File
     int fg4sbsDetectorType;// flag to determine which type of GEM should be read.
     //Choices are: 1 - BB GEMs

@@ -149,13 +149,18 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   Double_t ys0 = (fBox->GetDY())/2.0;
   Double_t xs[4] = {xs0, xs0, -xs0, -xs0};
   Double_t ys[4] = {ys0, -ys0, ys0, -ys0};
-
+  
   Int_t smin = 1e9;
   Int_t smax = 1e-9;
   for (UInt_t i = 0; i < 4; ++i)
     {
       PlaneToStrip (xs[i], ys[i]);
       Int_t s = (Int_t) (xs[i] / GetSPitch());
+      //The following 3 lines are to avoid to understimate the number of strips 
+      //(hence the active area) because of stupid rounding issues at the 10^-12 level.
+      if( (double)round(xs[i] / GetSPitch())-xs[i] / GetSPitch() < 1.0e-10 ){
+	s = round(xs[i] / GetSPitch());
+      }
       if (s < smin) smin = s;
       if (s > smax) smax = s;
     }

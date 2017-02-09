@@ -85,64 +85,6 @@ void TSBSGeant4File::ReadGasData(const char* filename){
   }
 }
 
-
-/*
-//-----------------------------------------------------------------------------
-// Reading database for miscellaneous parameters.
-// This is done without proper DB request, but there is a set of default parameters.
-// If those have to be used, user will be warned by a warning message.
-// Data should be sorted as in file db/db_g4sbsmiscdata.dat
-// This is the user's responsibility to make sure his input file is read correctly.
-void TSBSGeant4File::InitMiscParam(const char* dbpath) {
-  ifstream in(dbpath);
-  if(!in.is_open()){
-    printf("TSBSGeant4File Warning: May not read database at %s\n", dbpath);
-    printf(" => Using sbs default params\n");
-    
-    fZSpecOffset = 3.38551;
-    strcpy( fgasdatafile, "gasErange.txt");
-  }else{
-    cout << "TSBSGeant4File Info: reading database at location " << dbpath << endl;
-    cout <<" This file should be written the same way db/db_g4sbsmiscdata.dat "<< endl;
-    cout << "(same structure, same order of parameters)" << endl;
-    Float_t dummy;
-    //string read_str;
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-    in.ignore(100,'=');
-    in >> dummy;
-    
-    in.ignore(100,'=');
-    in >> fZSpecOffset;
-    in.ignore(100,'=');
-    in >> fgasdatafile;
-    cout << "Gas range data input file: " << fgasdatafile << endl;
-  }
-  
-  
-  // cout << fNSECTORS << " " << fNPLANES << " " << fNPROJ << " " << fCHAN_PER_SLOT << " "
-  // 	 << fmodules_per_readout << "; " << endl;
-  //   << fgZ0 << " " << fgDoCalo << " " << fgCaloZ << " " << fgCaloRes << endl;
-  
-  in.close();
-}
-*/
-
 TSBSGeant4File::~TSBSGeant4File() {
   Clear();
   delete fFile;
@@ -169,9 +111,12 @@ Int_t TSBSGeant4File::Open(){
 
     cout << "Detector option " << fManager->Getg4sbsDetectorType() << endl;
     
-    if(fManager->Getg4sbsDetectorType()<1 && fManager->Getg4sbsDetectorType()>3){
+    // EFuchey: 2017/02/09: Since this date, the reading, digitization, etc... 
+    // of Forward Tracker data and Focal Plane Polarimeter data are separated.
+    // This will make the reconstruction step easier to organize.
+    if(fManager->Getg4sbsDetectorType()<1 && fManager->Getg4sbsDetectorType()>4){
       cout << "Invalid detector option: Set correct option in db_generalinfo.dat" << endl;
-      cout << "(remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - GEP SBS GEMs)" << endl;
+      cout << "(remider: 1 - BB GEMs; 2 - SIDIS SBS GEMs; 3 - FT; 4 - FPP)" << endl;
       return 0;
     }
     
@@ -231,7 +176,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   
   double weight = fTree->ev_solang*fTree->ev_sigma; 
     
-  int det_id;//0: FT, 1: FPPs
+  int det_id;//2017/02/09: now corresponds to fManager->Getg4sbsDetectorType()
     
   int pid;
   int trid;
@@ -260,14 +205,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   double eRangeGas;
   double temp;
   
-  //cout << "Detector type option: " << fManager->Getg4sbsDetectorType() << endl;
-    
   switch(fManager->Getg4sbsDetectorType()){
-      
+    
   case(1)://BB GEMs
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
-      det_id = 0;
-      sector = -1;	
+      det_id = 1;
       
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
       trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
@@ -391,38 +333,38 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	    dupli=false;
-	  }else{
-	    for(int j = 5; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
-	    }
-	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	dupli=false;
+	}else{
+	for(int j = 5; j<8; j++){
+	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	dupli=false;
+	break;
+	}
+	}
+	}
+	if(dupli){
+	newtrk = false;
+	break;
+	}
 	}
 	
 	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<9; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
-      }
+	n_gen++;
+	}
+	}
       */
     }//end loop on hits
     break;
       
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
-      det_id = 0;
+      det_id = 2;
       
       pid = fTree->Harm_SBSGEM_hit_pid->at(i);
       trid = fTree->Harm_SBSGEM_hit_trid->at(i);
@@ -544,47 +486,48 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	    dupli=false;
-	  }else{
-	    for(int j = 5; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
-	    }
-	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	dupli=false;
+	}else{
+	for(int j = 5; j<8; j++){
+	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	dupli=false;
+	break;
+	}
+	}
+	}
+	if(dupli){
+	newtrk = false;
+	break;
+	}
 	}
 	
 	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<9; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
-      }
+	n_gen++;
+	}
+	}
       */
     }// endl loop on hits
     break;
       
-  case(3)://FT+FPP
-    //Loop on the Forward Tracker detector hits: detectors 10 to 15
+  case(3)://FT
+    //Loop on the Forward Tracker detector hits:
+    cout << fTree->Harm_FT_hit_nhits << endl;
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
-      det_id = 1;
-      
+      det_id = 3;
       pid = fTree->Harm_FT_hit_pid->at(i);
       trid = fTree->Harm_FT_hit_trid->at(i);
       type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fManager->GetNChamber2()+fTree->Harm_FT_hit_plane->at(i)-1;
+      plane = fTree->Harm_FT_hit_plane->at(i)-1;
       edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
+      
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
@@ -700,31 +643,31 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	    dupli=false;
-	  }else{
-	    for(int j = 5; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
-	    }
-	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	dupli=false;
+	}else{
+	for(int j = 5; j<8; j++){
+	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	dupli=false;
+	break;
+	}
+	}
+	}
+	if(dupli){
+	newtrk = false;
+	break;
+	}
 	}
 	
 	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<9; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
-      }
+	n_gen++;
+	}
+	}
       */
       // Print out block
 #if DEBUG>0
@@ -765,13 +708,16 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       cout << endl;
 #endif //DEBUG
     }
+    break;// end case(3)
     
+  case(4):
+    cout << fTree->Harm_FPP1_hit_nhits << " " << fTree->Harm_FPP2_hit_nhits << endl;
     //Loop on the Focal Plane Polarimeter 1 hits: detectors 0 to 4
     // This block is not well commented, 
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
-      det_id = 0;
+      det_id = 4;
       
       pid = fTree->Harm_FPP1_hit_pid->at(i);
       trid = fTree->Harm_FPP1_hit_trid->at(i);
@@ -780,6 +726,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
+
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
       
       pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
@@ -802,7 +749,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
-      
+       
       //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP1_hit_txp->at(i), 2)+pow(fTree->Harm_FPP1_hit_typ->at(i), 2))*3.0e-3;//m
@@ -872,7 +819,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       n_hits++;
       
-      
       //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
@@ -891,34 +837,35 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
 	n_gen++;
       }
+
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	    dupli=false;
-	  }else{
-	    for(int j = 5; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
-	    }
-	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	dupli=false;
+	}else{
+	for(int j = 5; j<8; j++){
+	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	dupli=false;
+	break;
+	}
+	}
+	}
+	if(dupli){
+	newtrk = false;
+	break;
+	}
 	}
 	
 	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<9; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
-      }
+	n_gen++;
+	}
+	}
       */
 #if DEBUG>0
       cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
@@ -961,12 +908,12 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
-      det_id = 0;
+      det_id = 4;
       
       pid = fTree->Harm_FPP2_hit_pid->at(i);
       trid = fTree->Harm_FPP2_hit_trid->at(i);
       type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fManager->GetNChamber2()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
+      plane = fManager->GetNChamber()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
@@ -1061,7 +1008,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
-      
+
       //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
@@ -1083,31 +1030,31 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
-	  dupli = true;
-	  if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	    dupli=false;
-	  }else{
-	    for(int j = 5; j<8; j++){
-	      if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-		dupli=false;
-		break;
-	      }
-	    }
-	  }
-	  if(dupli){
-	    newtrk = false;
-	    break;
-	  }
+	dupli = true;
+	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
+	dupli=false;
+	}else{
+	for(int j = 5; j<8; j++){
+	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
+	dupli=false;
+	break;
+	}
+	}
+	}
+	if(dupli){
+	newtrk = false;
+	break;
+	}
 	}
 	
 	if(newtrk){
-	  fg4sbsGenData.push_back(new g4sbsgendata());
-	  for(int j = 0; j<9; j++){
-	    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	  }
-	  n_gen++;
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
-      }
+	n_gen++;
+	}
+	}
       */
 #if DEBUG>0
       cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
@@ -1144,7 +1091,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       cout << endl;
 #endif //DEBUG          
     }
-    break;// end case(3)
+    break;// end case(4)
       
   }//end switch(fManager->Getg4sbsDetectorType)
     
@@ -1219,78 +1166,72 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
 {
   // Pack data into TSolGEMData
    
-//    printf("NEXT EVENT ---------------------------\n");
+  //    printf("NEXT EVENT ---------------------------\n");
 
-    if( !gd ) return;
-    gd->ClearEvent();
-    gd->SetSource(fSource);
-    gd->SetEvent(fEvNum);
+  if( !gd ) return;
+  gd->ClearEvent();
+  gd->SetSource(fSource);
+  gd->SetEvent(fEvNum);
+  
+  cout << "Number of hits ? " << GetNData() << endl;
+  
+  if (GetNData() == 0) {
+    return;
+  }
+  gd->InitEvent(GetNData());
 
-    if (GetNData() == 0) {
-      return;
+  g4sbshitdata *h;//, *hs;
+  //bool matchedstrip;
+  unsigned int i, ngdata = 0;// j,
+  for(i=0; i<GetNData(); i++){
+    h = GetHitData(i);
+
+    if( h->GetData(1)>0.0 ){
+	
+      // Chamber IDs are numbered as 
+      // xy  where x is the det id (1 for FT, 0 for FPPs) y the plane number, 
+      // labeled from 0 to 9 instead of 1 to 10, for convenience reasons:
+      // FPPs: chambers 0-9, FT: chambers 10-15.
+	
+      //if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
+      // Vector information
+      TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
+      gd->SetMomentum(ngdata, p);
+	
+      TVector3 li(h->GetData(5), h->GetData(6), h->GetData(7));
+      gd->SetHitEntrance(ngdata, li);
+	
+      TVector3 lo(h->GetData(9), h->GetData(10), h->GetData(11));
+      gd->SetHitExit(ngdata, lo);
+	
+      // Average over entrance and exit time
+      gd->SetHitTime(ngdata, (h->GetData(8)+h->GetData(12))/2.0);
+	
+      TVector3 vert(h->GetData(14), h->GetData(15), h->GetData(16));
+      gd->SetVertex(ngdata, vert);
+	
+      TVector3 lr(h->GetData(2), h->GetData(3), h->GetData(4));
+      gd->SetHitReadout(ngdata, lr);
+      // printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
+	
+      gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
+      gd->SetParticleType(ngdata, (UInt_t)h->GetData(13) );//  Track type (1 primary, >1 secondary) 
+      gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
+      gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
+	
+      // E. Fuchey: 2017/01/24.
+      // Determination of global detector index, based on number of planes and number of sectors per plane
+      // NB: it assumes that there are two types of GEM planes with different sizes: 
+      // different number of planes and different number of sectors per plane.
+      // h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
+      // (inherited from a convention that I had set for SBS GEp).
+      // int gCID = h->GetDetID()*(fManager->GetNChamber2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;//a redebugger
+      gd->SetHitChamber(ngdata, h->GetData(19)*fManager->GetNChamber()+h->GetData(0));
+      
+      ngdata++;
     }
-    gd->InitEvent(GetNData());
-
-    g4sbshitdata *h;//, *hs;
-    //bool matchedstrip;
-    unsigned int i, ngdata = 0;// j,
-    for(i=0; i<GetNData(); i++){
-      h = GetHitData(i);
-
-      if( h->GetData(1)>0.0 ){
-	
-	// Chamber IDs are numbered as 
-	// xy  where x is the det id (1 for FT, 0 for FPPs) y the plane number, 
-	// labeled from 0 to 9 instead of 1 to 10, for convenience reasons:
-	// FPPs: chambers 0-9, FT: chambers 10-15.
-	
-	//if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
-	// Vector information
-	TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
-	gd->SetMomentum(ngdata, p);
-	
-	TVector3 li(h->GetData(5), h->GetData(6), h->GetData(7));
-	gd->SetHitEntrance(ngdata, li);
-	
-	TVector3 lo(h->GetData(9), h->GetData(10), h->GetData(11));
-	gd->SetHitExit(ngdata, lo);
-	
-	// Average over entrance and exit time
-	gd->SetHitTime(ngdata, (h->GetData(8)+h->GetData(12))/2.0);
-	
-	TVector3 vert(h->GetData(14), h->GetData(15), h->GetData(16));
-	gd->SetVertex(ngdata, vert);
-	
-	TVector3 lr(h->GetData(2), h->GetData(3), h->GetData(4));
-	gd->SetHitReadout(ngdata, lr);
-	// printf("%d %f %f\n", h->GetDetID()/100, li.X(), li.Y()  );
-	
-	gd->SetHitEnergy(ngdata, h->GetData(1)*1e6 ); // Gives eV
-	gd->SetParticleType(ngdata, (UInt_t)h->GetData(13) );//  Track type (1 primary, >1 secondary) 
-	gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
-	gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
-	
-	// E. Fuchey: 2017/01/24.
-	// Determination of global detector index, based on number of planes and number of sectors per plane
-	// NB: it assumes that there are two types of GEM planes with different sizes: 
-	// different number of planes and different number of sectors per plane.
-	// h->GetDetID(): detector ID, defined as 0 for large size GEMs, 1 for small size GEMs  
-	// (inherited from a convention that I had set for SBS GEp).
-	// int gCID = h->GetDetID()*(fManager->GetNChamber2()*fNSector2+h->GetData(0)*(fNSector1-fNSector2))+h->GetData(19)+h->GetData(0)*fNSector2;//a redebugger
-	switch(h->GetDetID()){
-	case(0):
-	  gd->SetHitChamber(ngdata, h->GetData(0)*fManager->GetNSector2()+h->GetData(19));
-	  break;
-	case(1):
-	  gd->SetHitChamber(ngdata, fManager->GetNChamber2()*fManager->GetNSector2()+(h->GetData(0)-fManager->GetNChamber2())*fManager->GetNSector1()+h->GetData(19));
-	  break;
-	}
-	
-
-	ngdata++;
-      }
-    }
-    gd->SetNHit(ngdata);
+  }
+  gd->SetNHit(ngdata);
 }
 
 
@@ -1318,34 +1259,34 @@ g4sbshitdata::g4sbshitdata(int detid, unsigned int size ){
 }
 
 void g4sbshitdata::SetData(unsigned int idx, double data ){
-    if( idx >= fSize ){
-	fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
-	return;
-
-    }
-
-    fFillbits |= (1<<idx);
-
-    fData[idx] = data;
+  if( idx >= fSize ){
+    fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
     return;
+
+  }
+
+  fFillbits |= (1<<idx);
+
+  fData[idx] = data;
+  return;
 }
 
 double g4sbshitdata::GetData(unsigned int idx) const {
-    if( idx >= fSize ){
-	fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
-	return 1e9;
-    }
+  if( idx >= fSize ){
+    fprintf(stderr, "%s %s line %d:  Error:  index out of range (%d oor of size %d)\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fSize);
+    return 1e9;
+  }
 
-    if( !(fFillbits & (1<<idx)) ){
-	fprintf(stderr, "%s %s line %d:  Error:  Accessing unset data (idx %d) val: %f\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fData[idx] );
-	return 1e9;
-    }
+  if( !(fFillbits & (1<<idx)) ){
+    fprintf(stderr, "%s %s line %d:  Error:  Accessing unset data (idx %d) val: %f\n",__FILE__, __PRETTY_FUNCTION__, __LINE__, idx, fData[idx] );
+    return 1e9;
+  }
 
-    return fData[idx];
+  return fData[idx];
 }
 
 bool g4sbshitdata::IsFilled() const {
-    if( fFillbits == ((1<<fSize) - 1) ){
+  if( fFillbits == ((1<<fSize) - 1) ){
 	return true;
     }
 

@@ -1,5 +1,5 @@
 #include "TSolDBManager.h"
-#include "TSolSimDecoder.h"
+#include "TSBSSimDecoder.h"
 #include <cassert>
 #include <cmath>
 #include "TMath.h"
@@ -29,11 +29,8 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"do_map_sector",       &fDoMapSector         , kInt,    0, 1},
         {"self_define_sector",  &fDoSelfDefinedSector , kInt,    0, 1},
         {"sector_mapped",       &fMappedSector        , kInt,    0, 1},
-	{"ngsector",            &fNgSector            , kInt,    0, 1},
-	{"nchamber1",           &fNChamber1           , kInt,    0, 1},
-        {"nsector1",            &fNSector1            , kInt,    0, 1},
-        {"nchamber2",           &fNChamber2           , kInt,    0, 1},
-        {"nsector2",            &fNSector2            , kInt,    0, 1},
+	{"nchamber",            &fNChamber            , kInt,    0, 1},
+        {"nsector",             &fNSector             , kInt,    0, 1},
         {"nreadout",            &fNReadOut            , kInt,    0, 1},
         {"gem_drift_id",        &fGEMDriftID          , kInt,    0, 1},
         {"gem_copper_front_id", &fGEMCopperFrontID    , kInt,    0, 1},
@@ -75,16 +72,16 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
 	if( err ) exit(2); 
     }
     
-    for (int i=0; i<GetNChamber(); i++){
-         vector<GeoInfo> thisInfo;
-         thisInfo.clear();
-         fGeoInfo[i] = thisInfo;
+    for (int i=0; i<GetNSector(); i++){
+      vector<GeoInfo> thisInfo;
+      thisInfo.clear();
+      fGeoInfo[i] = thisInfo;
     }
     
     fModulesPerChamber = fModulesPerReadOut * fNReadOut;
     
-    fChambersPerCrate  = 
-      (TSolSimDecoder::GetMAXSLOT()/fModulesPerChamber/(fNChamber1+fNChamber2)) * (fNChamber1+fNChamber2);
+    fChambersPerCrate = 
+      (TSBSSimDecoder::GetMAXSLOT()/fModulesPerChamber/fNChamber) * fNChamber;
 }
 
 //______________________________________________________________
@@ -123,13 +120,13 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
     { 0 }
   };
   
-  for (int i=0; i<fNChamber2; i++){
+  for (int i=0; i<fNSector; i++){
     map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
     if (it == fGeoInfo.end()) { cout<<"unexpected chamber id "<<i<<endl; }
     
-    for (int j=0; j<fNSector2; j++){
+    for (int j=0; j<fNChamber; j++){
       ostringstream sector_prefix(prefix, ios_base::ate);
-      int idx = i*fNSector2 + j;
+      int idx = i*fNChamber + j;
       sector_prefix<<".gem"<<idx<<".";
       
       int err = LoadDB(input, request, sector_prefix.str());
@@ -140,25 +137,6 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
       if (err) exit(2);
       
       fGeoInfo[i].push_back(thisGeo);
-    }
-  }
-  for (int i=0; i<fNChamber1; i++){
-    map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
-    if (it == fGeoInfo.end()) { cout<<"unexpected chamber id "<<i<<endl; }
-    
-    for (int j=0; j<fNSector1; j++){
-      ostringstream sector_prefix(prefix, ios_base::ate);
-      int idx = fNChamber2*fNSector2 +i*fNSector1 + j;
-      sector_prefix<<".gem"<<idx<<".";
-      
-      int err = LoadDB(input, request, sector_prefix.str());
-      if( err ) exit(2);
-      
-      sector_prefix<<"gem"<<idx;
-      err = LoadDB(input, plane_request, sector_prefix.str());
-      if (err) exit(2);
-      
-      fGeoInfo[fNChamber2+i].push_back(thisGeo);
     }
   }
   
@@ -192,15 +170,11 @@ string TSolDBManager::FindKey( ifstream& inp, const string& key )
 //_________________________________________________________________________
 bool TSolDBManager::CheckIndex(int i, int j, int k)
 {
-    if (i >= fNChamber1+fNChamber2 || i < 0){
+    if (i >= fNChamber || i < 0){
         cout<<"invalid chamber ID requested: "<<i<<endl;
         return false;
     }
-    else if(i<fNChamber2 && j>=fNSector2){
-      cout<<"invalid sector id requested: "<<j<<endl;
-      return false;
-    }
-    else if(i>=fNChamber2 && j>=fNSector1){
+    else if(j>=fNSector){
       cout<<"invalid sector id requested: "<<j<<endl;
       return false;
     }
@@ -262,78 +236,71 @@ const int & TSolDBManager::GetSigTID(unsigned int i)
     return fSigTID[i];
 }
 
-//const 
-int TSolDBManager::GetNChamber()
-{ 
-  const int NchamberTot = fNChamber1+fNChamber2;
-  return NchamberTot;
-}
-
 //______________________________________________________________________
 const double & TSolDBManager::GetDMag(int i, int j)
 {
   // cout << "D0: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size() << " ";
   if (!CheckIndex(i, j)) return fErrVal;
-  // cout << fGeoInfo[i].size() << endl;
-  return fGeoInfo[i].at(j).dmag;
+  // cout << fGeoInfo[j].size() << endl;
+  return fGeoInfo[j].at(i).dmag;
 }
 //______________________________________________________________________
 const double & TSolDBManager::GetD0(int i, int j)
 {
-  // cout << "D0: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size() << " ";
+  //cout << "D0: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size() << " ";
   if (!CheckIndex(i, j)) return fErrVal;
-  // cout << fGeoInfo[i].size() << endl;
-  return fGeoInfo[i].at(j).d0;
+  //cout << fGeoInfo[j].size() << endl;
+  return fGeoInfo[j].at(i).d0;
 }
 //______________________________________________________________________
 const double & TSolDBManager::GetXOffset(int i, int j)
 {
-  // cout << "XOff: i, j " << i << " " << j << " Geo size, Geo[i] size "  << fGeoInfo.size() << " ";
+  //cout << "XOff: i, j " << i << " " << j << " Geo size, Geo[i] size "  << fGeoInfo.size() << " ";
   if (!CheckIndex(i, j)) return fErrVal;
-  // cout << fGeoInfo[i].size() << endl;
-  return fGeoInfo[i].at(j).xoffset;
+  // cout << fGeoInfo[j].size() << endl;
+  return fGeoInfo[j].at(i).xoffset;
 }
 //______________________________________________________________________
 const double & TSolDBManager::GetDX(int i, int j)
 {
   //cout << "DX: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size();
   if (!CheckIndex(i, j)) return fErrVal;
-  // cout << " " << fGeoInfo[i].size() << endl;
-  return fGeoInfo[i].at(j).dx;
+  // cout << " " << fGeoInfo[j].size() << endl;
+  return fGeoInfo[j].at(i).dx;
 }
 //______________________________________________________________________
 const double & TSolDBManager::GetDY(int i, int j)
 {
   // cout << "DY: i, j " << i << " " << j << " Geo size, Geo[i] size " << fGeoInfo.size();
   if (!CheckIndex(i, j)) return fErrVal;
-  // cout << " " << fGeoInfo[i].size() << endl;
-  return fGeoInfo[i].at(j).dy;
+  // cout << " " << fGeoInfo[j].size() << endl;
+  return fGeoInfo[j].at(i).dy;
 }
 //______________________________________________________________________
 const double & TSolDBManager::GetThetaH(int i, int j)
 {
     if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).thetaH;
+    return fGeoInfo[j].at(i).thetaH;
 }
 //______________________________________________________________________
 const double & TSolDBManager::GetThetaV(int i, int j)
 {
     if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[i].at(j).thetaV;
+    return fGeoInfo[j].at(i).thetaV;
 }
 //_________________________________________________________________________
 const double & TSolDBManager::GetStripAngle(int i, int j, int k)
 {
     if (!CheckIndex(i, j, k)) return fErrVal;
-    if (k == 0) return fGeoInfo[i].at(j).stripangle_u;
-    else return fGeoInfo[i].at(j).stripangle_u;
+    if (k == 0) return fGeoInfo[j].at(i).stripangle_u;
+    else return fGeoInfo[j].at(i).stripangle_u;
 }
 //_________________________________________________________________________
 const double & TSolDBManager::GetPitch(int i, int j, int k)
 {
     if (!CheckIndex(i, j, k)) return fErrVal;
-    if (k == 0) return fGeoInfo[i].at(j).pitch_u;
-    else return fGeoInfo[i].at(j).pitch_u;
+    if (k == 0) return fGeoInfo[j].at(i).pitch_u;
+    else return fGeoInfo[j].at(i).pitch_u;
 }
 
 //__________________________________________________________________________
@@ -342,9 +309,9 @@ int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
   if (!CheckIndex(ichamber)) return fErrVal;
 
   double sector = -1;
-  for(int k = 0; k<fGeoInfo[ichamber].size(); k++){
-    if(fGeoInfo[ichamber].at(k).xoffset-fGeoInfo[ichamber].at(k).dx/2.0<x && 
-       x<fGeoInfo[ichamber].at(k).xoffset+fGeoInfo[ichamber].at(k).dx/2.0){
+  for(int k = 0; k<fGeoInfo.size(); k++){
+    if(fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0<x && 
+       x<fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0){
       sector = k;
     }
   }

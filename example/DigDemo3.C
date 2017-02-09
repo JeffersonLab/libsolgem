@@ -1,6 +1,6 @@
 // Example "replay" script
 
-void DigDemo3(int Nmax = 10000, bool print = false){
+void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
     printf("\n** This gets called with 'analyzer' and not 'root' **\n");
     printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
 
@@ -13,18 +13,32 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     TSBSSimGEMDigitization *ddd;
     TSBSSimDecoder *dde;
     
+    char* outname;
+    
     TSolDBManager* manager = TSolDBManager::GetInstance();
-    manager->LoadGeneralInfo("db_generalinfo.dat");
-    manager->LoadGeoInfo("g4sbs_gep");
+    switch(fspec){
+    case(3):
+      manager->LoadGeneralInfo("db_generalinfo_ft.dat");
+      manager->LoadGeoInfo("g4sbs_ft");
+      dds = new TSBSSpec ("g4sbs_ft", "SBS spectrometer FT");
+      outname = "digdemo3_ft.root";
+      dds->Init();
+      
+      break;
+    case(4):
+       manager->LoadGeneralInfo("db_generalinfo_fpp.dat");
+       manager->LoadGeoInfo("g4sbs_fpp");
+       dds = new TSBSSpec ("g4sbs_fpp", "SBS spectrometer FPP");
+       outname = "digdemo3_fpp.root";
+       dds->Init();
+      break;
+    default:
+      cout << "No corresponding geometry: choose 3 (FT) or 4 (FPP)";
+      return;
+      break;
+    }
     
-    int Ncham_tot = manager->GetNChamber1()*manager->GetNSector1()+manager->GetNChamber2()*manager->GetNSector2();
-    
-    cout << " Total number of chambers " << Ncham_tot << endl;
-    
-    dds = new TSBSSpec ("g4sbs_gep", "SBS spectrometer");
-    dds->Init();
-
-    for(int i_ch = 0; i_ch<Ncham_tot; i_ch++){
+    for(int i_ch = 0; i_ch<manager->GetNChamber(); i_ch++){
       ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
       ddy->SetApparatus(dds);
       if( ddy->Init() )
@@ -63,7 +77,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     ////////////////////////////////////////////////////////////////
     
     TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14000/elastic_0.root");
-    //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14001/elastic_0.root");
+    //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14301/elastic_0.root");
     printf("The filename returned is %s\n", f->GetFileName());
     f->SetSource(0);
     
@@ -90,7 +104,7 @@ void DigDemo3(int Nmax = 10000, bool print = false){
     TSolGEMData *gd, *gb;
     g4sbsgendata *gen;
 
-    ddd->InitTree (*dds, "digdemo3.root");
+    ddd->InitTree (*dds, outname);
     
     printf("Digitizing events\n");
     ndata = 0;
@@ -99,7 +113,6 @@ void DigDemo3(int Nmax = 10000, bool print = false){
 
     while( f->ReadNextEvent() && hadback && nevent<Nmax){
       
-      //if(nevent%10==0)
       cout << "Evt " << nevent << endl;
             
       gd = f->GetGEMData();

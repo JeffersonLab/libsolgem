@@ -1,13 +1,8 @@
 generalinfo.do_map_sector = 0
 generalinfo.self_define_sector = 0
 generalinfo.sector_mapped = 0
-generalinfo.ngsector = 1
-generalinfo.nchamber1 = 6
-generalinfo.nsector1 = 3
-#generalinfo.nsector1 = 1
-generalinfo.nchamber2 = 10
-generalinfo.nsector2 = 4
-#generalinfo.nsector2 = 1
+generalinfo.nchamber = 6
+generalinfo.nsector = 3
 generalinfo.nreadout = 2
 generalinfo.gem_drift_id = 6
 generalinfo.gem_copper_front_id = 5

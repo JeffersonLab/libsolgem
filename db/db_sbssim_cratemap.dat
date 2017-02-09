@@ -3,7 +3,6 @@
 # Crate map for SoLID simulation input (see TSBSSimDecoder).  => TO-DO: Modifiy it for SBS; 
 #  -> very likely not much to do, just put the good number of crates and slots.
 #  N_crates*N_slots*N_chan >=~ N_FT_channels+N_FPP_channels ?
-#  => 3 crates * 30 slots * 2048 chan = 165888 > 41472 FT channels + 61440*2 FPP channels = 164352
 #
 # Hardware model "6425" emulates the APV25 VME readout module.
 # header and mask are not needed for simulation data.

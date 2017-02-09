@@ -32,7 +32,7 @@ class g4sbs_tree {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
-   int             fDetOption;// Choose detector option: 1: BB GEMs, 2: SBS GEMs, 3: GEp GEMs
+   int             fDetOption;// Choose detector option: 1: BB GEMs, 2: SBS GEMs, 3: FT GEMs, 4: FPP GEMs
    bool            fPythia;// needed to turn on/off the reading of the pythia variables
    bool            fEcalBox;// needed to turn on/off the reading of the ECAL_box data
    bool            fHcalBox;// needed to turn on/off the reading of the HCAL_box data

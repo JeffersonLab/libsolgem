@@ -225,12 +225,21 @@ void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
   // to hardware channel (crate,slot,chan)
   // The (crate,slot,chan) assignment must match the detmap definition in
   // the database!  See TreeSearch/dbconvert.cxx
-
+  
+  cout << "Chan per slot ? " << fManager->GetChanPerSlot() << endl;
+  cout << "Module per readout ? " << fManager->GetModulesPerReadOut() << endl;
+  cout << "N readout ? " << fManager->GetNReadOut() << ", N Chambers ? " << fManager->GetNChamber() << endl;
+  cout << "Chambers per crate ? " << fManager->GetChambersPerCrate() << endl;
+  cout << "Module per readout ? " << fManager->GetModulesPerChamber() << endl;
+  
   div_t d = div( s_chan, fManager->GetChanPerSlot() );
   Int_t module = d.quot;
   chan = d.rem;
   Int_t ix = module +
     fManager->GetModulesPerReadOut()*( s_proj + fManager->GetNReadOut()*( s_plane + fManager->GetNChamber()*s_sector ));
+  
+  cout << "StripToROC: module " << module << ", ix " << ix << endl;
+  
   d = div( ix, fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
   crate = d.quot;
   slot  = d.rem;
@@ -348,7 +357,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // in the input file (in TSBSSimFile). The pointer-to-unsigned integer is
   // needed compatibility with the standard decoder.
   const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
-
+  
   Int_t ret = HED_OK;
   if (first_decode || fNeedInit) {
     if( (ret = init_cmap()) != HED_OK )
@@ -374,28 +383,47 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // Event weight
   fWeight = simEvent->fWeight;
 
+  //
+  cout << " *COU-COU* " << endl;
+  //
   if( fDoBench ) fBench->Begin("physics_decode");
 
   // Decode the digitized strip data.  Populate crateslot array.
   for( vector<TSBSSimEvent::DigiGEMStrip>::size_type i = 0;
        i < simEvent->fGEMStrips.size(); i++) {
+    cout << "i " << i << endl;
     const TSBSSimEvent::DigiGEMStrip& s = simEvent->fGEMStrips[i];
     Int_t crate, slot, chan;
-    StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );
-    for( Int_t k = 0; k < s.fNsamp; k++ ) {
+    cout << "striptoroc: " << endl;
+    StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );//ICI !
+    cout << "done: crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;
+    for( Int_t k = 0; k < s.fNsamp; k++ ) { 
+      cout << "k " << k;
       Int_t raw = s.fADC[k];
+      cout << ", raw " << raw << endl;
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
 	return HED_ERR;
     }
+    cout << "stripmap : " << endl;
     // Build map from ROC address to strip index. This is needed to extract
     // the MC truth info later in the tracking detector decoder via GetMCChanInfo.
 #ifndef NDEBUG
     pair<StripMap_t::const_iterator,bool> ins =
 #endif
       fStripMap.insert( make_pair( MakeROCKey(crate,slot,chan), i ) );
+    cout << "ROC key inserted in strip map " << endl;
+    cout << "ins.second ? " << ins.second << endl;
     assert( ins.second );
   }
-
+  //
+  cout << "Il te cherche a twaaaa ! " << endl;
+  cout << " *COU-COU* " << endl;
+  cout << "Il va ou tu eeeeeees ! " << endl;
+  cout << " *COU-COU* " << endl;
+  cout << "Il te cherche il te cheeeerche ! " << endl;
+  cout << " *COU-COU* " << endl;
+  //
+  
   // Create lists of two types of tracks:
   // 1) Physics tracks, as generated at the target
   // 2) "Back tracks": hits in any GEM plane from the primary particle
@@ -467,6 +495,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       }
     }
   }
+  //
+  cout << " Le voilaaaaaa ! " << endl;
+  //
 
   // Sort fMCPoints by type (u,v) and plane number, then calculate plane-to-plane
   // differences. The following assumes that all points are from the same track

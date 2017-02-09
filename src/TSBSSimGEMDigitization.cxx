@@ -39,16 +39,9 @@ Double_t TSBSSimGEMDigitization::fCrossSigma = 0.;
 inline
 static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
 {
-  double np2 = manager->GetNChamber2()*manager->GetNSector2();
-  if(chamber>np2){ 
-    div_t d = div( chamber-np2, manager->GetNSector1() );
-    sector = d.rem;
-    plane  = d.quot+manager->GetNChamber2();
-  }else{
-    div_t d = div(chamber, manager->GetNSector2());
-    sector = d.rem;
-    plane  = d.quot;
-  }
+  div_t d = div( chamber, manager->GetNSector() );
+  sector = d.rem;
+  plane  = d.quot;
 }
 
 inline
@@ -691,10 +684,16 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
   // larger than the wedge's active area (section of a ring)
 
   const TSBSGEMChamber& chamber = spect.GetChamber(ic);
-  Double_t glx = (chamber.GetLowerEdgeX()+chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
-  Double_t gly = (chamber.GetLowerEdgeY()+chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
-  Double_t gux = (chamber.GetUpperEdgeX()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
-  Double_t guy = (chamber.GetUpperEdgeY()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  // Double_t glx = (chamber.GetLowerEdgeX()+chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  // Double_t gly = (chamber.GetLowerEdgeY()+chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  // Double_t gux = (chamber.GetUpperEdgeX()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  // Double_t guy = (chamber.GetUpperEdgeY()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  Double_t glx = (chamber.GetPlane(0).GetStripLowerEdge(0)+chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  Double_t gly = (chamber.GetPlane(1).GetStripLowerEdge(0)+chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
+  Double_t gux = (chamber.GetPlane(0).GetStripUpperEdge(chamber.GetPlane(0).GetNStrips()-1)
+		  -chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
+  Double_t guy = (chamber.GetPlane(1).GetStripUpperEdge(chamber.GetPlane(1).GetNStrips()-1)
+		  -chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
   
   if (x1<glx || x0>gux ||
       y1<gly || y0>guy) { // out of the sector's bounding box
