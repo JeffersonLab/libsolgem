@@ -54,8 +54,8 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
     
     ////////////////////////////////////////////////////////////////
     
-    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14000/elastic_0.root");
-    //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14301/elastic_0.root");
+    //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14000/elastic_0.root");
+    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14301/elastic_0.root");
     printf("The filename returned is %s\n", f->GetFileName());
     f->SetSource(0);
     
@@ -92,9 +92,14 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
     while( f->ReadNextEvent() && hadback && nevent<Nmax){
       
       cout << "Evt " << nevent << endl;
-            
+      
       gd = f->GetGEMData();
-      gen = f->GetGenData(0);
+      if(f->GetNGen()>0){
+	gen = f->GetGenData(0);
+      }else{
+	cout << "Warning: No generated data... Number of hits: " << f->GetNData() 
+	     << "; Check your simulation file. " << endl;
+      }
       
       ddd->SetTreeEvent((*gd), (*f), nevent);
       
