@@ -389,28 +389,28 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // Decode the digitized strip data.  Populate crateslot array.
   for( vector<TSBSSimEvent::DigiGEMStrip>::size_type i = 0;
        i < simEvent->fGEMStrips.size(); i++) {
-    cout << "i " << i << endl;
+    //cout << "i " << i << endl;
     const TSBSSimEvent::DigiGEMStrip& s = simEvent->fGEMStrips[i];
     Int_t crate, slot, chan;
-    cout << "striptoroc: " << endl;
-    StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );//ICI !
-    cout << "done: crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;
+    //cout << "striptoroc: " << endl;
+    StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );
+    //cout << "done: crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;
     for( Int_t k = 0; k < s.fNsamp; k++ ) { 
-      cout << "k " << k;
+      //cout << "k " << k;
       Int_t raw = s.fADC[k];
-      cout << ", raw " << raw << endl;
+      //cout << ", raw " << raw << endl;
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
 	return HED_ERR;
     }
-    cout << "stripmap : " << endl;
+    //cout << "stripmap : " << endl;
     // Build map from ROC address to strip index. This is needed to extract
     // the MC truth info later in the tracking detector decoder via GetMCChanInfo.
 #ifndef NDEBUG
     pair<StripMap_t::const_iterator,bool> ins =
 #endif
       fStripMap.insert( make_pair( MakeROCKey(crate,slot,chan), i ) );
-    cout << "ROC key inserted in strip map " << endl;
-    cout << "ins.second ? " << ins.second << endl;
+    // cout << "ROC key inserted in strip map " << endl;
+    // cout << "ins.second ? " << ins.second << endl;
     assert( ins.second );
   }
   
