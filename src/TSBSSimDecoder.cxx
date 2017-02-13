@@ -226,11 +226,11 @@ void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
   // The (crate,slot,chan) assignment must match the detmap definition in
   // the database!  See TreeSearch/dbconvert.cxx
   
-  cout << "Chan per slot ? " << fManager->GetChanPerSlot() << endl;
-  cout << "Module per readout ? " << fManager->GetModulesPerReadOut() << endl;
-  cout << "N readout ? " << fManager->GetNReadOut() << ", N Chambers ? " << fManager->GetNChamber() << endl;
-  cout << "Chambers per crate ? " << fManager->GetChambersPerCrate() << endl;
-  cout << "Module per readout ? " << fManager->GetModulesPerChamber() << endl;
+  // cout << "Chan per slot ? " << fManager->GetChanPerSlot() << endl;
+  // cout << "Module per readout ? " << fManager->GetModulesPerReadOut() << endl;
+  // cout << "N readout ? " << fManager->GetNReadOut() << ", N Chambers ? " << fManager->GetNChamber() << endl;
+  // cout << "Chambers per crate ? " << fManager->GetChambersPerCrate() << endl;
+  // cout << "Module per readout ? " << fManager->GetModulesPerChamber() << endl;
   
   div_t d = div( s_chan, fManager->GetChanPerSlot() );
   Int_t module = d.quot;
@@ -238,7 +238,7 @@ void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
   Int_t ix = module +
     fManager->GetModulesPerReadOut()*( s_proj + fManager->GetNReadOut()*( s_plane + fManager->GetNChamber()*s_sector ));
   
-  cout << "StripToROC: module " << module << ", ix " << ix << endl;
+  //cout << "StripToROC: module " << module << ", ix " << ix << endl;
   
   d = div( ix, fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
   crate = d.quot;
@@ -384,8 +384,6 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   fWeight = simEvent->fWeight;
 
   //
-  cout << " *COU-COU* " << endl;
-  //
   if( fDoBench ) fBench->Begin("physics_decode");
 
   // Decode the digitized strip data.  Populate crateslot array.
@@ -415,14 +413,6 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     cout << "ins.second ? " << ins.second << endl;
     assert( ins.second );
   }
-  //
-  cout << "Il te cherche a twaaaa ! " << endl;
-  cout << " *COU-COU* " << endl;
-  cout << "Il va ou tu eeeeeees ! " << endl;
-  cout << " *COU-COU* " << endl;
-  cout << "Il te cherche il te cheeeerche ! " << endl;
-  cout << " *COU-COU* " << endl;
-  //
   
   // Create lists of two types of tracks:
   // 1) Physics tracks, as generated at the target
@@ -495,10 +485,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       }
     }
   }
-  //
-  cout << " Le voilaaaaaa ! " << endl;
-  //
-
+  
   // Sort fMCPoints by type (u,v) and plane number, then calculate plane-to-plane
   // differences. The following assumes that all points are from the same track
   // (ensured above). If that is no longer so one day, fMCPoints will need to

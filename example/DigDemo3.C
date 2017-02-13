@@ -108,7 +108,10 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
 	gen = f->GetGenData(0);
 	Ngood++;
       }else{
-	cout << "Warning: No generated data for event " << nevent << endl;
+	cout << "No generated data for event " << nevent 
+	     << ", skip it (Nhits = " << f->GetNData() << ")" << endl;
+	nevent++;
+	continue;
       }
       
       ddd->SetTreeEvent((*gd), (*f), nevent);

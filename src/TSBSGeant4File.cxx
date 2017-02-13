@@ -197,10 +197,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   TVector3 X_RO;
     
   TVector3 Vtx;
-    
+  
   double hit_data_temp[23];
   double gen_data_temp[9];
-   
+  
   // NB: See comment lines 128-129 of TSBSGeant4File.h 
   //variables for the correction of hits given by very small momenta
   double eRangeSlope;
