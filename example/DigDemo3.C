@@ -1,13 +1,15 @@
 // Example "replay" script
 
-void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
+void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     printf("\n** This gets called with 'analyzer' and not 'root' **\n");
     printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
 
     gSystem->Load("../libsolgem.so");
     
     ////////////////////////////////////////////////////////////////
-
+    
+    int Ngood = 0;
+    
     TSBSGEMChamber *ddy;
     TSBSSpec *dds;
     TSBSSimGEMDigitization *ddd;
@@ -90,15 +92,23 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
     int hadback = 1;
 
     while( f->ReadNextEvent() && hadback && nevent<Nmax){
+
+      if(nevent%10==0){
+	cout << "Evt " << nevent << endl;
+      }
       
-      cout << "Evt " << nevent << endl;
+      if(f->GetNData()==0){
+	cout << "No hits, skip evt " << nevent << endl;
+	nevent++;
+	continue;
+      }
       
       gd = f->GetGEMData();
       if(f->GetNGen()>0){
 	gen = f->GetGenData(0);
+	Ngood++;
       }else{
-	cout << "Warning: No generated data... Number of hits: " << f->GetNData() 
-	     << "; Check your simulation file. " << endl;
+	cout << "Warning: No generated data for event " << nevent << endl;
       }
       
       ddd->SetTreeEvent((*gd), (*f), nevent);
@@ -170,9 +180,9 @@ void DigDemo3(int fspec = 4, int Nmax = 10000, bool print = false){
       delete gd;
       nevent++;
     }
-    printf("Completed %d events\n", nevent);
+    printf("Completed %d events total: %d good events \n", nevent, Ngood);
 
     ddd->WriteTree();
     ddd->CloseTree();
-
+        
 }
