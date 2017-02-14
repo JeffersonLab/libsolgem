@@ -1087,7 +1087,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // This is later used to fill the tree.
 
   TSBSSimEvent::GEMCluster clust;
-
+  
   UInt_t igem = tsgd.GetHitChamber(ih);
   ChamberToSector( igem, clust.fRealSector, clust.fPlane );
   clust.fSector   = clust.fRealSector; // May change if mapped, see below
@@ -1100,7 +1100,13 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m] // in plane frame
   // The best estimate of the "true" hit position is the center of the
   // ionization region
-
+  
+  // UInt_t hitbit_dum = 0;
+  // SETBIT(hitbit_dum, clust.fPlane);
+  // cout << "Plane number " << clust.fPlane; 
+  // cout << ", hitbit: " << std::hex << hitbit_dum;
+  // cout << std::dec << endl;
+  
   clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of hit in Lab frame, transformed at (2)
   clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 

@@ -72,10 +72,10 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
   // class method.
 
   const char* const here = "TSBSSimDecoder::DefineVariables";
-
+  
   if( mode == THaAnalysisObject::kDefine && fIsSetup )
     return THaAnalysisObject::kOK;
-
+  
   SimDecoder::DefineVariables( mode );
 
   RVarDef vars[] = {
@@ -464,6 +464,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
       // Keep bitpattern of planes crossed by this primary
       SETBIT(primary_hitbits,c.fPlane);
+
+      //cout << "Plane number " << c.fPlane << ", primary hitbits " << primary_hitbits << endl; 
+      
       // Save index of the primary particle hit closest to plane 0
       if( c.fPlane < best_primary_plane ) {
 	best_primary = i;
@@ -530,6 +533,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
     TSBSSimBackTrack* btr = new( (*fBackTracks)[nback] )
       TSBSSimBackTrack(simEvent->fGEMClust[best_primary]);
+
+    //cout << "Backtrack primary hitbits " << primary_hitbits << endl;
+    
     btr->SetHitBits(primary_hitbits);
     btr->SetUfailBits(ufail);
     btr->SetVfailBits(vfail);

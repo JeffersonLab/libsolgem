@@ -20,7 +20,7 @@
 
 #endif
 
-void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuf = "fpp",
+void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuffix = "fpp",
 		     Int_t nevent = -1, Int_t nseg = 0, bool do_cuts = true )
 {
   if( nseg < 0 || nseg > 100 ) {
@@ -38,41 +38,33 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuf = "fp
   gSystem->Load("libTreeSearch-SBS.so");
   
   TSolDBManager* manager = TSolDBManager::GetInstance();
-  manager->LoadGeneralInfo(Form("db_generalinfo_%s.dat", detsuf));
+  manager->LoadGeneralInfo(Form("db_generalinfo_%s.dat", detsuffix));
   
   // dde = new TSBSSimDecoder();
   // dde->SetCrateMapName("db_sbssim_cratemap.dat");
   
   THaInterface::SetDecoder( TSBSSimDecoder::Class() );
   
-  cout << "Reading FPP: " << endl;
-  THaApparatus* SBS_FPP = new SBS::SBSSpec( "sbs_fpp", "SBS GEp Focal Plane Polarimeter", 1 );
-  gHaApps->Add( SBS_FPP );
-  cout << "Just read FPP." << endl;
-  cout << "Reading FT: " << endl;
-  THaApparatus* SBS_FT = new SBS::SBSSpec( "sbs_ft", "SBS GEp front tracker", 1 );
-  gHaApps->Add( SBS_FT );
-  cout << "Just read FT." << endl;
+  cout << "Reading " << detsuffix << endl;
+  THaApparatus* SBS_GEMdet = new SBS::SBSSpec( Form("sbs_%s",detsuffix), "SBS GEp Focal Plane Polarimeter", 1 );
+  gHaApps->Add( SBS_GEMdet );
+  cout << "Just read " << detsuffix << endl;
   
-  TString db_prefix_1 = SBS_FPP->GetName();
-  TString db_prefix_2 = SBS_FT->GetName();
-  db_prefix_1 += ".tracker";
-  gHaTextvars->Add( "DET", db_prefix_1.Data() );
-  gHaTextvars->Add( "APP", SBS_FPP->GetName() );
-  db_prefix_2 += ".tracker";
-  gHaTextvars->Add( "DET", db_prefix_2.Data() );
-  gHaTextvars->Add( "APP", SBS_FT->GetName() );
+  TString db_prefix = SBS_GEMdet->GetName();
+  db_prefix += ".tracker";
+  gHaTextvars->Add( "DET", db_prefix.Data() );
+  gHaTextvars->Add( "APP", SBS_GEMdet->GetName() );
   
   THaAnalyzer* analyzer = new THaAnalyzer;
   
-  TString rootfile(Form("%s_%s", filename, detsuf)), infile0(Form("%s_%s", filename, detsuf));
+  TString rootfile(Form("%s_%s", filename, detsuffix)), infile0(Form("%s_%s", filename, detsuffix));
   TString odeffile("sbssim.odef"), cutfile("sbssim.cuts");
   rootfile.Append("_replayed_new.root");
   analyzer->EnableBenchmarks();
   analyzer->SetOutFile(rootfile);
   analyzer->SetOdefFile(odeffile);
   if( do_cuts ) analyzer->SetCutFile(cutfile);
-  analyzer->SetSummaryFile(Form("%s_new.sum", filename));
+  analyzer->SetSummaryFile(Form("%s_%s_new.sum", filename, detsuffix));
   analyzer->SetCrateMapFileName("sbssim_cratemap");
   
   //static int Nrun = TMath::Max(nseg,1);
@@ -93,15 +85,12 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuf = "fp
   bool fail = true;
   if( analyzer->Init(run[0]) == 0 ) {
     cout << "initialization successful..." << endl;
-    THaDetector* tracker1 = SBS_FPP->GetDetector("tracker.1");
-    THaDetector* tracker2 = SBS_FT->GetDetector("tracker.1");
-    if( tracker2 ) {
+    THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
+    if( tracker ) {
       // The SoLID trackers' origin really is the origin of the first plane
-      Double_t z1 = tracker1->GetOrigin().Z();
-      Double_t z2 = tracker2->GetOrigin().Z();
-      cout << "z1 = " << z1 << ", z2 = " << z2 << endl;
-      manager->SetZ0(z2);
-      //TSBSSimDecoder::SetZ0(z2);
+      Double_t z0 = tracker->GetOrigin().Z();
+      cout << "z0 = " << z0 << endl;
+      manager->SetZ0(z0);
     } else {
       cerr << "ERROR: cannot get tracker detector! z0 may be wrong" << endl;
     }

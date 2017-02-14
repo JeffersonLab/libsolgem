@@ -1,0 +1,7 @@
+# Event selection for SBS-TreeSearch replay
+# Copied and modified from SoLID file solsim.odef
+
+Block: RawDecode
+
+FullBackTrack      MC.btr.n==1&&(MC.btr.planes==0x1f||MC.btr.planes==0x3ff)
+RawDecode_master   FullBackTrack
