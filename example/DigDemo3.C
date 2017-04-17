@@ -56,8 +56,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     }
     printf("\n");
     
-    if(print)
-      dds->Print();
+    if(print)dds->Print();
     
     ddd = new TSBSSimGEMDigitization (*dds,"ratedig");
     //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");

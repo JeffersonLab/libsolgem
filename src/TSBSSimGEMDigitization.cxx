@@ -1107,6 +1107,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   // cout << ", hitbit: " << std::hex << hitbit_dum;
   // cout << std::dec << endl;
   
+  //clust.fMCpos    = tsgd.GetHitEntrance(ih); // [mm] for transformation tests only
   clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of hit in Lab frame, transformed at (2)
   clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
