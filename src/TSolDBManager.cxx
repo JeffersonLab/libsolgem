@@ -150,10 +150,6 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
     }
   }
   
-  // cout << "fGeo size: " << fGeoInfo.size() << endl;
-  // for(uint i = 0; i<fGeoInfo.size(); i++){
-  //   cout << fGeoInfo[i].size() << endl;
-  // }
 }
 
 //______________________________________________________________
@@ -319,7 +315,11 @@ int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
   if (!CheckIndex(ichamber)) return fErrVal;
 
   double sector = -1;
+  //printf("chamber %d, x = %1.6f\n", ichamber, x);
   for(int k = 0; k<fGeoInfo.size(); k++){
+    //printf("%d: %1.2f, %1.2f \n", k, 
+    //fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0,
+    //fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0);
     if(fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0<x && 
        x<fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0){
       sector = k;

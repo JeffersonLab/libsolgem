@@ -105,8 +105,11 @@ protected:
     int fg4sbsDetectorType;// flag to determine which type of GEM should be read.
     //Choices are: 1 - BB GEMs
     //Choices are: 2 - SIDIS SBS GEMs
-    //Choices are: 3 - GEP SBS GEMs
+    //Choices are: 3 - GEP SBS GEMs: FT
+    //Choices are: 3 - GEP SBS GEMs: FPP
     double fg4sbsZSpecOffset;
+    //Offset between the local z value recorded in g4sbs and the actual distance 
+    //of the GEM from the midplane pivot
     
     // Parameters for TSBSSimDecoder
     // Calorimeter emulation

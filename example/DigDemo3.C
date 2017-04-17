@@ -19,6 +19,13 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     
     TSolDBManager* manager = TSolDBManager::GetInstance();
     switch(fspec){
+    case(1):
+      manager->LoadGeneralInfo("db_generalinfo_bbgem.dat");
+      manager->LoadGeoInfo("g4sbs_bbgem");
+      dds = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
+      outname = "digdemo3_BB.root";
+      dds->Init();
+      break;
     case(3):
       manager->LoadGeneralInfo("db_generalinfo_ft.dat");
       manager->LoadGeoInfo("g4sbs_ft");
@@ -34,7 +41,8 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
        dds->Init();
       break;
     default:
-      cout << "No corresponding geometry: choose 3 (FT) or 4 (FPP)";
+      cout << "No corresponding geometry; choose: " << endl 
+	   << "1 (BBGEM)" << endl << "3 (FT)" << endl << "4 (FPP)" << endl;
       return;
       break;
     }
@@ -48,7 +56,8 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     }
     printf("\n");
     
-    if(print)dds->Print();
+    if(print)
+      dds->Print();
     
     ddd = new TSBSSimGEMDigitization (*dds,"ratedig");
     //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
@@ -57,7 +66,8 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     ////////////////////////////////////////////////////////////////
     
     //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14000/elastic_0.root");
-    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14301/elastic_0.root");
+    //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14301/elastic_0.root");
+    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/34710/elastic_0.root");
     printf("The filename returned is %s\n", f->GetFileName());
     f->SetSource(0);
     
@@ -71,8 +81,9 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     }
 
     // Hypothetical background run
-    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/14000/beam_bkgd_0.root");
+    //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/14000/beam_bkgd_0.root");
     //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
+    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/31705/beam_bkgd_0.root");
     fback->Open();
     fback->SetSource(1);
  

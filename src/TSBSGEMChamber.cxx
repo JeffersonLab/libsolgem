@@ -158,7 +158,13 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
        << " thetaH: " << fBox->GetThetaH()*TMath::RadToDeg()
        << " thetaV: " << fBox->GetThetaV()*TMath::RadToDeg()
        << endl;
-
+  
+  double x = o(0);
+  double y = o(1);
+  double z = o(2);
+  fBox->HallCenterToSpec(x, y, z);
+  cout << "Origin: recomputed: " << x << " " << y << " " << z << endl;
+  
   if (printplanes){
     cout << "I contain the " << GetNPlanes() << " following planes: " << endl;
     for (UInt_t i = 0; i < GetNPlanes(); ++i)

@@ -58,7 +58,7 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuffix = 
   THaAnalyzer* analyzer = new THaAnalyzer;
   
   TString rootfile(Form("%s_%s", filename, detsuffix)), infile0(Form("%s_%s", filename, detsuffix));
-  TString odeffile("sbssim.odef"), cutfile("sbssim.cuts");
+  TString odeffile("sbssim.odef"), cutfile(Form("sbs_%ssim.cuts",detsuffix));
   rootfile.Append("_replayed_new.root");
   analyzer->EnableBenchmarks();
   analyzer->SetOutFile(rootfile);
@@ -86,7 +86,7 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuffix = 
   if( analyzer->Init(run[0]) == 0 ) {
     cout << "initialization successful..." << endl;
     THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
-    if( tracker ) {
+    if( tracker) {
       // The SoLID trackers' origin really is the origin of the first plane
       Double_t z0 = tracker->GetOrigin().Z();
       cout << "z0 = " << z0 << endl;
@@ -99,7 +99,6 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuffix = 
     // TSBSSimDecoder::SetCaloRes(0.01);  // Calo resolution 1 cm (sigma)
     // TSBSSimDecoder::EmulateCalorimeter(false);
     manager->EmulateCalorimeter(false);
-    
     
     // Process the runs
     Int_t ret = 0, ntotal = 0;
@@ -126,6 +125,7 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuffix = 
   }
   delete analyzer; analyzer = 0;
   gHaApps->Delete();
+  //}
   
   //TFile* f =
   if( !fail )

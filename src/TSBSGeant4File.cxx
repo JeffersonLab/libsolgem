@@ -210,7 +210,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   switch(fManager->Getg4sbsDetectorType()){
     
   case(1)://BB GEMs
+#if DEBUG>0
+    cout << "Number of Hits: " << fTree->Earm_BBGEM_hit_nhits << endl;
+#endif // DEBUG
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
+
       det_id = 1;
       
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
@@ -235,6 +239,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, sector))*1.0e3);// in mm
+      
+      //cout << fTree->Earm_BBGEM_hit_z->at(i) << "+" << fManager->Getg4sbsZSpecOffset() << "-" << fManager->GetD0(plane, sector) << " = " << X_in.z() << endl;
       
       X_out = TVector3(X_in.X()+3.0*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
 		       X_in.Y()+3.0*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
@@ -261,7 +267,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 #if WARNING>0
 	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
+	     << ": X_out.X " << X_out.X() << " outside BBGEM plane " << plane << " sector " << sector;
 #endif //WARNING
 	temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
@@ -361,9 +367,47 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
 	}
       */
+      
+#if DEBUG>0
+      cout << "Hit number: " << i << " BBGEM: X_global : " 
+	   << fTree->Earm_BBGEM_hit_xg->at(i) << ", " 
+	   << fTree->Earm_BBGEM_hit_yg->at(i) << ", " 
+	   << fTree->Earm_BBGEM_hit_zg->at(i) << endl;
+      cout << "X_local (g4sbs): " << fTree->Earm_BBGEM_hit_tx->at(i) << ", " 
+	   << fTree->Earm_BBGEM_hit_ty->at(i) << ", " 
+	   << fTree->Earm_BBGEM_hit_z->at(i) << endl;
+      cout << "detector ID: " << det_id << ", plane: " << plane << ", sector: " << sector << endl
+	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	   << "energy deposit (eV): " << edep << endl;
+      cout << "Momentum (MeV): ";
+      for(int k = 0; k<3; k++){
+	cout << Mom[k] << ", ";
+      }
+      cout << " norm " << fTree->Earm_BBGEM_hit_p->at(i) << endl;
+      cout << "hit position at drift entrance (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_in[k] << ", ";
+      }
+      cout << " time : " << tmin << endl;
+      cout << "hit position at drift exit (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_out[k] << " ";
+      }
+      cout << " time : " << tmax << endl;
+      cout << "hit position at readout (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << X_RO[k] << ", ";
+      }
+      cout << endl;
+      cout << "Vertex position (mm): ";
+      for(int k = 0; k<3; k++){
+	cout << Vtx[k] << ", ";
+      }
+      cout << endl;
+#endif //DEBUG          
     }//end loop on hits
     break;
-      
+    
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
       det_id = 2;

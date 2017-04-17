@@ -60,9 +60,11 @@ TSBSBox::SetGeometry (const Double_t dmag,
 
   SetRotations();
    
-  Double_t x0 = xoffset; 
+  Double_t x0 = xoffset*1.0e3; 
   Double_t y0 = 0.0; 
-  Double_t z0 = fD0; 
+  Double_t z0 = fD0*1.0e3; 
+  
+  //cout << x0 << " " << y0 << " " << z0 << endl;
   
   SpecToHallCenter(x0, y0, z0);
   
@@ -72,7 +74,7 @@ TSBSBox::SetGeometry (const Double_t dmag,
 }
 
 void
-TSBSBox::HallCenterToBox (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::HallCenterToBox (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   HallCenterToLab(x, y, z);
   LabToBox(x, y, z);
@@ -80,15 +82,18 @@ TSBSBox::HallCenterToBox (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::HallCenterToSpec (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::HallCenterToSpec (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
+  //cout << "HallCenterToSpec: 0 " << x << " " << y << " " << z << endl;
   HallCenterToLab(x, y, z);
+  //cout << "HallCenterToSpec: 1 " << x << " " << y << " " << z << endl;
   LabToSpec(x, y, z);
+  //cout << "HallCenterToSpec: 2 " << x << " " << y << " " << z << endl;
   return;
 }
 
 void
-TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   LabToSpec(x, y, z);
   z = z-fD0*1.0e3;
@@ -98,7 +103,7 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   x = x + fDMag*sin(fThetaH)*1.0e3;
   // neutral in y
@@ -108,10 +113,12 @@ TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   Double_t r_temp[3] = {x, y, z};
   TMatrixD m_temp(3, 1, r_temp);
+
+  //fRotMat_LB->Print();
   
   TMatrixD m_res(3, 1, r_temp);
   m_res.Mult((*fRotMat_LB), m_temp);
@@ -124,7 +131,7 @@ TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
+TSBSBox::SpecToBox (Double_t& x, Double_t& y) const  // input and output in mm!!!
 {
   x = x-fXOffset*1.0e3;
   //neutral for y
@@ -133,7 +140,7 @@ TSBSBox::SpecToBox (Double_t& x, Double_t& y) const
 }
 
 void
-TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const
+TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const  // input and output in mm!!!
 {
   x = x+fXOffset*1.0e3;
   //neutral for y
@@ -141,14 +148,16 @@ TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const
 }
 
 void
-TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   Double_t r_temp[3] = {x, y, z};
   TMatrixD m_temp(3, 1, r_temp);
+
+  //fRotMat_BL->Print();
   
   TMatrixD m_res(3, 1, r_temp);
   m_res.Mult((*fRotMat_BL), m_temp);
-  
+
   x = m_res(0, 0);
   y = m_res(1, 0);
   z = m_res(2, 0);
@@ -157,7 +166,7 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   x = x - fDMag*sin(fThetaH)*1.0e3;
   // neutral in y
@@ -167,7 +176,7 @@ TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   BoxToSpec(x, y);
   z = z + fD0*1.0e3;
@@ -176,15 +185,18 @@ TSBSBox::BoxToLab (Double_t& x, Double_t& y, Double_t& z) const
 }
 
 void
-TSBSBox::SpecToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::SpecToHallCenter (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
+  //cout << "SpecToHallCenter: 0 " << x << " " << y << " " << z << endl; 
   SpecToLab(x, y, z);
+  //cout << "SpecToHallCenter: 1 " << x << " " << y << " " << z << endl; 
   LabToHallCenter(x, y, z);
+  //cout << "SpecToHallCenter: 2 " << x << " " << y << " " << z << endl; 
   return;
 }
 
 void
-TSBSBox::BoxToHallCenter (Double_t& x, Double_t& y, Double_t& z) const
+TSBSBox::BoxToHallCenter (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
   BoxToLab(x, y, z);
   LabToHallCenter(x, y, z);
@@ -218,12 +230,17 @@ TSBSBox::SetRotations()
   Rotzx.Mult(Rotz2, Rotx1);
   fRotMat_LB->Mult(Rotzx, Roty0);// Box to Lab transformation
   
-  // cout << " Lab -> Box " << endl;
-  // fRotMat_LB->Print();
+  fRotMat_BL = new TMatrixD(3,3, arr_roty0);
+  fRotMat_BL->Mult(Rotzx, Roty0);
+  //fRotMat_BL->Copy(fRotMat_LB);
+  //fRotMat_BL = fRotMat_LB;
+  //cout << fRotMat_BL << " " << fRotMat_LB << endl;
   
-  fRotMat_BL = fRotMat_LB;
   fRotMat_BL->Invert();// Lab to Box transformation
+    
+  //cout << " Lab -> Box " << endl;
+  //fRotMat_LB->Print();
   
-  // cout << " Box -> Lab " << endl;
-  // fRotMat_BL->Print();
+  //cout << " Box -> Lab " << endl;
+  //fRotMat_BL->Print();
 }

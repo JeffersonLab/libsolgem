@@ -8,3 +8,6 @@ g4sbs_fpp.pcentral = 2.0
 g4sbs_ft.theta    = 16.9
 g4sbs_ft.pcentral = 2.0
 
+g4sbs_bbgem.theta    = 33.0
+g4sbs_bbgem.pcentral = 2.0
+
