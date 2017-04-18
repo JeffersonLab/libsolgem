@@ -12,7 +12,6 @@ generalinfo.faec_id = 3110000
 generalinfo.laec_id = 3210000
 generalinfo.chan_per_slot = 2048
 generalinfo.modules_per_readout = 1
-generalinfo.self_defined_sector = 1
 
 generalinfo.nsignal = 1
 generalinfo.signal1.pid = 2212

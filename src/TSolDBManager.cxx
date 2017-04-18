@@ -51,7 +51,6 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"nsignal",             &fNSigParticle        , kInt,    0, 1},
         {"chan_per_slot",       &fChanPerSlot         , kInt,    0, 1},
         {"modules_per_readout", &fModulesPerReadOut   , kInt,    0, 1},
-        {"self_defined_sector", &fDoSelfDefinedSector , kInt,    0, 1},
 	{"g4sbs_detectortype",  &fg4sbsDetectorType   , kInt,    0, 1},
 	{"g4sbs_z_specoffset",  &fg4sbsZSpecOffset    , kDouble, 0, 1},
 	{"z0",                  &fgZ0                 , kDouble, 0, 1},
