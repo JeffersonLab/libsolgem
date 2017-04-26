@@ -24,6 +24,11 @@ TSBSSimTrack::TSBSSimTrack( Int_t number, Int_t pid,
 {
 }
 
+//-----------------------------------------------------------------------------
+TSBSSimTrack::TSBSSimTrack() : Podd::MCTrack()
+{
+}
+
 // Those below are not useful for SBS, which needs X, Y, Xdir, Ydir (unless otherwise demonstrated)
 // refer to comment in TSBSSimEvent.h l. 30-32
 /*

@@ -1,6 +1,6 @@
 // Example "replay" script
 
-void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
+void DigDemo3(int fspec = 4, int Nmax = 1000, int Nbkgd = 1000, bool print = false){
     printf("\n** This gets called with 'analyzer' and not 'root' **\n");
     printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
 
@@ -82,9 +82,9 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
     // Hypothetical background run
     //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/14000/beam_bkgd_0.root");
     //TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/11001/beam_bkgd_0.root");
-    TSBSGeant4File *fback = new TSBSGeant4File("/group/exjpsi/eric/31705/beam_bkgd_0.root");
-    fback->Open();
-    fback->SetSource(1);
+    // TSBSGeant4File *fback; = new TSBSGeant4File("/group/exjpsi/eric/31705/beam_bkgd_0.root");
+    // fback->Open();
+    // fback->SetSource(1);
  
     ////////////////////////////////////////////////////////////////
     
@@ -101,7 +101,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
         
     int hadback = 1;
 
-    while( f->ReadNextEvent() && hadback && nevent<Nmax){
+    while( f->ReadNextEvent() && hadback && nevent<Nmax ){
 
       if(nevent%10==0){
 	cout << "Evt " << nevent << endl;
@@ -144,9 +144,13 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
       // gen->GetV();
       // gen->GetP();
       // gen->GetWeight();
+
+      TSBSGeant4File *fback = new TSBSGeant4File(Form("/group/exjpsi/eric/31705/beam_bkgd_%d.root", Ngood));
+      fback->Open();
+      fback->SetSource(1);
       
       // Add some number of background events
-      int nbacktoadd = 0;
+      int nbacktoadd = 0;//Nbkgd;
       int backidx = 0;
       
       //while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){
@@ -190,6 +194,8 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
       //if(nevent==25)ddd->GetEvent()->Print("all");
       if(print)ddd->GetEvent()->Print("all");
       
+      fback->Close();
+
       delete gd;
       nevent++;
     }
