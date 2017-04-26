@@ -29,6 +29,15 @@ TSBSSimTrack::TSBSSimTrack() : Podd::MCTrack()
 {
 }
 
+//Special function for debugging
+Double_t TSBSSimTrack::MCFitX_print() const
+{
+  printf("MCFit[0-3]: %f %f %f %f \n", fMCFitPar[0], fMCFitPar[1], fMCFitPar[2], fMCFitPar[3]);
+  printf("MCFit[4-8]: %f %f %f %f %f \n", fMCFitPar[4], fMCFitPar[5], fMCFitPar[6], fMCFitPar[7], fMCFitPar[8]);
+  printf("RcFit[0-3]: %f %f %f %f \n", fRcFitPar[0], fRcFitPar[1], fRcFitPar[2], fRcFitPar[3]);
+  printf("RcFit[4-8]: %f %f %f %f %f \n", fRcFitPar[4], fRcFitPar[5], fRcFitPar[6], fRcFitPar[7], fRcFitPar[8]);
+   return fMCFitPar[0];
+}
 // Those below are not useful for SBS, which needs X, Y, Xdir, Ydir (unless otherwise demonstrated)
 // refer to comment in TSBSSimEvent.h l. 30-32
 /*

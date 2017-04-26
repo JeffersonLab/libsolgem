@@ -25,6 +25,9 @@ public:
   TSBSSimTrack( Int_t number, Int_t pid,
 		const TVector3& vertex, const TVector3& momentum );
   TSBSSimTrack();
+  
+  //Special function for debugging
+  Double_t MCFitX_print()     const;
 
   // Accessors for SBS-specific parameters
   // EFuchey: 2017/01/24:
