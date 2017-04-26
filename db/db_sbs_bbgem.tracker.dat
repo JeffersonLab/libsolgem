@@ -8,7 +8,7 @@ sbs_bbgem.tracker.${allsectors}.MCdata = 1
 
 # Plane configuration. One string of the all plane names.
 
-sbs_bbgem.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 xd yd
+sbs_bbgem.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5
 
 # Strip angles: angles of the normal to the strips, pointing
 # along the direction of increasing strip number.
@@ -23,43 +23,37 @@ sbs_bbgem.tracker.${allsectors}.y.angle = 90
 # Each row is:     crate slot_lo slot_hi model# nchan
 #
 sbs_bbgem.tracker.${allsectors}.cratemap = \
-                   0     0       29      6425   2048 \
-                   6     0       1       6425   1
+                   0     0       29      6425   2048
 
 # GEM detector maps
 # 1 sectors * 5 planes * 2 readout coordinates = 10 detectors
 #
 sbs_bbgem.tracker.1.x1.detmap = \
                    0  0  0 2047 \
-                   0  1  2048 3749
+                   0  1  0 1701
 sbs_bbgem.tracker.1.y1.detmap = \
                    0  3  0 999
 sbs_bbgem.tracker.1.x2.detmap = \
                    0  6  0 2047 \
-                   0  7  2048 3749
+                   0  7  0 1701
 sbs_bbgem.tracker.1.y2.detmap = \
                    0  9  0 999
 sbs_bbgem.tracker.1.x3.detmap = \
                    0  12 0 2047 \
-                   0  13 2048 3749
+                   0  13 0 1701
 sbs_bbgem.tracker.1.y3.detmap = \
                    0  15 0 999
 sbs_bbgem.tracker.1.x4.detmap = \
                    0  18 0 2047 \
-                   0  19 2048 3749
+                   0  19 0 1701
 sbs_bbgem.tracker.1.y4.detmap = \
                    0  21 0 999
 sbs_bbgem.tracker.1.x5.detmap = \
                    0  24 0 2047 \
-                   0  25 2048 4095 \
-                   0  26 4096 4999
+                   0  25 0 2047 \
+                   0  26 0 903
 sbs_bbgem.tracker.1.y5.detmap = \
                    0  27 0 1499
-
-# Dummy GEM planes recording emulated calorimeter hits
-#
-sbs_bbgem.tracker.1.xd.detmap = 6  0  0 0
-sbs_bbgem.tracker.1.yd.detmap = 6  1  0 0
 
 #-----------------------------------------------------------------
 #  X offset of the sectors (in transport coordinates)
@@ -219,28 +213,4 @@ sbs_bbgem.tracker.1.y5.d0 = 2.30395
 sbs_bbgem.tracker.1.y5.dx = 2
 sbs_bbgem.tracker.1.y5.dy = 0.6
 sbs_bbgem.tracker.1.y5.dz = 0.015955
-
-sbs_bbgem.tracker.1.xd.description = x dummy plane in sector 1
-sbs_bbgem.tracker.1.xd.dummy = 1
-sbs_bbgem.tracker.1.xd.xp.res = 0.01
-sbs_bbgem.tracker.1.xd.nstrips = 500
-sbs_bbgem.tracker.1.xd.partner = yd
-sbs_bbgem.tracker.1.xd.strip.pos = -1
-sbs_bbgem.tracker.1.xd.strip.pitch = 0.004
-sbs_bbgem.tracker.1.xd.d0 = 1.85332
-sbs_bbgem.tracker.1.xd.dx = 2
-sbs_bbgem.tracker.1.xd.dy = 0.6
-sbs_bbgem.tracker.1.xd.dz = 0.015955
-
-sbs_bbgem.tracker.1.yd.description = y dummy plane in sector 1
-sbs_bbgem.tracker.1.yd.dummy = 1
-sbs_bbgem.tracker.1.yd.xp.res = 0.01
-sbs_bbgem.tracker.1.yd.nstrips = 150
-sbs_bbgem.tracker.1.yd.partner = xd
-sbs_bbgem.tracker.1.yd.strip.pos = -0.3
-sbs_bbgem.tracker.1.yd.strip.pitch = 0.004
-sbs_bbgem.tracker.1.yd.d0 = 1.85332
-sbs_bbgem.tracker.1.yd.dx = 2
-sbs_bbgem.tracker.1.yd.dy = 0.6
-sbs_bbgem.tracker.1.yd.dz = 0.015955
 

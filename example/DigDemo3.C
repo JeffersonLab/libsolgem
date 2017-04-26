@@ -23,7 +23,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, bool print = false){
       manager->LoadGeneralInfo("db_generalinfo_bbgem.dat");
       manager->LoadGeoInfo("g4sbs_bbgem");
       dds = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
-      outname = "digdemo3_bb.root";
+      outname = "digdemo3_bbgem.root";
       dds->Init();
       break;
     case(3):

@@ -34,7 +34,6 @@ public:
   /* Double_t MCFitPhi()     const; */
   /* Double_t MCFitThetaDir()  const; */
   /* Double_t MCFitPhiDir()  const; */
-
   /* Double_t RcFitR()     const; */
   /* Double_t RcFitPhi()     const; */
   /* Double_t RcFitThetaDir()  const; */
