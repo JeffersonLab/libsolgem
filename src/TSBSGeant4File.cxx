@@ -436,11 +436,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_out = TVector3(X_in.X()+3.0*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm 
 		       X_in.Y()+3.0*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm
-		       -1.6825);// in mm
+		       +1.5);//-1.6825);// in mm
 
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_SBSGEM_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_SBSGEM_hit_typ->at(i), // in mm 
-		      4.5025);// in mm      
+		      +7.685);//4.5025);// in mm      
       
       if(fabs(fTree->Harm_SBSGEM_hit_pid->at(i))==11 && fTree->Harm_SBSGEM_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2)+pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2))*3.0e-3;//m
@@ -590,11 +590,11 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       X_out = TVector3(X_in.X()+3.0*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		       X_in.Y()+3.0*fTree->Harm_FT_hit_typ->at(i), // in mm
-		       -1.6825);// in mm
+		       +1.5);//-1.6825);// in mm
       
       X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FT_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Harm_FT_hit_typ->at(i), // in mm 
-		      4.5025);// in mm      
+		      +7.685);//4.5025);// in mm      
       
       //Calculation of very low momentum electrons range ingas.
       if(fabs(fTree->Harm_FT_hit_pid->at(i))==11 && fTree->Harm_FT_hit_p->at(i)<=feMom.back()){
