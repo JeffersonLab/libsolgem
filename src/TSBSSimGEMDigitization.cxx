@@ -1109,9 +1109,9 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   
   //clust.fMCpos    = tsgd.GetHitEntrance(ih); // [mm] for transformation tests only
   clust.fMCpos    = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
-  // Position of hit in Lab frame, transformed at (2)
+  // Position of hit in spec (transport) frame, transformed at (2)
   clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
-  // Position of the hit in spec (transport) frame, transformed at (3)
+  // Position of the hit in tracker frame: no need to transform
   
   if (fdh != NULL && fdh[0] != NULL)
     clust.fCharge = fdh[0]->GetHitCharge();
@@ -1122,8 +1122,9 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
   
   ch.SpecToLab(clust.fP);// (1)
-  ch.PlaneToHallCenter(clust.fMCpos); // (2)
-  ch.PlaneToSpec(clust.fHitpos); // (3)
+  ch.PlaneToSpec(clust.fMCpos); // (2)
+  //ch.PlaneToHallCenter(clust.fMCpos); // (2')
+  //ch.PlaneToSpec(clust.fHitpos); // (3')
   clust.fP = (clust.fP)*1.0e-3;
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   clust.fHitpos = (clust.fHitpos)*1.0e-3;

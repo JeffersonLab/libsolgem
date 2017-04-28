@@ -101,8 +101,8 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     // { "tr.mcfit.phi",   "Track phi from MC fit [rad]", "fMCTracks.TSBSSimTrack.MCFitPhi()" },
     // { "tr.mcfit.thdir", "Track dir theta from MC fit [rad]", "fMCTracks.TSBSSimTrack.MCFitThetaDir()" },
     // { "tr.mcfit.phdir", "Track x from MC fit [rad]", "fMCTracks.TSBSSimTrack.MCFitPhiDir()" },
-    { "tr.mcfit.x",     "Track x from MC fit [m]",       "fMCTracks.TSBSSimTrack.MCFitX_print()" },
-    //{ "tr.mcfit.x",     "Track x from MC fit [m]",       "fMCTracks.TSBSSimTrack.fMCFitPar[0]" },
+    //{ "tr.mcfit.x",     "Track x from MC fit [m]",       "fMCTracks.TSBSSimTrack.MCFitX_print()" },
+    { "tr.mcfit.x",     "Track x from MC fit [m]",       "fMCTracks.TSBSSimTrack.fMCFitPar[0]" },
     { "tr.mcfit.xdir",  "Track dir x from MC fit [rad]", "fMCTracks.TSBSSimTrack.fMCFitPar[1]" },
     { "tr.mcfit.y",     "Track y from MC fit [rad]",     "fMCTracks.TSBSSimTrack.fMCFitPar[2]" },
     { "tr.mcfit.ydir",  "Track dir y from MC fit [rad]", "fMCTracks.TSBSSimTrack.fMCFitPar[3]" },
@@ -463,6 +463,11 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 							  c.fMCpos, c.fP );
       vpt->fMCTime = c.fTime;
 
+      //debug...
+      // cout << "Print MC points " << endl;
+      // upt->Print("");
+      // vpt->Print("");
+      
       // Keep bitpattern of planes crossed by this primary
       SETBIT(primary_hitbits,c.fPlane);
 

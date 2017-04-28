@@ -145,7 +145,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, int Nbkgd = 1000, bool print = fal
       // gen->GetP();
       // gen->GetWeight();
 
-      TSBSGeant4File *fback = new TSBSGeant4File(Form("/group/exjpsi/eric/31705/beam_bkgd_%d.root", Ngood));
+      TSBSGeant4File *fback = new TSBSGeant4File(Form("/group/exjpsi/eric/31701/beam_bkgd_%d.root", Ngood));
       fback->Open();
       fback->SetSource(1);
       

@@ -87,7 +87,7 @@ void ReplayMCdigDemo(const char* filename = "digdemo3", const char* detsuffix = 
     cout << "initialization successful..." << endl;
     THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
     if( tracker) {
-      // The SoLID trackers' origin really is the origin of the first plane
+      // The SBS trackers' origin really is the origin of the first plane
       Double_t z0 = tracker->GetOrigin().Z();
       cout << "z0 = " << z0 << endl;
       manager->SetZ0(z0);
