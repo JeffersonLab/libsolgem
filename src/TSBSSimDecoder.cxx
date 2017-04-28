@@ -38,7 +38,7 @@ using namespace Podd;
 static TSolDBManager* fManager = TSolDBManager::GetInstance();
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
-enum EProjType { kUPlane = 0, kVPlane };
+enum EProjType { kUPlane = 0, kVPlane =1, kXPlane = 2, kYPlane = 3};
 
 typedef vector<int>::size_type vsiz_t;
 
@@ -452,20 +452,22 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       // Record one point per projection so that we can study residuals.
       Int_t itrack = 1;
       primary_sector = c.fSector;
-      MCTrackPoint* upt =
+      MCTrackPoint* upt = // kUPlane changed to kXPlane: necessary to match TreeSearch EProjType
 	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
-							  c.fPlane, kUPlane,
+							  c.fPlane, kXPlane,
 							  c.fMCpos, c.fP );
       upt->fMCTime = c.fTime;
-      MCTrackPoint* vpt =
+      MCTrackPoint* vpt =// kVPlane changed to kYPlane: necessary to match TreeSearch EProjType
 	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
-							  c.fPlane, kVPlane,
+							  c.fPlane, kYPlane,
 							  c.fMCpos, c.fP );
       vpt->fMCTime = c.fTime;
 
-      //debug...
+      // //debug...
       // cout << "Print MC points " << endl;
+      // cout << "kXplane ? " << kXPlane << endl;
       // upt->Print("");
+      // cout << "kVYlane ? " << kYPlane << endl;
       // vpt->Print("");
       
       // Keep bitpattern of planes crossed by this primary
@@ -608,11 +610,13 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       daty.f = static_cast<Float_t>(hitpos.Y());
 
       Int_t crate, slot, chan;
-      StripToROC( 0, fManager->GetNSector(), kUPlane, primary_sector, crate, slot, chan );
+      //StripToROC( 0, fManager->GetNSector(), kUPlane, primary_sector, crate, slot, chan );
+      StripToROC( 0, fManager->GetNSector(), kXPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
 	return HED_ERR;
-      StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );
+      //StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );
+      StripToROC( 0, fManager->GetNSector(), kYPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
 	return HED_ERR;
