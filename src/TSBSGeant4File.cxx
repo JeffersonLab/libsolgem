@@ -207,6 +207,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   double eRangeGas;
   double temp;
   
+  double pmax = 0.0;
+  std::vector<int> trid_hits;
+  double gen_data_temp_max[9];
+
   switch(fManager->Getg4sbsDetectorType()){
     
   case(1)://BB GEMs
@@ -214,7 +218,6 @@ Int_t TSBSGeant4File::ReadNextEvent(){
     cout << "Number of Hits: " << fTree->Earm_BBGEM_hit_nhits << endl;
 #endif // DEBUG
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
-
       det_id = 1;
       
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
@@ -225,7 +228,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
       tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
       
+      trid_hits.push_back(trid);
+      
       sector = fManager->GetSectorIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
+      if(sector==-1)continue;
       
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
@@ -294,7 +300,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Earm_BBGEM_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Earm_BBGEM_hit_vz->at(i)*1.0e3);// in mm
-
+      
       //Filling hit_data temporary array...
       hit_data_temp[0] = (double)plane;
       hit_data_temp[1] = edep;
@@ -328,6 +334,14 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	gen_data_temp[k+5] = Vtx[k];
       }
       gen_data_temp[8] = weight;
+      
+      //store information to rescue, if necessary, the generated info
+      if(fTree->Earm_BBGEM_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
+	pmax = fTree->Earm_BBGEM_hit_p->at(i);
+	for(int k = 0; k<9; k++){
+	  gen_data_temp_max[k] = gen_data_temp[k];
+	}
+      }
       
       // ... to copy it in the actual g4sbsGenData structure.
       // only store signal, primary MC tracks
@@ -406,8 +420,26 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       cout << endl;
 #endif //DEBUG          
     }//end loop on hits
-    break;
     
+    // Rescue ngen data here...
+    // ngen data is rescued if: 
+    // * the file read is signal; 
+    // * there is no gen data stored already; 
+    // * and there are at least 3 hits associated to the rescued particle
+    if(fSource==0 && n_gen==0 && n_hits>=3){
+      int n_hits_max = 0;
+      for(UInt_t k = 0; k<trid_hits.size(); k++){
+	if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
+      }
+      if(n_hits_max>=3){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
+    }
+    break;
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
       det_id = 2;
@@ -421,6 +453,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_SBSGEM_hit_tx->at(i));
       
+      trid_hits.push_back(trid);
+
       pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2) + 1.0) );
@@ -520,6 +554,14 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[8] = weight;
       
+      //store information to rescue, if necessary, the generated info
+      if(fTree->Harm_SBSGEM_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
+	pmax = fTree->Harm_SBSGEM_hit_p->at(i);
+	for(int k = 0; k<9; k++){
+	  gen_data_temp_max[k] = gen_data_temp[k];
+	}
+      }
+      
       // ... to copy it in the actual g4sbsGenData structure.
       // only store signal, primary MC tracks
       if(fSource==0 && n_gen==0 && type==1){
@@ -559,6 +601,25 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
       */
     }// endl loop on hits
+    
+    // Rescue ngen data here...
+    // ngen data is rescued if: 
+    // * the file read is signal; 
+    // * there is no gen data stored already; 
+    // * and there are at least 3 hits associated to the rescued particle
+    if(fSource==0 && n_gen==0 && n_hits>=3){
+      int n_hits_max = 0;
+      for(UInt_t k = 0; k<trid_hits.size(); k++){
+	if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
+      }
+      if(n_hits_max>=3){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
+    }
     break;
       
   case(3)://FT
@@ -575,6 +636,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
       
+      trid_hits.push_back(trid);
+
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FT_hit_typ->at(i), 2) + 1.0) );
@@ -676,6 +739,14 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[8] = weight;
       
+      //store information to rescue, if necessary, the generated info
+      if(fTree->Harm_FT_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
+	pmax = fTree->Harm_FT_hit_p->at(i);
+	for(int k = 0; k<9; k++){
+	  gen_data_temp_max[k] = gen_data_temp[k];
+	}
+      }
+      
       // ... to copy it in the actual g4sbsGenData structure.
       // only store signal, primary MC tracks
       if(fSource==0 && n_gen==0 && type==1){
@@ -753,6 +824,25 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       cout << endl;
 #endif //DEBUG
     }
+    
+    // Rescue ngen data here...
+    // ngen data is rescued if: 
+    // * the file read is signal; 
+    // * there is no gen data stored already; 
+    // * and there are at least 3 hits associated to the rescued particle
+    if(fSource==0 && n_gen==0 && n_hits>=3){
+      int n_hits_max = 0;
+      for(UInt_t k = 0; k<trid_hits.size(); k++){
+	if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
+      }
+      if(n_hits_max>=3){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
+    }
     break;// end case(3)
     
   case(4):
@@ -772,6 +862,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
 
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
+      
+      trid_hits.push_back(trid);
       
       pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
@@ -872,6 +964,14 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[8] = weight;
       
+      //store information to rescue, if necessary, the generated info
+      if(fTree->Harm_FPP1_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
+	pmax = fTree->Harm_FPP1_hit_p->at(i);
+	for(int k = 0; k<9; k++){
+	  gen_data_temp_max[k] = gen_data_temp[k];
+	}
+      }
+      
       // ... to copy it in the actual g4sbsGenData structure.
       // only store signal, primary MC tracks
       if(fSource==0 && n_gen==0 && type==1){
@@ -963,6 +1063,8 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
       
+      trid_hits.push_back(trid);
+
       pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FPP2_hit_typ->at(i), 2) + 1.0) );
@@ -1062,6 +1164,14 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       gen_data_temp[8] = weight;
       
+      //store information to rescue, if necessary, the generated info
+      if(fTree->Harm_FPP2_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
+	pmax = fTree->Harm_FPP2_hit_p->at(i);
+	for(int k = 0; k<9; k++){
+	  gen_data_temp_max[k] = gen_data_temp[k];
+	}
+      }
+      
       // ... to copy it in the actual g4sbsGenData structure.
       // only store signal, primary MC tracks
       if(fSource==0 && n_gen==0 && type==1){
@@ -1134,6 +1244,25 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       cout << endl;
 #endif //DEBUG          
+    }
+    
+    // Rescue ngen data here...
+    // ngen data is rescued if: 
+    // * the file read is signal; 
+    // * there is no gen data stored already; 
+    // * and there are at least 3 hits associated to the rescued particle
+    if(fSource==0 && n_gen==0 && n_hits>=3){
+      int n_hits_max = 0;
+      for(UInt_t k = 0; k<trid_hits.size(); k++){
+	if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
+      }
+      if(n_hits_max>=3){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
     }
     break;// end case(4)
       

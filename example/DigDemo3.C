@@ -118,7 +118,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, int Nbkgd = 1000, bool print = fal
 	gen = f->GetGenData(0);
 	Ngood++;
       }else{
-	cout << "No generated data for event " << nevent 
+	cout << "Warning: No generated data for event " << nevent 
 	     << ", skip it (Nhits = " << f->GetNData() << ")" << endl;
 	nevent++;
 	continue;

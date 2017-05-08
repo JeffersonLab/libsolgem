@@ -1251,7 +1251,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	strip.fSigType = GetType(ich, ip, idx);
 	strip.fCharge  = GetCharge(ich, ip, idx);
 	strip.fTime1   = GetTime(ich, ip, idx);
-
+	
 	const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
 	strip.fClusters.Set( sc.size(), &sc[0] );
 	
