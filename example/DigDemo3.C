@@ -66,7 +66,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, int Nbkgd = 1000, bool print = fal
     
     //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14000/elastic_0.root");
     //TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/14301/elastic_0.root");
-    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/34710/elastic_0.root");
+    TSBSGeant4File *f = new TSBSGeant4File("/group/exjpsi/eric/34700/elastic_0.root");
     printf("The filename returned is %s\n", f->GetFileName());
     f->SetSource(0);
     
@@ -98,7 +98,7 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, int Nbkgd = 1000, bool print = fal
     
     printf("Digitizing events\n");
     ndata = 0;
-        
+    
     int hadback = 1;
 
     while( f->ReadNextEvent() && hadback && nevent<Nmax ){
@@ -144,58 +144,60 @@ void DigDemo3(int fspec = 4, int Nmax = 1000, int Nbkgd = 1000, bool print = fal
       // gen->GetV();
       // gen->GetP();
       // gen->GetWeight();
-
-      TSBSGeant4File *fback = new TSBSGeant4File(Form("/group/exjpsi/eric/31701/beam_bkgd_%d.root", Ngood));
-      fback->Open();
-      fback->SetSource(1);
       
       // Add some number of background events
-      int nbacktoadd = 0;//Nbkgd;
+      int nbacktoadd = Nbkgd;
       int backidx = 0;
-      
-      //while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){
-      while( backidx < nbacktoadd ){
-        hadback = fback->ReadNextEvent();
-        gb = fback->GetGEMData();
-	
-	if(print && gb->GetNHit()>0){
-	  cout << "Bkgd evt: " << gb->GetEvent() << ", number of hits " 
-	       << gb->GetNHit() << endl;
-	  int nback = 0;
-	  while(nback<gb->GetNHit()){
-	    //if(gd->GetParticleID(ndata)>1)continue;
-	    gb->Print();
-	    cout << "hit number " << nback << endl;
-	    gb->PrintHit(nback);
-	    nback++;
-	  }
 
+      if(nbacktoadd){
+	TSBSGeant4File *fback = new TSBSGeant4File(Form("/group/exjpsi/eric/31700/beam_bkgd_%d.root", Ngood));
+	fback->Open();
+	fback->SetSource(1);
+	
+	//while( hadback = fback->ReadNextEvent() && backidx < nbacktoadd ){
+	while( backidx < nbacktoadd ){
+	  hadback = fback->ReadNextEvent();
+	  gb = fback->GetGEMData();
+	  
+	  if(print && gb->GetNHit()>0){
+	    cout << "Bkgd evt: " << gb->GetEvent() << ", number of hits " 
+		 << gb->GetNHit() << endl;
+	    int nback = 0;
+	    while(nback<gb->GetNHit()){
+	      //if(gd->GetParticleID(ndata)>1)continue;
+	      gb->Print();
+	      cout << "hit number " << nback << endl;
+	      gb->PrintHit(nback);
+	      nback++;
+	    }
+	    
+	  }
+	  
+	  ddd->AdditiveDigitize(*gb, *dds);
+	  
+	  // // Randomize times based on gate width
+	  //  for( int bidx = 0; bidx < gb->GetNHit(); bidx++ ){
+	  //    double timeshift = gRandom->Uniform(-ddd->GetGateWidth(), 75.0 );//ns
+	  //    gb->SetHitTime(bidx, gb->GetHitTime(bidx) + timeshift );
+	  //  }	
+	  //  //gd->AddGEMData(gb);
+	  backidx++;
+	}
+
+	if(print)cout << "new number of hits in GEM data " << gd->GetNHit() << endl;
+	
+	if( backidx != nbacktoadd ){
+	  printf("Warning:  Not enough background events to be added (%d)\n", backidx);
 	}
 	
-	ddd->AdditiveDigitize(*gb, *dds);
-	
-	// // Randomize times based on gate width
-	//  for( int bidx = 0; bidx < gb->GetNHit(); bidx++ ){
-	//    double timeshift = gRandom->Uniform(-ddd->GetGateWidth(), 75.0 );//ns
-	//    gb->SetHitTime(bidx, gb->GetHitTime(bidx) + timeshift );
-	//  }	
-	//  //gd->AddGEMData(gb);
-	backidx++;
-      }
-      
-      if(print)cout << "new number of hits in GEM data " << gd->GetNHit() << endl;
-      
-      if( backidx != nbacktoadd ){
-        printf("Warning:  Not enough background events to be added (%d)\n", backidx);
-      }
+	fback->Close();
+      }//end if nbacktoadd
       
       ddd->FillTree();
       
       //if(nevent==25)ddd->GetEvent()->Print("all");
       if(print)ddd->GetEvent()->Print("all");
       
-      fback->Close();
-
       delete gd;
       nevent++;
     }
