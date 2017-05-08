@@ -1149,6 +1149,7 @@ public :
    g4sbs_tree(TTree *tree=0, int det_opt = 0, bool pythia = false, bool ecalbox = false, bool hcalbox = false);
    virtual ~g4sbs_tree();
    virtual Int_t    Cut(Long64_t entry);
+   virtual Int_t    GetEntries();
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);

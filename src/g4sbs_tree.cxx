@@ -31,6 +31,13 @@ g4sbs_tree::~g4sbs_tree()
    delete fChain->GetCurrentFile();
 }
 
+//overload of the TTree::GetEntries() function
+Int_t g4sbs_tree::GetEntries()
+{
+  // Read contents of entry.
+  if (!fChain) return 0;
+  return fChain->GetEntries();
+}
 //overload of the TTree::GetEntry(Long64_t) function
 Int_t g4sbs_tree::GetEntry(Long64_t entry)
 {

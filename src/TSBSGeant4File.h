@@ -96,6 +96,10 @@ class TSBSGeant4File {
   Int_t Open();
   Int_t Close();
   
+  const Long64_t GetEntries(){
+    return fTree->GetEntries();
+  };
+  
   const char* GetFileName() const { return fFilename; }
   Int_t GetSource() const { return fSource; }
   
