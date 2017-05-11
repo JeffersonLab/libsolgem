@@ -79,7 +79,7 @@ sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 0
 #  Global reconstruction parameters
 #-----------------------------------------------------------------
 
-sbs_bbgem.tracker.${allsectors}.3d_ampcorr_maxmiss = 3
+sbs_bbgem.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
 sbs_bbgem.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
 sbs_bbgem.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
 sbs_bbgem.tracker.${allsectors}.3d_maxmiss = 2

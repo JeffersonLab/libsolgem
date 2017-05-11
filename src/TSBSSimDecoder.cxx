@@ -179,7 +179,9 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "hit.vsz",   "MC hit v cluster size",      "fMCHits.TSBSSimGEMHit.fVSize" },
     { "hit.vstart","MC hit v cluster 1st strip", "fMCHits.TSBSSimGEMHit.fVStart" },
     { "hit.vpos",  "MC hit v cluster center [m]","fMCHits.TSBSSimGEMHit.fVPos" },
-
+    
+    { "pt.fmctrk", "MC point track number",      "fMCPoints.Podd::MCTrackPoint.fMCTrack" },
+    
     { 0 }
   };
 
