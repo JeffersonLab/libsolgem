@@ -281,7 +281,7 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
 
   Int_t istrip = StripFromROC( crate, slot, chan );
   assert( istrip >= 0 );  // else logic error in caller or bad fStripMap
-
+  
   assert( buffer );       // Must still have the event buffer
   const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
 

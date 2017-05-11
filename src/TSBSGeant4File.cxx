@@ -25,8 +25,9 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   ReadGasData("gasErange.txt"); // NB: See comment lines 128-129 of TSBSGeant4File.h 
   
   //Filling the table that will be used to calculate the low energy electron range in the gas. 
-  
+#if DEBUG>0
   cout << "Initialization completed" << endl;
+#endif
 }
 
 // // NB: See comment lines 128-129 of TSBSGeant4File.h 
@@ -108,8 +109,10 @@ Int_t TSBSGeant4File::Open(){
     }
     
     TChain* C1 = (TChain*)fFile->Get("T");//Get the tree from the file
-
+    
+#if DEBUG>0 
     cout << "Detector option " << fManager->Getg4sbsDetectorType() << endl;
+#endif
     
     // EFuchey: 2017/02/09: Since this date, the reading, digitization, etc. of the data 
     // has been splitted for Forward Tracker and Focal Plane Polarimeter.

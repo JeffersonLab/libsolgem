@@ -1129,7 +1129,11 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   clust.fHitpos = (clust.fHitpos)*1.0e-3;
   
-  //cout << "hit in lab" << endl;
+  // cout << " ** ____  // hit in plane (clust.fHitPos): // ___ ** " << endl;
+  // clust.fHitpos.Print();
+  // tsgd.GetHitEntrance(ih).Print();
+  // tsgd.GetHitExit(ih).Print();
+  // cout << " for plane " << clust.fPlane << endl;
   //hitpos_temp.Print();
   
   //clust.fHitpos = hitpos_temp;

@@ -53,7 +53,7 @@ g4sbs_bbgem.gem3.gem3y.stripangle = 90.0
 g4sbs_bbgem.gem3.gem3y.pitch = 0.000400
 
 g4sbs_bbgem.gem4.dmag = 1.875000
-g4sbs_bbgem.gem4.d0 = 2.30395
+g4sbs_bbgem.gem4.d0 = 2.32935
 g4sbs_bbgem.gem4.xoffset = 0.000000
 g4sbs_bbgem.gem4.dx = 2.000000
 g4sbs_bbgem.gem4.dy = 0.600000
