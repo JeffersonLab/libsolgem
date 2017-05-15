@@ -159,12 +159,12 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       //The following 3 lines are to avoid to understimate the number of strips 
       //(hence the active area) because of stupid rounding issues at the 10^-12 level.
       if( (double)round(xs[i] / GetSPitch())-xs[i] / GetSPitch() < 1.0e-10 ){
-	s = round(xs[i] / GetSPitch());
+      	s = round(xs[i] / GetSPitch());
       }
       if (s < smin) smin = s;
       if (s > smax) smax = s;
     }
-  fNStrips = smax - smin;
+  fNStrips = smax - smin + 1;
   fSBeg = -fNStrips * fSPitch * 0.5;
   
   return kOK;

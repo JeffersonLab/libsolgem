@@ -466,7 +466,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       vpt->fMCTime = c.fTime;
 
       // //debug...
-      // cout << "Print MC points " << endl;
+      // cout << "TSBSSimDecoder.cxx: Print MC points " << endl;
       // cout << "kXplane ? " << kXPlane << endl;
       // upt->Print("");
       // cout << "kVYlane ? " << kYPlane << endl;

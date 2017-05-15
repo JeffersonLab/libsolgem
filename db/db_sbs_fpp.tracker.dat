@@ -8,7 +8,7 @@ sbs_fpp.tracker.${allsectors}.MCdata = 1
 
 # Plane configuration. One string of the all plane names.
 
-sbs_fpp.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6 x7 y7 x8 y8 x9 y9 x10 y10 xd yd
+sbs_fpp.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6 x7 y7 x8 y8 x9 y9 x10 y10
 
 # Strip angles: angles of the normal to the strips, pointing
 # along the direction of increasing strip number.
@@ -26,8 +26,7 @@ sbs_fpp.tracker.${allsectors}.cratemap = \
                    0     0       19      6425   2048 \
                    1     0       19      6425   2048 \
                    2     0       19      6425   2048 \
-                   3     0       19      6425   2048 \
-                   6     0       1       6425   4
+                   3     0       19      6425   2048
 
 # GEM detector maps
 # 4 sectors * 10 planes * 2 readout coordinates = 80 detectors
@@ -113,17 +112,6 @@ sbs_fpp.tracker.4.y9.detmap = 3  17 0 1499
 sbs_fpp.tracker.4.x10.detmap = 3  18 0 1249
 sbs_fpp.tracker.4.y10.detmap = 3  19 0 1499
 
-# Dummy GEM planes recording emulated calorimeter hits
-#
-sbs_fpp.tracker.1.xd.detmap = 6  0  0 0
-sbs_fpp.tracker.1.yd.detmap = 6  1  0 0
-sbs_fpp.tracker.2.xd.detmap = 6  0  1 1
-sbs_fpp.tracker.2.yd.detmap = 6  1  1 1
-sbs_fpp.tracker.3.xd.detmap = 6  0  2 2
-sbs_fpp.tracker.3.yd.detmap = 6  1  2 2
-sbs_fpp.tracker.4.xd.detmap = 6  0  3 3
-sbs_fpp.tracker.4.yd.detmap = 6  1  3 3
-
 #-----------------------------------------------------------------
 #  X offset of the sectors (in transport coordinates)
 #  and common position parameters (D_magnet, theta_H, theta_V)
@@ -160,7 +148,7 @@ sbs_fpp.tracker.${allsectors}.3d_disable_chi2 = 0
 #  Global reconstruction parameters
 #-----------------------------------------------------------------
 
-sbs_fpp.tracker.${allsectors}.3d_ampcorr_maxmiss = 3
+sbs_fpp.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
 sbs_fpp.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
 sbs_fpp.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
 sbs_fpp.tracker.${allsectors}.3d_maxmiss = 2
@@ -181,7 +169,7 @@ sbs_fpp.tracker.${allsectors}.disable_chi2 = 0
 
 sbs_fpp.tracker.xp.res = 9e-05
 sbs_fpp.tracker.maxclustsiz = 4
-sbs_fpp.tracker.adc.min = 500
+sbs_fpp.tracker.adc.min = 80
 sbs_fpp.tracker.split.frac = 0.1
 sbs_fpp.tracker.maxhits = 1000
 sbs_fpp.tracker.maxsamp = 3
@@ -395,30 +383,6 @@ sbs_fpp.tracker.1.y10.dx = 0.5
 sbs_fpp.tracker.1.y10.dy = 0.6
 sbs_fpp.tracker.1.y10.dz = 0.015955
 
-sbs_fpp.tracker.1.xd.description = x dummy plane in sector 1
-sbs_fpp.tracker.1.xd.dummy = 1
-sbs_fpp.tracker.1.xd.xp.res = 0.01
-sbs_fpp.tracker.1.xd.nstrips = 125
-sbs_fpp.tracker.1.xd.partner = yd
-sbs_fpp.tracker.1.xd.strip.pos = -0.248
-sbs_fpp.tracker.1.xd.strip.pitch = 0.004
-sbs_fpp.tracker.1.xd.d0 = 6.8
-sbs_fpp.tracker.1.xd.dx = 0.5
-sbs_fpp.tracker.1.xd.dy = 0.6
-sbs_fpp.tracker.1.xd.dz = 0.015955
-
-sbs_fpp.tracker.1.yd.description = y dummy plane in sector 1
-sbs_fpp.tracker.1.yd.dummy = 1
-sbs_fpp.tracker.1.yd.xp.res = 0.01
-sbs_fpp.tracker.1.yd.nstrips = 150
-sbs_fpp.tracker.1.yd.partner = xd
-sbs_fpp.tracker.1.yd.strip.pos = -0.3
-sbs_fpp.tracker.1.yd.strip.pitch = 0.004
-sbs_fpp.tracker.1.yd.d0 = 6.8
-sbs_fpp.tracker.1.yd.dx = 0.5
-sbs_fpp.tracker.1.yd.dy = 0.6
-sbs_fpp.tracker.1.yd.dz = 0.015955
-
 sbs_fpp.tracker.2.x1.description = x1 plane in sector 2
 sbs_fpp.tracker.2.x1.nstrips = 1250
 sbs_fpp.tracker.2.x1.partner = y1
@@ -618,30 +582,6 @@ sbs_fpp.tracker.2.y10.d0 = 4.56306
 sbs_fpp.tracker.2.y10.dx = 0.5
 sbs_fpp.tracker.2.y10.dy = 0.6
 sbs_fpp.tracker.2.y10.dz = 0.015955
-
-sbs_fpp.tracker.2.xd.description = x dummy plane in sector 2
-sbs_fpp.tracker.2.xd.dummy = 1
-sbs_fpp.tracker.2.xd.xp.res = 0.01
-sbs_fpp.tracker.2.xd.nstrips = 125
-sbs_fpp.tracker.2.xd.partner = yd
-sbs_fpp.tracker.2.xd.strip.pos = -0.248
-sbs_fpp.tracker.2.xd.strip.pitch = 0.004
-sbs_fpp.tracker.2.xd.d0 = 6.8
-sbs_fpp.tracker.2.xd.dx = 0.5
-sbs_fpp.tracker.2.xd.dy = 0.6
-sbs_fpp.tracker.2.xd.dz = 0.015955
-
-sbs_fpp.tracker.2.yd.description = y dummy plane in sector 2
-sbs_fpp.tracker.2.yd.dummy = 1
-sbs_fpp.tracker.2.yd.xp.res = 0.01
-sbs_fpp.tracker.2.yd.nstrips = 150
-sbs_fpp.tracker.2.yd.partner = xd
-sbs_fpp.tracker.2.yd.strip.pos = -0.3
-sbs_fpp.tracker.2.yd.strip.pitch = 0.004
-sbs_fpp.tracker.2.yd.d0 = 6.8
-sbs_fpp.tracker.2.yd.dx = 0.5
-sbs_fpp.tracker.2.yd.dy = 0.6
-sbs_fpp.tracker.2.yd.dz = 0.015955
 
 sbs_fpp.tracker.3.x1.description = x1 plane in sector 3
 sbs_fpp.tracker.3.x1.nstrips = 1250
@@ -843,30 +783,6 @@ sbs_fpp.tracker.3.y10.dx = 0.5
 sbs_fpp.tracker.3.y10.dy = 0.6
 sbs_fpp.tracker.3.y10.dz = 0.015955
 
-sbs_fpp.tracker.3.xd.description = x dummy plane in sector 3
-sbs_fpp.tracker.3.xd.dummy = 1
-sbs_fpp.tracker.3.xd.xp.res = 0.01
-sbs_fpp.tracker.3.xd.nstrips = 125
-sbs_fpp.tracker.3.xd.partner = yd
-sbs_fpp.tracker.3.xd.strip.pos = -0.248
-sbs_fpp.tracker.3.xd.strip.pitch = 0.004
-sbs_fpp.tracker.3.xd.d0 = 6.8
-sbs_fpp.tracker.3.xd.dx = 0.5
-sbs_fpp.tracker.3.xd.dy = 0.6
-sbs_fpp.tracker.3.xd.dz = 0.015955
-
-sbs_fpp.tracker.3.yd.description = y dummy plane in sector 3
-sbs_fpp.tracker.3.yd.dummy = 1
-sbs_fpp.tracker.3.yd.xp.res = 0.01
-sbs_fpp.tracker.3.yd.nstrips = 150
-sbs_fpp.tracker.3.yd.partner = xd
-sbs_fpp.tracker.3.yd.strip.pos = -0.3
-sbs_fpp.tracker.3.yd.strip.pitch = 0.004
-sbs_fpp.tracker.3.yd.d0 = 6.8
-sbs_fpp.tracker.3.yd.dx = 0.5
-sbs_fpp.tracker.3.yd.dy = 0.6
-sbs_fpp.tracker.3.yd.dz = 0.015955
-
 sbs_fpp.tracker.4.x1.description = x1 plane in sector 4
 sbs_fpp.tracker.4.x1.nstrips = 1250
 sbs_fpp.tracker.4.x1.partner = y1
@@ -1066,28 +982,4 @@ sbs_fpp.tracker.4.y10.d0 = 4.56306
 sbs_fpp.tracker.4.y10.dx = 0.5
 sbs_fpp.tracker.4.y10.dy = 0.6
 sbs_fpp.tracker.4.y10.dz = 0.015955
-
-sbs_fpp.tracker.4.xd.description = x dummy plane in sector 4
-sbs_fpp.tracker.4.xd.dummy = 1
-sbs_fpp.tracker.4.xd.xp.res = 0.01
-sbs_fpp.tracker.4.xd.nstrips = 125
-sbs_fpp.tracker.4.xd.partner = yd
-sbs_fpp.tracker.4.xd.strip.pos = -0.248
-sbs_fpp.tracker.4.xd.strip.pitch = 0.004
-sbs_fpp.tracker.4.xd.d0 = 6.8
-sbs_fpp.tracker.4.xd.dx = 0.5
-sbs_fpp.tracker.4.xd.dy = 0.6
-sbs_fpp.tracker.4.xd.dz = 0.015955
-
-sbs_fpp.tracker.4.yd.description = y dummy plane in sector 4
-sbs_fpp.tracker.4.yd.dummy = 1
-sbs_fpp.tracker.4.yd.xp.res = 0.01
-sbs_fpp.tracker.4.yd.nstrips = 150
-sbs_fpp.tracker.4.yd.partner = xd
-sbs_fpp.tracker.4.yd.strip.pos = -0.3
-sbs_fpp.tracker.4.yd.strip.pitch = 0.004
-sbs_fpp.tracker.4.yd.d0 = 6.8
-sbs_fpp.tracker.4.yd.dx = 0.5
-sbs_fpp.tracker.4.yd.dy = 0.6
-sbs_fpp.tracker.4.yd.dz = 0.015955
 

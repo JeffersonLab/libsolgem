@@ -100,7 +100,7 @@ sbs_bbgem.tracker.${allsectors}.disable_chi2 = 0
 
 sbs_bbgem.tracker.xp.res = 9e-05
 sbs_bbgem.tracker.maxclustsiz = 4
-sbs_bbgem.tracker.adc.min = 500
+sbs_bbgem.tracker.adc.min = 80
 sbs_bbgem.tracker.split.frac = 0.1
 sbs_bbgem.tracker.maxhits = 1000
 sbs_bbgem.tracker.maxsamp = 3

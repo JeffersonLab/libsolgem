@@ -8,7 +8,7 @@ sbs_ft.tracker.${allsectors}.MCdata = 1
 
 # Plane configuration. One string of the all plane names.
 
-sbs_ft.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6 xd yd
+sbs_ft.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6
 
 # Strip angles: angles of the normal to the strips, pointing
 # along the direction of increasing strip number.
@@ -25,7 +25,6 @@ sbs_ft.tracker.${allsectors}.y.angle = 90
 sbs_ft.tracker.${allsectors}.cratemap = \
                    4     0       23      6425   2048 \
                    5     0       23      6425   2048 \
-                   6     0       1       6425   7
 
 # GEM detector maps
 # 3 sectors * 6 planes * 2 readout coordinates = 36 detectors
@@ -67,15 +66,6 @@ sbs_ft.tracker.3.y5.detmap = 5  9  0 999
 sbs_ft.tracker.3.x6.detmap = 5  10 0 1249
 sbs_ft.tracker.3.y6.detmap = 5  11 0 999
 
-# Dummy GEM planes recording emulated calorimeter hits
-#
-sbs_ft.tracker.1.xd.detmap = 6  0  4 4
-sbs_ft.tracker.1.yd.detmap = 6  1  4 4
-sbs_ft.tracker.2.xd.detmap = 6  0  5 5
-sbs_ft.tracker.2.yd.detmap = 6  1  5 5
-sbs_ft.tracker.3.xd.detmap = 6  0  6 6
-sbs_ft.tracker.3.yd.detmap = 6  1  6 6
-
 #-----------------------------------------------------------------
 #  X offset of the sectors (in transport coordinates)
 #  and common position parameters (D_magnet, theta_H, theta_V)
@@ -108,7 +98,7 @@ sbs_ft.tracker.${allsectors}.3d_disable_chi2 = 0
 #  Global reconstruction parameters
 #-----------------------------------------------------------------
 
-sbs_ft.tracker.${allsectors}.3d_ampcorr_maxmiss = 3
+sbs_ft.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
 sbs_ft.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
 sbs_ft.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
 sbs_ft.tracker.${allsectors}.3d_maxmiss = 2
@@ -129,7 +119,7 @@ sbs_ft.tracker.${allsectors}.disable_chi2 = 0
 
 sbs_ft.tracker.xp.res = 9e-05
 sbs_ft.tracker.maxclustsiz = 4
-sbs_ft.tracker.adc.min = 500
+sbs_ft.tracker.adc.min = 80
 sbs_ft.tracker.split.frac = 0.1
 sbs_ft.tracker.maxhits = 1000
 sbs_ft.tracker.maxsamp = 3
@@ -263,30 +253,6 @@ sbs_ft.tracker.1.y6.dx = 0.5
 sbs_ft.tracker.1.y6.dy = 0.4
 sbs_ft.tracker.1.y6.dz = 0.015955
 
-sbs_ft.tracker.1.xd.description = x dummy plane in sector 1
-sbs_ft.tracker.1.xd.dummy = 1
-sbs_ft.tracker.1.xd.xp.res = 0.01
-sbs_ft.tracker.1.xd.nstrips = 125
-sbs_ft.tracker.1.xd.partner = yd
-sbs_ft.tracker.1.xd.strip.pos = -0.248
-sbs_ft.tracker.1.xd.strip.pitch = 0.004
-sbs_ft.tracker.1.xd.d0 = 1.6
-sbs_ft.tracker.1.xd.dx = 0.5
-sbs_ft.tracker.1.xd.dy = 0.4
-sbs_ft.tracker.1.xd.dz = 0.015955
-
-sbs_ft.tracker.1.yd.description = y dummy plane in sector 1
-sbs_ft.tracker.1.yd.dummy = 1
-sbs_ft.tracker.1.yd.xp.res = 0.01
-sbs_ft.tracker.1.yd.nstrips = 100
-sbs_ft.tracker.1.yd.partner = xd
-sbs_ft.tracker.1.yd.strip.pos = -0.2
-sbs_ft.tracker.1.yd.strip.pitch = 0.004
-sbs_ft.tracker.1.yd.d0 = 1.6
-sbs_ft.tracker.1.yd.dx = 0.5
-sbs_ft.tracker.1.yd.dy = 0.4
-sbs_ft.tracker.1.yd.dz = 0.015955
-
 sbs_ft.tracker.2.x1.description = x1 plane in sector 2
 sbs_ft.tracker.2.x1.nstrips = 1250
 sbs_ft.tracker.2.x1.partner = y1
@@ -407,30 +373,6 @@ sbs_ft.tracker.2.y6.dx = 0.5
 sbs_ft.tracker.2.y6.dy = 0.4
 sbs_ft.tracker.2.y6.dz = 0.015955
 
-sbs_ft.tracker.2.xd.description = x dummy plane in sector 2
-sbs_ft.tracker.2.xd.dummy = 1
-sbs_ft.tracker.2.xd.xp.res = 0.01
-sbs_ft.tracker.2.xd.nstrips = 125
-sbs_ft.tracker.2.xd.partner = yd
-sbs_ft.tracker.2.xd.strip.pos = -0.248
-sbs_ft.tracker.2.xd.strip.pitch = 0.004
-sbs_ft.tracker.2.xd.d0 = 1.6
-sbs_ft.tracker.2.xd.dx = 0.5
-sbs_ft.tracker.2.xd.dy = 0.4
-sbs_ft.tracker.2.xd.dz = 0.015955
-
-sbs_ft.tracker.2.yd.description = y dummy plane in sector 2
-sbs_ft.tracker.2.yd.dummy = 1
-sbs_ft.tracker.2.yd.xp.res = 0.01
-sbs_ft.tracker.2.yd.nstrips = 100
-sbs_ft.tracker.2.yd.partner = xd
-sbs_ft.tracker.2.yd.strip.pos = -0.2
-sbs_ft.tracker.2.yd.strip.pitch = 0.004
-sbs_ft.tracker.2.yd.d0 = 1.6
-sbs_ft.tracker.2.yd.dx = 0.5
-sbs_ft.tracker.2.yd.dy = 0.4
-sbs_ft.tracker.2.yd.dz = 0.015955
-
 sbs_ft.tracker.3.x1.description = x1 plane in sector 3
 sbs_ft.tracker.3.x1.nstrips = 1250
 sbs_ft.tracker.3.x1.partner = y1
@@ -550,28 +492,4 @@ sbs_ft.tracker.3.y6.d0 = 2.28551
 sbs_ft.tracker.3.y6.dx = 0.5
 sbs_ft.tracker.3.y6.dy = 0.4
 sbs_ft.tracker.3.y6.dz = 0.015955
-
-sbs_ft.tracker.3.xd.description = x dummy plane in sector 3
-sbs_ft.tracker.3.xd.dummy = 1
-sbs_ft.tracker.3.xd.xp.res = 0.01
-sbs_ft.tracker.3.xd.nstrips = 125
-sbs_ft.tracker.3.xd.partner = yd
-sbs_ft.tracker.3.xd.strip.pos = -0.248
-sbs_ft.tracker.3.xd.strip.pitch = 0.004
-sbs_ft.tracker.3.xd.d0 = 1.6
-sbs_ft.tracker.3.xd.dx = 0.5
-sbs_ft.tracker.3.xd.dy = 0.4
-sbs_ft.tracker.3.xd.dz = 0.015955
-
-sbs_ft.tracker.3.yd.description = y dummy plane in sector 3
-sbs_ft.tracker.3.yd.dummy = 1
-sbs_ft.tracker.3.yd.xp.res = 0.01
-sbs_ft.tracker.3.yd.nstrips = 100
-sbs_ft.tracker.3.yd.partner = xd
-sbs_ft.tracker.3.yd.strip.pos = -0.2
-sbs_ft.tracker.3.yd.strip.pitch = 0.004
-sbs_ft.tracker.3.yd.d0 = 1.6
-sbs_ft.tracker.3.yd.dx = 0.5
-sbs_ft.tracker.3.yd.dy = 0.4
-sbs_ft.tracker.3.yd.dz = 0.015955
 
