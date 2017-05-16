@@ -41,6 +41,9 @@ void TSolDBManager::LoadGeneralInfo(const string& fileName)
         {"sector_mapped",       &fMappedSector        , kInt,    0, 1},
 	{"nchamber",            &fNChamber            , kInt,    0, 1},
         {"nsector",             &fNSector             , kInt,    0, 1},
+	// // see comment TSolDBManager.h, l. 92-94.
+	// {"nchamber2",            &fNChamber2            , kInt,    0, 1},
+        // {"nsector2",             &fNSector2             , kInt,    0, 1},
         {"nreadout",            &fNReadOut            , kInt,    0, 1},
         {"gem_drift_id",        &fGEMDriftID          , kInt,    0, 1},
         {"gem_copper_front_id", &fGEMCopperFrontID    , kInt,    0, 1},
@@ -148,7 +151,27 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
       fGeoInfo[i].push_back(thisGeo);
     }
   }
-  
+  /*
+  for (int i=0; i<fNSector2; i++){
+    map<int, vector<GeoInfo> >::iterator it = fGeoInfo.find(i);
+    if (it == fGeoInfo.end()) { cout<<"unexpected chamber id "<<i<<endl; }
+    
+    for (int j=0; j<fNChamber2; j++){
+      ostringstream sector_prefix(prefix, ios_base::ate);
+      int idx = i*fNChamber2 + j;
+      sector_prefix<<".gem"<<idx<<".";
+      
+      int err = LoadDB(input, request, sector_prefix.str());
+      if( err ) exit(2);
+      
+      sector_prefix<<"gem"<<idx;
+      err = LoadDB(input, plane_request, sector_prefix.str());
+      if (err) exit(2);
+      
+      fGeoInfo[i].push_back(thisGeo);
+    }
+  }
+  */
 }
 
 //______________________________________________________________
@@ -312,8 +335,8 @@ const double & TSolDBManager::GetPitch(int i, int j, int k)
 int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
 {
   if (!CheckIndex(ichamber)) return fErrVal;
-
-  double sector = -1;
+  
+  int sector = -1;
   //printf("chamber %d, x = %1.6f\n", ichamber, x);
   for(int k = 0; k<fGeoInfo.size(); k++){
     //printf("%d: %1.2f, %1.2f \n", k, 
@@ -321,10 +344,15 @@ int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
     //fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0);
     if(fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0<x && 
        x<fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0){
-      sector = k;
+      if(abs(sector)==1)
+	sector = k;// EFuchey, 2017/05/16: if the sector value is -1 then it is not being over ridden
+      // if the sector value is 1, then it is being over ridden, 
+      // but it should happen only in the case of BB GEMs, plane 5.
+      // I want that to happen because I divided plane 5 in 3 "sectors, each 1m long in x, 
+      // and centered on -0.5, 0, 0.5, i.e. sector 1 overlaps completely with the 2 others.
+      // I didn't figure any simpler way to integrate plane 5(UVA GEM) along with with the other 4 (INFN GEMs).
     }
   }
-  return sector;
 }
 
 

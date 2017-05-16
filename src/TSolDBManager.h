@@ -30,6 +30,9 @@ public:
     const int    &   GetSectorMapped()      { return fMappedSector;        }
     const int    &   GetNChamber()          { return fNChamber;            }
     const int    &   GetNSector()           { return fNSector;             }
+    /* // see comment l. 93-95. */
+    /* const int    &   GetNChamber2()          { return fNChamber2;            } */
+    /* const int    &   GetNSector2()           { return fNSector2;             } */
     const int    &   GetNReadOut()          { return fNReadOut;            }
     const int    &   GetGEMDriftID()        { return fGEMDriftID;          }
     const int    &   GetGEMCopperFrontID()  { return fGEMCopperFrontID;    }
@@ -87,6 +90,11 @@ protected:
     
     int    fNChamber;
     int    fNSector;
+    /* // the two following lines have to be added for BB GEMs, */
+    /* // since there are two types of trackers which it is not relevant to treat independently */
+    /* // (in contrast with FT/FPP). */
+    /* int    fNChamber2; */
+    /* int    fNSector2; */
     int    fNReadOut;
     int    fNSigParticle;
     int    fGEMDriftID;
