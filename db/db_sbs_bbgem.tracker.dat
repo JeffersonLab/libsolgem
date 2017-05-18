@@ -154,7 +154,7 @@ sbs_bbgem.tracker.maxsamp = 3
 sbs_bbgem.tracker.adc.sigma = 0.2
 sbs_bbgem.tracker.do_noise = 0
 sbs_bbgem.tracker.check_pulse_shape = 1
-sbs_bbgem.tracker.do_histos = 0
+sbs_bbgem.tracker.do_histos = 1
 
 #-----------------------------------------------------------------
 #   Plane-specific data

@@ -401,13 +401,12 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     if( fDoMapSector && !is_background && isect != fSignalSector )
       // If mapping sectors, skip signal hits that won't end up in sector 0
       continue;
-
+    
     // These vectors are in the spec frame, we need them in the chamber frame
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
     
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
-
     // Generate randomized event time (for background) and trigger time jitter
     if( map_backgr ) {
       // If mapping sectors, treat the hits from each sector like coming from
@@ -1085,7 +1084,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
 {
   // Sets the variables in fEvent->fGEMClust describing a hit
   // This is later used to fill the tree.
-
+  
   TSBSSimEvent::GEMCluster clust;
   
   UInt_t igem = tsgd.GetHitChamber(ih);
@@ -1100,7 +1099,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fXEntry   = tsgd.GetHitEntrance(ih) * 1e-3; // [m] // in plane frame
   // The best estimate of the "true" hit position is the center of the
   // ionization region
-  
+
   // UInt_t hitbit_dum = 0;
   // SETBIT(hitbit_dum, clust.fPlane);
   // cout << "Plane number " << clust.fPlane; 

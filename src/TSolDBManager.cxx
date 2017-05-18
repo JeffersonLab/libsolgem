@@ -353,6 +353,7 @@ int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
       // I didn't figure any simpler way to integrate plane 5(UVA GEM) along with with the other 4 (INFN GEMs).
     }
   }
+  return sector;
 }
 
 
