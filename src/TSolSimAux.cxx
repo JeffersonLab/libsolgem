@@ -11,7 +11,6 @@ Short_t
 TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
 {
   // Convert analog value 'val' to integer ADC reading with 'bits' resolution
-
   assert( bits >= 0 && bits <= MAX_ADCBITS );
 
   if( val < 0. )

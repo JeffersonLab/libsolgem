@@ -417,12 +417,14 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     if( !time_set[itime] ) {
       // Trigger time jitter, including an arbitrary offset to align signal timing
       Double_t trigger_jitter = fTrnd.Gaus(fTriggerOffset, fTriggerJitter);
+      //cout << "Offset, Jitter: " << fTriggerOffset << " " << fTriggerJitter << " => trig jitter = " << trigger_jitter << endl;
       if( is_background ) {
 	
 	// For background data, uniformly randomize event time between
 	// -fGateWidth to +75 ns (assuming 3 useful 25 ns samples).
 	event_time[itime] = fTrnd.Uniform(fGateWidth + 3*fEleSamplingPeriod)
 	  - fGateWidth - trigger_jitter;
+	//cout << "GateWidth " << fGateWidth << ", sampling period " << fEleSamplingPeriod << endl;
       } else {
 	// Signal events occur at t = 0, smeared only by the trigger jitter
 	event_time[itime] = -trigger_jitter;
@@ -431,12 +433,11 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     }
     // Time of the leading edge of this hit's avalance relative to the trigger
     Double_t time_zero = event_time[itime] + gdata.GetHitTime(ih) + fRTime0*1e9;
-    
     // cout << "time_zero " << time_zero 
-    // 	 << "; evt time " << event_time[itime] 
-    // 	 << "; hit time " << gdata.GetHitTime(ih)
-    // 	 << "; drift time " << fRTime0*1e9
-    // 	 << endl;
+    //  	 << "; evt time " << event_time[itime] 
+    //  	 << "; hit time " << gdata.GetHitTime(ih)
+    //  	 << "; drift time " << fRTime0*1e9
+    //  	 << endl;
     
     if (fRNIon > 0) {
       fdh = AvaModel (igem, spect, vv1, vv2, time_zero);
@@ -867,7 +868,8 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	 << endl;
 #endif
 
-    virs[ipl] = new TSolGEMVStrip(nx,fEleSamplingPoints);
+    //virs[ipl] = new TSolGEMVStrip(nx,fEleSamplingPoints);
+    virs[ipl] = new TSolGEMVStrip(pl.GetNStrips(),fEleSamplingPoints);
 
     virs[ipl]->SetTime(t0);
     virs[ipl]->SetHitCharge(fRTotalCharge);
@@ -879,7 +881,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     //deposition on the area of a single strip -- Weizhi
     
     //cout << "number of strips: " << nstrips << ", number of samples " << fEleSamplingPoints << " area: " << area << endl;
-    
+    /*
     for (Int_t j = 0; j < nstrips; j++){
       Int_t posflag = 0;
       Double_t us = 0.;
@@ -906,27 +908,28 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	// if( fPulseNoiseSigma > 0.)
 	// pulse += fTrnd.Gaus(0., fPulseNoiseSigma);
 	
-	// if(us>0)cout << "strip number " << j << ", sampling number " << b << endl
+	// if(us>0)cout << "strip number " << j << ", sampling number " << b << ", t0 = " << t0 << endl
 	// 	     << "sampling period " << fEleSamplingPeriod << " => " << fEleSamplingPeriod * b - t0 << endl
-	// 	     << "pulse shape tau 0 " << fPulseShapeTau0 << " pulse shape tau 1 " << fPulseShapeTau1 
+	// 	     << "pulse shape tau_0 " << fPulseShapeTau0 << " pulse shape tau_1 " << fPulseShapeTau1 
 	// 	     << " value of us " << us << ", pulse value " << pulse << endl;
 	
 	// cout << "x0 " << -(fEleSamplingPeriod * b - t0)/fPulseShapeTau0 
 	//      << ", x1 " << -(fEleSamplingPeriod * b - t0)/fPulseShapeTau1 
-	//      << " => " << (1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0)) 
-	//<< " " << TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1)
-	// << " " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1) 
-	// << " => v = " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1)*(1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0))*TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1) << endl;
+	//      << " => (0) = " << (1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0)) 
+	//      << " (1) = " << TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1)
+	//      << " (2) = " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1) 
+	//      << " => v = (2)*(0)*(1) = " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1)*(1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0))*TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1) << endl;
 	
 	//add noise only to those strips that are hit,
-	if( fPulseNoiseSigma > 0. && pulse > 0. )
-	  pulse += GetPedNoise(phase, amp, b);
+	//if( fPulseNoiseSigma > 0. && pulse > 0. )
+	if( fPulseNoiseSigma > 0. )
+	  pulse = GetPedNoise(phase, amp, b);
 	
 	Short_t dadc = TSolSimAux::ADCConvert( pulse,
 					       fADCoffset,
 					       fADCgain,
 					       fADCbits );
-
+	
 	fDADC[b] = dadc;
 	posflag += dadc;
       }
@@ -940,7 +943,36 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     }
     
     //cout << "number of strips with signal " << ai << endl;
-    
+    */
+    //EFUchey: try to put noise in all strips.
+    for (Int_t j = 0; j < pl.GetNStrips(); j++){
+      Int_t posflag = 0;
+      
+      //generate the random pedestal phase and amplitude
+      Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
+      Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
+      
+      for (Int_t b = 0; b < fEleSamplingPoints; b++){
+	Double_t pulse = fTrnd.Gaus(0., fPulseNoiseSigma);
+	//Double_t pulse = GetPedNoise(phase, amp, b);
+	
+	Short_t dadc = TSolSimAux::ADCConvert( pulse,
+					       fADCoffset,
+					       fADCgain,
+					       fADCbits );
+	
+	fDADC[b] = dadc;
+	posflag += dadc;
+      }
+      if (posflag > 0) { // store only strip with signal
+	for (Int_t b = 0; b < fEleSamplingPoints; b++)
+	  virs[ipl]->AddSampleAt (fDADC[b], b, ai);
+	virs[ipl]->AddStripAt (j, ai);
+	virs[ipl]->AddChargeAt (1.0, ai);
+	ai++;
+      }
+    }
+   
     virs[ipl]->SetSize(ai);
   }
   
