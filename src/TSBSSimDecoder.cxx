@@ -323,6 +323,12 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
     }
     mc.fMCTime = strip.fTime1;
   }
+  
+  // cout << "TSBSSimDecoder: GetMCHitInfo: strip ADC sample: crate " << crate << " slot " << slot << " chan " << chan<< endl;
+  // for( int k=0; k<strip.fNsamp; k++ ) {
+  //   cout << strip.fADC[k] << " ";
+  // }
+  // cout << endl;
   return mc;
 }
 
@@ -397,14 +403,15 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     Int_t crate, slot, chan;
     //cout << "striptoroc: " << endl;
     StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );
-    //cout << "done: crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;
+    //cout << "crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;
+    //cout << "samples: " << endl;
     for( Int_t k = 0; k < s.fNsamp; k++ ) { 
-      //cout << "k " << k;
       Int_t raw = s.fADC[k];
-      //cout << ", raw " << raw << endl;
+      //cout << raw << " ";
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
 	return HED_ERR;
     }
+    //cout << endl;
     //cout << "stripmap : " << endl;
     // Build map from ROC address to strip index. This is needed to extract
     // the MC truth info later in the tracking detector decoder via GetMCChanInfo.
@@ -614,7 +621,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       Int_t crate, slot, chan;
       //StripToROC( 0, fManager->GetNSector(), kUPlane, primary_sector, crate, slot, chan );
       StripToROC( 0, fManager->GetNSector(), kXPlane, primary_sector, crate, slot, chan );
-      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
+       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
 	return HED_ERR;
       //StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );

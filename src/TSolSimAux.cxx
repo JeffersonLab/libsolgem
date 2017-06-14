@@ -16,7 +16,7 @@ TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
   if( val < 0. )
     val = 0.;
   Double_t vvv = (val - off)/gain;
-
+  //printf("offset = %1.3f, gain = %1.3f, input value = %1.3f , output value = %1.3f  \n", off, gain, val, vvv);
   Double_t saturation = static_cast<Double_t>( (1<<bits)-1 );
   if( vvv > saturation )
     vvv = saturation;
