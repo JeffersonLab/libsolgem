@@ -2,7 +2,7 @@ generalinfo.do_map_sector = 0
 generalinfo.self_define_sector = 0
 generalinfo.sector_mapped = 0
 generalinfo.nchamber = 10
-generalinfo.nsector = 4
+generalinfo.nsector = 1 #4
 generalinfo.nreadout = 2
 generalinfo.gem_drift_id = 6
 generalinfo.gem_copper_front_id = 5
@@ -11,7 +11,7 @@ generalinfo.gem_strip_id = 19
 generalinfo.faec_id = 3110000
 generalinfo.laec_id = 3210000
 generalinfo.chan_per_slot = 2048
-generalinfo.modules_per_readout = 1
+generalinfo.modules_per_readout = 3 #1
 
 generalinfo.nsignal = 1
 generalinfo.signal1.pid = 2212

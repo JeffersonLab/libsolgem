@@ -290,6 +290,16 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
   assert( strip.fProj >= 0 && strip.fProj < fManager->GetNReadOut() );
 
   MCHitInfo mc;
+  
+  if (TESTBIT(strip.fSigType, kInducedStrip) && !TESTBIT(strip.fSigType, kPrimaryStrip) &&
+      !TESTBIT(strip.fSigType, kSecondaryStrip) ){
+    mc.fMCTrack = 0;
+    mc.fMCPos = fManager->GetPosFromSectorStrip(strip.fProj, strip.fPlane, strip.fSector, strip.fChan);
+    mc.fMCTime = strip.fTime1;
+    //cout << "strip = " << strip.fChan << ", time = " << mc.fMCTime << ", pos = " <<  mc.fMCPos << endl;
+    return mc;
+  }
+  
   for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
     Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
     assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
@@ -323,7 +333,7 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
     }
     mc.fMCTime = strip.fTime1;
   }
-  
+
   // cout << "TSBSSimDecoder: GetMCHitInfo: strip ADC sample: crate " << crate << " slot " << slot << " chan " << chan<< endl;
   // for( int k=0; k<strip.fNsamp; k++ ) {
   //   cout << strip.fADC[k] << " ";
@@ -434,7 +444,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   assert( tracks );
   for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
     TSBSSimTrack* trk = static_cast<TSBSSimTrack*>(tracks->UncheckedAt(i));
-    new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
+   new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
   }
   assert( GetNMCTracks() > 0 );
 
@@ -471,7 +481,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 							  c.fPlane, kYPlane,
 							  c.fMCpos, c.fP );
       vpt->fMCTime = c.fTime;
-
+      
       // //debug...
       // cout << "TSBSSimDecoder.cxx: Print MC points " << endl;
       // cout << "kXplane ? " << kXPlane << endl;

@@ -384,9 +384,33 @@ int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
     break;
   }
   
+  //if no conditions were ever satisfied, return error value
+  return fErrVal;
 }
 
+//__________________________________________________________________________
+double TSolDBManager::GetPosFromSectorStrip(int iproj, int ichamber, int isector, int istrip)
+{
+  if (!CheckIndex(ichamber, isector, iproj)) return fErrVal;
+  
+  //cout << isector << " " << ichamber << " " << istrip;// << endl;
+  // cout << fGeoInfo.size() << " " << fGeoInfo[isector].size() << endl;
 
+  double pos = fErrVal;
+  if(iproj==0){
+    pos = fGeoInfo[isector].at(ichamber).pitch_u*istrip
+      -fGeoInfo[isector].at(ichamber).dx/2.0
+      -fGeoInfo[isector].at(ichamber).xoffset;
+  }
+  
+  if(iproj==1){
+    pos = fGeoInfo[isector].at(ichamber).pitch_v*istrip
+      -fGeoInfo[isector].at(ichamber).dy/2.0;
+  }
+  
+  //cout << " " << pos << endl;
+  return( pos );
+}
 
 
 

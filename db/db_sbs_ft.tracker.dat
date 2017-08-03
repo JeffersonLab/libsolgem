@@ -23,48 +23,41 @@ sbs_ft.tracker.${allsectors}.y.angle = 90
 # Each row is:     crate slot_lo slot_hi model# nchan
 #
 sbs_ft.tracker.${allsectors}.cratemap = \
-                   4     0       23      6425   2048 \
-                   5     0       23      6425   2048 \
+                   0     0       23      6425   2048
 
 # GEM detector maps
-# 3 sectors * 6 planes * 2 readout coordinates = 36 detectors
+# 1 sectors * 6 planes * 2 readout coordinates = 12 detectors
 #
-sbs_ft.tracker.1.x1.detmap = 4  0  0 1249
-sbs_ft.tracker.1.y1.detmap = 4  1  0 999
-sbs_ft.tracker.1.x2.detmap = 4  2  0 1249
-sbs_ft.tracker.1.y2.detmap = 4  3  0 999
-sbs_ft.tracker.1.x3.detmap = 4  4  0 1249
-sbs_ft.tracker.1.y3.detmap = 4  5  0 999
-sbs_ft.tracker.1.x4.detmap = 4  6  0 1249
-sbs_ft.tracker.1.y4.detmap = 4  7  0 999
-sbs_ft.tracker.1.x5.detmap = 4  8  0 1249
-sbs_ft.tracker.1.y5.detmap = 4  9  0 999
-sbs_ft.tracker.1.x6.detmap = 4  10 0 1249
-sbs_ft.tracker.1.y6.detmap = 4  11 0 999
-sbs_ft.tracker.2.x1.detmap = 4  12 0 1249
-sbs_ft.tracker.2.y1.detmap = 4  13 0 999
-sbs_ft.tracker.2.x2.detmap = 4  14 0 1249
-sbs_ft.tracker.2.y2.detmap = 4  15 0 999
-sbs_ft.tracker.2.x3.detmap = 4  16 0 1249
-sbs_ft.tracker.2.y3.detmap = 4  17 0 999
-sbs_ft.tracker.2.x4.detmap = 4  18 0 1249
-sbs_ft.tracker.2.y4.detmap = 4  19 0 999
-sbs_ft.tracker.2.x5.detmap = 4  20 0 1249
-sbs_ft.tracker.2.y5.detmap = 4  21 0 999
-sbs_ft.tracker.2.x6.detmap = 4  22 0 1249
-sbs_ft.tracker.2.y6.detmap = 4  23 0 999
-sbs_ft.tracker.3.x1.detmap = 5  0  0 1249
-sbs_ft.tracker.3.y1.detmap = 5  1  0 999
-sbs_ft.tracker.3.x2.detmap = 5  2  0 1249
-sbs_ft.tracker.3.y2.detmap = 5  3  0 999
-sbs_ft.tracker.3.x3.detmap = 5  4  0 1249
-sbs_ft.tracker.3.y3.detmap = 5  5  0 999
-sbs_ft.tracker.3.x4.detmap = 5  6  0 1249
-sbs_ft.tracker.3.y4.detmap = 5  7  0 999
-sbs_ft.tracker.3.x5.detmap = 5  8  0 1249
-sbs_ft.tracker.3.y5.detmap = 5  9  0 999
-sbs_ft.tracker.3.x6.detmap = 5  10 0 1249
-sbs_ft.tracker.3.y6.detmap = 5  11 0 999
+sbs_ft.tracker.1.x1.detmap = \
+                   0  0  0 2047 \
+                   0  1  0 1701
+sbs_ft.tracker.1.y1.detmap = \
+                   0  2  0 999
+sbs_ft.tracker.1.x2.detmap = \
+                   0  4  0 2047 \
+                   0  5  0 1701
+sbs_ft.tracker.1.y2.detmap = \
+                   0  6  0 999
+sbs_ft.tracker.1.x3.detmap = \
+                   0  8  0 2047 \
+                   0  9  0 1701
+sbs_ft.tracker.1.y3.detmap = \
+                   0  10 0 999
+sbs_ft.tracker.1.x4.detmap = \
+                   0  12 0 2047 \
+                   0  13 0 1701
+sbs_ft.tracker.1.y4.detmap = \
+                   0  14 0 999
+sbs_ft.tracker.1.x5.detmap = \
+                   0  16 0 2047 \
+                   0  17 0 1701
+sbs_ft.tracker.1.y5.detmap = \
+                   0  18 0 999
+sbs_ft.tracker.1.x6.detmap = \
+                   0  20 0 2047 \
+                   0  21 0 1701
+sbs_ft.tracker.1.y6.detmap = \
+                   0  22 0 999
 
 #-----------------------------------------------------------------
 #  X offset of the sectors (in transport coordinates)
@@ -72,17 +65,9 @@ sbs_ft.tracker.3.y6.detmap = 5  11 0 999
 #-----------------------------------------------------------------
 
 sbs_ft.tracker.1.dmag = 1.6125
-sbs_ft.tracker.1.xoff = -0.5
+sbs_ft.tracker.1.xoff = 0
 sbs_ft.tracker.1.thetaH = 16.9
 sbs_ft.tracker.1.thetaV = 5
-sbs_ft.tracker.2.dmag = 1.6125
-sbs_ft.tracker.2.xoff = 0
-sbs_ft.tracker.2.thetaH = 16.9
-sbs_ft.tracker.2.thetaV = 5
-sbs_ft.tracker.3.dmag = 1.6125
-sbs_ft.tracker.3.xoff = 0.5
-sbs_ft.tracker.3.thetaH = 16.9
-sbs_ft.tracker.3.thetaV = 5
 
 #-----------------------------------------------------------------
 # Tracker feature configuration
@@ -134,12 +119,12 @@ sbs_ft.tracker.do_histos = 0
 #-----------------------------------------------------------------
 
 sbs_ft.tracker.1.x1.description = x1 plane in sector 1
-sbs_ft.tracker.1.x1.nstrips = 1250
+sbs_ft.tracker.1.x1.nstrips = 3750
 sbs_ft.tracker.1.x1.partner = y1
-sbs_ft.tracker.1.x1.strip.pos = -0.25
+sbs_ft.tracker.1.x1.strip.pos = -0.75
 sbs_ft.tracker.1.x1.strip.pitch = 0.0004
 sbs_ft.tracker.1.x1.d0 = 1.83551
-sbs_ft.tracker.1.x1.dx = 0.5
+sbs_ft.tracker.1.x1.dx = 1.5
 sbs_ft.tracker.1.x1.dy = 0.4
 sbs_ft.tracker.1.x1.dz = 0.015955
 
@@ -149,17 +134,17 @@ sbs_ft.tracker.1.y1.partner = x1
 sbs_ft.tracker.1.y1.strip.pos = -0.2
 sbs_ft.tracker.1.y1.strip.pitch = 0.0004
 sbs_ft.tracker.1.y1.d0 = 1.83551
-sbs_ft.tracker.1.y1.dx = 0.5
+sbs_ft.tracker.1.y1.dx = 1.5
 sbs_ft.tracker.1.y1.dy = 0.4
 sbs_ft.tracker.1.y1.dz = 0.015955
 
 sbs_ft.tracker.1.x2.description = x2 plane in sector 1
-sbs_ft.tracker.1.x2.nstrips = 1250
+sbs_ft.tracker.1.x2.nstrips = 3750
 sbs_ft.tracker.1.x2.partner = y2
-sbs_ft.tracker.1.x2.strip.pos = -0.25
+sbs_ft.tracker.1.x2.strip.pos = -0.75
 sbs_ft.tracker.1.x2.strip.pitch = 0.0004
 sbs_ft.tracker.1.x2.d0 = 1.92551
-sbs_ft.tracker.1.x2.dx = 0.5
+sbs_ft.tracker.1.x2.dx = 1.5
 sbs_ft.tracker.1.x2.dy = 0.4
 sbs_ft.tracker.1.x2.dz = 0.015955
 
@@ -169,17 +154,17 @@ sbs_ft.tracker.1.y2.partner = x2
 sbs_ft.tracker.1.y2.strip.pos = -0.2
 sbs_ft.tracker.1.y2.strip.pitch = 0.0004
 sbs_ft.tracker.1.y2.d0 = 1.92551
-sbs_ft.tracker.1.y2.dx = 0.5
+sbs_ft.tracker.1.y2.dx = 1.5
 sbs_ft.tracker.1.y2.dy = 0.4
 sbs_ft.tracker.1.y2.dz = 0.015955
 
 sbs_ft.tracker.1.x3.description = x3 plane in sector 1
-sbs_ft.tracker.1.x3.nstrips = 1250
+sbs_ft.tracker.1.x3.nstrips = 3750
 sbs_ft.tracker.1.x3.partner = y3
-sbs_ft.tracker.1.x3.strip.pos = -0.25
+sbs_ft.tracker.1.x3.strip.pos = -0.75
 sbs_ft.tracker.1.x3.strip.pitch = 0.0004
 sbs_ft.tracker.1.x3.d0 = 2.01551
-sbs_ft.tracker.1.x3.dx = 0.5
+sbs_ft.tracker.1.x3.dx = 1.5
 sbs_ft.tracker.1.x3.dy = 0.4
 sbs_ft.tracker.1.x3.dz = 0.015955
 
@@ -189,17 +174,17 @@ sbs_ft.tracker.1.y3.partner = x3
 sbs_ft.tracker.1.y3.strip.pos = -0.2
 sbs_ft.tracker.1.y3.strip.pitch = 0.0004
 sbs_ft.tracker.1.y3.d0 = 2.01551
-sbs_ft.tracker.1.y3.dx = 0.5
+sbs_ft.tracker.1.y3.dx = 1.5
 sbs_ft.tracker.1.y3.dy = 0.4
 sbs_ft.tracker.1.y3.dz = 0.015955
 
 sbs_ft.tracker.1.x4.description = x4 plane in sector 1
-sbs_ft.tracker.1.x4.nstrips = 1250
+sbs_ft.tracker.1.x4.nstrips = 3750
 sbs_ft.tracker.1.x4.partner = y4
-sbs_ft.tracker.1.x4.strip.pos = -0.25
+sbs_ft.tracker.1.x4.strip.pos = -0.75
 sbs_ft.tracker.1.x4.strip.pitch = 0.0004
 sbs_ft.tracker.1.x4.d0 = 2.10551
-sbs_ft.tracker.1.x4.dx = 0.5
+sbs_ft.tracker.1.x4.dx = 1.5
 sbs_ft.tracker.1.x4.dy = 0.4
 sbs_ft.tracker.1.x4.dz = 0.015955
 
@@ -209,17 +194,17 @@ sbs_ft.tracker.1.y4.partner = x4
 sbs_ft.tracker.1.y4.strip.pos = -0.2
 sbs_ft.tracker.1.y4.strip.pitch = 0.0004
 sbs_ft.tracker.1.y4.d0 = 2.10551
-sbs_ft.tracker.1.y4.dx = 0.5
+sbs_ft.tracker.1.y4.dx = 1.5
 sbs_ft.tracker.1.y4.dy = 0.4
 sbs_ft.tracker.1.y4.dz = 0.015955
 
 sbs_ft.tracker.1.x5.description = x5 plane in sector 1
-sbs_ft.tracker.1.x5.nstrips = 1250
+sbs_ft.tracker.1.x5.nstrips = 3750
 sbs_ft.tracker.1.x5.partner = y5
-sbs_ft.tracker.1.x5.strip.pos = -0.25
+sbs_ft.tracker.1.x5.strip.pos = -0.75
 sbs_ft.tracker.1.x5.strip.pitch = 0.0004
 sbs_ft.tracker.1.x5.d0 = 2.19551
-sbs_ft.tracker.1.x5.dx = 0.5
+sbs_ft.tracker.1.x5.dx = 1.5
 sbs_ft.tracker.1.x5.dy = 0.4
 sbs_ft.tracker.1.x5.dz = 0.015955
 
@@ -229,17 +214,17 @@ sbs_ft.tracker.1.y5.partner = x5
 sbs_ft.tracker.1.y5.strip.pos = -0.2
 sbs_ft.tracker.1.y5.strip.pitch = 0.0004
 sbs_ft.tracker.1.y5.d0 = 2.19551
-sbs_ft.tracker.1.y5.dx = 0.5
+sbs_ft.tracker.1.y5.dx = 1.5
 sbs_ft.tracker.1.y5.dy = 0.4
 sbs_ft.tracker.1.y5.dz = 0.015955
 
 sbs_ft.tracker.1.x6.description = x6 plane in sector 1
-sbs_ft.tracker.1.x6.nstrips = 1250
+sbs_ft.tracker.1.x6.nstrips = 3750
 sbs_ft.tracker.1.x6.partner = y6
-sbs_ft.tracker.1.x6.strip.pos = -0.25
+sbs_ft.tracker.1.x6.strip.pos = -0.75
 sbs_ft.tracker.1.x6.strip.pitch = 0.0004
 sbs_ft.tracker.1.x6.d0 = 2.28551
-sbs_ft.tracker.1.x6.dx = 0.5
+sbs_ft.tracker.1.x6.dx = 1.5
 sbs_ft.tracker.1.x6.dy = 0.4
 sbs_ft.tracker.1.x6.dz = 0.015955
 
@@ -249,247 +234,7 @@ sbs_ft.tracker.1.y6.partner = x6
 sbs_ft.tracker.1.y6.strip.pos = -0.2
 sbs_ft.tracker.1.y6.strip.pitch = 0.0004
 sbs_ft.tracker.1.y6.d0 = 2.28551
-sbs_ft.tracker.1.y6.dx = 0.5
+sbs_ft.tracker.1.y6.dx = 1.5
 sbs_ft.tracker.1.y6.dy = 0.4
 sbs_ft.tracker.1.y6.dz = 0.015955
-
-sbs_ft.tracker.2.x1.description = x1 plane in sector 2
-sbs_ft.tracker.2.x1.nstrips = 1250
-sbs_ft.tracker.2.x1.partner = y1
-sbs_ft.tracker.2.x1.strip.pos = -0.25
-sbs_ft.tracker.2.x1.strip.pitch = 0.0004
-sbs_ft.tracker.2.x1.d0 = 1.83551
-sbs_ft.tracker.2.x1.dx = 0.5
-sbs_ft.tracker.2.x1.dy = 0.4
-sbs_ft.tracker.2.x1.dz = 0.015955
-
-sbs_ft.tracker.2.y1.description = y1 plane in sector 2
-sbs_ft.tracker.2.y1.nstrips = 1000
-sbs_ft.tracker.2.y1.partner = x1
-sbs_ft.tracker.2.y1.strip.pos = -0.2
-sbs_ft.tracker.2.y1.strip.pitch = 0.0004
-sbs_ft.tracker.2.y1.d0 = 1.83551
-sbs_ft.tracker.2.y1.dx = 0.5
-sbs_ft.tracker.2.y1.dy = 0.4
-sbs_ft.tracker.2.y1.dz = 0.015955
-
-sbs_ft.tracker.2.x2.description = x2 plane in sector 2
-sbs_ft.tracker.2.x2.nstrips = 1250
-sbs_ft.tracker.2.x2.partner = y2
-sbs_ft.tracker.2.x2.strip.pos = -0.25
-sbs_ft.tracker.2.x2.strip.pitch = 0.0004
-sbs_ft.tracker.2.x2.d0 = 1.92551
-sbs_ft.tracker.2.x2.dx = 0.5
-sbs_ft.tracker.2.x2.dy = 0.4
-sbs_ft.tracker.2.x2.dz = 0.015955
-
-sbs_ft.tracker.2.y2.description = y2 plane in sector 2
-sbs_ft.tracker.2.y2.nstrips = 1000
-sbs_ft.tracker.2.y2.partner = x2
-sbs_ft.tracker.2.y2.strip.pos = -0.2
-sbs_ft.tracker.2.y2.strip.pitch = 0.0004
-sbs_ft.tracker.2.y2.d0 = 1.92551
-sbs_ft.tracker.2.y2.dx = 0.5
-sbs_ft.tracker.2.y2.dy = 0.4
-sbs_ft.tracker.2.y2.dz = 0.015955
-
-sbs_ft.tracker.2.x3.description = x3 plane in sector 2
-sbs_ft.tracker.2.x3.nstrips = 1250
-sbs_ft.tracker.2.x3.partner = y3
-sbs_ft.tracker.2.x3.strip.pos = -0.25
-sbs_ft.tracker.2.x3.strip.pitch = 0.0004
-sbs_ft.tracker.2.x3.d0 = 2.01551
-sbs_ft.tracker.2.x3.dx = 0.5
-sbs_ft.tracker.2.x3.dy = 0.4
-sbs_ft.tracker.2.x3.dz = 0.015955
-
-sbs_ft.tracker.2.y3.description = y3 plane in sector 2
-sbs_ft.tracker.2.y3.nstrips = 1000
-sbs_ft.tracker.2.y3.partner = x3
-sbs_ft.tracker.2.y3.strip.pos = -0.2
-sbs_ft.tracker.2.y3.strip.pitch = 0.0004
-sbs_ft.tracker.2.y3.d0 = 2.01551
-sbs_ft.tracker.2.y3.dx = 0.5
-sbs_ft.tracker.2.y3.dy = 0.4
-sbs_ft.tracker.2.y3.dz = 0.015955
-
-sbs_ft.tracker.2.x4.description = x4 plane in sector 2
-sbs_ft.tracker.2.x4.nstrips = 1250
-sbs_ft.tracker.2.x4.partner = y4
-sbs_ft.tracker.2.x4.strip.pos = -0.25
-sbs_ft.tracker.2.x4.strip.pitch = 0.0004
-sbs_ft.tracker.2.x4.d0 = 2.10551
-sbs_ft.tracker.2.x4.dx = 0.5
-sbs_ft.tracker.2.x4.dy = 0.4
-sbs_ft.tracker.2.x4.dz = 0.015955
-
-sbs_ft.tracker.2.y4.description = y4 plane in sector 2
-sbs_ft.tracker.2.y4.nstrips = 1000
-sbs_ft.tracker.2.y4.partner = x4
-sbs_ft.tracker.2.y4.strip.pos = -0.2
-sbs_ft.tracker.2.y4.strip.pitch = 0.0004
-sbs_ft.tracker.2.y4.d0 = 2.10551
-sbs_ft.tracker.2.y4.dx = 0.5
-sbs_ft.tracker.2.y4.dy = 0.4
-sbs_ft.tracker.2.y4.dz = 0.015955
-
-sbs_ft.tracker.2.x5.description = x5 plane in sector 2
-sbs_ft.tracker.2.x5.nstrips = 1250
-sbs_ft.tracker.2.x5.partner = y5
-sbs_ft.tracker.2.x5.strip.pos = -0.25
-sbs_ft.tracker.2.x5.strip.pitch = 0.0004
-sbs_ft.tracker.2.x5.d0 = 2.19551
-sbs_ft.tracker.2.x5.dx = 0.5
-sbs_ft.tracker.2.x5.dy = 0.4
-sbs_ft.tracker.2.x5.dz = 0.015955
-
-sbs_ft.tracker.2.y5.description = y5 plane in sector 2
-sbs_ft.tracker.2.y5.nstrips = 1000
-sbs_ft.tracker.2.y5.partner = x5
-sbs_ft.tracker.2.y5.strip.pos = -0.2
-sbs_ft.tracker.2.y5.strip.pitch = 0.0004
-sbs_ft.tracker.2.y5.d0 = 2.19551
-sbs_ft.tracker.2.y5.dx = 0.5
-sbs_ft.tracker.2.y5.dy = 0.4
-sbs_ft.tracker.2.y5.dz = 0.015955
-
-sbs_ft.tracker.2.x6.description = x6 plane in sector 2
-sbs_ft.tracker.2.x6.nstrips = 1250
-sbs_ft.tracker.2.x6.partner = y6
-sbs_ft.tracker.2.x6.strip.pos = -0.25
-sbs_ft.tracker.2.x6.strip.pitch = 0.0004
-sbs_ft.tracker.2.x6.d0 = 2.28551
-sbs_ft.tracker.2.x6.dx = 0.5
-sbs_ft.tracker.2.x6.dy = 0.4
-sbs_ft.tracker.2.x6.dz = 0.015955
-
-sbs_ft.tracker.2.y6.description = y6 plane in sector 2
-sbs_ft.tracker.2.y6.nstrips = 1000
-sbs_ft.tracker.2.y6.partner = x6
-sbs_ft.tracker.2.y6.strip.pos = -0.2
-sbs_ft.tracker.2.y6.strip.pitch = 0.0004
-sbs_ft.tracker.2.y6.d0 = 2.28551
-sbs_ft.tracker.2.y6.dx = 0.5
-sbs_ft.tracker.2.y6.dy = 0.4
-sbs_ft.tracker.2.y6.dz = 0.015955
-
-sbs_ft.tracker.3.x1.description = x1 plane in sector 3
-sbs_ft.tracker.3.x1.nstrips = 1250
-sbs_ft.tracker.3.x1.partner = y1
-sbs_ft.tracker.3.x1.strip.pos = -0.25
-sbs_ft.tracker.3.x1.strip.pitch = 0.0004
-sbs_ft.tracker.3.x1.d0 = 1.83551
-sbs_ft.tracker.3.x1.dx = 0.5
-sbs_ft.tracker.3.x1.dy = 0.4
-sbs_ft.tracker.3.x1.dz = 0.015955
-
-sbs_ft.tracker.3.y1.description = y1 plane in sector 3
-sbs_ft.tracker.3.y1.nstrips = 1000
-sbs_ft.tracker.3.y1.partner = x1
-sbs_ft.tracker.3.y1.strip.pos = -0.2
-sbs_ft.tracker.3.y1.strip.pitch = 0.0004
-sbs_ft.tracker.3.y1.d0 = 1.83551
-sbs_ft.tracker.3.y1.dx = 0.5
-sbs_ft.tracker.3.y1.dy = 0.4
-sbs_ft.tracker.3.y1.dz = 0.015955
-
-sbs_ft.tracker.3.x2.description = x2 plane in sector 3
-sbs_ft.tracker.3.x2.nstrips = 1250
-sbs_ft.tracker.3.x2.partner = y2
-sbs_ft.tracker.3.x2.strip.pos = -0.25
-sbs_ft.tracker.3.x2.strip.pitch = 0.0004
-sbs_ft.tracker.3.x2.d0 = 1.92551
-sbs_ft.tracker.3.x2.dx = 0.5
-sbs_ft.tracker.3.x2.dy = 0.4
-sbs_ft.tracker.3.x2.dz = 0.015955
-
-sbs_ft.tracker.3.y2.description = y2 plane in sector 3
-sbs_ft.tracker.3.y2.nstrips = 1000
-sbs_ft.tracker.3.y2.partner = x2
-sbs_ft.tracker.3.y2.strip.pos = -0.2
-sbs_ft.tracker.3.y2.strip.pitch = 0.0004
-sbs_ft.tracker.3.y2.d0 = 1.92551
-sbs_ft.tracker.3.y2.dx = 0.5
-sbs_ft.tracker.3.y2.dy = 0.4
-sbs_ft.tracker.3.y2.dz = 0.015955
-
-sbs_ft.tracker.3.x3.description = x3 plane in sector 3
-sbs_ft.tracker.3.x3.nstrips = 1250
-sbs_ft.tracker.3.x3.partner = y3
-sbs_ft.tracker.3.x3.strip.pos = -0.25
-sbs_ft.tracker.3.x3.strip.pitch = 0.0004
-sbs_ft.tracker.3.x3.d0 = 2.01551
-sbs_ft.tracker.3.x3.dx = 0.5
-sbs_ft.tracker.3.x3.dy = 0.4
-sbs_ft.tracker.3.x3.dz = 0.015955
-
-sbs_ft.tracker.3.y3.description = y3 plane in sector 3
-sbs_ft.tracker.3.y3.nstrips = 1000
-sbs_ft.tracker.3.y3.partner = x3
-sbs_ft.tracker.3.y3.strip.pos = -0.2
-sbs_ft.tracker.3.y3.strip.pitch = 0.0004
-sbs_ft.tracker.3.y3.d0 = 2.01551
-sbs_ft.tracker.3.y3.dx = 0.5
-sbs_ft.tracker.3.y3.dy = 0.4
-sbs_ft.tracker.3.y3.dz = 0.015955
-
-sbs_ft.tracker.3.x4.description = x4 plane in sector 3
-sbs_ft.tracker.3.x4.nstrips = 1250
-sbs_ft.tracker.3.x4.partner = y4
-sbs_ft.tracker.3.x4.strip.pos = -0.25
-sbs_ft.tracker.3.x4.strip.pitch = 0.0004
-sbs_ft.tracker.3.x4.d0 = 2.10551
-sbs_ft.tracker.3.x4.dx = 0.5
-sbs_ft.tracker.3.x4.dy = 0.4
-sbs_ft.tracker.3.x4.dz = 0.015955
-
-sbs_ft.tracker.3.y4.description = y4 plane in sector 3
-sbs_ft.tracker.3.y4.nstrips = 1000
-sbs_ft.tracker.3.y4.partner = x4
-sbs_ft.tracker.3.y4.strip.pos = -0.2
-sbs_ft.tracker.3.y4.strip.pitch = 0.0004
-sbs_ft.tracker.3.y4.d0 = 2.10551
-sbs_ft.tracker.3.y4.dx = 0.5
-sbs_ft.tracker.3.y4.dy = 0.4
-sbs_ft.tracker.3.y4.dz = 0.015955
-
-sbs_ft.tracker.3.x5.description = x5 plane in sector 3
-sbs_ft.tracker.3.x5.nstrips = 1250
-sbs_ft.tracker.3.x5.partner = y5
-sbs_ft.tracker.3.x5.strip.pos = -0.25
-sbs_ft.tracker.3.x5.strip.pitch = 0.0004
-sbs_ft.tracker.3.x5.d0 = 2.19551
-sbs_ft.tracker.3.x5.dx = 0.5
-sbs_ft.tracker.3.x5.dy = 0.4
-sbs_ft.tracker.3.x5.dz = 0.015955
-
-sbs_ft.tracker.3.y5.description = y5 plane in sector 3
-sbs_ft.tracker.3.y5.nstrips = 1000
-sbs_ft.tracker.3.y5.partner = x5
-sbs_ft.tracker.3.y5.strip.pos = -0.2
-sbs_ft.tracker.3.y5.strip.pitch = 0.0004
-sbs_ft.tracker.3.y5.d0 = 2.19551
-sbs_ft.tracker.3.y5.dx = 0.5
-sbs_ft.tracker.3.y5.dy = 0.4
-sbs_ft.tracker.3.y5.dz = 0.015955
-
-sbs_ft.tracker.3.x6.description = x6 plane in sector 3
-sbs_ft.tracker.3.x6.nstrips = 1250
-sbs_ft.tracker.3.x6.partner = y6
-sbs_ft.tracker.3.x6.strip.pos = -0.25
-sbs_ft.tracker.3.x6.strip.pitch = 0.0004
-sbs_ft.tracker.3.x6.d0 = 2.28551
-sbs_ft.tracker.3.x6.dx = 0.5
-sbs_ft.tracker.3.x6.dy = 0.4
-sbs_ft.tracker.3.x6.dz = 0.015955
-
-sbs_ft.tracker.3.y6.description = y6 plane in sector 3
-sbs_ft.tracker.3.y6.nstrips = 1000
-sbs_ft.tracker.3.y6.partner = x6
-sbs_ft.tracker.3.y6.strip.pos = -0.2
-sbs_ft.tracker.3.y6.strip.pitch = 0.0004
-sbs_ft.tracker.3.y6.d0 = 2.28551
-sbs_ft.tracker.3.y6.dx = 0.5
-sbs_ft.tracker.3.y6.dy = 0.4
-sbs_ft.tracker.3.y6.dz = 0.015955
 

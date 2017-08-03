@@ -74,6 +74,7 @@ public:
     const double &   GetPitch(int i, int j, int k);
     
     int GetSectorIDFromPos(int ichamber, double x, double y = 0);
+    double GetPosFromSectorStrip(int iproj, int ichamber, int isector, int istrip);
     
 protected:
     TSolDBManager();
