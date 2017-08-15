@@ -101,15 +101,15 @@ sbs_bbgem.tracker.3.y5.detmap = \
 
 sbs_bbgem.tracker.1.dmag = 1.875
 sbs_bbgem.tracker.1.xoff = -0.5
-sbs_bbgem.tracker.1.thetaH = -33
+#sbs_bbgem.tracker.1.thetaH = -33
 sbs_bbgem.tracker.1.thetaV = 10
 sbs_bbgem.tracker.2.dmag = 1.875
 sbs_bbgem.tracker.2.xoff = 0
-sbs_bbgem.tracker.2.thetaH = -33
+#sbs_bbgem.tracker.2.thetaH = -33
 sbs_bbgem.tracker.2.thetaV = 10
 sbs_bbgem.tracker.3.dmag = 1.875
 sbs_bbgem.tracker.3.xoff = 0.5
-sbs_bbgem.tracker.3.thetaH = -33
+#sbs_bbgem.tracker.3.thetaH = -33
 sbs_bbgem.tracker.3.thetaV = 10
 
 #-----------------------------------------------------------------
