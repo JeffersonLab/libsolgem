@@ -12,6 +12,7 @@
 #include "ha_compiledata.h"
 #include <cassert>
 #include <map>
+#include "TSolDBManager.h"
 
 class THaCrateMap;
 
@@ -166,6 +167,8 @@ protected:
   //		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
   Int_t StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const;
   // Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
+  
+  std::vector<SignalInfo> fSignalInfo;
   
   ClassDef(TSBSSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };

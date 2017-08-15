@@ -54,6 +54,11 @@ TSBSSimDecoder::TSBSSimDecoder()
   DefineVariables();
 
   gSystem->Load("libEG.so");  // for TDatabasePDG
+  
+  for (int i=0; i<fManager->GetNSigParticle(); i++){
+    fSignalInfo.push_back(SignalInfo(fManager->GetSigPID(i),
+                                     fManager->GetSigTID(i)));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -300,6 +305,58 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
     return mc;
   }
   
+  Double_t nOverlapSignal = 0.;
+  for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
+    Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
+    assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
+    const TSBSSimEvent::GEMCluster& c = simEvent->fGEMClust[iclust];
+    assert( c.fID == iclust+1 );
+    assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
+    
+    Int_t signalID = -1;
+    for (unsigned int ii = 0; ii<fSignalInfo.size(); ii++){
+      if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid)
+	signalID = ii;
+    }
+    // cout << "Plane " << strip.fPlane << ", proj (x: 0, y: 1) " << strip.fProj 
+    //  	 << ": pos[proj] = "  << c.fXProj[strip.fProj] << endl;
+    if( signalID >= 0 && c.fSource == kPrimarySource ) {
+      if( mc.fMCTrack > 0 ) {
+        //this means that there two signal hits overlapping
+        //for now I keep the fMCTrack to the first one, by average the fMCPos nad fMCTime
+        //Weizhi Xiong
+        //assert(manager->GetNSigParticle() > 1); //otherwise should not happen
+        
+        mc.fMCPos += c.fXProj[strip.fProj];
+        mc.fMCTime += c.fTime; 
+      }else{
+        // Strip contains a contribution from a primary particle hit :)
+        mc.fMCTrack = fSignalInfo.at(signalID).tid; 
+        mc.fMCPos   = c.fXProj[strip.fProj];
+        mc.fMCTime  = c.fTime;
+      }
+      nOverlapSignal++;
+    } else {
+      ++mc.fContam;
+      if( mc.fMCTrack == 0 ) {
+	mc.fMCPos += c.fXProj[strip.fProj];
+      }
+    }
+  }
+  assert( strip.fClusters.GetSize() == 0 || mc.fMCTrack > 0 || mc.fContam > 0 );
+  
+  if( mc.fMCTrack == 0 ) {
+    if( mc.fContam > 1 ) {
+      // If only background hits, report the mean position of all those hits
+      mc.fMCPos /= static_cast<Double_t>(mc.fContam);
+    }
+    mc.fMCTime = strip.fTime1;
+  }else{
+    mc.fMCPos /= nOverlapSignal;
+    mc.fMCTime /= nOverlapSignal;
+  }
+  
+/*
   for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
     Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
     assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
@@ -339,6 +396,7 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
   //   cout << strip.fADC[k] << " ";
   // }
   // cout << endl;
+  */
   return mc;
 }
 

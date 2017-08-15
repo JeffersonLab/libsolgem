@@ -81,7 +81,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       			 parent->GetBox().GetXOffset(),
       			 parent->GetBox().GetDX(),
       			 parent->GetBox().GetDY(),
-      			 parent->GetBox().GetThetaH(),
+      			 //parent->GetBox().GetThetaH(),
       			 parent->GetBox().GetThetaV());
       
       //d0 = fOrigin[2];
@@ -94,7 +94,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       Double_t xoffset = -999.0;
       Double_t dx = -999.0;
       Double_t dy = -999.0;
-      Double_t thetaH = -999.0;
+      //Double_t thetaH = -999.0;
       Double_t thetaV = -999.0;
       const DBRequest request[] = 
 	{
@@ -103,7 +103,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 	  {"xoffset",     &xoffset,      kDouble, 0, 1},
 	  {"dx",          &dx,           kDouble, 0, 1},
 	  {"dy",          &dy,           kDouble, 0, 1},
-	  {"thetaH",      &thetaH,       kDouble, 0, 1},
+	  //{"thetaH",      &thetaH,       kDouble, 0, 1},
 	  {"thetaV",      &thetaV,       kDouble, 0, 1},
 	  {0}
 	};
@@ -113,10 +113,11 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 	return err;
 
       // Database specifies angles in degrees, convert to radians
-      thetaH *= torad;
+      //thetaH *= torad;
       thetaV *= torad;
       
-      fBox->SetGeometry (dmag, d0, xoffset, dx, dy, thetaH, thetaV);
+      fBox->SetGeometry (dmag, d0, xoffset, dx, dy, //thetaH, 
+			 thetaV);
 
       fOrigin[0] = (fBox->GetOrigin())[0];
       fOrigin[1] = (fBox->GetOrigin())[1];
@@ -347,7 +348,7 @@ TSBSGEMPlane::Print(bool printcham) const
 	 << " XOffset: " << fBox->GetXOffset()
 	 << " DX: " << fBox->GetDX()
 	 << " DY: " << fBox->GetDY()
-	 << " theta_H: " << fBox->GetThetaH()*TMath::RadToDeg()
+      //<< " theta_H: " << fBox->GetThetaH()*TMath::RadToDeg()
 	 << " theta_V: " << fBox->GetThetaV()*TMath::RadToDeg() 
 	 << endl;
   }
@@ -371,42 +372,42 @@ TSBSGEMPlane::SetRotations()
   fSBS = sin (-GetSAngle());
   
   /*
-  Double_t thetaH = fBox->GetThetaH();
-  Double_t thetaV = fBox->GetThetaV();
+  // Double_t thetaH = fBox->GetThetaH();
+  // Double_t thetaV = fBox->GetThetaV();
 
-  // arrays of variables for the matrices
-  Double_t arr_roty0[9] = {cos(thetaH), 0, sin(thetaH),
-			  0,            1,           0,
-			  -sin(thetaH), 0, cos(thetaH)};
-  Double_t arr_rotx1[9] = {1,           0,            0,
-			   0, cos(thetaV), -sin(thetaV),
-			   0, sin(thetaV),  cos(thetaV)};
-  Double_t arr_rotz2[9] = {0, -1,  0,
-			   1,  0,  0,
-			   0,  0,  1};
+  // // arrays of variables for the matrices
+  // Double_t arr_roty0[9] = {cos(thetaH), 0, sin(thetaH),
+  // 			  0,            1,           0,
+  // 			  -sin(thetaH), 0, cos(thetaH)};
+  // Double_t arr_rotx1[9] = {1,           0,            0,
+  // 			   0, cos(thetaV), -sin(thetaV),
+  // 			   0, sin(thetaV),  cos(thetaV)};
+  // Double_t arr_rotz2[9] = {0, -1,  0,
+  // 			   1,  0,  0,
+  // 			   0,  0,  1};
 
-  Double_t arr_rotsp[9] = {fCBS,  fSBS, 0,
-			   fSBS, -fCBS, 0,
-			   0,        0, 1};
-  //rotation to strip; assuming that by convention, x is orthogonal to the strips' extension 
+  // Double_t arr_rotsp[9] = {fCBS,  fSBS, 0,
+  // 			   fSBS, -fCBS, 0,
+  // 			   0,        0, 1};
+  // //rotation to strip; assuming that by convention, x is orthogonal to the strips' extension 
   
-  TMatrixD Roty0(3,3,arr_roty0);// rotation along hall pivot (y): spectrometer theta
-  TMatrixD Rotx1(3,3,arr_rotx1);// rotation along x': spectrometer bending
-  TMatrixD Rotz2(3,3,arr_rotz2);// rotation along z": box rotation
-  TMatrixD Rotsp(3,3,arr_rotsp);// ratotion along x': spectrometer bending
+  // TMatrixD Roty0(3,3,arr_roty0);// rotation along hall pivot (y): spectrometer theta
+  // TMatrixD Rotx1(3,3,arr_rotx1);// rotation along x': spectrometer bending
+  // TMatrixD Rotz2(3,3,arr_rotz2);// rotation along z": box rotation
+  // TMatrixD Rotsp(3,3,arr_rotsp);// ratotion along x': spectrometer bending
 
-  TMatrixD Rotzx(3,3,arr_rotz2);
-  TMatrixD Rotsz(3,3,arr_rotsp);
+  // TMatrixD Rotzx(3,3,arr_rotz2);
+  // TMatrixD Rotsz(3,3,arr_rotsp);
   
-  fRotMat_SL = new TMatrixD(3,3, arr_roty0);
+  // fRotMat_SL = new TMatrixD(3,3, arr_roty0);
   
-  // Set rotation angle trig functions
-  Rotsz.Mult(Rotsp, Rotz2);
-  Rotzx.Mult(Rotsz, Rotx1);
+  // // Set rotation angle trig functions
+  // Rotsz.Mult(Rotsp, Rotz2);
+  // Rotzx.Mult(Rotsz, Rotx1);
   
-  fRotMat_SL->Mult(Rotzx, Roty0);
+  // fRotMat_SL->Mult(Rotzx, Roty0);
   
-  fRotMat_LS = fRotMat_SL;
-  fRotMat_LS->Invert();
+  // fRotMat_LS = fRotMat_SL;
+  // fRotMat_LS->Invert();
   */
 }

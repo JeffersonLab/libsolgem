@@ -8,16 +8,18 @@ using namespace std;
 
 TSBSBox::TSBSBox (Double_t dmag, Double_t d0, Double_t xoffset, 
 		  Double_t dx, Double_t dy, 
-		  Double_t thetaH, Double_t thetaV)
+		  //Double_t thetaH, 
+		  Double_t thetaV)
   : fDMag(1),
     fD0(1),
     fXOffset(1),
     fDX(1),
     fDY(1),
-    fThetaH(0),
+    //fThetaH(0),
     fThetaV(0)
 {
-  SetGeometry (dmag, d0, xoffset, dx, dy, thetaH, thetaV);
+  SetGeometry (dmag, d0, xoffset, dx, dy, //thetaH, 
+	       thetaV);
 }
 
 Bool_t
@@ -47,7 +49,7 @@ TSBSBox::SetGeometry (const Double_t dmag,
 		      const Double_t xoffset,
 		      const Double_t dx,
 		      const Double_t dy,
-		      const Double_t thetaH,
+		      //const Double_t thetaH,
 		      const Double_t thetaV)
 {
   fDMag = dmag;
@@ -55,7 +57,7 @@ TSBSBox::SetGeometry (const Double_t dmag,
   fXOffset = xoffset;
   fDX = dx;
   fDY = dy;
-  fThetaH = thetaH;
+  //fThetaH = thetaH;
   fThetaV = thetaV;
 
   SetRotations();
@@ -105,9 +107,9 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const  // input and ou
 void
 TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
-  x = x + fDMag*sin(fThetaH)*1.0e3;
+  //x = x + fDMag*sin(fThetaH)*1.0e3;
   // neutral in y
-  z = z - fDMag*cos(fThetaH)*1.0e3;
+  //z = z - fDMag*cos(fThetaH)*1.0e3;
   
   return;
 }
@@ -168,9 +170,9 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and o
 void
 TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
-  x = x - fDMag*sin(fThetaH)*1.0e3;
+  //x = x - fDMag*sin(fThetaH)*1.0e3;
   // neutral in y
-  z = z + fDMag*cos(fThetaH)*1.0e3;
+  //z = z + fDMag*cos(fThetaH)*1.0e3;
   
   return;
 }
@@ -207,9 +209,12 @@ void
 TSBSBox::SetRotations()
 {
   // arrays of variables for the matrices
-  Double_t arr_roty0[9] = {cos(fThetaH),  0, sin(fThetaH),
-			  0,             1,            0,
-			  -sin(fThetaH), 0, cos(fThetaH)};
+  Double_t arr_roty0[9] = {1, 0, 0, 
+			   0, 1, 0,
+			   0, 0, 1};
+			   //cos(fThetaH),  0, sin(fThetaH),
+			   //0,             1,            0,
+			   //-sin(fThetaH), 0, cos(fThetaH)};
   Double_t arr_rotx1[9] = {1,            0,            0,
 			   0, cos(fThetaV), -sin(fThetaV),
 			   0, sin(fThetaV),  cos(fThetaV)};

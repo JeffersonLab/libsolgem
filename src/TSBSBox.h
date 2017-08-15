@@ -51,7 +51,8 @@ class TSBSBox
   // Default constructors and destructors.
   TSBSBox (Double_t dmag = 1.0, Double_t d0 = 1.0, Double_t xoffset = 0.0, 
 	   Double_t dx = 1.0, Double_t dy = 1.0, 
-	   Double_t thetaH = 0.0, Double_t thetaV = 0.0);
+	   //Double_t thetaH = 0.0, 
+	   Double_t thetaV = 0.0);
   virtual ~TSBSBox() {};
   
   // Members getters
@@ -60,7 +61,7 @@ class TSBSBox
   Double_t GetXOffset() const {return fXOffset;};
   Double_t GetDX() const {return fDX;};
   Double_t GetDY() const {return fDY;};
-  Double_t GetThetaH() const {return fThetaH;};
+  //Double_t GetThetaH() const {return fThetaH;};
   Double_t GetThetaV() const {return fThetaV;};
   
   TVector3 GetOrigin() const {return fOrigin;};
@@ -73,7 +74,7 @@ class TSBSBox
 		    const Double_t xoffset,
 		    const Double_t dx,
 		    const Double_t dy,
-		    const Double_t thetaH,
+		    //const Double_t thetaH,
 		    const Double_t thetaV);
     
   // Frame conversions methods:  Lab -> Box, Lab -> Spec -> Box, and reverse transformations
@@ -105,7 +106,7 @@ class TSBSBox
   Double_t fXOffset;
   Double_t fDX;
   Double_t fDY;
-  Double_t fThetaH;
+  //Double_t fThetaH;
   Double_t fThetaV;
 
   TVector3 fOrigin;

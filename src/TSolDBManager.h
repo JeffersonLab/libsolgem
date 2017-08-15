@@ -68,7 +68,7 @@ public:
     const double &   GetXOffset(int i, int j);
     const double &   GetDX(int i, int j);
     const double &   GetDY(int i, int j);
-    const double &   GetThetaH(int i, int j);
+    //const double &   GetThetaH(int i, int j);
     const double &   GetThetaV(int i, int j);
     const double &   GetStripAngle(int i, int j, int k);
     const double &   GetPitch(int i, int j, int k);

@@ -9,13 +9,28 @@ enum StripSignalType{
   kInducedStrip
 };
 
+struct SignalInfo{
+    Int_t pid;
+    Int_t tid;
+    Int_t fillBitsGEM;
+    Int_t fillBitsEC;
+    Int_t signalSector; //used if map sector
+    Double_t ECEDep;
+    Double_t momentum;
+    Double_t R;
+    SignalInfo() {}
+    SignalInfo(Int_t apid, Int_t atid):pid(apid), tid(atid),
+    fillBitsGEM(0), fillBitsEC(0), signalSector(-1), ECEDep(0.) {}
+    ~SignalInfo() {}
+};
+
 struct GeoInfo{
     double dmag;
     double d0;
     double xoffset;
     double dx;
     double dy;
-    double thetaH;
+  //double thetaH;
     double thetaV;
     double z;
     double depth;

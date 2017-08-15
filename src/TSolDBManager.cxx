@@ -119,7 +119,7 @@ void TSolDBManager::LoadGeoInfo(const string& prefix)
     {"xoffset",     &thisGeo.xoffset,      kDouble, 0, 1},
     {"dx",          &thisGeo.dx,           kDouble, 0, 1},
     {"dy",          &thisGeo.dy,           kDouble, 0, 1},
-    {"thetaH",      &thisGeo.thetaH,       kDouble, 0, 1},
+    //{"thetaH",      &thisGeo.thetaH,       kDouble, 0, 1},
     {"thetaV",      &thisGeo.thetaV,       kDouble, 0, 1},
     {"depth",       &thisGeo.depth,        kDouble, 0, 1},
     { 0 }
@@ -306,11 +306,11 @@ const double & TSolDBManager::GetDY(int i, int j)
   return fGeoInfo[j].at(i).dy;
 }
 //______________________________________________________________________
-const double & TSolDBManager::GetThetaH(int i, int j)
-{
-    if (!CheckIndex(i, j)) return fErrVal;
-    return fGeoInfo[j].at(i).thetaH;
-}
+// const double & TSolDBManager::GetThetaH(int i, int j)
+// {
+//     if (!CheckIndex(i, j)) return fErrVal;
+//     return fGeoInfo[j].at(i).thetaH;
+// }
 //______________________________________________________________________
 const double & TSolDBManager::GetThetaV(int i, int j)
 {
