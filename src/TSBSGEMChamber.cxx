@@ -75,7 +75,7 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   Double_t xoffset = -999.0;
   Double_t dx = -999.0;
   Double_t dy = -999.0;
-  Double_t thetaH = -999.0;
+  //Double_t thetaH = -999.0;
   Double_t thetaV = -999.0;
   Double_t depth = -999.0;
   const DBRequest request[] =
@@ -85,7 +85,7 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
       {"xoffset",     &xoffset,      kDouble, 0, 1},
       {"dx",          &dx,           kDouble, 0, 1},
       {"dy",          &dy,           kDouble, 0, 1},
-      {"thetaH",      &thetaH,       kDouble, 0, 1},
+      //{"thetaH",      &thetaH,       kDouble, 0, 1},
       {"thetaV",      &thetaV,       kDouble, 0, 1},
       {"depth",       &depth,        kDouble, 0, 1},
       {0}
@@ -97,11 +97,12 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
   
   // Database specifies angles in degrees, convert to radians
   Double_t torad = atan(1) / 45.0;
-  thetaH *= torad;
+  //thetaH *= torad;
   thetaV *= torad;
   
   // Set the geometry for the dependent TSBSBox
-  fBox->SetGeometry (dmag, d0, xoffset, dx, dy, thetaH, thetaV);
+  fBox->SetGeometry (dmag, d0, xoffset, dx, dy, //thetaH, 
+		     thetaV);
 
   fOrigin[0] = (fBox->GetOrigin())[0];
   fOrigin[1] = (fBox->GetOrigin())[1];
@@ -155,7 +156,7 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
        << " XOffset: " << fBox->GetXOffset()
        << " DX: " << fBox->GetDX()
        << " DY: " << fBox->GetDY()
-       << " thetaH: " << fBox->GetThetaH()*TMath::RadToDeg()
+    //<< " thetaH: " << fBox->GetThetaH()*TMath::RadToDeg()
        << " thetaV: " << fBox->GetThetaV()*TMath::RadToDeg()
        << endl;
   
