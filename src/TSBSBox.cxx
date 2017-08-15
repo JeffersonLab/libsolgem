@@ -107,6 +107,7 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const  // input and ou
 void
 TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
+  //TODO ? if possible: reprogram this, but using the spectrometer angle
   //x = x + fDMag*sin(fThetaH)*1.0e3;
   // neutral in y
   //z = z - fDMag*cos(fThetaH)*1.0e3;
@@ -170,6 +171,7 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and o
 void
 TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
 {
+  //TODO ? if possible: reprogram this, but using the spectrometer angle
   //x = x - fDMag*sin(fThetaH)*1.0e3;
   // neutral in y
   //z = z + fDMag*cos(fThetaH)*1.0e3;
