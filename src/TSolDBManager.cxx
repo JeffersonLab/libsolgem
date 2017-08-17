@@ -344,8 +344,8 @@ int TSolDBManager::GetSectorIDFromPos(int ichamber, double x, double y)
     //printf("%d: %1.2f, %1.2f \n", k, 
     //fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0,
     //fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0);
-    if(fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0<x && 
-       x<fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0){
+    if(fGeoInfo[k].at(ichamber).xoffset-fGeoInfo[k].at(ichamber).dx/2.0<=x && 
+       x<=fGeoInfo[k].at(ichamber).xoffset+fGeoInfo[k].at(ichamber).dx/2.0){
       //if(abs(sector)==1)
       //sector = k;// EFuchey, 2017/05/16: if the sector value is -1 then it is not being over ridden
       // if the sector value is 1, then it is being over ridden, 

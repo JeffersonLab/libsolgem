@@ -104,7 +104,7 @@ class TSBSGeant4File {
   Int_t GetSource() const { return fSource; }
   
   // This is actually where the data is read: 
-  Int_t ReadNextEvent();
+  Int_t ReadNextEvent(int d_flag = 0);
   
   //return the size of the hit arrays
   UInt_t GetNData() const { return fg4sbsHitData.size(); }

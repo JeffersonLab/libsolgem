@@ -6,8 +6,9 @@
 #ifndef __CINT__
 
 // Set following variables to 1 (and recompile) t get some useful printouts
-#define DEBUG 0
-#define WARNING 1
+#ifndef D_FLAG
+#define D_FLAG 1 //0: nothing; 1: warning; 2: debug;
+#endif
 
 TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
   fFilename[0] = '\0';
@@ -25,7 +26,7 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   ReadGasData("gasErange.txt"); // NB: See comment lines 128-129 of TSBSGeant4File.h 
   
   //Filling the table that will be used to calculate the low energy electron range in the gas. 
-#if DEBUG>0
+#if D_FLAG>1
   cout << "Initialization completed" << endl;
 #endif
 }
@@ -53,7 +54,7 @@ void TSBSGeant4File::ReadGasData(const char* filename){
       fgasErange.push_back(R/D_gas*1.0e-2);// in m...
     }
   }else{
-#if WARNING>1
+#if D_FLAG>1
     cout << "TSBSGeant4File Warning: file " << filename << " does not exist, using defaut values" << endl;
 #endif
     D_gas = 1.662E-03;
@@ -110,7 +111,7 @@ Int_t TSBSGeant4File::Open(){
     
     TChain* C1 = (TChain*)fFile->Get("T");//Get the tree from the file
     
-#if DEBUG>0 
+#if D_FLAG>1 
     cout << "Detector option " << fManager->Getg4sbsDetectorType() << endl;
 #endif
     
@@ -147,9 +148,9 @@ Int_t TSBSGeant4File::Close(){
     return ret;
 }
 
-Int_t TSBSGeant4File::ReadNextEvent(){
+Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   // Return 1 on success
-    
+  
   // Channel not open
   if( !fFile->IsOpen() ){ 
     fprintf(stderr, "%s %s line %d Channel not open\n",
@@ -163,7 +164,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   int n_gen = 0;//total number of tracks at the end of the event
   // bool newtrk, dupli;// These variables help avoid store many times the same MC track info
   bool res = false;
-    
+  
   fEvNum++;
 
   //cout << "Read Next Event: Evt " << fEvNum << endl;
@@ -172,10 +173,10 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   //Test that the next entry exist
   if( !res ){
     // Don't need to print this out.  Not really an error
-#if DEBUG>0
-    fprintf(stderr, "%s %s line %d: Channel read return is false...  probably end of file\n",
-	    __FILE__, __FUNCTION__, __LINE__ );
-#endif //DEBUG
+    if(d_flag>1){
+      fprintf(stderr, "%s %s line %d: Channel read return is false...  probably end of file\n",
+	      __FILE__, __FUNCTION__, __LINE__ );
+    } //DEBUG
     return 0;
   }
   
@@ -217,9 +218,9 @@ Int_t TSBSGeant4File::ReadNextEvent(){
   switch(fManager->Getg4sbsDetectorType()){
     
   case(1)://BB GEMs
-#if DEBUG>0
-    cout << "Number of Hits: " << fTree->Earm_BBGEM_hit_nhits << endl;
-#endif // DEBUG
+    if(d_flag>1){
+      cout << "Number of Hits: " << fTree->Earm_BBGEM_hit_nhits << endl;
+    } // DEBUG
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
       det_id = 1;
       
@@ -259,7 +260,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      X_in.Y()+9.185*fTree->Earm_BBGEM_hit_typ->at(i), // in mm 
 		      +7.685);//4.5025);// in mm      
       
-      //cout << "FPP2: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      //cout << "BBGEM: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Earm_BBGEM_hit_pid->at(i))==11 && fTree->Earm_BBGEM_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Earm_BBGEM_hit_txp->at(i), 2)+pow(fTree->Earm_BBGEM_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Earm_BBGEM_hit_p->at(i));//m
@@ -274,29 +275,29 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside BBGEM plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	       << ": X_out.X " << X_out.X() << " outside BBGEM plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
-	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
-	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	  cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
       
@@ -385,43 +386,43 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
       */
       
-#if DEBUG>0
-      cout << "Hit number: " << i << " BBGEM: X_global : " 
-	   << fTree->Earm_BBGEM_hit_xg->at(i) << ", " 
-	   << fTree->Earm_BBGEM_hit_yg->at(i) << ", " 
-	   << fTree->Earm_BBGEM_hit_zg->at(i) << endl;
-      cout << "X_local (g4sbs): " << fTree->Earm_BBGEM_hit_tx->at(i) << ", " 
-	   << fTree->Earm_BBGEM_hit_ty->at(i) << ", " 
-	   << fTree->Earm_BBGEM_hit_z->at(i) << endl;
-      cout << "detector ID: " << det_id << ", plane: " << plane << ", sector: " << sector << endl
-	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	   << "energy deposit (eV): " << edep << endl;
-      cout << "Momentum (MeV): ";
-      for(int k = 0; k<3; k++){
-	cout << Mom[k] << ", ";
-      }
-      cout << " norm " << fTree->Earm_BBGEM_hit_p->at(i) << endl;
-      cout << "hit position at drift entrance (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_in[k] << ", ";
-      }
-      cout << " time : " << tmin << endl;
-      cout << "hit position at drift exit (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_out[k] << " ";
-      }
-      cout << " time : " << tmax << endl;
-      cout << "hit position at readout (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_RO[k] << ", ";
-      }
-      cout << endl;
-      cout << "Vertex position (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << Vtx[k] << ", ";
-      }
-      cout << endl;
-#endif //DEBUG          
+      if(d_flag>1){
+	cout << "Hit number: " << i << " BBGEM: X_global : " 
+	     << fTree->Earm_BBGEM_hit_xg->at(i) << ", " 
+	     << fTree->Earm_BBGEM_hit_yg->at(i) << ", " 
+	     << fTree->Earm_BBGEM_hit_zg->at(i) << endl;
+	cout << "X_local (g4sbs): " << fTree->Earm_BBGEM_hit_tx->at(i) << ", " 
+	     << fTree->Earm_BBGEM_hit_ty->at(i) << ", " 
+	     << fTree->Earm_BBGEM_hit_z->at(i) << endl;
+	cout << "detector ID: " << det_id << ", plane: " << plane << ", sector: " << sector << endl
+	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	     << "energy deposit (eV): " << edep << endl;
+	cout << "Momentum (MeV): ";
+	for(int k = 0; k<3; k++){
+	  cout << Mom[k] << ", ";
+	}
+	cout << " norm " << fTree->Earm_BBGEM_hit_p->at(i) << endl;
+	cout << "hit position at drift entrance (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_in[k] << ", ";
+	}
+	cout << " time : " << tmin << endl;
+	cout << "hit position at drift exit (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_out[k] << " ";
+	}
+	cout << " time : " << tmax << endl;
+	cout << "hit position at readout (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_RO[k] << ", ";
+	}
+	cout << endl;
+	cout << "Vertex position (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << Vtx[k] << ", ";
+	}
+	cout << endl;
+      } //DEBUG          
     }//end loop on hits
     
     // Rescue ngen data here...
@@ -493,29 +494,29 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	       << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
-	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_SBSGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
-	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	  cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
       
@@ -678,29 +679,29 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	       << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
-	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FT_hit_tx->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FT_hit_tx->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	     << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
+	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
-	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FT_hit_ty->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	  cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FT_hit_ty->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
       
@@ -789,43 +790,43 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
       */
       // Print out block
-#if DEBUG>0
-      cout << "Hit number: " << i << " FT: X_global : " 
-	   << fTree->Harm_FT_hit_xg->at(i) << ", " 
-	   << fTree->Harm_FT_hit_yg->at(i) << ", " 
-	   << fTree->Harm_FT_hit_zg->at(i) << endl;
-      cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	   << "energy deposit (eV): " << edep << endl;
-      cout << "Momentum (MeV): ";
-      for(int k = 0; k<3; k++){
-	cout << Mom[k] << ", ";
-      }
-      cout << " norm " << fTree->Harm_FT_hit_p->at(i) << endl
-	   << "dpx/dpz = " << fTree->Harm_FT_hit_txp->at(i)
-	   << ", dpx/dpz = " << fTree->Harm_FT_hit_typ->at(i)
-	   << endl;
-      cout << "hit position at drift entrance (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_in[k] << ", ";
-      }
-      cout << " time : " << tmin << endl;
-      cout << "hit position at drift exit (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_out[k] << " ";
-      }
-      cout << " time : " << tmax << endl;
-      cout << "hit position at readout (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_RO[k] << ", ";
-      }
-      cout << endl;
-      cout << "Vertex position (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << Vtx[k] << ", ";
-      }
-      cout << endl;
-#endif //DEBUG
+      if(d_flag>1){
+	cout << "Hit number: " << i << " FT: X_global : " 
+	     << fTree->Harm_FT_hit_xg->at(i) << ", " 
+	     << fTree->Harm_FT_hit_yg->at(i) << ", " 
+	     << fTree->Harm_FT_hit_zg->at(i) << endl;
+	cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	     << "energy deposit (eV): " << edep << endl;
+	cout << "Momentum (MeV): ";
+	for(int k = 0; k<3; k++){
+	  cout << Mom[k] << ", ";
+	}
+	cout << " norm " << fTree->Harm_FT_hit_p->at(i) << endl
+	     << "dpx/dpz = " << fTree->Harm_FT_hit_txp->at(i)
+	     << ", dpx/dpz = " << fTree->Harm_FT_hit_typ->at(i)
+	     << endl;
+	cout << "hit position at drift entrance (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_in[k] << ", ";
+	}
+	cout << " time : " << tmin << endl;
+	cout << "hit position at drift exit (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_out[k] << " ";
+	}
+	cout << " time : " << tmax << endl;
+	cout << "hit position at readout (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_RO[k] << ", ";
+	}
+	cout << endl;
+	cout << "Vertex position (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << Vtx[k] << ", ";
+	}
+	cout << endl;
+      } //DEBUG
     }
     
     // Rescue ngen data here...
@@ -863,8 +864,12 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP1_hit_tmin->at(i);
       tmax = fTree->Harm_FPP1_hit_tmax->at(i);
-
+      
+      if(d_flag>1)cout << plane << " " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
+      
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
+
+      if(d_flag>1)cout << plane << ",  " << sector << ",  " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
       
       trid_hits.push_back(trid);
       
@@ -889,45 +894,45 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
 		      4.5025);// in mm      
        
-      //cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
+      if(d_flag>1)cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Harm_FPP1_hit_txp->at(i), 2)+pow(fTree->Harm_FPP1_hit_typ->at(i), 2))*3.0e-3;//m
 	eRangeGas = FindGasRange(fTree->Harm_FPP1_hit_p->at(i));//m
-	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+	if(d_flag>1)cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
        	if(eRangeSlope>eRangeGas){
        	  X_out.SetX(X_in.X()+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
 	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
 	  
 	  X_RO.SetX(X_out.X());
 	  X_RO.SetY(X_out.Y());
-	  //cout << "Coucou ! FPP1 " << endl;
+	  if(d_flag>1)cout << "Coucou ! FPP1 " << endl;
        	}
       }
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
+	       << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout << "; set at limit: " << X_out.X() << " mm " << endl;
-	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP1_hit_tx->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "; set at limit: " << X_out.X() << " mm " << endl;
+	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP1_hit_tx->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
+	       << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
-	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FPP1_hit_ty->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	  cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FPP1_hit_ty->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
       
@@ -1014,46 +1019,47 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
 	}
       */
-#if DEBUG>0
-      cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
-	   << fTree->Harm_FPP1_hit_xg->at(i) << ", " 
-	   << fTree->Harm_FPP1_hit_yg->at(i) << ", " 
-	   << fTree->Harm_FPP1_hit_zg->at(i) << endl;
-      cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	   << "energy deposit (MeV): " << edep << endl;
-      cout << "Momentum (MeV): ";
-      for(int k = 0; k<3; k++){
-	cout << Mom[k] << ", ";
-      }
-      cout << " norm " << fTree->Harm_FPP1_hit_p->at(i) << endl;
-      cout << "hit position at drift entrance (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_in[k] << ", ";
-      }
-      cout << " time : " << tmin << endl;
-      cout << "hit position at drift exit (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_out[k] << " ";
-      }
-      cout << " time : " << tmax << endl;
-      cout << "hit position at readout (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_RO[k] << ", ";
-      }
-      cout << endl;
-      cout << "Vertex position (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << Vtx[k] << ", ";
-      }
-      cout << endl;
-#endif //DEBUG 
+      if(d_flag>1){
+	cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
+	     << fTree->Harm_FPP1_hit_xg->at(i) << ", " 
+	     << fTree->Harm_FPP1_hit_yg->at(i) << ", " 
+	     << fTree->Harm_FPP1_hit_zg->at(i) << endl;
+	cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	     << "energy deposit (MeV): " << edep << endl;
+	cout << "Momentum (MeV): ";
+	for(int k = 0; k<3; k++){
+	  cout << Mom[k] << ", ";
+	}
+	cout << " norm " << fTree->Harm_FPP1_hit_p->at(i) << endl;
+	cout << "hit position at drift entrance (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_in[k] << ", ";
+	}
+	cout << " time : " << tmin << endl;
+	cout << "hit position at drift exit (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_out[k] << " ";
+	}
+	cout << " time : " << tmax << endl;
+	cout << "hit position at readout (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_RO[k] << ", ";
+	}
+	cout << endl;
+	cout << "Vertex position (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << Vtx[k] << ", ";
+	}
+	cout << endl;
+      } //DEBUG 
     }
     
     //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
     // This block is not well commented, 
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
+    if(d_flag>0)cout << "read FPP2" << endl;
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
       det_id = 4;
       
@@ -1103,31 +1109,31 @@ Int_t TSBSGeant4File::ReadNextEvent(){
       }
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " 
-	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " 
+	       << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	       << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.X() << " mm " << endl;
-	cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP2_hit_tx->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP2_hit_tx->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
-#if WARNING>0
-	cout << "Warning: Evt " << fEvNum << ", hit " 
-	     << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
-	     << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane << " sector " << sector;
-#endif //WARNING
+	if(d_flag>0){
+	  cout << "Warning: Evt " << fEvNum << ", hit " 
+	       << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	       << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane << " sector " << sector;
+	} //D_FLAG
 	temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
-#if WARNING>0
-	cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
-	cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FPP2_hit_ty->at(i)*1.0e3 << " mm)" << endl;
-#endif //WARNING
+	if(d_flag>0){
+	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
+	  cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Harm_FPP2_hit_ty->at(i)*1.0e3 << " mm)" << endl;
+	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
       
@@ -1213,40 +1219,40 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 	}
 	}
       */
-#if DEBUG>0
-      cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
-	   << fTree->Harm_FPP2_hit_xg->at(i) << ", " 
-	   << fTree->Harm_FPP2_hit_yg->at(i) << ", " 
-	   << fTree->Harm_FPP2_hit_zg->at(i) << endl;
-      cout << "detector ID: " << det_id << ", plane: " << plane << endl
-	   << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	   << "energy deposit (eV): " << edep << endl;
-      cout << "Momentum (MeV): ";
-      for(int k = 0; k<3; k++){
-	cout << Mom[k] << ", ";
-      }
-      cout << " norm " << fTree->Harm_FPP2_hit_p->at(i) << endl;
-      cout << "hit position at drift entrance (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_in[k] << ", ";
-      }
-      cout << " time : " << tmin << endl;
-      cout << "hit position at drift exit (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_out[k] << " ";
-      }
-      cout << " time : " << tmax << endl;
-      cout << "hit position at readout (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << X_RO[k] << ", ";
-      }
-      cout << endl;
-      cout << "Vertex position (mm): ";
-      for(int k = 0; k<3; k++){
-	cout << Vtx[k] << ", ";
-      }
-      cout << endl;
-#endif //DEBUG          
+      if(d_flag>1){
+	cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
+	     << fTree->Harm_FPP2_hit_xg->at(i) << ", " 
+	     << fTree->Harm_FPP2_hit_yg->at(i) << ", " 
+	     << fTree->Harm_FPP2_hit_zg->at(i) << endl;
+	cout << "detector ID: " << det_id << ", plane: " << plane << endl
+	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
+	     << "energy deposit (eV): " << edep << endl;
+	cout << "Momentum (MeV): ";
+	for(int k = 0; k<3; k++){
+	  cout << Mom[k] << ", ";
+	}
+	cout << " norm " << fTree->Harm_FPP2_hit_p->at(i) << endl;
+	cout << "hit position at drift entrance (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_in[k] << ", ";
+	}
+	cout << " time : " << tmin << endl;
+	cout << "hit position at drift exit (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_out[k] << " ";
+	}
+	cout << " time : " << tmax << endl;
+	cout << "hit position at readout (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << X_RO[k] << ", ";
+	}
+	cout << endl;
+	cout << "Vertex position (mm): ";
+	for(int k = 0; k<3; k++){
+	  cout << Vtx[k] << ", ";
+	}
+	cout << endl;
+      } //DEBUG          
     }
     
     // Rescue ngen data here...
@@ -1278,7 +1284,7 @@ Int_t TSBSGeant4File::ReadNextEvent(){
 void TSBSGeant4File::Clear(){
   // Clear out hit and generated data
 
-#if DEBUG>0
+#if D_FLAG>1
   fprintf(stderr, "%s %s line %d: Deleting hits\n",
 	  __FILE__, __FUNCTION__, __LINE__);
 #endif //DEBUG
@@ -1295,7 +1301,7 @@ void TSBSGeant4File::Clear(){
   fg4sbsHitData.clear();
   fg4sbsGenData.clear();
 
-#if DEBUG>0
+#if D_FLAG>1
   fprintf(stderr, "%s %s line %d: Hits deleted\n",
 	  __FILE__, __FUNCTION__, __LINE__);
 #endif //DEBUG
