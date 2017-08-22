@@ -981,10 +981,10 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	
 	//add noise only to those strips that are hit,
 	if( fPulseNoiseSigma > 0. && pulse > 0. )
-	  //pulse += GetPedNoise(phase, amp, b);
-	  pulse += fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
-	// if( fPulseNoiseSigma > 0.)
-	//   pulse = fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
+	  pulse += GetPedNoise(phase, amp, b);
+	  //pulse += fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
+	//if( fPulseNoiseSigma > 0.)
+	//pulse = fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
 	
 	Short_t dadc = TSolSimAux::ADCConvert( pulse,
 					       fADCoffset,
@@ -1053,8 +1053,8 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 inline Double_t TSBSSimGEMDigitization::GetPedNoise(Double_t &phase, Double_t& amp, Int_t& isample)
 {
   Double_t thisPhase = phase + isample*fEleSamplingPeriod;
-   return fTrnd.Gaus(0., fPulseNoiseSigma)
-     + amp*sin(2.*TMath::Pi()/fPulseNoisePeriod*thisPhase);
+  return fTrnd.Gaus(5*fPulseNoiseSigma, fPulseNoiseSigma) //fTrnd.Gaus(0., fPulseNoiseSigma)
+    + amp*sin(2.*TMath::Pi()/fPulseNoisePeriod*thisPhase);
 }
 //___________________________________________________________________________________
 void
