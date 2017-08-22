@@ -15,19 +15,19 @@ ratedig.max_ion = 10000
 
 # Electronics parameters:
 ratedig.triggeroffset = 125. # ns 
-ratedig.triggerjitter = 1.  # ns
+ratedig.triggerjitter = 3.  # ns
 ratedig.elesamplingpoints = 10
 ratedig.elesamplingperiod = 25.
 ratedig.adcoffset = 0.
 ratedig.adcgain = 1.
 ratedig.adcbits = 12
-ratedig.gatewidth = 400.
+ratedig.gatewidth = 250.
 
 # GEM pedestal noise
-ratedig.pulsenoisesigma = 15.
+ratedig.pulsenoisesigma = 7.
 ratedig.pulsenoiseperiod = 200. #ns
-ratedig.pulsenoiseampconst = 20. #ADC values
-ratedig.pulsenoiseampsigma = 5. #ADC values
+ratedig.pulsenoiseampconst = 0. #ADC values
+ratedig.pulsenoiseampsigma = 0. #ADC values
 
 # Pulse shaping parameters:
 ratedig.pulseshapetau0 = 38.3  # ns

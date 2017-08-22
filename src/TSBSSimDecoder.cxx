@@ -295,6 +295,9 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
   assert( strip.fProj >= 0 && strip.fProj < fManager->GetNReadOut() );
 
   MCHitInfo mc;
+
+  // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
+  //   printf("%f \n", strip.fTime1);
   
   if (TESTBIT(strip.fSigType, kInducedStrip) && !TESTBIT(strip.fSigType, kPrimaryStrip) &&
       !TESTBIT(strip.fSigType, kSecondaryStrip) ){

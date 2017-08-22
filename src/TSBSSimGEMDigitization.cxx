@@ -467,15 +467,28 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 	// Signal events occur at t = 0, smeared only by the trigger jitter
 	event_time[itime] = -trigger_jitter;
       }
+#if DBG_AVA > 0
+      if(event_time[itime]>-50.0 && is_background ){
+	cout << "Evt time " << event_time[itime] 
+	     << " ( -trigger_jitter = " << -trigger_jitter;
+	if(is_background) cout << ", -Gate Width =  " << -fGateWidth;
+	cout << ")" << endl;
+      }
+#endif
+      
       time_set[itime] = true;
     }
     // Time of the leading edge of this hit's avalance relative to the trigger
     Double_t time_zero = event_time[itime] + gdata.GetHitTime(ih) + fRTime0*1e9;
-    // cout << "time_zero " << time_zero 
-    //  	 << "; evt time " << event_time[itime] 
-    //  	 << "; hit time " << gdata.GetHitTime(ih)
-    //  	 << "; drift time " << fRTime0*1e9
-    //  	 << endl;
+    
+#if DBG_AVA > 0
+    if(time_zero>200.0)
+      cout << "time_zero " << time_zero 
+	   << "; evt time " << event_time[itime] 
+	   << "; hit time " << gdata.GetHitTime(ih)
+	   << "; drift time " << fRTime0*1e9
+	   << endl;
+#endif
     
     if (fRNIon > 0) {
       fdh = AvaModel (igem, spect, vv1, vv2, time_zero);

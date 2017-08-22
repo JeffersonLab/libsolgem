@@ -236,7 +236,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       sector = fManager->GetSectorIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
       if(sector==-1)continue;
-            
+      
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
 		   pow(fTree->Earm_BBGEM_hit_typ->at(i), 2) + 1.0) );
