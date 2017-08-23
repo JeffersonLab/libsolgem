@@ -21,10 +21,13 @@
 #endif
 
 void ReplayMCDigitized(const char* filename = "digitized", 
-		       const char* detsuffix = "bbgem",
-		       bool bkgd,
-		       Int_t nevent = -1, 
-		       Int_t nseg = 0, 
+		       const char* detsuffix = "bbgem",//detector suffix: 
+		       //"bbgem" for BigBite spectrometer (GMn, GEn, SIDIS);
+		       //"FT" for Front Tracker spectrometer (GEp);
+		       //"FPP" for Focal Plane Polarimeters (GEp).
+		       bool bkgd,// flag to indicate if digitized file includes background or not.
+		       Int_t nevent = -1, // number of events to process
+		       Int_t nseg = 0, // number of segments
 		       bool do_cuts = true )
 {
   if( nseg < 0 || nseg > 100 ) {

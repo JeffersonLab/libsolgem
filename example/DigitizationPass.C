@@ -1,9 +1,12 @@
 // Example "replay" script
 //#define DEBUG 1
 
-void DigitizationPass(int fspec = 1, 
-		      int Nmax = 1000, 
-		      int nbacktoadd = 2, // number of background *files* to add... 
+void DigitizationPass(int fspec = 1, // Spectrometer flag: 
+		      // 1 for BB GEMs(GMn, GEn, SIDIS); 
+		      // 3 for Front Tracker spectrometer (GEp);
+		      // 4 for Focal Plane Polarimter (GEp).
+		      int Nmax = 1000, //number of events to digitize
+		      int nbacktoadd = 2, // number of background *files* to add to each event
 		      bool print = false){
   printf("\n** This gets called with 'analyzer' and not 'root' **\n");
   printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
