@@ -950,9 +950,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       }
       
       //generate the random pedestal phase and amplitude
-      Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
-      Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
-
+      // Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
+      // Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
+      
       for (Int_t b = 0; b < fEleSamplingPoints; b++){
 	Double_t pulse =
 	  TSolSimAux::PulseShape (fEleSamplingPeriod * b - t0,
@@ -981,8 +981,8 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	
 	//add noise only to those strips that are hit,
 	if( fPulseNoiseSigma > 0. && pulse > 0. )
-	  pulse += GetPedNoise(phase, amp, b);
-	  //pulse += fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
+	  //pulse += GetPedNoise(phase, amp, b);
+	  pulse += fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
 	//if( fPulseNoiseSigma > 0.)
 	//pulse = fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
 	
