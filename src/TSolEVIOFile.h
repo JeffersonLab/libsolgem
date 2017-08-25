@@ -93,13 +93,13 @@ class TSolEVIOFile {
 	void  BuildGenerated( evio::evioDOMNodeList * );
   //	void  AddDatum(int crate, int slot, int chan, double data );
 
-	UInt_t GetNData() const { return fHitData.size(); }
-	UInt_t GetNGen() const { return fGenData.size(); }
+	UInt_t GetNData() const { return fEvioHitData.size(); }
+	UInt_t GetNGen() const { return fEvioGenData.size(); }
 
 	UInt_t GetEvNum() const { return fEvNum; }
 
-	hitdata *GetHitData(Int_t i) const { return fHitData[i]; }
-	gendata *GetGenData(Int_t i) const { return fGenData[i]; }
+	hitdata *GetHitData(Int_t i) const { return fEvioHitData[i]; }
+	gendata *GetGenData(Int_t i) const { return fEvioGenData[i]; }
 
 	TSolGEMData *GetGEMData();
         void GetGEMData(TSolGEMData* gd);
@@ -109,8 +109,8 @@ class TSolEVIOFile {
 	evio::evioFileChannel *fChan;
         Int_t fSource;   // User-defined source ID (e.g. MC run number)
 
-	vector<hitdata *> fHitData;
-	vector<gendata *> fGenData;
+	vector<hitdata *> fEvioHitData;
+	vector<gendata *> fEvioGenData;
 
 	unsigned int fEvNum;
 };

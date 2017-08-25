@@ -60,13 +60,9 @@ class TSolGEMData
   // Add to the current set of GEM data another GEM data set 
   // Necessary ??? probably redundant with TSol(SBS)SimGEMDigitization::AdditiveDigitize()
   //void AddGEMData(TSolGEMData* gd);
-
- private:
-
-  UInt_t fRunID, fEvtID;
-  Int_t  fSource; // MC source file ID (0 = signal, >0 background)
-
+  
   // Hit data
+  // moved in "public" to allow it to compile with Root6/CentOS7
   struct GEMHitData_t {
     UInt_t    fGem;
     Double_t  fEdep;  // energy lost in drift
@@ -80,6 +76,11 @@ class TSolGEMData
     TVector3  fMom;   // momentum of the particle
     TVector3  fVert;  // vertex position
   };
+  
+ private:
+
+  UInt_t fRunID, fEvtID;
+  Int_t  fSource; // MC source file ID (0 = signal, >0 background)
   std::vector<GEMHitData_t> fHitData;
 
 };
