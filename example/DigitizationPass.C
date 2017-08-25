@@ -11,23 +11,25 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
   printf("\n** This gets called with 'analyzer' and not 'root' **\n");
   printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
   
+  TDatime run_time = 991231;
+  
   gSystem->Load("../libsolgem.so");
   
   ////////////////////////////////////////////////////////////////
   
   int Ngood = 0;
-  
+      
   TSBSGEMChamber *ddy;
   TSBSSpec *dds;
   TSBSSimGEMDigitization *ddd;
   TSBSSimDecoder *dde;
 
   char* outname;
-  char* bg = "bkgd";
+  string bg = "bkgd";
   if(nbacktoadd==0)bg = "nobkgd";
 
-  char* infile_sig;
-  char* infile_bkgd_prefix;
+  string infile_sig;
+  string infile_bkgd_prefix;
   
   TSolDBManager* manager = TSolDBManager::GetInstance();
   switch(fspec){
@@ -35,28 +37,28 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
     manager->LoadGeneralInfo("db_generalinfo_bbgem.dat");
     manager->LoadGeoInfo("g4sbs_bbgem");
     dds = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
-    outname = Form("digitized_bbgem_%s.root", bg);
+    outname = Form("digitized_bbgem_%s.root", bg.c_str());
     infile_sig = "/work/halla/sbs/efuchey/gmn_elastic/gmn13.5_elastic_sig_20170504_10/elastic_0.root";
     infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn13.5_beam_bkgd_20170630_14";
-    dds->Init();
+    dds->Init(run_time);
     break;
   case(3):
     manager->LoadGeneralInfo("db_generalinfo_ft.dat");
     manager->LoadGeoInfo("g4sbs_ft");
     dds = new TSBSSpec ("g4sbs_ft", "SBS spectrometer FT");
-    outname = Form("digitized_ft_%s.root", bg);
+    outname = Form("digitized_ft_%s.root", bg.c_str());
     infile_sig = "/volatile/halla/sbs/efuchey/gep12_elastic_sig_20170727_14/elastic_0.root";
     infile_bkgd_prefix = "/work/halla/sbs/efuchey/gep_beam_bkgd/gep12_beam_bkgd_20170114_11";
-    dds->Init();
+    dds->Init(run_time);
     break;
   case(4):
     manager->LoadGeneralInfo("db_generalinfo_fpp.dat");
     manager->LoadGeoInfo("g4sbs_fpp");
     dds = new TSBSSpec ("g4sbs_fpp", "SBS spectrometer FPP");
-    outname = Form("digitized_fpp_%s.root", bg);
+    outname = Form("digitized_fpp_%s.root", bg.c_str());
     infile_sig = "/volatile/halla/sbs/efuchey/gep12_elastic_sig_20170727_14/elastic_0.root";
     infile_bkgd_prefix = "/work/halla/sbs/efuchey/gep_beam_bkgd/gep12_beam_bkgd_20170114_11";
-    dds->Init();
+    dds->Init(run_time);
     break;
   default:
     cout << "No corresponding geometry; choose: " << endl 
@@ -86,7 +88,7 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
     
   ////////////////////////////////////////////////////////////////
   
-  TSBSGeant4File *f = new TSBSGeant4File(infile_sig);
+  TSBSGeant4File *f = new TSBSGeant4File(infile_sig.c_str());
   printf("The filename returned is %s\n", f->GetFileName());
   f->SetSource(0);
 
@@ -95,7 +97,7 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
   res = f->Open();
 
   if( res != 1 ){
-    printf("Opening g4sbs file returned %s\n", res);
+    printf("Opening g4sbs file returned %d\n", res);
     return;
   }
 
@@ -171,7 +173,7 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
     if(nbacktoadd){
       for(int Nfile = N_bg_file_g; Nfile < N_bg_file_g_post; Nfile++){
 	//if(print)cout << N_bg_file_g << " <= " << Nfile << " < " << N_bg_file_g+nbacktoadd << endl;
-	TSBSGeant4File *fback = new TSBSGeant4File(Form("%s/beam_bkgd_%d.root",infile_bkgd_prefix, Nfile));
+	TSBSGeant4File *fback = new TSBSGeant4File(Form("%s/beam_bkgd_%d.root",infile_bkgd_prefix.c_str(), Nfile));
 	int open = fback->Open();
 	if(!open){
 	  N_bg_file_g_post++;

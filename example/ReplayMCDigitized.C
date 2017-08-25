@@ -1,24 +1,24 @@
-#ifndef __CINT__
+// #ifndef __CINT__
 
-#include "SBSSpec.h"
-#include "TSBSSimDecoder.h"
-#include "TSolSimFile.h"
+// #include "SBSSpec.h"
+// #include "TSBSSimDecoder.h"
+// #include "TSolSimFile.h"
 
-#include "THaInterface.h"
-#include "THaGlobals.h"
-#include "THaTextvars.h"
-#include "THaAnalyzer.h"
-#include "THaDetector.h"
+// #include "THaInterface.h"
+// #include "THaGlobals.h"
+// #include "THaTextvars.h"
+// #include "THaAnalyzer.h"
+// #include "THaDetector.h"
 
-#include "TSystem.h"
-#include "TList.h"
-#include "TString.h"
-#include "TFile.h"
-#include "TVector3.h"
+// #include "TSystem.h"
+// #include "TList.h"
+// #include "TString.h"
+// #include "TFile.h"
+// #include "TVector3.h"
 
-#include <iostream>
+// #include <iostream>
 
-#endif
+// #endif
 
 void ReplayMCDigitized(const char* filename = "digitized", 
 		       const char* detsuffix = "bbgem",//detector suffix: 
