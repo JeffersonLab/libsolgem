@@ -41,7 +41,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
     nseg = 1;
   }
   
-  char* bg = "nobkgd";
+  string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
   gSystem->Load("libsolgem.so");
@@ -75,7 +75,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   
   THaAnalyzer* analyzer = new THaAnalyzer;
   
-  TString rootfile(Form("%s_%s_%s", filename, detsuffix, bg)), infile0(Form("%s_%s_%s", filename, detsuffix, bg));
+  TString rootfile(Form("%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
   TString odeffile("sbssim.odef"), cutfile(Form("sbs_%ssim.cuts",detsuffix));
   rootfile.Append("_replayed_new.root");
   analyzer->EnableBenchmarks();

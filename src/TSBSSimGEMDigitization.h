@@ -153,7 +153,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   static Int_t    fNCStripApart; // # of strips the induced signal is away from the mean signal
   static Double_t fCrossFactor;  //reduction factor for the induced signal
   static Double_t fCrossSigma;   //uncertainty of the reduction factor
-  
+
   //moved in "public" to allow it to compile with Root6/CentOS7
   struct IonPar_t {
     Double_t X;       // position of the point on the projection
@@ -235,7 +235,6 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   UInt_t* fNPlanes;   // # planes in each chamber
   TRandom3 fTrnd;     // time randomizer
   UInt_t   fRNIon;    // number of ions
-  //Ionization parameters
   std::vector<IonPar_t> fRIon;
   Double_t fRSMax;
   Double_t fRTotalCharge;
