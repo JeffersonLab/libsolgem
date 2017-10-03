@@ -307,6 +307,7 @@ TSBSSimGEMDigitization::ReadDatabase (const TDatime& date)
       { "gain0",                     &fGain0,                     kDouble },
       { "triggeroffset",             &fTriggerOffset,             kDouble },
       { "triggerjitter",             &fTriggerJitter,             kDouble },
+      { "apv_time_jitter",           &fAPVTimeJitter,             kDouble },
       { "elesamplingpoints",         &fEleSamplingPoints,         kInt    },
       { "elesamplingperiod",         &fEleSamplingPeriod,         kDouble },
       { "pulsenoisesigma",           &fPulseNoiseSigma,           kDouble },
@@ -454,8 +455,21 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     }
     if( !time_set[itime] ) {
       // Trigger time jitter, including an arbitrary offset to align signal timing
-      Double_t trigger_jitter = fTrnd.Gaus(fTriggerOffset, fTriggerJitter);
-      //cout << "Offset, Jitter: " << fTriggerOffset << " " << fTriggerJitter << " => trig jitter = " << trigger_jitter << endl;
+      Double_t trigger_jitter = fTrnd.Gaus(0, fTriggerJitter);
+      
+      // time jitter due to in fact that the internal clock of APV cannot be synchronized
+      // with our trigger, this will cause a uncertainty about the size of the sampling period
+      // (25ns in the case of APV25). 
+      // Also note that this way of adding the APV time jitter assume that
+      // all APVs are synchronized among themselves, otherwise each APV should get a different
+      // jitter. In that case, there will be a bit more development needed for this program
+      // because we need to group strips into APVs -- Weizhi
+      
+      //fAPVTimeJitter should actually be equal to fEleSamplingPeriod, but I would like to
+      //have the option of turning it on and off
+      Double_t apvJitter = (fTrnd.Uniform(fAPVTimeJitter) - fAPVTimeJitter/2.);
+      trigger_jitter += apvJitter;
+
       if( is_background ) {
 	
 	// For background data, uniformly randomize event time between
@@ -479,7 +493,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
       time_set[itime] = true;
     }
     // Time of the leading edge of this hit's avalance relative to the trigger
-    Double_t time_zero = event_time[itime] + gdata.GetHitTime(ih) + fRTime0*1e9;
+    Double_t time_zero = event_time[itime] - fTriggerOffset + gdata.GetHitTime(ih) + fRTime0*1e9;
     
 #if DBG_AVA > 0
     if(time_zero>200.0)
@@ -502,7 +516,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     // vv2.Print();
     
     // Record MC hits in output event
-    //Short_t id = SetTreeHit (ih, spect, fdh, gdata, time_zero);
+    // Short_t id = SetTreeHit (ih, spect, fdh, gdata, time_zero);
     Short_t id = SetTreeHit (ih, spect, gdata, time_zero);
     
     // Record digitized strip signals in output event

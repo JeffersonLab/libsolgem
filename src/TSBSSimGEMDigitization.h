@@ -194,6 +194,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   // Electronics parameters
   Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
   Double_t fTriggerJitter;       // trigger sigma jitter (ns)
+  Double_t fAPVTimeJitter;       // time jitter associated with the APV internal clock
   Int_t    fEleSamplingPoints;
   Double_t fEleSamplingPeriod;   // ns
   Double_t fADCoffset;       // ADC offset
