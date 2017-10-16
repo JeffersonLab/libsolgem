@@ -192,7 +192,8 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Int_t    fAvaModel;              //0 for Heavyside, 1 for Gaussian, 2 for Cauchy-Lorentz
   Double_t fAvaGain;
   // Electronics parameters
-  Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
+  std::vector<Double_t> fTriggerOffset; // trigger offset (ns), incl latency & readout offset
+  //Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
   Double_t fTriggerJitter;       // trigger sigma jitter (ns)
   Double_t fAPVTimeJitter;       // time jitter associated with the APV internal clock
   Int_t    fEleSamplingPoints;

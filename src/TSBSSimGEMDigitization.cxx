@@ -228,7 +228,8 @@ TSBSSimGEMDigitization::TSBSSimGEMDigitization( const TSBSSpec& spect,
   Init();
   Initialize (spect);
   fRIon.resize(fMaxNIon);
-  
+  fTriggerOffset.resize(manager->GetNChamber());
+
   fEvent = new TSBSSimEvent(5);
 }
 
@@ -295,53 +296,71 @@ TSBSSimGEMDigitization::ReadDatabase (const TDatime& date)
 {
   FILE* file = OpenFile (date);
   if (!file) return kFileError;
+  
+  vector<Double_t>* offset = 0;
 
-  const DBRequest request[] =
-    {
-      { "gasionwidth",               &fGasWion,                   kDouble },
-      { "gasdiffusion",              &fGasDiffusion,              kDouble },
-      { "gasdriftvelocity",          &fGasDriftVelocity,          kDouble },
-      { "avalanchefiducialband",     &fAvalancheFiducialBand,     kDouble },
-      { "avalanchechargestatistics", &fAvalancheChargeStatistics, kInt    },
-      { "gainmean",                  &fGainMean,                  kDouble },
-      { "gain0",                     &fGain0,                     kDouble },
-      { "triggeroffset",             &fTriggerOffset,             kDouble },
-      { "triggerjitter",             &fTriggerJitter,             kDouble },
-      { "apv_time_jitter",           &fAPVTimeJitter,             kDouble },
-      { "elesamplingpoints",         &fEleSamplingPoints,         kInt    },
-      { "elesamplingperiod",         &fEleSamplingPeriod,         kDouble },
-      { "pulsenoisesigma",           &fPulseNoiseSigma,           kDouble },
-      { "pulsenoiseperiod",          &fPulseNoisePeriod,          kDouble },
-      { "pulsenoiseampconst",        &fPulseNoiseAmpConst,        kDouble },
-      { "pulsenoiseampsigma",        &fPulseNoiseAmpSigma,        kDouble },
-      { "adcoffset",                 &fADCoffset,                 kDouble },
-      { "adcgain",                   &fADCgain,                   kDouble },
-      { "adcbits",                   &fADCbits,                   kInt    },
-      { "gatewidth",                 &fGateWidth,                 kDouble },
-      { "pulseshapetau0",            &fPulseShapeTau0,            kDouble },
-      { "pulseshapetau1",            &fPulseShapeTau1,            kDouble },
-      { "zrout",                     &fRoutZ,                     kDouble },
-      { "use_tracker_frame",         &fUseTrackerFrame,           kInt    },
-      { "entrance_ref",              &fEntranceRef,               kDouble },
-      { "avalateraluncertainty",     &fLateralUncertainty,        kDouble },
-      { "max_ion",                   &fMaxNIon,                   kUInt   },
-      { "y_integral_step_per_pitch", &fYIntegralStepsPerPitch,    kUInt   },
-      { "x_integral_step_per_pitch", &fXIntegralStepsPerPitch,    kUInt   },
-      { "avalanche_range",           &fSNormNsigma,               kDouble },
-      { "ava_model",                 &fAvaModel,                  kInt    },
-      { "ava_gain",                  &fAvaGain,                   kDouble },
-      { "do_crosstalk",              &fDoCrossTalk,               kInt    },
-      { "crosstalk_mean",            &fCrossFactor,               kDouble },
-      { "crosstalk_sigma",           &fCrossSigma,                kDouble },
-      { "crosstalk_strip_apart",     &fNCStripApart,              kInt    },
-     { 0 }
-    };
-
-  Int_t err = LoadDB (file, date, request, fPrefix);
-  fclose(file);
-  if (err)
-    return kInitError;
-
+  try{
+    offset = new vector<Double_t>;
+    const DBRequest request[] =
+      {
+	{ "gasionwidth",               &fGasWion,                   kDouble },
+	{ "gasdiffusion",              &fGasDiffusion,              kDouble },
+	{ "gasdriftvelocity",          &fGasDriftVelocity,          kDouble },
+	{ "avalanchefiducialband",     &fAvalancheFiducialBand,     kDouble },
+	{ "avalanchechargestatistics", &fAvalancheChargeStatistics, kInt    },
+	{ "gainmean",                  &fGainMean,                  kDouble },
+	{ "gain0",                     &fGain0,                     kDouble },
+	{ "triggeroffset",             offset,                      kDoubleV},
+	//{ "triggeroffset",             &fTriggerOffset,             kDouble },
+	{ "triggerjitter",             &fTriggerJitter,             kDouble },
+	{ "apv_time_jitter",           &fAPVTimeJitter,             kDouble },
+	{ "elesamplingpoints",         &fEleSamplingPoints,         kInt    },
+	{ "elesamplingperiod",         &fEleSamplingPeriod,         kDouble },
+	{ "pulsenoisesigma",           &fPulseNoiseSigma,           kDouble },
+	{ "pulsenoiseperiod",          &fPulseNoisePeriod,          kDouble },
+	{ "pulsenoiseampconst",        &fPulseNoiseAmpConst,        kDouble },
+	{ "pulsenoiseampsigma",        &fPulseNoiseAmpSigma,        kDouble },
+	{ "adcoffset",                 &fADCoffset,                 kDouble },
+	{ "adcgain",                   &fADCgain,                   kDouble },
+	{ "adcbits",                   &fADCbits,                   kInt    },
+	{ "gatewidth",                 &fGateWidth,                 kDouble },
+	{ "pulseshapetau0",            &fPulseShapeTau0,            kDouble },
+	{ "pulseshapetau1",            &fPulseShapeTau1,            kDouble },
+	{ "zrout",                     &fRoutZ,                     kDouble },
+	{ "use_tracker_frame",         &fUseTrackerFrame,           kInt    },
+	{ "entrance_ref",              &fEntranceRef,               kDouble },
+	{ "avalateraluncertainty",     &fLateralUncertainty,        kDouble },
+	{ "max_ion",                   &fMaxNIon,                   kUInt   },
+	{ "y_integral_step_per_pitch", &fYIntegralStepsPerPitch,    kUInt   },
+	{ "x_integral_step_per_pitch", &fXIntegralStepsPerPitch,    kUInt   },
+	{ "avalanche_range",           &fSNormNsigma,               kDouble },
+	{ "ava_model",                 &fAvaModel,                  kInt    },
+	{ "ava_gain",                  &fAvaGain,                   kDouble },
+	{ "do_crosstalk",              &fDoCrossTalk,               kInt    },
+	{ "crosstalk_mean",            &fCrossFactor,               kDouble },
+	{ "crosstalk_sigma",           &fCrossSigma,                kDouble },
+	{ "crosstalk_strip_apart",     &fNCStripApart,              kInt    },
+	{ 0 }
+      };
+    
+    Int_t err = LoadDB (file, date, request, fPrefix);
+    fclose(file);
+    if (err)
+      return kInitError;
+    
+    cout << manager->GetNChamber() << "  " << offset->size() << endl;
+    assert((Int_t)offset->size() == manager->GetNChamber());
+    for (UInt_t i=0; i<offset->size(); i++){
+      fTriggerOffset.push_back(offset->at(i));
+    }
+    
+    delete offset;
+  }  catch(...) {
+    delete offset;
+    fclose(file);
+    throw;
+  }
+  
   if( fEleSamplingPoints < 0 || fEleSamplingPoints > 10 )
     fEleSamplingPoints = 10;
   if( fADCbits < 1 || fADCbits > MAX_ADCBITS ) {
@@ -493,7 +512,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
       time_set[itime] = true;
     }
     // Time of the leading edge of this hit's avalance relative to the trigger
-    Double_t time_zero = event_time[itime] - fTriggerOffset + gdata.GetHitTime(ih) + fRTime0*1e9;
+    Double_t time_zero = event_time[itime] - fTriggerOffset[iplane] + gdata.GetHitTime(ih) + fRTime0*1e9;
     
 #if DBG_AVA > 0
     if(time_zero>200.0)
@@ -1085,7 +1104,9 @@ TSBSSimGEMDigitization::Print() const
   cout << "    Gain 0: " << fGain0 << endl;
 
   cout << "  Electronics parameters:" << endl;
-  cout << "    Trigger offset: " << fTriggerOffset << endl;
+  cout << "    Trigger offsets: "; //<< fTriggerOffset 
+  for(int i = 0; i<manager->GetNChamber(); i++)cout << fTriggerOffset[i] << " ";
+  cout << endl;
   cout << "    Trigger jitter: " << fTriggerJitter << endl;
   cout << "    Sampling Period: " << fEleSamplingPeriod << endl;
   cout << "    Sampling Points: " << fEleSamplingPoints   << endl;
