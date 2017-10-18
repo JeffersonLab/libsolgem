@@ -14,7 +14,7 @@ ratedig.avalanche_range = 18.0
 ratedig.max_ion = 10000
 
 # Electronics parameters:
-ratedig.triggeroffset = 125. # ns 
+ratedig.triggeroffset = 121.0 121.5 122.0 122.5 126.0 # ns # to have everything land on 0 when no jitters
 ratedig.triggerjitter = 3.  # ns 
 ratedig.apv_time_jitter = 25.  # ns 
 ratedig.elesamplingpoints = 10
@@ -42,8 +42,6 @@ ratedig.entrance_ref = -1.5 # mm # -4.6825
 #numerical integration parameter
 ratedig.y_integral_step_per_pitch = 8
 ratedig.x_integral_step_per_pitch = 8
-#ratedig.y_integral_step_per_pitch = 10
-#ratedig.x_integral_step_per_pitch = 1
 
 #APV25 cross talk parameter
 ratedig.do_crosstalk = 1
