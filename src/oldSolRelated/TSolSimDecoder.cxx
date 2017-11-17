@@ -266,9 +266,10 @@ Int_t TSolSimDecoder::StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const
 }
 
 //-----------------------------------------------------------------------------
-MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
+MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan, Double_t& mccharge ) const
 {
   // Get MC truth info for the given hardware channel
+  cout<<"333"<<endl;  cout<<"TSolSimdecoder:getmchitinfo################################"<<endl;
 
   const char* const here = "TSolSimDecoder::GetMCHitInfo";
 
@@ -300,6 +301,8 @@ MCHitInfo TSolSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
       mc.fMCTrack = 1;    // currently only ever one primary particle per event
       mc.fMCPos   = c.fXProj[strip.fProj];
       mc.fMCTime  = c.fTime;
+      cout<<"33"<<endl;
+      mccharge= c.fCharge;
     } else {
       ++mc.fContam;
       if( mc.fMCTrack == 0 ) {
@@ -340,7 +343,7 @@ Int_t TSolSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
 
   static const char* const here = "TSolSimDecoder::LoadEvent";
-
+  cout<<"TSolSimdecoder:doloadevent################################"<<endl;
 #if ANALYZER_VERSION_CODE < ANALYZER_VERSION(1,6,0)
   Bool_t fNeedInit = fgNeedInit;
 #endif

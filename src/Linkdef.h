@@ -4,22 +4,10 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
-#pragma link C++ defined_in "src/TSolAnalyzer.h";
-#pragma link C++ defined_in "src/TSolClusters.h";
-#pragma link C++ defined_in "src/TSolDBManager.h";
-#pragma link C++ defined_in "src/TSolEVIOFile.h";
-#pragma link C++ defined_in "src/TSolGEMChamber.h";
-#pragma link C++ defined_in "src/TSolGEMCluster.h";
-#pragma link C++ defined_in "src/TSolGEMData.h";
-#pragma link C++ defined_in "src/TSolGEMPlane.h";
-#pragma link C++ defined_in "src/TSolGEMVStrip.h";
-#pragma link C++ defined_in "src/TSolSimAux.h";
-#pragma link C++ defined_in "src/TSolSimGEMDigitization.h";
-#pragma link C++ defined_in "src/TSolSpec.h";
-#pragma link C++ defined_in "src/TSolWedge.h";
-#pragma link C++ defined_in "src/TSolSimEvent.h";
-#pragma link C++ defined_in "src/TSolSimFile.h";
-#pragma link C++ defined_in "src/TSolSimDecoder.h";
+#pragma link C++ defined_in "src/TSBSDBManager.h";
+#pragma link C++ defined_in "src/TSBSGEMSimHitData.h";
+#pragma link C++ defined_in "src/TSBSGEMHit.h";
+#pragma link C++ defined_in "src/TSBSSimAuxi.h";
 #pragma link C++ defined_in "src/g4sbs_tree.h";
 #pragma link C++ defined_in "src/TSBSBox.h";
 #pragma link C++ defined_in "src/TSBSGeant4File.h";
@@ -29,6 +17,7 @@
 #pragma link C++ defined_in "src/TSBSSimEvent.h";
 #pragma link C++ defined_in "src/TSBSSimGEMDigitization.h";
 #pragma link C++ defined_in "src/TSBSSpec.h";
+#pragma link C++ defined_in "src/TSBSSimFile.h";
 
 // Limited stuff in EVIO file.  We don't want to be
 // able to call the evio functions in the interpreter

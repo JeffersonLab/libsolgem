@@ -54,22 +54,11 @@ SOLINCLUDE += $(addprefix -I, $(ANAINCDIRS) )
 CXXFLAGS += $(SOLINCLUDE)
 
 DICT	= $(NAME)_dict
-SRC   = src/TSolAnalyzer.cxx \
-	src/TSolClusters.cxx \
-	src/TSolDBManager.cxx \
-        src/TSolEVIOFile.cxx \
-        src/TSolGEMChamber.cxx \
-        src/TSolGEMCluster.cxx \
-        src/TSolGEMData.cxx \
-        src/TSolGEMPlane.cxx \
-        src/TSolGEMVStrip.cxx \
-        src/TSolSimAux.cxx \
-        src/TSolSimGEMDigitization.cxx \
-        src/TSolWedge.cxx \
-        src/TSolSpec.cxx \
-        src/TSolSimEvent.cxx \
-        src/TSolSimFile.cxx \
-        src/TSolSimDecoder.cxx \
+SRC   = src/TSBSDBManager.cxx \
+	src/TSBSSimFile.cxx \
+        src/TSBSGEMSimHitData.cxx \
+        src/TSBSGEMHit.cxx \
+        src/TSBSSimAuxi.cxx \
         src/g4sbs_tree.cxx \
         src/TSBSBox.cxx \
         src/TSBSGeant4File.cxx \

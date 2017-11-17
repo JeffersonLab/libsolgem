@@ -17,7 +17,7 @@ TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
 TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   //TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
-  fManager = TSolDBManager::GetInstance();
+  fManager = TSBSDBManager::GetInstance();
   //InitMiscParam(filedbpath);
   
   //cout << " Gas data file container: -> " << &gasdatafilename << " <- " << endl;
@@ -188,6 +188,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   int trid;
   int type;
   int plane;
+  int module;
   int sector;
   double edep;
   double tmin;
@@ -202,7 +203,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     
   TVector3 Vtx;
   
-  double hit_data_temp[23];
+  double hit_data_temp[24];
   double gen_data_temp[9];
   
   // NB: See comment lines 128-129 of TSBSGeant4File.h 
@@ -223,7 +224,6 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     } // DEBUG
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
       det_id = 1;
-      
       pid = fTree->Earm_BBGEM_hit_pid->at(i);
       trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
       type = fTree->Earm_BBGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
@@ -234,22 +234,24 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       trid_hits.push_back(trid);
       
-      sector = fManager->GetSectorIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
-      if(sector==-1)continue;
+      module = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
+      // sector = fManager->GetSectorIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
+      //cout<<module<<" "<<sector<<" p: "<<plane<<endl;
+      //if(sector==-1)continue;
       
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
 		   pow(fTree->Earm_BBGEM_hit_typ->at(i), 2) + 1.0) );
-      
+     
       Mom = TVector3(fTree->Earm_BBGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Earm_BBGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
-      
-      X_in = TVector3((fTree->Earm_BBGEM_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
+     
+      X_in = TVector3((fTree->Earm_BBGEM_hit_tx->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
-		       fManager->GetD0(plane, sector))*1.0e3);// in mm
-      
+		       fManager->GetD0(plane, module))*1.0e3);// in mm
+       
       //cout << fTree->Earm_BBGEM_hit_z->at(i) << "+" << fManager->Getg4sbsZSpecOffset() << "-" << fManager->GetD0(plane, sector) << " = " << X_in.z() << endl;
       
       X_out = TVector3(X_in.X()+3.0*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
@@ -273,27 +275,27 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  X_RO.SetY(X_out.Y());
        	}
       }
-      
-      if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
+   
+      if(fabs(X_out.X())>=fManager->GetDX(plane, module)*5.0e2){
 	if(d_flag>0){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.X " << X_out.X() << " outside BBGEM plane " << plane << " sector " << sector;
 	} //D_FLAG
 	temp = fabs(X_out.X());
-	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
+	X_out[0]*=fManager->GetDX(plane, module)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
 	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Earm_BBGEM_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 	} //D_FLAG
 	X_RO.SetX(X_out.X());
-      }
-      if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
+      }  
+      if(fabs(X_out.Y())>=fManager->GetDY(plane, module)*5.0e2){
 	if(d_flag>0){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 	} //D_FLAG
 	temp = fabs(X_out.Y());
-	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
+	X_out[1]*=fManager->GetDY(plane, module)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
 	  cout << "(X_in.Y = " << X_in.Y() << ",  " << fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3 << " mm)" << endl;
@@ -313,7 +315,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       hit_data_temp[13] = (double)type;
       hit_data_temp[17] = (double)trid;
       hit_data_temp[18] = (double)pid;
-      hit_data_temp[19] = sector;
+      hit_data_temp[19] = module;
+      hit_data_temp[23] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -321,11 +324,10 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	hit_data_temp[k+14] = Vtx[k];
 	hit_data_temp[k+20] = Mom[k];
       }
-      
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  24));//data_size(__GEM_TAG)));
 
       // ... to copy it in the actual g4sbsHitData structure.
-      for(int j = 0; j<23; j++){
+      for(int j = 0; j<24; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
@@ -422,7 +424,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << Vtx[k] << ", ";
 	}
 	cout << endl;
-      } //DEBUG          
+      } //DEBUG      
     }//end loop on hits
     
     // Rescue ngen data here...
@@ -639,7 +641,6 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       tmax = fTree->Harm_FT_hit_tmax->at(i);
       
       sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
-      
       trid_hits.push_back(trid);
 
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
@@ -1333,20 +1334,20 @@ double TSBSGeant4File::FindGasRange(double p)
   return(res);
 }
 
-TSolGEMData* TSBSGeant4File::GetGEMData()
+TSBSGEMSimHitData* TSBSGeant4File::GetGEMData()
 {
-  // Return TSolGEMData object filled with GEM data of present event.
+  // Return TSBSGEMSimHitData object filled with GEM data of present event.
   // The returned object pointer must be deleted by the caller!
 
-  TSolGEMData* gd = new TSolGEMData();
+  TSBSGEMSimHitData* gd = new TSBSGEMSimHitData();
 
   GetGEMData(gd);
   return gd;
 }
 
-void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
+void TSBSGeant4File::GetGEMData(TSBSGEMSimHitData* gd)
 {
-  // Pack data into TSolGEMData
+  // Pack data into TSBSGEMSimHitData
    
   //    printf("NEXT EVENT ---------------------------\n");
 
@@ -1369,10 +1370,7 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
     if( h->GetData(1)>0.0 ){
 	
       // Chamber IDs are numbered as 
-      // xy  where x is the det id (1 for FT, 0 for FPPs) y the plane number, 
-      // labeled from 0 to 9 instead of 1 to 10, for convenience reasons:
-      // FPPs: chambers 0-9, FT: chambers 10-15.
-	
+      	
       //if( h->GetDetID()%100 == __GEM_DRIFT_ID &&  h->GetData(1)>0.0 ){
       // Vector information
       TVector3 p(h->GetData(20), h->GetData(21), h->GetData(22));
@@ -1398,11 +1396,13 @@ void TSBSGeant4File::GetGEMData(TSolGEMData* gd)
       gd->SetParticleType(ngdata, (UInt_t)h->GetData(13) );//  Track type (1 primary, >1 secondary) 
       gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
       gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
-	
-      // E. Fuchey: 2017/02/09.
-      // We now consider FT and FPP separately. No more sector1,2 chamber 1,2, etc.
-      // That simplifies much the determination of the GEM chamber ID.
-      gd->SetHitChamber(ngdata, h->GetData(19)*fManager->GetNChamber()+h->GetData(0));
+    
+      // gd->SetHitChamber(ngdata, h->GetData(23)*fManager->GetNChamber()+h->GetData(0));
+      gd->SetHitChamber(ngdata, h->GetData(0)*3+h->GetData(19));
+      //cout<<(h->GetData(23)*fManager->GetNChamber()+h->GetData(0))<<" : "<<(h->GetData(0)*3+h->GetData(19))<<endl;
+
+      gd->SetHitPlane(ngdata, h->GetData(0));
+      gd->SetHitModule(ngdata,h->GetData(19));
       
       ngdata++;
     }

@@ -2,13 +2,13 @@
 // N.B. The strip is virtual, not the class!
 //
 
-#ifndef __TSolGEMVStrip__
-#define __TSolGEMVStrip__
+#ifndef __TSBSGEMHit__
+#define __TSBSGEMHit__
 
 #include <TArrayD.h>
 #include <TArrayS.h>
 
-class TSolGEMVStrip {
+class TSBSGEMHit {
 
  private:
   // working variable of digi method (virtual strips)
@@ -27,9 +27,9 @@ class TSolGEMVStrip {
 
  public:
 
-  TSolGEMVStrip(Short_t n = 10, // number of strips in hit 
+  TSBSGEMHit(Short_t n = 10, // number of strips in hit 
 	       Short_t nsample = 10); 
-  ~TSolGEMVStrip();
+  ~TSBSGEMHit();
 
   void AddStripAt(Short_t idx, Short_t n) {fIdx->AddAt(idx,n);};
   void AddChargeAt(Double_t val, Short_t n) {fCharge->AddAt(val,n);};

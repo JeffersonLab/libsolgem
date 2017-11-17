@@ -53,9 +53,9 @@ TSBSGEMChamber::ReadDatabase (const TDatime& date)
   if (err)
     return err;
 
-  err = InitPlane (0, TString (GetName()) + "x", TString (GetTitle()) +" x");
+  err = InitPlane (0, "x", TString (GetTitle()) +" x");
   if( err != kOK ) return err;
-  err = InitPlane (1, TString (GetName()) + "y", TString (GetTitle()) +" y");
+  err = InitPlane (1, "y", TString (GetTitle()) +" y");
   if( err != kOK ) return err;
 
   return kOK;
@@ -91,7 +91,6 @@ TSBSGEMChamber::ReadGeometry (FILE* file, const TDatime& date,
       {0}
     };
   err = LoadDB (file, date, request, fPrefix);
-
   if (err)
     return err;
   

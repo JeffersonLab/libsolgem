@@ -93,6 +93,7 @@ public:
     // MC hit data
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
+    Short_t   fModule;    // Module number
     Short_t   fRealSector;// Real sector number (may be !=fSector if mapped)
     Int_t     fSource;    // MC data set source (0 = signal, >0 background)
     Int_t     fType;      // GEANT particle type (1 = primary)
@@ -118,6 +119,7 @@ public:
   struct DigiGEMStrip {
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
+    Short_t   fModule;    // Module number
     Short_t   fProj;      // Readout coordinate ("x" = 0, "y" = 1)
     Short_t   fChan;      // Channel number
     Short_t   fSigType;   // Accumulated signal types (BIT(0) = signal)

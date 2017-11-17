@@ -16,7 +16,7 @@
 #include "THaCrateMap.h"
 #include "THaBenchmark.h"
 #include "VarDef.h"
-#include "TSolDBManager.h"
+#include "TSBSDBManager.h"
 
 #include "TError.h"
 #include "TSystem.h"
@@ -33,9 +33,9 @@
 using namespace std;
 using namespace Podd;
 
-//EFuchey: 2016/12/10: it is necessary to declare the TSolDBManager as a static instance here 
+//EFuchey: 2016/12/10: it is necessary to declare the TSBSDBManager as a static instance here 
 // (and not make it a member) because it is used by functions whic are defined as "static inline".
-static TSolDBManager* fManager = TSolDBManager::GetInstance();
+static TSBSDBManager* fManager = TSBSDBManager::GetInstance();
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
 enum EProjType { kUPlane = 0, kVPlane =1, kXPlane = 2, kYPlane = 3};
@@ -255,10 +255,29 @@ void StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj,
 
 //-----------------------------------------------------------------------------
 static inline
+void StripToROCD( Int_t s_plane, Int_t s_module, Int_t s_proj,
+		 Int_t s_chan,
+		 Int_t& crate, Int_t& slot, Int_t& chan )
+{
+  div_t d = div( s_chan, fManager->GetChanPerSlot() );
+  Int_t module = d.quot;
+  chan = d.rem;
+  //total slot id
+  Int_t ix = s_proj + 2*( s_module + fManager->GetNModule(s_plane-1)*s_plane );
+  
+  //  cout << "StripToROC: module " << module << ", ix " << ix << Decoder::MAXSLOT<<endl;
+  
+  d = div( ix, Decoder::MAXSLOT);//fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
+  crate = d.quot;
+  slot  = d.rem;
+}
+
+//-----------------------------------------------------------------------------
+static inline
 Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan )
 {
   return chan +
-    fManager->GetChanPerSlot()*( slot + fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber()*crate );
+    fManager->GetChanPerSlot()*( slot + Decoder::MAXSLOT*crate );
 }
 
 //-----------------------------------------------------------------------------
@@ -277,37 +296,40 @@ Int_t TSBSSimDecoder::StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const
   return found->second;
 }
 
+
 //-----------------------------------------------------------------------------
 MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
 {
   // Get MC truth info for the given hardware channel
-
   const char* const here = "TSBSSimDecoder::GetMCHitInfo";
 
   Int_t istrip = StripFromROC( crate, slot, chan );
   assert( istrip >= 0 );  // else logic error in caller or bad fStripMap
   
+  
   assert( buffer );       // Must still have the event buffer
   const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
-
+  
   assert( static_cast<vsiz_t>(istrip) < simEvent->fGEMStrips.size() );
   const TSBSSimEvent::DigiGEMStrip& strip = simEvent->fGEMStrips[istrip];
   assert( strip.fProj >= 0 && strip.fProj < fManager->GetNReadOut() );
-
+  
   MCHitInfo mc;
-
-  // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
+    // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
   //   printf("%f \n", strip.fTime1);
   
+  //for cross talk
   if (TESTBIT(strip.fSigType, kInducedStrip) && !TESTBIT(strip.fSigType, kPrimaryStrip) &&
       !TESTBIT(strip.fSigType, kSecondaryStrip) ){
     mc.fMCTrack = 0;
-    mc.fMCPos = fManager->GetPosFromSectorStrip(strip.fProj, strip.fPlane, strip.fSector, strip.fChan);
+    mc.fMCPos = fManager->GetPosFromModuleStrip(strip.fProj, strip.fPlane, strip.fModule, strip.fChan);
     mc.fMCTime = strip.fTime1;
+    
     //cout << "strip = " << strip.fChan << ", time = " << mc.fMCTime << ", pos = " <<  mc.fMCPos << endl;
     return mc;
   }
-  
+  mc.fMCCharge = strip.fCharge;
+  // cout<<"strip: "<<istrip<<" cc: "<<mc.fMCCharge<<endl;
   Double_t nOverlapSignal = 0.;
   for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
     Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
@@ -315,7 +337,6 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
     const TSBSSimEvent::GEMCluster& c = simEvent->fGEMClust[iclust];
     assert( c.fID == iclust+1 );
     assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
-    
     Int_t signalID = -1;
     for (unsigned int ii = 0; ii<fSignalInfo.size(); ii++){
       if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid)
@@ -330,19 +351,19 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
         //Weizhi Xiong
         //assert(manager->GetNSigParticle() > 1); //otherwise should not happen
         
-        mc.fMCPos += c.fXProj[strip.fProj];
+        mc.fMCPos += c.fXProj[strip.fProj]+(1-strip.fProj)*fManager->GetXOffset(c.fPlane,c.fModule);
         mc.fMCTime += c.fTime; 
       }else{
         // Strip contains a contribution from a primary particle hit :)
         mc.fMCTrack = fSignalInfo.at(signalID).tid; 
-        mc.fMCPos   = c.fXProj[strip.fProj];
+        mc.fMCPos   = c.fXProj[strip.fProj]+(1-strip.fProj)*fManager->GetXOffset(c.fPlane,c.fModule);
         mc.fMCTime  = c.fTime;
       }
       nOverlapSignal++;
     } else {
       ++mc.fContam;
       if( mc.fMCTrack == 0 ) {
-	mc.fMCPos += c.fXProj[strip.fProj];
+	mc.fMCPos += c.fXProj[strip.fProj]+(1-strip.fProj)*fManager->GetXOffset(c.fPlane,c.fModule);
       }
     }
   }
@@ -359,47 +380,6 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
     mc.fMCTime /= nOverlapSignal;
   }
   
-/*
-  for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
-    Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
-    assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
-    const TSBSSimEvent::GEMCluster& c = simEvent->fGEMClust[iclust];
-    assert( c.fID == iclust+1 );
-    assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
-    if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
-      if( mc.fMCTrack > 0 ) {
-	Warning( Here(here), "Event %d: Multiple hits of primary particle "
-		 "in plane %d\nShould never happen. Call expert.",
-		 simEvent->fEvtID, strip.fPlane );
-	continue;
-      }
-      // Strip contains a contribution from a primary particle hit :)
-      mc.fMCTrack = 1;    // currently only ever one primary particle per event
-      mc.fMCPos   = c.fXProj[strip.fProj];
-      mc.fMCTime  = c.fTime;
-    } else {
-      ++mc.fContam;
-      if( mc.fMCTrack == 0 ) {
-	mc.fMCPos += c.fXProj[strip.fProj];
-      }
-    }
-  }
-  assert( strip.fClusters.GetSize() == 0 || mc.fMCTrack > 0 || mc.fContam > 0 );
-
-  if( mc.fMCTrack == 0 ) {
-    if( mc.fContam > 1 ) {
-      // If only background hits, report the mean position of all those hits
-      mc.fMCPos /= static_cast<Double_t>(mc.fContam);
-    }
-    mc.fMCTime = strip.fTime1;
-  }
-
-  // cout << "TSBSSimDecoder: GetMCHitInfo: strip ADC sample: crate " << crate << " slot " << slot << " chan " << chan<< endl;
-  // for( int k=0; k<strip.fNsamp; k++ ) {
-  //   cout << strip.fADC[k] << " ";
-  // }
-  // cout << endl;
-  */
   return mc;
 }
 
@@ -421,8 +401,8 @@ Int_t TSBSSimDecoder::DoLoadEvent(const UInt_t* evbuffer )
 Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 #endif
 {
+  // cout<<"Tsbs sim decoder DoLoadEvent"<<endl;
   // Fill crateslot structures with Monte Carlo event data in 'evbuffer'
-
   static const char* const here = "TSBSSimDecoder::LoadEvent";
 
 #if ANALYZER_VERSION_CODE < ANALYZER_VERSION(1,6,0)
@@ -446,6 +426,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       return ret;
     first_decode = false;
   }
+
   if( fDoBench ) fBench->Begin("clearEvent");
   Clear();
   for( int i=0; i<fNSlotClear; i++ )
@@ -473,16 +454,19 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     const TSBSSimEvent::DigiGEMStrip& s = simEvent->fGEMStrips[i];
     Int_t crate, slot, chan;
     //cout << "striptoroc: " << endl;
-    StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );
-    //cout << "crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;
+    //StripToROC( s.fPlane, s.fSector, s.fProj, s.fChan, crate, slot, chan );
+    StripToROCD( s.fPlane, s.fModule, s.fProj, s.fChan, crate, slot, chan );
+    //cout<<"Plane: "<<s.fPlane<<" Module:  "<<s.fModule<<" projection:  "<<s.fProj<<" channel:  "<<s.fChan<<" sigType: "<<s.fSigType<<endl;
+    //cout << "crate = " << crate << ", slot = " << slot << ", chan " << chan << endl;getchar();
     //cout << "samples: " << endl;
     for( Int_t k = 0; k < s.fNsamp; k++ ) { 
       Int_t raw = s.fADC[k];
-      //cout << raw << " ";
+      //cout << raw << " ### ";
+      
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,raw,raw) == SD_ERR )
 	return HED_ERR;
     }
-    //cout << endl;
+    //    cout << endl<<endl;
     //cout << "stripmap : " << endl;
     // Build map from ROC address to strip index. This is needed to extract
     // the MC truth info later in the tracking detector decoder via GetMCChanInfo.
@@ -490,8 +474,12 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     pair<StripMap_t::const_iterator,bool> ins =
 #endif
       fStripMap.insert( make_pair( MakeROCKey(crate,slot,chan), i ) );
+    //cout<<crate<<" "<<slot<<" "<<chan<<endl;
+    // cout<<MakeROCKey(crate,slot,chan)<<endl;
+    // getchar();
+    
     // cout << "ROC key inserted in strip map " << endl;
-    // cout << "ins.second ? " << ins.second << endl;
+    //  cout << "ins.second ? " << ins.second << endl;
     assert( ins.second );
   }
   
@@ -576,7 +564,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       }
     }
   }
-  
+
   // Sort fMCPoints by type (u,v) and plane number, then calculate plane-to-plane
   // differences. The following assumes that all points are from the same track
   // (ensured above). If that is no longer so one day, fMCPoints will need to
@@ -694,19 +682,23 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
       StripToROC( 0, fManager->GetNSector(), kXPlane, primary_sector, crate, slot, chan );
        if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
-	return HED_ERR;
-      //StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );
+	 {
+	   return HED_ERR;
+	 }
+	//StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );
       StripToROC( 0, fManager->GetNSector(), kYPlane, primary_sector, crate, slot, chan );
       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
 	  == SD_ERR )
-	return HED_ERR;
+	{
+	  return HED_ERR;
+	}
     }
   }
 
   // DEBUG:
   //cout << "SimDecoder: nTracks = " << GetNMCTracks() << endl;
   //fMCTracks.Print();
-
+  // cout<<" \n\n###\n\n"<<endl;
   return HED_OK;
 }
 

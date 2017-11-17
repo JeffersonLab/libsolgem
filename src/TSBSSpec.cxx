@@ -1,5 +1,4 @@
 #include "TSBSSpec.h"
-//#include "TSolGEMCluster.h"
 #include "TSBSGEMChamber.h"
 #include <iostream>
 
@@ -36,27 +35,6 @@ TSBSSpec::AddGEM (TSBSGEMChamber* pdet)
 
 Int_t TSBSSpec::CoarseTrack(){
     // Needs work
-
-
-//     int i,j;
-
-//     i = j = 0;
-
-//     // Assume decoding is done.  You can get the clustered hits with
-//     // calles like
-
-//     TSolGEMCluster *c;
-//     Double_t z;
-
-//     // loop over X planes
-//     if( GetPlane(i)->GetDirection() == kGEMX ){
-// 	c = (TSolGEMCluster *) GetPlane(i)->GetClusters()->AddrAt(j);
-// 	z = GetPlane(i)->GetOrigin().Z();
-	
-// 	c->GetPos();
-// 	c->GetE();
-//     }
-
     return 0;
 }
 

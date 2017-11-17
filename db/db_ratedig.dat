@@ -4,9 +4,9 @@ ratedig.gasionwidth = 26.  # eV
 ratedig.gasdiffusion = 100000.  # mm2/s
 ratedig.gasdriftvelocity = 5.5e7 # mm/s
 ratedig.avalanchefiducialband = 20.0 # n sigma
-ratedig.avalanchechargestatistics = 0 # 0 Furry, 1 Gaussian
+ratedig.avalanchechargestatistics = 1 # 0 Furry, 1 Gaussian
 ratedig.ava_model = 2 #0 HeavySide, 1 Gaussian, 2 Cauchy-Lorentz
-ratedig.ava_gain = 50.0
+ratedig.ava_gain = 100.0
 ratedig.gainmean = 8000.0 #4000 for HeavySide
 ratedig.gain0 = 20.0
 ratedig.avalateraluncertainty = 0. #mm
@@ -15,23 +15,23 @@ ratedig.max_ion = 10000
 
 # Electronics parameters:
 ratedig.triggeroffset = 125. # ns 
-ratedig.triggerjitter = 3.  # ns
+ratedig.triggerjitter = 25.  # ns
 ratedig.elesamplingpoints = 10
 ratedig.elesamplingperiod = 25.
 ratedig.adcoffset = 0.
-ratedig.adcgain = 1.
+ratedig.adcgain = 1
 ratedig.adcbits = 12
 ratedig.gatewidth = 250.
 
 # GEM pedestal noise
-ratedig.pulsenoisesigma = 7.    #ADC values
+ratedig.pulsenoisesigma = 25.    #ADC values
 ratedig.pulsenoiseperiod = 200. #ns
 ratedig.pulsenoiseampconst = 0. #ADC values
 ratedig.pulsenoiseampsigma = 0. #ADC values
 
 # Pulse shaping parameters:
-ratedig.pulseshapetau0 = 38.3  # ns
-ratedig.pulseshapetau1 = 129.  # ns
+ratedig.pulseshapetau0 = 56 #38.3  # ns
+ratedig.pulseshapetau1 = -1 #129.  # ns
 
 # Geometry
 ratedig.zrout = 9.185   # mm

@@ -3,7 +3,6 @@
 #include "TClonesArray.h"
 
 #include "TSBSGEMChamber.h"
-#include "TSolGEMCluster.h"
 #include "TSBSBox.h"
 #include "THaEvData.h"
 #include "TMath.h"
@@ -17,7 +16,6 @@ using namespace std;
 TSBSGEMPlane::TSBSGEMPlane()
   : THaSubDetector()
 {
-  //  fClusters = new TClonesArray("TSolGEMCluster", 100);  
   fBox = new TSBSBox;
   return;
 }
@@ -26,7 +24,6 @@ TSBSGEMPlane::TSBSGEMPlane( const char *name, const char *desc,
 			    THaDetectorBase* parent )
   : THaSubDetector (name, desc, parent)
 {
-  //  fClusters = new TClonesArray("TSolGEMCluster", 100);  
   fBox = new TSBSBox;
   return;
 }
@@ -108,7 +105,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
 	  {0}
 	};
       err = LoadDB( file, date, request, fPrefix );
-      
+     
       if (err)
 	return err;
 
@@ -135,7 +132,6 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       {0}
     };
   err = LoadDB( file, date, request, fPrefix );
-
   if (err)
     return err;
 
@@ -175,10 +171,7 @@ Int_t TSBSGEMPlane::Decode( const THaEvData &d ){
     // Clusters get made as so
 
   //    int i = 0;
-
-    //    new ((*fClusters)[i]) TSolGEMCluster();
-
-    return 0;
+  return 0;
 }
 
 Double_t 

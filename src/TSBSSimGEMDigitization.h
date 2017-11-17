@@ -15,8 +15,8 @@
 class TFile;
 class TTree;
 
-class TSolGEMData;
-class TSolGEMVStrip;
+class TSBSGEMSimHitData;
+class TSBSGEMHit;
 class TSBSSpec;
 class TSBSSimEvent;
 class TSBSGeant4File;
@@ -59,7 +59,7 @@ public:
   void Clear();
 
   // cumulate hits (strips signals)
-  void Cumulate (const TSolGEMVStrip *vv, Short_t type, Short_t clusterID );
+  void Cumulate (const TSBSGEMHit *vv, Short_t type, Short_t clusterID );
   
   //standard getters
   Short_t  GetType (Int_t n) const {return fType[n];}
@@ -93,9 +93,9 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Int_t ReadDatabase (const TDatime& date);
   
   //This is in those three functions that the job is done, more specifically in AddititveDigitize
-  Int_t Digitize (const TSolGEMData& gdata, const TSBSSpec& spect); // digitize event
-  Int_t AdditiveDigitize (const TSolGEMData& gdata, const TSBSSpec& spect); // add more digitized data, e.g. background
-  void NoDigitize (const TSolGEMData& gdata, const TSBSSpec& spect); // do not digitize event, just fill tree
+  Int_t Digitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect); // digitize event
+  Int_t AdditiveDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect); // add more digitized data, e.g. background
+  void NoDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect); // do not digitize event, just fill tree
   const TSBSDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);}; 
   void Print() const;// print info
   void PrintCharges() const;
@@ -112,13 +112,13 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 
   void InitTree (const TSBSSpec& spect, const TString& ofile);
   //dpulication of the SetTreeEvent routine with G4SBS file input instead of EVIO file
-  void SetTreeEvent (const TSolGEMData& tsgd,
+  void SetTreeEvent (const TSBSGEMSimHitData& tsgd,
 		     const TSBSGeant4File& f,
 		     Int_t evnum = -1);
   Short_t SetTreeHit (const UInt_t ih,
 		      const TSBSSpec& spect,
-		      //TSolGEMVStrip* const *dh,
-		      const TSolGEMData& tsgd,
+		      //TSBSGEMHit* const *dh,
+		      const TSBSGEMSimHitData& tsgd,
 		      Double_t t0 ); // called from Digitization
   void SetTreeStrips(); // called from Digitization
   void FillTree ();
@@ -160,7 +160,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 		 const TVector3& xo,
 		 const Double_t elost );
   
-  TSolGEMVStrip ** AvaModel (const Int_t ic,
+  TSBSGEMHit ** AvaModel (const Int_t ic,
 			     const TSBSSpec& spect,
 			     const TVector3& xi,
 			     const TVector3& xo,
@@ -219,7 +219,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   UInt_t   fXIntegralStepsPerPitch;
   
   TSBSDigitizedPlane*** fDP; // 2D array of plane pointers indexed by chamber, plane #
-  TSolGEMVStrip** fdh;// array of U & V GEM strips
+  TSBSGEMHit** fdh;// array of U & V GEM strips
   
   UInt_t fNChambers;  // # chambers
   UInt_t* fNPlanes;   // # planes in each chamber

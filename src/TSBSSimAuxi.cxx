@@ -1,5 +1,5 @@
-#include "TSolSimAux.h"
-
+#include "TSBSSimAuxi.h"
+#include "iostream"
 #include <cassert>
 #include <TMath.h>
 
@@ -8,7 +8,7 @@
 //
 
 Short_t 
-TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
+TSBSSimAuxi::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
 {
   // Convert analog value 'val' to integer ADC reading with 'bits' resolution
   assert( bits >= 0 && bits <= MAX_ADCBITS );
@@ -16,6 +16,7 @@ TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
   if( val < 0. )
     val = 0.;
   Double_t vvv = (val - off)/gain;
+  //std::cout<<val<<" : "<<vvv<<std::endl;
   //printf("offset = %1.3f, gain = %1.3f, input value = %1.3f , output value = %1.3f  \n", off, gain, val, vvv);
   Double_t saturation = static_cast<Double_t>( (1<<bits)-1 );
   if( vvv > saturation )
@@ -35,7 +36,7 @@ TSolSimAux::ADCConvert(Double_t val, Double_t off, Double_t gain, Int_t bits)
 //
 
 Double_t 
-TSolSimAux::PulseShape(Double_t t, 
+TSBSSimAuxi::PulseShape(Double_t t, 
 				  Double_t C,  // normalization factor
 				  Double_t Tp) // shaping time 
 
@@ -57,7 +58,7 @@ TSolSimAux::PulseShape(Double_t t,
 //                       tau0 = 38.28+/-3.604, tau1=129+/-6.499
 
 Double_t 
-TSolSimAux::PulseShape(Double_t t,
+TSBSSimAuxi::PulseShape(Double_t t,
 				  Double_t A,  // normalization
 				  Double_t tau0,  // first time constant
 				  Double_t tau1)  // second time constant
@@ -88,7 +89,7 @@ TSolSimAux::PulseShape(Double_t t,
 // par[4] = y_sigma
 
 Double_t 
-TSolSimAux::Gaus2D(Double_t *x, Double_t *par)
+TSBSSimAuxi::Gaus2D(Double_t *x, Double_t *par)
 {
   if(par[2] > 0 && par[4] > 0)
     {
@@ -106,7 +107,7 @@ TSolSimAux::Gaus2D(Double_t *x, Double_t *par)
 // Return the sum on ngaus 2D-Gaussian Functions
 //
 Double_t 
-TSolSimAux::MultiGaus2D(Double_t *x, Double_t *par) {
+TSBSSimAuxi::MultiGaus2D(Double_t *x, Double_t *par) {
 
   Int_t i;
 
@@ -133,7 +134,7 @@ TSolSimAux::MultiGaus2D(Double_t *x, Double_t *par) {
 
 
 Double_t 
-TSolSimAux::SimpleCircle(Double_t *x, Double_t *par) {
+TSBSSimAuxi::SimpleCircle(Double_t *x, Double_t *par) {
 
   Double_t dx = x[0]-par[1];
   Double_t dy = x[1]-par[2];
@@ -147,7 +148,7 @@ TSolSimAux::SimpleCircle(Double_t *x, Double_t *par) {
 }
 
 Double_t 
-TSolSimAux::MultiCircle(Double_t *x, Double_t *par) {
+TSBSSimAuxi::MultiCircle(Double_t *x, Double_t *par) {
 
   Int_t i;
 

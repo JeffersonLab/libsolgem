@@ -1,8 +1,8 @@
 #ifndef __CINT__
 
-#include "SBSSpec.h"
-#include "TSBSSimDecoder.h"
-#include "TSolSimFile.h"
+//#include "SBSSpec.h"
+//#include "TSBSSimDecoder.h"
+//#include "TSBSSimFile.h"
 
 #include "THaInterface.h"
 #include "THaGlobals.h"
@@ -19,6 +19,8 @@
 #include <iostream>
 
 #endif
+
+
 
 void ReplayMCDigitized(const char* filename = "digitized", 
 		       const char* detsuffix = "bbgem",//detector suffix: 
@@ -44,10 +46,12 @@ void ReplayMCDigitized(const char* filename = "digitized",
   char* bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
-  gSystem->Load("libsolgem.so");
-  gSystem->Load("libTreeSearch-SBS.so");
-  
-  TSolDBManager* manager = TSolDBManager::GetInstance();
+  gSystem->Load("../libsolgem.so");
+  gSystem->Load("/home/danning/TreeSearch/libTreeSearch.so");
+  gSystem->Load("/home/danning/TreeSearch/libTreeSearch-SBS.so");
+  gSystem->Load("libMinuit");
+
+  TSBSDBManager* manager = TSBSDBManager::GetInstance();
   manager->LoadGeneralInfo(Form("db_generalinfo_%s.dat", detsuffix));
   manager->LoadGeoInfo(Form("g4sbs_%s", detsuffix));
 
@@ -85,6 +89,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   analyzer->SetSummaryFile(Form("%s_%s_new.sum", filename, detsuffix));
   analyzer->SetCrateMapFileName("sbssim_cratemap");
   
+  
   //static int Nrun = TMath::Max(nseg,1);
   THaRunBase* run[0];
   TString title0 = "Digitized MC data";
@@ -95,11 +100,11 @@ void ReplayMCDigitized(const char* filename = "digitized",
       infile.Append(Form("_p%d", i+1));
     }
     infile.Append(".root");
-    run[i] = new TSolSimFile(infile,title);
+    run[i] = new TSBSSimFile(infile,title);
   }
   if( nseg == 1 && nevent > 0 )
     run[0]->SetLastEvent(nevent);
-
+cout<<"here"<<endl;
   bool fail = true;
   if( analyzer->Init(run[0]) == 0 ) {
     cout << "initialization successful..." << endl;
