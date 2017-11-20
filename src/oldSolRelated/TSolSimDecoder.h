@@ -124,7 +124,7 @@ class TSolSimDecoder : public Podd::SimDecoder {
   virtual void  Clear( Option_t* opt="" );
   virtual Int_t DefineVariables( THaAnalysisObject::EMode mode =
 				 THaAnalysisObject::kDefine );
-  virtual Podd::MCHitInfo GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const;
+  virtual Podd::MCHitInfo GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan, Double_t& mccharge) const;
 
   Int_t  GetNBackTracks() const { return fBackTracks->GetLast()+1; }
 

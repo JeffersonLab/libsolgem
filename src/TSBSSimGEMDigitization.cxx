@@ -7,12 +7,12 @@
 #include "TClonesArray.h"
 
 #include "TSBSGeant4File.h"  // needed for g4sbsgendata class def
-#include "TSolGEMData.h"
-#include "TSolGEMVStrip.h"
+#include "TSBSGEMSimHitData.h"
+#include "TSBSGEMHit.h"
 #include "TSBSSpec.h"
 #include "TSBSGEMChamber.h"
 #include "TSBSGEMPlane.h"
-#include "TSolSimAux.h"
+#include "TSBSSimAuxi.h"
 #include "TSBSSimEvent.h"
 
 #include <cmath>
@@ -27,31 +27,13 @@
 
 using namespace std;
 
-static TSolDBManager* manager = TSolDBManager::GetInstance();
+static TSBSDBManager* manager = TSBSDBManager::GetInstance();
 //for some reasons, if these parameters are declared as flags in the .h, it doesn't work...
 Int_t    TSBSSimGEMDigitization::fDoCrossTalk = 0;
 Int_t    TSBSSimGEMDigitization::fNCStripApart = 0;
 Double_t TSBSSimGEMDigitization::fCrossFactor = 0.;
 Double_t TSBSSimGEMDigitization::fCrossSigma = 0.;
 
-// Chamber number -> sector/plane helper functions
-
-inline
-static void ChamberToSector( Short_t chamber, Short_t& sector, Short_t& plane )
-{
-  div_t d = div( chamber, manager->GetNChamber() );
-  sector = d.quot;
-  plane  = d.rem;
-  //cout << "chamber " << chamber << ", sector " << sector << ", plane " << plane << endl;
-}
-
-inline
-static UInt_t MapSector( UInt_t chamber )
-{
-  // Convert the true chamber index to one with sector = 0
-  
-  return manager->GetNSector() * UInt_t(chamber/manager->GetNSector());
-}
 
 // Auxiliary class
 
@@ -98,7 +80,7 @@ TSBSDigitizedPlane::Clear()
 }
 
 void
-TSBSDigitizedPlane::Cumulate (const TSolGEMVStrip *vv, Short_t type,
+TSBSDigitizedPlane::Cumulate (const TSBSGEMHit *vv, Short_t type,
 			      Short_t clusterID )
 {
   // cumulate hits (strips signals)
@@ -128,32 +110,6 @@ TSBSDigitizedPlane::Cumulate (const TSolGEMVStrip *vv, Short_t type,
       }
       fStripClusters[idx].push_back(clusterID);
     }
-    
-    /*
-    //pedestal noise here ??? let's try
-    //printf("%d \n ", fNStrips);
-    double gain = 1.0;
-    double off = 0.0;
-    for(Int_t j = 0; j<fNStrips; j++){
-      if(  vv->GetIdx(0) <= j && j <=  vv->GetIdx(vv->GetSize()-1) )continue;
-      SETBIT(fType[j], kInducedStrip);
-      fTime[j] = 0.0;
-      fCharge[j] = 0.0;
-      bool was_below = !( fTotADC[j] > fThreshold );
-      for( UInt_t k=0; k<fNSamples; k++ ) {
-	double noise = (fRan.Gaus(30., 7.0)-off)/gain;
-	Int_t iadc = j*fNSamples+k;
-	Int_t vadc = TMath::Max(0, TMath::FloorNint(noise));
-	fStripADC[iadc] = vadc;
-	fTotADC[j] += vadc;
-      }
-      if( was_below && fTotADC[j] > fThreshold ) {
-	assert( fNOT < fNStrips );
-	fOverThr[fNOT] = j;
-	++fNOT;
-      }
-    }//
-    */
     
     //do cross talk if requested, a big signal along the strips 
     //will induce a smaller signal as the bigger one going to the APV, 
@@ -373,7 +329,7 @@ TSBSSimGEMDigitization::ReadDatabase (const TDatime& date)
 }
 
 Int_t
-TSBSSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSBSSpec& spect)
+TSBSSimGEMDigitization::Digitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect)
 {
   // Digitize event after clearing all previous digitization results.
 
@@ -390,7 +346,7 @@ TSBSSimGEMDigitization::Digitize (const TSolGEMData& gdata, const TSBSSpec& spec
 }
 
 Int_t
-TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSpec& spect)
+TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect)
 {
   // Digitize event. Add results to any existing digitized data.
   
@@ -398,126 +354,51 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 
   // For signal data, determine the sector of the primary track
   bool is_background = gdata.GetSource() != 0;
-  if( fDoMapSector && !is_background ) {
-    //originally the fSignalSector is determine from the phi angle of the track
-    //at vertex, this is good if there is no field. When there is, we cannot do it
-    //that way. So I changed it to the following. But still it doesn't work in there
-    //are more than 1 primary signal particle, hopefully we don't need to consider this
-    //-- Weizhi
-
-    Int_t ntrk = fEvent->GetNtracks();
-    if( ntrk == 0 && nh > 0 ) {
-      Warning("Digitize", "Signal data without a primary track?");
-    } else if( ntrk > 0 ) {
-      if( ntrk > 1 )
-	Warning("Digitize", "Multiple primary tracks in signal run?");
-
-      TSBSSimTrack* trk = static_cast<TSBSSimTrack*>( fEvent->fMCTracks->At(0) );
-      if( trk ) {
-        //fSignalSector = gdata.GetSigSector();// CHECK ?
-	Double_t ph = trk->PPhi();
-	// Assumes phi doesn't change between vertex and GEMs (no field) and the
-	// nominal angle (i.e. without offset) of sector 0 is 0 degrees
-	fSignalSector = TMath::FloorNint(ph*manager->GetNSector()/TMath::TwoPi() + 0.5);
-	if( fSignalSector < 0 ) fSignalSector += manager->GetNSector();
-      } else
-	Error("Digitize", "Null track pointer? Should never happen. Call expert.");
-    }
-  }
   if( nh == 0 ) {
     //cout << "no hit, doing nothing " << endl;
     return 0;
   }
-
-  // Map sectors of any background data to the signal sector, if so requested
-  bool map_backgr = fDoMapSector && is_background;
-
-  // Randomize the event time for background events
-  UInt_t vsize = ( map_backgr ) ? manager->GetNSector() : 1;
-  vector<Float_t> event_time(vsize);
-  vector<bool> time_set(vsize,false);
-  UInt_t itime = 0;
-
-  // for (UInt_t ic = 0; ic < fNChambers; ++ic) {
-  //   for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
-  //     for(int i = 0; i<spect.GetChamber(ic).GetPlane(ip).GetNStrips(); i++){
-  // 	for(int j = 0; j< fEleSamplingPoints; j++){
-  // 	  if(fDP[ic][ip]->GetADC(i,j)!=0)cout << fDP[ic][ip]->GetADC(i,j) << " ";
-  // 	}
-  //     }
-  // }
   
+  // Randomize the event time for background events
+  Float_t event_time=0,time_zero=0;
+  // Trigger time jitter, This should be a fixed value for different hits in a certain event.
+  Double_t trigger_jitter = //fTriggerOffset + 
+    fTrnd.Uniform(-fTriggerJitter/2, fTriggerJitter/2);
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);
+    UInt_t imodule = gdata.GetHitModule(ih);
+    UInt_t iplane = gdata.GetHitPlane(ih);
+    //cout<<igem<<":"<<imodule<<":"<<iplane<<endl;
     if (igem >= fNChambers)
-      continue;
-    
+      {
+	cout<<"GEM ID out of range set in database"<<endl;
+	continue;
+      }
     Short_t itype = (gdata.GetParticleType(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
-    Short_t isect, iplane;
-    ChamberToSector( igem, isect, iplane );
-        
-    if( fDoMapSector && !is_background && isect != fSignalSector )
-      // If mapping sectors, skip signal hits that won't end up in sector 0
-      continue;
-    
     // These vectors are in the spec frame, we need them in the chamber frame
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
     
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
-    // Generate randomized event time (for background) and trigger time jitter
-    if( map_backgr ) {
-      // If mapping sectors, treat the hits from each sector like coming from
-      // a separate event. As a result, each sector gets its own random event_time.
-      // If not mapping sectors, itime = 0, and all hits get the same time offset.
-      itime = isect;
-    }
-    if( !time_set[itime] ) {
-      // Trigger time jitter, including an arbitrary offset to align signal timing
-      Double_t trigger_jitter = fTrnd.Gaus(0, fTriggerJitter);
-      
-      // time jitter due to in fact that the internal clock of APV cannot be synchronized
-      // with our trigger, this will cause a uncertainty about the size of the sampling period
-      // (25ns in the case of APV25). 
-      // Also note that this way of adding the APV time jitter assume that
-      // all APVs are synchronized among themselves, otherwise each APV should get a different
-      // jitter. In that case, there will be a bit more development needed for this program
-      // because we need to group strips into APVs -- Weizhi
-      
-      //fAPVTimeJitter should actually be equal to fEleSamplingPeriod, but I would like to
-      //have the option of turning it on and off
-      Double_t apvJitter = (fTrnd.Uniform(fAPVTimeJitter) - fAPVTimeJitter/2.);
-      trigger_jitter += apvJitter;
 
-      if( is_background ) {
-	
-	// For background data, uniformly randomize event time between
-	// -fGateWidth to +75 ns (assuming 3 useful 25 ns samples).
-	event_time[itime] = fTrnd.Uniform(fGateWidth + 3*fEleSamplingPeriod)
-	  - fGateWidth - trigger_jitter;
-	//cout << "GateWidth " << fGateWidth << ", sampling period " << fEleSamplingPeriod << endl;
-      } else {
-	// Signal events occur at t = 0, smeared only by the trigger jitter
-	event_time[itime] = -trigger_jitter;
-      }
-#if DBG_AVA > 0
-      if(event_time[itime]>-50.0 && is_background ){
-	cout << "Evt time " << event_time[itime] 
-	     << " ( -trigger_jitter = " << -trigger_jitter;
-	if(is_background) cout << ", -Gate Width =  " << -fGateWidth;
-	cout << ")" << endl;
-      }
-#endif
-      
-      time_set[itime] = true;
+    // Get Signal Start Time 'time_zero'
+    if( is_background ) {
+      // For background data, uniformly randomize event time between
+      // -fGateWidth to +75 ns (assuming 3 useful 25 ns samples).
+      // Not using HitTime from simulation file but randomize HitTime to cycle use background files
+      event_time = fTrnd.Uniform((-fGateWidth+2*fEleSamplingPeriod), 8*fEleSamplingPeriod);
+    } else {
+      // Signal events occur at t = 0, 
+      event_time = gdata.GetHitTime(ih);
     }
-    // Time of the leading edge of this hit's avalance relative to the trigger
-    Double_t time_zero = event_time[itime] - fTriggerOffset[iplane] + gdata.GetHitTime(ih) + fRTime0*1e9;
-    
+    //  cout<<event_time<<"  "<<ih<<endl;
+    // Adding drift time and trigger_jitter
+    time_zero = event_time + fTriggerOffset[iplane] + fRTime0*1e9 - trigger_jitter;
+   
 #if DBG_AVA > 0
     if(time_zero>200.0)
       cout << "time_zero " << time_zero 
-	   << "; evt time " << event_time[itime] 
+	   << "; evt time " << event_time 
 	   << "; hit time " << gdata.GetHitTime(ih)
 	   << "; drift time " << fRTime0*1e9
 	   << endl;
@@ -540,14 +421,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
     
     // Record digitized strip signals in output event
     if (fdh) {
-      // If requested via fDoMapSector, accumulate all data in sector 0
-      if( fDoMapSector ) {
-	igem = MapSector(igem);
-	if( !is_background ) {
-	  assert( !fEvent->fGEMClust.empty() );
-	  igem += fEvent->fGEMClust.back().fSector;
-	}
-      }
+      
       //cout << " igem = " << igem << " iplane = " << iplane << endl;
       for (UInt_t j = 0; j < 2; j++) {
 	// cout << "before cumulate (j = " << j << ") : " << endl;
@@ -567,7 +441,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSolGEMData& gdata, const TSBSSp
 }
 
 void
-TSBSSimGEMDigitization::NoDigitize (const TSolGEMData& gdata, const TSBSSpec& spect) // do not digitize event, just fill the tree
+TSBSSimGEMDigitization::NoDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect) // do not digitize event, just fill the tree
 {
   //  if (!fEvCleared)  //?
     fEvent->Clear();
@@ -716,7 +590,7 @@ Bool_t IsInActiveArea( const TSBSGEMPlane& pl, Double_t xc, Double_t yc )
 // avalanche model
 //
 
-TSolGEMVStrip **
+TSBSGEMHit **
 TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 				 const TSBSSpec& spect,
 				 const TVector3& xi,
@@ -762,10 +636,6 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
   // larger than the wedge's active area (section of a ring)
 
   const TSBSGEMChamber& chamber = spect.GetChamber(ic);
-  // Double_t glx = (chamber.GetLowerEdgeX()+chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
-  // Double_t gly = (chamber.GetLowerEdgeY()+chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
-  // Double_t gux = (chamber.GetUpperEdgeX()-chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
-  // Double_t guy = (chamber.GetUpperEdgeY()-chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
   Double_t glx = (chamber.GetPlane(0).GetStripLowerEdge(0)+chamber.GetPlane(0).GetSPitch()/2.0) * 1000.0;
   Double_t gly = (chamber.GetPlane(1).GetStripLowerEdge(0)+chamber.GetPlane(1).GetSPitch()/2.0) * 1000.0;
   Double_t gux = (chamber.GetPlane(0).GetStripUpperEdge(chamber.GetPlane(0).GetNStrips()-1)
@@ -791,8 +661,8 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 
   // Loop over chamber planes
   
-  TSolGEMVStrip **virs;
-  virs = new TSolGEMVStrip *[fNPlanes[ic]];
+  TSBSGEMHit **virs;
+  virs = new TSBSGEMHit *[fNPlanes[ic]];
   for (UInt_t ipl = 0; ipl < fNPlanes[ic]; ++ipl){
 #if DBG_AVA > 0
     cout << "coordinate " << ipl << " =========================" << endl;
@@ -960,9 +830,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	 << endl;
 #endif
 
-    virs[ipl] = new TSolGEMVStrip(nx,fEleSamplingPoints);
-    //virs[ipl] = new TSolGEMVStrip(pl.GetNStrips(),fEleSamplingPoints);//EFuchey: test
-
+    virs[ipl] = new TSBSGEMHit(nx,fEleSamplingPoints);
     virs[ipl]->SetTime(t0);
     virs[ipl]->SetHitCharge(fRTotalCharge);
     
@@ -981,49 +849,22 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
 	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
-      
+      //  cout<<iL+j<<" : "<<us<<endl;
       //generate the random pedestal phase and amplitude
       // Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
       // Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
       
       for (Int_t b = 0; b < fEleSamplingPoints; b++){
 	Double_t pulse =
-	  TSolSimAux::PulseShape (fEleSamplingPeriod * b - t0,
+	  TSBSSimAuxi::PulseShape (fEleSamplingPeriod * b - t0,
 				  us,
 				  fPulseShapeTau0,
 				  fPulseShapeTau1 );
-	
-	//nx is larger than the size of the strips that are actually being hit,
-	//however, this way of adding noise will add signals to those strips that were not hit
-	//and the cluster size will essentially equal to nx
-	//not sure if this is what we what...
-	// if( fPulseNoiseSigma > 0.)
-	// pulse += fTrnd.Gaus(0., fPulseNoiseSigma);
-	
-	// if(us>0)cout << "strip number " << j << ", sampling number " << b << ", t0 = " << t0 << endl
-	// 	     << "sampling period " << fEleSamplingPeriod << " => " << fEleSamplingPeriod * b - t0 << endl
-	// 	     << "pulse shape tau_0 " << fPulseShapeTau0 << " pulse shape tau_1 " << fPulseShapeTau1 
-	// 	     << " value of us " << us << ", pulse value " << pulse << endl;
-	
-	// cout << "x0 " << -(fEleSamplingPeriod * b - t0)/fPulseShapeTau0 
-	//      << ", x1 " << -(fEleSamplingPeriod * b - t0)/fPulseShapeTau1 
-	//      << " => (0) = " << (1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0)) 
-	//      << " (1) = " << TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1)
-	//      << " (2) = " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1) 
-	//      << " => v = (2)*(0)*(1) = " << us*((fPulseShapeTau0+fPulseShapeTau1)/fPulseShapeTau1/fPulseShapeTau1)*(1.-TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau0))*TMath::Exp(-(fEleSamplingPeriod * b - t0)/fPulseShapeTau1) << endl;
-	
-	//add noise only to those strips that are hit,
-	if( fPulseNoiseSigma > 0. && pulse > 0. )
-	  //pulse += GetPedNoise(phase, amp, b);
-	  pulse += fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
-	//if( fPulseNoiseSigma > 0.)
-	//pulse = fTrnd.Gaus(4*fPulseNoiseSigma, fPulseNoiseSigma);
-	
-	Short_t dadc = TSolSimAux::ADCConvert( pulse,
+
+	Short_t dadc = TSBSSimAuxi::ADCConvert( pulse,
 					       fADCoffset,
 					       fADCgain,
 					       fADCbits );
-	//cout << dadc << " ";
 #if DBG_AVA > 0
 	cout << "strip number " << j << ", sampling number " << b << ", t0 = " << t0 << endl
 	     << "pulse = " << pulse << ", (val - off)/gain = " 
@@ -1034,7 +875,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       }//cout << endl;
       if (posflag > 0) { // store only strip with signal
 	for (Int_t b = 0; b < fEleSamplingPoints; b++)
-	  virs[ipl]->AddSampleAt (fDADC[b], b, ai);
+	  {virs[ipl]->AddSampleAt (fDADC[b], b, ai);}
 	virs[ipl]->AddStripAt (iL+j, ai);
 	virs[ipl]->AddChargeAt (us, ai);
 	ai++;
@@ -1042,41 +883,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     }
     
     //cout << "number of strips with signal " << ai << endl;
-    /*
-    //EFuchey: try to put noise in all strips.
-    for (Int_t j = 0; j < pl.GetNStrips(); j++){
-      Int_t posflag = 0;
-      
-      //generate the random pedestal phase and amplitude
-      Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
-      Double_t amp = fPulseNoiseAmpConst + fTrnd.Gaus(0., fPulseNoiseAmpSigma);
-      
-      for (Int_t b = 0; b < fEleSamplingPoints; b++){
-	Double_t pulse = fTrnd.Gaus(0., fPulseNoiseSigma);
-	//Double_t pulse = GetPedNoise(phase, amp, b);
-	
-	Short_t dadc = TSolSimAux::ADCConvert( pulse,
-					       fADCoffset,
-					       fADCgain,
-					       fADCbits );
-	
-	cout << "strip number " << j << ", sampling number " << b << ", t0 = " << t0 << endl
-	     << "sampling period " << fEleSamplingPeriod << " => " << fEleSamplingPeriod * b - t0 << endl
-	     << "pulse shape tau_0 " << fPulseShapeTau0 << " pulse shape tau_1 " << fPulseShapeTau1 
-	     << " value of us " << us << ", pulse value " << pulse << endl;
-	
-	fDADC[b] = dadc;
-	posflag += dadc;
-      }
-      if (posflag > 0) { // store only strip with signal
-	for (Int_t b = 0; b < fEleSamplingPoints; b++)
-	  virs[ipl]->AddSampleAt (fDADC[b], b, ai);
-	virs[ipl]->AddStripAt (j, ai);
-	virs[ipl]->AddChargeAt (0.0, ai);
-	ai++;
-      }
-    }
-    */
+
     virs[ipl]->SetSize(ai);
   }
   
@@ -1189,7 +996,7 @@ TSBSSimGEMDigitization::InitTree (const TSBSSpec& spect, const TString& ofile)
 }
 
 void
-TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
+TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
 				      const TSBSGeant4File& f, Int_t evnum )
 {
   // Set overall event info.
@@ -1216,8 +1023,8 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSolGEMData& tsgd,
 Short_t
 TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
 				    const TSBSSpec& spect,
-				    //TSolGEMVStrip* const *dh,
-				    const TSolGEMData& tsgd,
+				    //TSBSGEMHit* const *dh,
+				    const TSBSGEMSimHitData& tsgd,
 				    Double_t t0 )
 {
   // Sets the variables in fEvent->fGEMClust describing a hit
@@ -1226,8 +1033,9 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   TSBSSimEvent::GEMCluster clust;
   
   UInt_t igem = tsgd.GetHitChamber(ih);
-  ChamberToSector( igem, clust.fRealSector, clust.fPlane );
-  clust.fSector   = clust.fRealSector; // May change if mapped, see below
+  clust.fPlane = manager->GetPlaneID(igem);
+  clust.fModule = manager->GetModuleID(igem);
+  clust.fSector   = 0;// disabling sector info for now, working to remove fSector//clust.fRealSector; // May change if mapped, see below
   clust.fSource   = tsgd.GetSource();  // Source of this hit (0=signal, >0 background)
   clust.fType     = tsgd.GetParticleType(ih);   // GEANT particle counter
   clust.fTRID     = tsgd.GetTrackID(ih);   // GEANT particle counter
@@ -1296,30 +1104,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fID     = fEvent->fGEMClust.size()+1;
   clust.fVertex = tsgd.GetVertex (ih) * 1e-3;//[m]
   
-  // EFuchey 2016/11/17: this has been commented for the time being. It is probably useless for SBS
-  /*
-  if( fDoMapSector ) {
-    // If sector mapping requested:
-    // Signal sectors numbers are rotated by -fSignalSector so that
-    // primary particle hits end up in sector 0 (not necessarily all
-    // the secondaries, though!)
-    Double_t rot;
-    if( clust.fSource == 0 ) {
-      rot = -TMath::TwoPi()*fSignalSector/fNSECTORS;
-      clust.fSector -= fSignalSector;
-      if( clust.fSector < 0 )
-	clust.fSector += fNSECTORS;
-    }
-    else {
-      // All background hits are mapped into sector 0
-      rot = -sector_angle;
-      clust.fSector = 0;
-    }
-    clust.fP.RotateZ(rot);
-    clust.fXEntry.RotateZ(rot);
-    clust.fMCpos.RotateZ(rot);
-  }
-  */
+
   
   /*
   cout << endl << "Cluster ID " << clust.fID << ", sector (realsector) " 
@@ -1360,8 +1145,13 @@ TSBSSimGEMDigitization::SetTreeStrips()
   fEvent->fGEMStrips.clear();
 
   TSBSSimEvent::DigiGEMStrip strip;
-  for (UInt_t ich = 0; ich < GetNChambers(); ++ich) {
-    ChamberToSector( ich, strip.fSector, strip.fPlane );
+  Double_t saturation = static_cast<Double_t>( (1<<fADCbits)-1 )-1300;
+  for (Int_t ich = 0; ich < GetNChambers(); ++ich) {
+    
+    strip.fSector=0;
+    strip.fPlane=manager->GetPlaneID(ich);
+    strip.fModule=manager->GetModuleID(ich);
+    // cout<<ich<<" : "<<(3*strip.fPlane+strip.fModule)<<endl;
     
     //cout << "ich " << ich << " strip sector " <<  strip.fSector << " strip plane " << strip.fPlane << endl;
     
@@ -1385,9 +1175,13 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	Short_t idx = GetIdxOverThr(ich, ip, iover);
 	strip.fChan = idx;
 
+	//setting strip sample adc and adding pedestal noise
 	for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
 	  strip.fADC[ss] = GetADC(ich, ip, idx, ss);
-	  //cout << strip.fADC[ss] << " ";
+	  // cout << strip.fADC[ss] << " ";
+	   strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
+	  // cout << strip.fADC[ss] << " ";
+	  if(strip.fADC[ss]>saturation)strip.fADC[ss]=saturation;
 	}//cout << endl;
 
 	strip.fSigType = GetType(ich, ip, idx);

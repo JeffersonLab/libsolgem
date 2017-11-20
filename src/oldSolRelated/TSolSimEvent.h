@@ -113,6 +113,7 @@ public:
   struct DigiGEMStrip {
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
+    Short_t   fModule;    // Module number
     Short_t   fProj;      // Readout coordinate ("x" = 0, "y" = 1)
     Short_t   fChan;      // Channel number
     Short_t   fSigType;   // Accumulated signal types (BIT(0) = signal)

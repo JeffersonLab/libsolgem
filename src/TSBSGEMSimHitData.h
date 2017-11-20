@@ -1,19 +1,19 @@
 // manage the input data (output of the GEANT4 simulation)
 // for the gem part
 
-#ifndef __TSolGEMData__
-#define __TSolGEMData__
+#ifndef __TSBSGEMSimHitData__
+#define __TSBSGEMSimHitData__
 
 #include <TRandom.h>
 #include <TVector3.h>
 #include <vector>
 
-class TSolGEMData 
+class TSBSGEMSimHitData 
 {
  public:
 
-  TSolGEMData (UInt_t h = 0);
-  virtual ~TSolGEMData();
+  TSBSGEMSimHitData (UInt_t h = 0);
+  virtual ~TSBSGEMSimHitData();
 
   void ClearEvent();
   void InitEvent (UInt_t h);
@@ -33,6 +33,8 @@ class TSolGEMData
   void SetHitEnergy (UInt_t k, Double_t e)     { fHitData[k].fEdep = e; }
   void SetHitTime(UInt_t k, Double_t t)        { fHitData[k].fTime = t; }
   void SetHitChamber (UInt_t k, UInt_t c)      { fHitData[k].fGem  = c; }
+  void SetHitPlane (UInt_t k, UInt_t p)        { fHitData[k].fPlane  = p; }
+  void SetHitModule (UInt_t k, UInt_t m)       { fHitData[k].fModule  = m; }
   void SetParticleType (UInt_t k, UInt_t type) { fHitData[k].fType = type; }
   void SetTrackID (UInt_t k, UInt_t trid)      { fHitData[k].fTRID  = trid; }
   void SetParticleID (UInt_t k, Int_t pid)     { fHitData[k].fPID = pid; }
@@ -50,6 +52,8 @@ class TSolGEMData
   Double_t GetHitEnergy (UInt_t k)    const { return fHitData[k].fEdep; }
   Double_t GetHitTime(UInt_t k)       const { return fHitData[k].fTime; }
   UInt_t GetHitChamber (UInt_t k)     const { return fHitData[k].fGem; }
+  UInt_t GetHitPlane(UInt_t k)        const { return fHitData[k].fPlane; }
+  UInt_t GetHitModule(UInt_t k)        const { return fHitData[k].fModule; }
   UInt_t GetParticleType (UInt_t k)   const { return fHitData[k].fType; }
   UInt_t GetTrackID (Int_t k)         const { return fHitData[k].fTRID; }
   Int_t GetParticleID (UInt_t k)      const { return fHitData[k].fPID; }
@@ -59,12 +63,14 @@ class TSolGEMData
 
   // Add to the current set of GEM data another GEM data set 
   // Necessary ??? probably redundant with TSol(SBS)SimGEMDigitization::AdditiveDigitize()
-  //void AddGEMData(TSolGEMData* gd);
-  
+  //void AddGEMData(TSBSGEMSimHitData* gd);
+
   // Hit data
   // moved in "public" to allow it to compile with Root6/CentOS7
   struct GEMHitData_t {
     UInt_t    fGem;
+    UInt_t    fPlane;
+    UInt_t    fModule;
     Double_t  fEdep;  // energy lost in drift
     Double_t  fTime;  // hit time
     UInt_t    fType;  // particle type: 1 = primary, >1 secondaries

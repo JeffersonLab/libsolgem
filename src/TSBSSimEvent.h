@@ -93,6 +93,7 @@ public:
     // MC hit data
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
+    Short_t   fModule;    // Module number
     Short_t   fRealSector;// Real sector number (may be !=fSector if mapped)
     Int_t     fSource;    // MC data set source (0 = signal, >0 background)
     Int_t     fType;      // GEANT particle type (1 = primary)
@@ -118,6 +119,7 @@ public:
   struct DigiGEMStrip {
     Short_t   fSector;    // Sector number
     Short_t   fPlane;     // Plane number
+    Short_t   fModule;    // Module number
     Short_t   fProj;      // Readout coordinate ("x" = 0, "y" = 1)
     Short_t   fChan;      // Channel number
     Short_t   fSigType;   // Accumulated signal types (BIT(0) = signal)
@@ -126,6 +128,7 @@ public:
                           //   relative to event start in target (TBC)
     UShort_t  fNsamp;     // Number of ADC samples
     Int_t     fADC[MC_MAXSAMP]; // [fNsamp] ADC samples
+    //Int_t     fCommonMode[MC_MAMSAMP];// Real Common mode added to strip----going to work on next, needs to digitize all strips// seems no need to add strip to strip offset since it is just adding a constant in digitization and subtracting same known constant in analysis. "Strip specific pedestal rms and common mode are important"
     TArrayS   fClusters;  // Clusters contributing to signal on this strip
   };
 

@@ -1,26 +1,26 @@
 #include <iostream>
 
-#include "TSolGEMData.h"
+#include "TSBSGEMSimHitData.h"
 
 using namespace std;
 
-TSolGEMData::TSolGEMData (UInt_t h)
+TSBSGEMSimHitData::TSBSGEMSimHitData (UInt_t h)
 {
   fHitData.reserve(h);
 }
 
-TSolGEMData::~TSolGEMData()
+TSBSGEMSimHitData::~TSBSGEMSimHitData()
 {
 }
 
 void
-TSolGEMData::ClearEvent() 
+TSBSGEMSimHitData::ClearEvent() 
 {
   fHitData.clear();
 };
 
 void
-TSolGEMData::InitEvent (UInt_t h)
+TSBSGEMSimHitData::InitEvent (UInt_t h)
 {
   if (h <= 0)
     return;
@@ -29,13 +29,13 @@ TSolGEMData::InitEvent (UInt_t h)
 }
 
 void 
-TSolGEMData::Print() const
+TSBSGEMSimHitData::Print() const
 {
   cout << "Run " << GetRun() << " Event " << GetEvent() << " " << GetNHit() << " hits" << endl;
 }
 
 void 
-TSolGEMData::PrintHit (UInt_t k) const
+TSBSGEMSimHitData::PrintHit (UInt_t k) const
 {
   cout << "  Event " << GetEvent() << ":" << endl;
   cout << "    Momentum: " << GetMomentum(k).X()
@@ -73,7 +73,7 @@ TSolGEMData::PrintHit (UInt_t k) const
 /*
 // Add to the current set of GEM data another GEM data set 
 // Necessary ??? probably redundant with TSol(SBS)SimGEMDigitization::AdditiveDigitize()
-void TSolGEMData::AddGEMData(TSolGEMData* gd)
+void TSBSGEMSimHitData::AddGEMData(TSBSGEMSimHitData* gd)
 {
   if( !gd ) return;
   

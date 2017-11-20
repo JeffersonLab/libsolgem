@@ -14,22 +14,27 @@
 
 using namespace std;
 
-class TSolDBManager {
+class TSBSDBManager {
 public:
-    ~TSolDBManager();
-    static TSolDBManager* GetInstance() {
-        if (fManager == NULL) fManager = new TSolDBManager();
+    ~TSBSDBManager();
+    static TSBSDBManager* GetInstance() {
+        if (fManager == NULL) fManager = new TSBSDBManager();
         return fManager;
     }
     
     void LoadGeneralInfo(const string& fileName);
     void LoadGeoInfo(const string& prefix);
-    
+   
     const int    &   DoMapSector()          { return fDoMapSector;         }
     const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
     const int    &   GetSectorMapped()      { return fMappedSector;        }
     const int    &   GetNChamber()          { return fNChamber;            }
     const int    &   GetNSector()           { return fNSector;             }
+    const int    &   GetNGEMPlane()         { return fNGEMPlane;           }
+    const int    &   GetNModule(int plane)  { if(plane<0) return 0; else return fNModule[plane];      }
+    const int    &   GetPlaneID(int igem)   { return fmIgemtoPlane[igem];  }
+    const int    &   GetModuleID(int igem)  { return fmIgemtoModule[igem]; }
+    const int    &   GetGEMID(int ip,int im){ return fmPMtoIgem[ip][im];   }
     /* // see comment l. 93-95. */
     /* const int    &   GetNChamber2()          { return fNChamber2;            } */
     /* const int    &   GetNSector2()           { return fNSector2;             } */
@@ -73,16 +78,16 @@ public:
     const double &   GetStripAngle(int i, int j, int k);
     const double &   GetPitch(int i, int j, int k);
     
-    int GetSectorIDFromPos(int ichamber, double x, double y = 0);
-    double GetPosFromSectorStrip(int iproj, int ichamber, int isector, int istrip);
-    
+    int GetModuleIDFromPos(int iplane, double x, double y = 0);
+    double GetPosFromModuleStrip(int iproj, int iplane, int isector, int istrip);
+
 protected:
-    TSolDBManager();
+    TSBSDBManager();
     int    LoadDB(ifstream& inp, DBRequest* request, const string& prefix);
     string FindKey( ifstream& inp, const string& key );
     bool   CheckIndex(int i, int j=0, int k=0);
     
-    static TSolDBManager* fManager;
+    static TSBSDBManager* fManager;
 
     //variable for data base information
     int fDoMapSector;
@@ -91,11 +96,12 @@ protected:
     
     int    fNChamber;
     int    fNSector;
-    /* // the two following lines have to be added for BB GEMs, */
-    /* // since there are two types of trackers which it is not relevant to treat independently */
-    /* // (in contrast with FT/FPP). */
-    /* int    fNChamber2; */
-    /* int    fNSector2; */
+    int    fNGEMPlane;
+    std::vector<Int_t> fNModule;
+    std::map<Int_t,std::map<Int_t, Int_t> > fmPMtoIgem;
+    std::map<Int_t, Int_t> fmIgemtoPlane;
+    std::map<Int_t, Int_t> fmIgemtoModule;
+
     int    fNReadOut;
     int    fNSigParticle;
     int    fGEMDriftID;
@@ -135,6 +141,7 @@ protected:
     
     /* vector<double> fChamberZ; */
     map< int, vector<GeoInfo> > fGeoInfo;
+    map< int, vector<GeoInfo> > fPMGeoInfo; //plane module format geo info
     
 };
 

@@ -8,7 +8,6 @@
 
 #include "types.h"
 
-class TSolGEMCluster;
 class TClonesArray;
 
 // In the present implementation we assume strips in a plane are
@@ -18,7 +17,6 @@ class TClonesArray;
 // Refer to the comment in the header of TSBSBox class for more info.
 
 // In the code, TSBSGEMPlane contains the information about the strips and such 
-// NB: the GEM chamber and its GEM planes share the same size. 
 
 // It uses many of the methods from this class (namely the transformations methods).
 // In addition to this it bears transformations to go from lab, spec, or box to the "strip" frame,

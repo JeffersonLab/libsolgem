@@ -1,10 +1,10 @@
 #include <iostream>
 
-#include "TSolGEMVStrip.h"
+#include "TSBSGEMHit.h"
 
 using namespace std;
 
-TSolGEMVStrip::TSolGEMVStrip(Short_t n, // number of strips in hit 
+TSBSGEMHit::TSBSGEMHit(Short_t n, // number of strips in hit 
 			   Short_t nsample) {
   fSize = n;
   fNsample = nsample;
@@ -15,14 +15,14 @@ TSolGEMVStrip::TSolGEMVStrip(Short_t n, // number of strips in hit
   fHitCharge = 0;
 };
 
-TSolGEMVStrip::~TSolGEMVStrip() {
+TSBSGEMHit::~TSBSGEMHit() {
   delete fIdx;
   delete fADC;
   delete fCharge;
 };
 
 void 
-TSolGEMVStrip::Print() {
+TSBSGEMHit::Print() {
   Int_t i,k;
   
   cerr << "Virtual strips sampled starting at " << GetTime() << endl;

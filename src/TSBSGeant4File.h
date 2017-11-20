@@ -10,8 +10,8 @@
 #include "TFile.h"
 #include "TChain.h"
 #include "g4sbs_tree.h"
-#include "TSolGEMData.h"
-#include "TSolDBManager.h"
+#include "TSBSGEMSimHitData.h"
+#include "TSBSDBManager.h"
 
 #define __DEFAULT_DATA_SIZE 32
 
@@ -117,8 +117,8 @@ class TSBSGeant4File {
   g4sbsgendata *GetGenData(Int_t i) const { return fg4sbsGenData[i]; }
   
   //get GEM data
-  TSolGEMData *GetGEMData();
-  void GetGEMData(TSolGEMData* gd);
+  TSBSGEMSimHitData *GetGEMData();
+  void GetGEMData(TSBSGEMSimHitData* gd);
   
   double FindGasRange(double p); // NB: See comment lines 128-129 
   
@@ -153,7 +153,7 @@ class TSBSGeant4File {
   
   unsigned int fEvNum;// global event incrementer
 
-  TSolDBManager *fManager;
+  TSBSDBManager *fManager;
 };
 
 

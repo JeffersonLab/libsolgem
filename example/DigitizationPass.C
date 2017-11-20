@@ -20,30 +20,30 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
   ////////////////////////////////////////////////////////////////
   
   int Ngood = 0;
-      
-  TSBSGEMChamber *ddy;
-  TSBSSpec *dds;
-  TSBSSimGEMDigitization *ddd;
+  
+  TSBSGEMChamber *dGEM;
+  TSBSSpec *dSpectro;
+  TSBSSimGEMDigitization *dSimDigi;
   TSBSSimDecoder *dde;
 
-  char* outname;
+  string outname;
   string bg = "bkgd";
   if(nbacktoadd==0)bg = "nobkgd";
 
   string infile_sig_prefix;
   string infile_bkgd_prefix;
   
-  TSolDBManager* manager = TSolDBManager::GetInstance();
+  TSBSDBManager* manager = TSBSDBManager::GetInstance();
   switch(fspec){
   case(1):
     manager->LoadGeneralInfo("db_generalinfo_bbgem.dat");
-    manager->LoadGeoInfo("g4sbs_bbgem");
-    dds = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
+    manager->LoadGeoInfo("g4sbs_bbgem"); //new plane--module Geo for SBS GEMs
+    dSpectro = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
     outname = Form("digitized_bbgem_%s.root", bg.c_str());
     infile_sig_prefix = "/volatile/halla/sbs/efuchey/gmn_elastic/gmn13.5_elastic_sig_20171018_14";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/misc/gmn13.5_BBgemMIP_20171018_14";
     infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn_beam_bkgd/gmn13.5_beam_bkgd_20170630_14";
-    dds->Init(run_time);
+    dSpectro->Init(run_time);
     break;
   case(3):
     manager->LoadGeneralInfo("db_generalinfo_ft.dat");
@@ -72,43 +72,41 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
     break;
   }
   
-  cout << "1  " << outname << " " << &outname << endl;
+  cout << "outputfile:  " << outname << endl;
   
-  for(int i_ch = 0; i_ch<manager->GetNChamber()*manager->GetNSector(); i_ch++){
-    ddy = new TSBSGEMChamber (Form("gem%d",i_ch),Form("Test chamber %d", i_ch));
-    ddy->SetApparatus(dds);
-    if( ddy->Init() )
-      return;
-    dds->AddGEM (ddy);
-  }
-  printf("\n");
-
-  //cout << outname << " " << &outname << endl;
-  
-  if(print)dds->Print();
+  //Init TSBSGEMChamber and add to TSBSSpec
+  for(int i_plane=0;i_plane<manager->GetNGEMPlane();i_plane++)
+    {
+      for(int i_module=0;i_module<manager->GetNModule(i_plane);i_module++)
+	{
+	  dGEM = new TSBSGEMChamber (Form("plane%d.module%d",i_plane,i_module),Form("Test chamber on Plane: %d, Module: %d", i_plane, i_module));
+	  dGEM->SetApparatus(dSpectro);
+	  if( dGEM->Init() )//Loading GEM Geo information
+	    return;
+	  dSpectro->AddGEM (dGEM);
+	}
+    }
+  if(print)dSpectro->Print();
     
-  ddd = new TSBSSimGEMDigitization (*dds,"ratedig");
-  //ddd = new TSBSSimGEMDigitization (*dds,"testdigitization");
-  ddd->SetMapSector(false);
-    
+  dSimDigi = new TSBSSimGEMDigitization (*dSpectro,"ratedig");
+ 
   ////////////////////////////////////////////////////////////////
-  
+    
   int nevent = 0;
-
-  TSBSGeant4File *f;
   
+  TSBSGeant4File *f;
+
   int  ndata, i;
-  TSolGEMData *gd, *gb;
+  TSBSGEMSimHitData *gd, *gb;
   g4sbsgendata *gen;
   
-  cout << "creating file " << outname << endl;
-  ddd->InitTree (*dds, outname);
+  cout << "creating file " << outname <<&outname<<endl;
+  dSimDigi->InitTree (*dSpectro, outname);
     
   printf("Digitizing events\n");
   ndata = 0;
-  
-  //Nmax = TMath::Min((Long64_t)Nmax, f->GetEntries());
-    
+
+
   int hadback = 1;
   
   int N_bg_file_g = 0;
@@ -131,22 +129,21 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
       printf("Opening g4sbs file returned %d\n", res);
       continue;
     }
-    
-    ////////////////////////////////////////////////////////////////
+
     int d_flag_readevent = 0;
     while( f->ReadNextEvent(d_flag_readevent) && hadback && nevent<Nmax ){
-      
+
       if(nevent%100==0){
 	cout << "Evt " << nevent << endl;
       }
-      
+    
       if(f->GetNData()==0){
 	if(print)cout << "No hits, skip evt " << nevent << endl;
 	nevent++;
 	continue;
-      }
-      
+      }    
       gd = f->GetGEMData();
+
       if(f->GetNGen()>0){
 	gen = f->GetGenData(0);
 	Ngood++;
@@ -157,22 +154,9 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 	continue;
       }
       
-      ddd->SetTreeEvent((*gd), (*f), nevent);
-      
-      /*
-	if(print){// || nevent==40
-	cout << "number of hits in GEM data " << gd->GetNHit() << endl;
-	while(ndata<gd->GetNHit()){
-	
-	//if(gd->GetParticleID(ndata)>1)continue;
-	gd->Print();
-	cout << "hit number " << ndata << endl;
-	gd->PrintHit(ndata);
-	ndata++;
-	}
-	}
-      */
-      ddd->Digitize(*gd, *dds);
+      dSimDigi->SetTreeEvent((*gd), (*f), nevent);
+    
+      dSimDigi->Digitize(*gd, *dSpectro);
       
       // Access to generated vertex and momentum
       // gen->GetV();
@@ -181,7 +165,7 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
       
       // Add some number of background files...
       int N_bg_file_g_post = N_bg_file_g+nbacktoadd;
-      
+
       if(nbacktoadd){
 	for(int Nfile = N_bg_file_g; Nfile < N_bg_file_g_post; Nfile++){
 	  //if(print)cout << N_bg_file_g << " <= " << Nfile << " < " << N_bg_file_g+nbacktoadd << endl;
@@ -198,7 +182,7 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 	      N_bg_file_g = 0;
 	    }
 	    //if(print)cout << Form("/group/exjpsi/eric/31722/beam_bkgd_%d.root does not exist", Nfile) << endl;
-	  continue;
+	    continue;
 	  }
 	  
 	  fback->SetSource(1);
@@ -220,19 +204,19 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 		gb->PrintHit(nback);
 		nback++;
 	      }
-	      
-	    }
 	    
-	    ddd->AdditiveDigitize(*gb, *dds);
+	    }
+	  
+	    dSimDigi->AdditiveDigitize(*gb, *dSpectro);
 	    
 	    // //Randomize times based on gate width
 	    // for( int bidx = 0; bidx < gb->GetNHit(); bidx++ ){
-	    //   double timeshift = gRandom->Uniform(-ddd->GetGateWidth(), 75.0 );//ns
+	    //   double timeshift = gRandom->Uniform(-dSimDigi->GetGateWidth(), 75.0 );//ns
 	    //   gb->SetHitTime(bidx, gb->GetHitTime(bidx) + timeshift );
 	    // }	
 	    // //gd->AddGEMData(gb);
 	    backidx++;
-	}
+	  }
 	  
 	  // if( backidx != nbacktoadd ){
 	  // printf("Warning:  Not enough background events to be added (%d)\n", backidx);
@@ -243,24 +227,25 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 	//if(print)cout << "new number of hits in GEM data " << gd->GetNHit() << endl;
 	N_bg_file_g = N_bg_file_g_post;
       }//end if nbacktoadd
-      
-      if(N_bg_file_g>=2000)N_bg_file_g = 0;
-      
-      ddd->FillTree();
-      
-      //if(nevent==7)ddd->GetEvent()->Print("all");
-    if(print)ddd->GetEvent()->Print("all");
-    //ddd->GetEvent()->Print("clust");
     
-    delete gd;
-    nevent++;
-    }// end read flag
+      if(N_bg_file_g>=2000)N_bg_file_g = 0;
+    
+      dSimDigi->FillTree();
+      
+      //if(nevent==7)dSimDigi->GetEvent()->Print("all");
+      if(print)dSimDigi->GetEvent()->Print("all");
+      //dSimDigi->GetEvent()->Print("clust");
+        
+      delete gd;
+      nevent++;
+    }
     cout << "closing file " << endl;
     f->Close();
   }
   printf("Completed %d events total: %d good events \n", nevent, Ngood);
-  ddd->WriteTree();
-  ddd->CloseTree();
+
+  dSimDigi->WriteTree();
+  dSimDigi->CloseTree();
   
   cout << "Tree closed" << endl;
 }
