@@ -380,7 +380,6 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
     TVector3 vv2 = gdata.GetHitExit (ih);
     
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
-
     // Get Signal Start Time 'time_zero'
     if( is_background ) {
       // For background data, uniformly randomize event time between
@@ -393,7 +392,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
     }
     //  cout<<event_time<<"  "<<ih<<endl;
     // Adding drift time and trigger_jitter
-    time_zero = event_time + fTriggerOffset[iplane] + fRTime0*1e9 - trigger_jitter;
+    time_zero = event_time - fTriggerOffset[iplane] + fRTime0*1e9 - trigger_jitter;
    
 #if DBG_AVA > 0
     if(time_zero>200.0)
@@ -403,7 +402,6 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
 	   << "; drift time " << fRTime0*1e9
 	   << endl;
 #endif
-    
     if (fRNIon > 0) {
       fdh = AvaModel (igem, spect, vv1, vv2, time_zero);
     }
@@ -849,6 +847,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
 	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
+      
       //  cout<<iL+j<<" : "<<us<<endl;
       //generate the random pedestal phase and amplitude
       // Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
@@ -1170,7 +1169,6 @@ TSBSSimGEMDigitization::SetTreeStrips()
       // if(strip.fPlane<10){	  
       // 	cout << "Nover =  " << nover << " ich " << ich << " strip sector " <<  strip.fSector << " strip plane " << strip.fPlane << endl;
       // }
-      
       for (UInt_t iover = 0; iover < nover; iover++) {
 	Short_t idx = GetIdxOverThr(ich, ip, iover);
 	strip.fChan = idx;
@@ -1190,7 +1188,6 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	
 	const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
 	strip.fClusters.Set( sc.size(), &sc[0] );
-	
 	fEvent->fGEMStrips.push_back( strip );
       }
     }
