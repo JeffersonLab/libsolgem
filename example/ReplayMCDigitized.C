@@ -104,7 +104,6 @@ void ReplayMCDigitized(const char* filename = "digitized",
   }
   if( nseg == 1 && nevent > 0 )
     run[0]->SetLastEvent(nevent);
-cout<<"here"<<endl;
   bool fail = true;
   if( analyzer->Init(run[0]) == 0 ) {
     cout << "initialization successful..." << endl;

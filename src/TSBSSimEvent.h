@@ -128,6 +128,7 @@ public:
                           //   relative to event start in target (TBC)
     UShort_t  fNsamp;     // Number of ADC samples
     Int_t     fADC[MC_MAXSAMP]; // [fNsamp] ADC samples
+    //Int_t     fCommonMode[MC_MAMSAMP];// Real Common mode added to strip----going to work on next, needs to digitize all strips// seems no need to add strip to strip offset since it is just adding a constant in digitization and subtracting same known constant in analysis. "Strip specific pedestal rms and common mode are important"
     TArrayS   fClusters;  // Clusters contributing to signal on this strip
   };
 
