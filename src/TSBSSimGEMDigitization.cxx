@@ -362,7 +362,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
   // Randomize the event time for background events
   Float_t event_time=0,time_zero=0;
   // Trigger time jitter, This should be a fixed value for different hits in a certain event.
-  Double_t trigger_jitter = fTriggerOffset + fTrnd.Uniform(-fTriggerJitter/2, fTriggerJitter/2);
+  Double_t trigger_jitter = //fTriggerOffset + 
+    fTrnd.Uniform(-fTriggerJitter/2, fTriggerJitter/2);
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);
     UInt_t imodule = gdata.GetHitModule(ih);
@@ -392,7 +393,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
     }
     //  cout<<event_time<<"  "<<ih<<endl;
     // Adding drift time and trigger_jitter
-    time_zero = event_time + fRTime0*1e9 - trigger_jitter;
+    time_zero = event_time + fTriggerOffset[iplane] + fRTime0*1e9 - trigger_jitter;
    
 #if DBG_AVA > 0
     if(time_zero>200.0)

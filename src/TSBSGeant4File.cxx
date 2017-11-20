@@ -235,7 +235,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       trid_hits.push_back(trid);
       
       module = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
-      // sector = fManager->GetSectorIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
+      // sector = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
       //cout<<module<<" "<<sector<<" p: "<<plane<<endl;
       //if(sector==-1)continue;
       
@@ -457,7 +457,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
       tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
-      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_SBSGEM_hit_tx->at(i));
+      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_SBSGEM_hit_tx->at(i));
       
       trid_hits.push_back(trid);
 
@@ -640,7 +640,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       tmin = fTree->Harm_FT_hit_tmin->at(i);
       tmax = fTree->Harm_FT_hit_tmax->at(i);
       
-      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
+      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
       trid_hits.push_back(trid);
 
       pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
@@ -868,7 +868,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       if(d_flag>1)cout << plane << " " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
       
-      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
+      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
 
       if(d_flag>1)cout << plane << ",  " << sector << ",  " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
       
@@ -1071,7 +1071,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       tmax = fTree->Harm_FPP2_hit_tmax->at(i);
-      sector = fManager->GetSectorIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
+      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
       
       trid_hits.push_back(trid);
 

@@ -65,11 +65,6 @@ class TSBSGEMSimHitData
   // Necessary ??? probably redundant with TSol(SBS)SimGEMDigitization::AdditiveDigitize()
   //void AddGEMData(TSBSGEMSimHitData* gd);
 
- private:
-
-  UInt_t fRunID, fEvtID;
-  Int_t  fSource; // MC source file ID (0 = signal, >0 background)
-
   // Hit data
   // moved in "public" to allow it to compile with Root6/CentOS7
   struct GEMHitData_t {
