@@ -298,10 +298,10 @@ Int_t TSBSSimDecoder::StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const
 
 
 //-----------------------------------------------------------------------------
-MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
+TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
 {
   // Get MC truth info for the given hardware channel
-  const char* const here = "TSBSSimDecoder::GetMCHitInfo";
+  const char* const here = "TSBSSimDecoder::GetSBSMCHitInfo";
 
   Int_t istrip = StripFromROC( crate, slot, chan );
   assert( istrip >= 0 );  // else logic error in caller or bad fStripMap
@@ -314,7 +314,7 @@ MCHitInfo TSBSSimDecoder::GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) co
   const TSBSSimEvent::DigiGEMStrip& strip = simEvent->fGEMStrips[istrip];
   assert( strip.fProj >= 0 && strip.fProj < fManager->GetNReadOut() );
   
-  MCHitInfo mc;
+  TSBSMCHitInfo mc;
     // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
   //   printf("%f \n", strip.fTime1);
   

@@ -16,6 +16,26 @@
 
 class THaCrateMap;
 
+// GEM MC truth information for digitized detector hits
+class TSBSMCHitInfo : public Podd::MCHitInfo 
+{
+ public:
+ TSBSMCHitInfo() : MCHitInfo(), fMCCharge(0) {}
+ TSBSMCHitInfo( Int_t mctrk, Double_t mcpos, Double_t time, Double_t charge = 0.0, Int_t contam = 0 )
+   : MCHitInfo(mctrk, mcpos, time, contam), fMCCharge(charge){}
+  
+  virtual ~TSBSMCHitInfo() {}
+
+  //virtual void MCPrint() const;
+  void MCClear() { fMCTrack = fContam = 0; fMCPos = fMCTime = 0; fMCCharge = 0;}
+  
+  Double_t fMCCharge;    // GEM charge
+  
+  ClassDef(TSBSMCHitInfo,1)  // Generic Monte Carlo hit info
+};
+
+
+
 //-----------------------------------------------------------------------------
 // Helper classes for making decoded event data available via global variables
 
@@ -128,7 +148,7 @@ class TSBSSimDecoder : public Podd::SimDecoder {
   virtual void  Clear( Option_t* opt="" );
   virtual Int_t DefineVariables( THaAnalysisObject::EMode mode =
 				 THaAnalysisObject::kDefine );
-  virtual Podd::MCHitInfo GetMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const;
+  TSBSMCHitInfo GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const;
 
   
   Int_t  GetNBackTracks() const { return fBackTracks->GetLast()+1; }
