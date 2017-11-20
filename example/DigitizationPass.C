@@ -1,20 +1,20 @@
 // Example "replay" script
 //#define DEBUG 1
 
-void DigitizationPass(int fspec = 1, // Spectrometer flag: 
+void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag: 
 		      // 1 for BB GEMs(GMn, GEn, SIDIS); 
 		      // 3 for Front Tracker spectrometer (GEp);
 		      // 4 for Focal Plane Polarimter (GEp).
 		      UInt_t NsigFiles = 1,//Number of signal files to analize
-		      int Nmax = 1000, //number of events to digitize
-		      int nbacktoadd = 2, // number of background *files* to add to each event
+		      UInt_t Nmax = -1, //number of events to digitize
+		      UInt_t nbacktoadd = 2, // number of background *files* to add to each event
 		      bool mips = false,// boolean to digitize mips instead of regular signal.
 		      bool print = false){
   printf("\n** This gets called with 'analyzer' and not 'root' **\n");
   printf("** If you're getting missing symbol errors, this is likely the cause **\n\n");
   
   TDatime run_time = 991231;
-
+  
   gSystem->Load("../libsolgem.so");
   
   ////////////////////////////////////////////////////////////////
@@ -40,8 +40,9 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
     manager->LoadGeoInfo("g4sbs_bbgem"); //new plane--module Geo for SBS GEMs
     dSpectro = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
     outname = Form("digitized_bbgem_%s.root", bg.c_str());
-    infile_sig_prefix = "/home/danning/GEMDigi/ESigFile";
-    infile_bkgd_prefix = "/home/danning/GEMDigi/backgroundFile";
+    infile_sig_prefix = "/volatile/halla/sbs/efuchey/gmn_elastic/gmn13.5_elastic_sig_20170504_10";
+    if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/misc/gmn13.5_BBgemMIP_20170524_10";
+    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn_beam_bkgd/gmn13.5_beam_bkgd_20170630_14";
     dSpectro->Init(run_time);
     break;
   case(3):
@@ -92,7 +93,7 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
   ////////////////////////////////////////////////////////////////
     
   int nevent = 0;
-    
+  
   TSBSGeant4File *f;
 
   int  ndata, i;
@@ -104,9 +105,8 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
     
   printf("Digitizing events\n");
   ndata = 0;
-    
-  
-    
+
+
   int hadback = 1;
   
   int N_bg_file_g = 0;
@@ -165,7 +165,7 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
       
       // Add some number of background files...
       int N_bg_file_g_post = N_bg_file_g+nbacktoadd;
- 
+
       if(nbacktoadd){
 	for(int Nfile = N_bg_file_g; Nfile < N_bg_file_g_post; Nfile++){
 	  //if(print)cout << N_bg_file_g << " <= " << Nfile << " < " << N_bg_file_g+nbacktoadd << endl;
@@ -174,8 +174,8 @@ void DigitizationPass(int fspec = 1, // Spectrometer flag:
 	  if(!open){
 	    N_bg_file_g_post++;
 	    N_bg_file_g++;
-	  
-	    if(N_bg_file_g>=100){
+	    
+	    if(N_bg_file_g>=2000){
 	      int n_temp = Nfile;
 	      Nfile = N_bg_file_g_post-n_temp;
 	      N_bg_file_g_post = nbacktoadd;

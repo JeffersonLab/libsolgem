@@ -154,6 +154,16 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   static Double_t fCrossFactor;  //reduction factor for the induced signal
   static Double_t fCrossSigma;   //uncertainty of the reduction factor
 
+  //moved in "public" to allow it to compile with Root6/CentOS7
+  struct IonPar_t {
+    Double_t X;       // position of the point on the projection
+    Double_t Y;
+    Double_t Charge;  // Charge deposited by this ion
+    Double_t SNorm;   // 3 x radius of ion diffusion area at readout
+    Double_t R2;      // = SNorm^2 : radius of numerical integration area
+    Double_t ggnorm;  // = Charge/R2/pi : charge per unit area
+  };
+  
   private:
 
   void IonModel (const TVector3& xi,
@@ -182,8 +192,10 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Int_t    fAvaModel;              //0 for Heavyside, 1 for Gaussian, 2 for Cauchy-Lorentz
   Double_t fAvaGain;
   // Electronics parameters
-  Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
+  std::vector<Double_t> fTriggerOffset; // trigger offset (ns), incl latency & readout offset
+  //Double_t fTriggerOffset;       // trigger offset (ns), incl latency & readout offset
   Double_t fTriggerJitter;       // trigger sigma jitter (ns)
+  Double_t fAPVTimeJitter;       // time jitter associated with the APV internal clock
   Int_t    fEleSamplingPoints;
   Double_t fEleSamplingPeriod;   // ns
   Double_t fADCoffset;       // ADC offset
@@ -225,15 +237,6 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   UInt_t* fNPlanes;   // # planes in each chamber
   TRandom3 fTrnd;     // time randomizer
   UInt_t   fRNIon;    // number of ions
-  struct IonPar_t {
-    Double_t X;       // position of the point on the projection
-    Double_t Y;
-    Double_t Charge;  // Charge deposited by this ion
-    Double_t SNorm;   // 3 x radius of ion diffusion area at readout
-    Double_t R2;      // = SNorm^2 : radius of numerical integration area
-    Double_t ggnorm;  // = Charge/R2/pi : charge per unit area
-  };
-  //Ionization parameters
   std::vector<IonPar_t> fRIon;
   Double_t fRSMax;
   Double_t fRTotalCharge;

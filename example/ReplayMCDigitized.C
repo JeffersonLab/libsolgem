@@ -1,24 +1,24 @@
-#ifndef __CINT__
+// #ifndef __CINT__
 
 //#include "SBSSpec.h"
 //#include "TSBSSimDecoder.h"
 //#include "TSBSSimFile.h"
 
-#include "THaInterface.h"
-#include "THaGlobals.h"
-#include "THaTextvars.h"
-#include "THaAnalyzer.h"
-#include "THaDetector.h"
+// #include "THaInterface.h"
+// #include "THaGlobals.h"
+// #include "THaTextvars.h"
+// #include "THaAnalyzer.h"
+// #include "THaDetector.h"
 
-#include "TSystem.h"
-#include "TList.h"
-#include "TString.h"
-#include "TFile.h"
-#include "TVector3.h"
+// #include "TSystem.h"
+// #include "TList.h"
+// #include "TString.h"
+// #include "TFile.h"
+// #include "TVector3.h"
 
-#include <iostream>
+// #include <iostream>
 
-#endif
+// #endif
 
 
 
@@ -43,7 +43,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
     nseg = 1;
   }
   
-  char* bg = "nobkgd";
+  string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
   gSystem->Load("../libsolgem.so");
@@ -79,7 +79,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   
   THaAnalyzer* analyzer = new THaAnalyzer;
   
-  TString rootfile(Form("%s_%s_%s", filename, detsuffix, bg)), infile0(Form("%s_%s_%s", filename, detsuffix, bg));
+  TString rootfile(Form("%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
   TString odeffile("sbssim.odef"), cutfile(Form("sbs_%ssim.cuts",detsuffix));
   rootfile.Append("_replayed_new.root");
   analyzer->EnableBenchmarks();

@@ -71,6 +71,7 @@ class TSBSGEMSimHitData
   Int_t  fSource; // MC source file ID (0 = signal, >0 background)
 
   // Hit data
+  // moved in "public" to allow it to compile with Root6/CentOS7
   struct GEMHitData_t {
     UInt_t    fGem;
     UInt_t    fPlane;
@@ -86,6 +87,11 @@ class TSBSGEMSimHitData
     TVector3  fMom;   // momentum of the particle
     TVector3  fVert;  // vertex position
   };
+  
+ private:
+
+  UInt_t fRunID, fEvtID;
+  Int_t  fSource; // MC source file ID (0 = signal, >0 background)
   std::vector<GEMHitData_t> fHitData;
 
 };

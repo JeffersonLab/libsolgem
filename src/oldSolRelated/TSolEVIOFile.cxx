@@ -207,7 +207,7 @@ void TSolEVIOFile::ExtractDetIDs( evio::evioDOMNodeList *hits, int tag  ){
 #endif//DEBUG
 
 	for( i = 0; i < vec->size(); i++ ){
-	    fHitData.push_back( new hitdata((*vec)[i], data_size(tag)) );
+	    fEvioHitData.push_back( new hitdata((*vec)[i], data_size(tag)) );
 	}
     }
 
@@ -233,9 +233,9 @@ void TSolEVIOFile::BuildGenerated( evio::evioDOMNodeList *hits  ){
 	// vnum is the variable number
 	vector<double> *vec = v->getVector<double>();
 
-	if( fGenData.size() < vec->size() ){
+	if( fEvioGenData.size() < vec->size() ){
 	    for(  i = 0; i < vec->size(); i++ ){
-		fGenData.push_back( new gendata() );
+		fEvioGenData.push_back( new gendata() );
 	    }
 	}
 
@@ -245,9 +245,9 @@ void TSolEVIOFile::BuildGenerated( evio::evioDOMNodeList *hits  ){
 	    // 4,5,6 are vertex positions.  GEMC spits them out in cm
 	    // which we will convert to mm for consistancy
 	    if( 4 <= vnum && vnum <= 6 ){
-		fGenData[i]->SetData(vnum/10-1, (*vec)[i]*10.0); 
+		fEvioGenData[i]->SetData(vnum/10-1, (*vec)[i]*10.0); 
 	    } else {
-		fGenData[i]->SetData(vnum/10-1, (*vec)[i]); 
+		fEvioGenData[i]->SetData(vnum/10-1, (*vec)[i]); 
 	    }
 	}
     }
@@ -277,15 +277,15 @@ void TSolEVIOFile::BuildData( evio::evioDOMNodeList *hits ){
 
 	// Build hit event 
 	for(  i = 0; i < vec->size(); i++ ){
-	    fHitData[i]->SetData(vnum, (*vec)[i]); 
+	    fEvioHitData[i]->SetData(vnum, (*vec)[i]); 
 	}
 
 	// Extract weight data which is stored in each hit 
 	// and put it into generated data.  This is a dumb kludge
 	// and it makes me feel bad.  SPR 4/5/2012
 	if( vnum == 19 ){
-	    for( i = 0; i < fGenData.size() && vec->size()>0; i++ ){
-		fGenData[i]->SetData(7, (*vec)[0]);
+	    for( i = 0; i < fEvioGenData.size() && vec->size()>0; i++ ){
+		fEvioGenData[i]->SetData(7, (*vec)[0]);
 	    }
 	}
     }
@@ -302,16 +302,16 @@ void TSolEVIOFile::Clear(){
 #endif//DEBUG
 
     unsigned int i;
-    for( i = 0; i < fHitData.size(); i++ ){
-	delete fHitData[i];
+    for( i = 0; i < fEvioHitData.size(); i++ ){
+	delete fEvioHitData[i];
     }
 
-    for( i = 0; i < fGenData.size(); i++ ){
-	delete fGenData[i];
+    for( i = 0; i < fEvioGenData.size(); i++ ){
+	delete fEvioGenData[i];
     }
 
-    fHitData.clear();
-    fGenData.clear();
+    fEvioHitData.clear();
+    fEvioGenData.clear();
 
 #ifdef  DEBUG
 	fprintf(stderr, "%s %s line %d: Hits deleted\n",

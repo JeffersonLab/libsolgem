@@ -148,6 +148,16 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   static Double_t fCrossFactor;  //reduction factor for the induced signal
   static Double_t fCrossSigma;   //uncertainty of the reduction factor
 
+  //moved in "public" to allow it to compile with Root6/CentOS7
+  struct IonPar_t {
+    Double_t X;       // position of the point on the projection
+    Double_t Y;
+    Double_t Charge;  // Charge deposited by this ion
+    Double_t SNorm;   // 3 x radius of ion diffusion area at readout
+    Double_t R2;      // = SNorm^2 : radius of numerical integration area
+    Double_t ggnorm;  // = Charge/R2/pi : charge per unit area
+  };
+  
  private:
 
   void IonModel (const TVector3& xi,
@@ -219,14 +229,6 @@ class TSolSimGEMDigitization: public THaAnalysisObject
   UInt_t* fNPlanes;   // # planes in each chamber
   TRandom3 fTrnd;     // time randomizer
   UInt_t   fRNIon;    // number of ions
-  struct IonPar_t {
-    Double_t X;       // position of the point on the projection
-    Double_t Y;
-    Double_t Charge;  // Charge deposited by this ion
-    Double_t SNorm;   // 3 x radius of ion diffusion area at readout
-    Double_t R2;      // = SNorm^2 : radius of numerical integration area
-    Double_t ggnorm;  // = Charge/R2/pi : charge per unit area
-  };
   std::vector<IonPar_t> fRIon;
   Double_t fRSMax;
   Double_t fRTotalCharge;
