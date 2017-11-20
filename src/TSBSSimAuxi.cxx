@@ -67,7 +67,7 @@ TSBSSimAuxi::PulseShape(Double_t t,
   Double_t v;
   Double_t x0,x1;
 
-  //  cerr << __FUNCTION__ << " " << t << " " << A << " " << tau0 << " " << tau1 << endl;
+  //std::cout << __FUNCTION__ << " " << t << " " << A << " " << tau0 << " " << tau1 << std::endl;
   
   if (tau1<0) { return PulseShape(t, A, tau0); } // SiD model
   x0 = -t/tau0;
