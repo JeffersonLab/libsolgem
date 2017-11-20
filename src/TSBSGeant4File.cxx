@@ -235,9 +235,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       trid_hits.push_back(trid);
       
       module = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
-      // sector = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
-      //cout<<module<<" "<<sector<<" p: "<<plane<<endl;
-      //if(sector==-1)continue;
+      if(module==-1)continue;
       
       pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 

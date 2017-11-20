@@ -326,18 +326,16 @@ int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double y)
 {
   if (!CheckIndex(iplane)) return fErrVal;
   
-  //int sector = -1;
-  std::vector<int> sector;//yet something else...
-  //printf("chamber %d, x = %1.6f\n", iplane, x);
+  int module = -1;
   for(int k = 0; k<fPMGeoInfo[iplane].size(); k++){
     if(fPMGeoInfo[iplane].at(k).xoffset-fPMGeoInfo[iplane].at(k).dx/2.0<=x && 
        x<=fPMGeoInfo[iplane].at(k).xoffset+fPMGeoInfo[iplane].at(k).dx/2.0)
       {
-        sector.push_back(k);
+        module = k;
       }
   }
 
-  return sector[0];
+  return module;
 }
 
 //__________________________________________________________________________
