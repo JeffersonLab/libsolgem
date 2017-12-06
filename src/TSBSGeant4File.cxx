@@ -7,7 +7,7 @@
 
 // Set following variables to 1 (and recompile) t get some useful printouts
 #ifndef D_FLAG
-#define D_FLAG 1 //0: nothing; 1: warning; 2: debug;
+#define D_FLAG 0 //0: nothing; 1: warning; 2: debug;
 #endif
 
 TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
@@ -81,8 +81,8 @@ void TSBSGeant4File::ReadGasData(const char* filename){
       5.182E+01, 5.398E+01, 5.592E+01, 5.769E+01, 5.932E+01, 6.221E+01, 6.473E+01, 6.696E+01, 6.897E+01
     };
     for(int i = 0; i<81; i++){
-      feMom.push_back(eMom[i]);
-      fgasErange.push_back(gasErange[i]);
+      feMom.push_back(eMom[i]*sqrt(1.0+2.0*0.511/eMom[i])*1.0e-3);
+      fgasErange.push_back(gasErange[i]/D_gas*1.0e-2);
     }
   }
 }
