@@ -23,7 +23,7 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   //cout << " Gas data file container: -> " << &gasdatafilename << " <- " << endl;
   //cout << " Gas data file name: -> " << gasdatafilename.c_str() << " <- " << endl;
   //ReadGasData(gasdatafilename.c_str());
-  ReadGasData("gasErange.txt"); // NB: See comment lines 128-129 of TSBSGeant4File.h 
+  //ReadGasData("gasErange.txt"); // NB: See comment lines 128-129 of TSBSGeant4File.h 
   
   //Filling the table that will be used to calculate the low energy electron range in the gas. 
 #if D_FLAG>1
@@ -31,8 +31,7 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
 #endif
 }
 
-// // NB: See comment lines 128-129 of TSBSGeant4File.h 
-// 2017/01/18: Edit: useful again, because changes in G4 were USELESS...
+/* // NB: See comment lines 138-141 of TSBSGeant4File.h
 void TSBSGeant4File::ReadGasData(const char* filename){
   double D_gas;
   double T, p, R;
@@ -45,7 +44,7 @@ void TSBSGeant4File::ReadGasData(const char* filename){
     in.ignore(50,';');
     
     p = -10.0;
-    while(T<0.1){//Kinetic energy cut to 0.1 MeV
+    while(T<1000.0){//Kinetic energy cut to 0.1 MeV
       in >> T >> R;
       if(!in.good())break;
       
@@ -86,6 +85,7 @@ void TSBSGeant4File::ReadGasData(const char* filename){
     }
   }
 }
+*/ 
 
 TSBSGeant4File::~TSBSGeant4File() {
   Clear();
@@ -206,10 +206,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   double hit_data_temp[24];
   double gen_data_temp[9];
   
-  // NB: See comment lines 128-129 of TSBSGeant4File.h 
-  //variables for the correction of hits given by very small momenta
-  double eRangeSlope;
-  double eRangeGas;
+  // NB: See comment lines 138-141 of TSBSGeant4File.h
+  // double eRangeSlope;
+  // double eRangeGas;
   double temp;
   
   double pmax = 0.0;
@@ -244,7 +243,25 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       Mom = TVector3(fTree->Earm_BBGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Earm_BBGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
-     
+      
+      X_in = TVector3((fTree->Earm_BBGEM_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		      fTree->Earm_BBGEM_hit_yin->at(i)*1.0e3, // in mm
+		      (fTree->Earm_BBGEM_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, module))*1.0e3);// in mm
+      
+      X_out = TVector3((fTree->Earm_BBGEM_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		       fTree->Earm_BBGEM_hit_yout->at(i)*1.0e3, // in mm
+		       (fTree->Earm_BBGEM_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
+			fManager->GetD0(plane, module))*1.0e3);// in mm
+
+      // we use X_in and X_out to extrapolate X_RO; 
+      // not very clean, but since we don't use it in the digitization at all, it does not really matter...
+      X_RO = TVector3(X_in.X()+(fTree->Earm_BBGEM_hit_xout->at(i)-fTree->Earm_BBGEM_hit_xin->at(i))*9.185/3.0 ,
+		      // in mm
+		      X_in.Y()+(fTree->Earm_BBGEM_hit_yout->at(i)-fTree->Earm_BBGEM_hit_yin->at(i))*9.185/3.0 ,
+		      // in mm
+		      +7.685);// in mm
+      /* // see comment lines 138-141 of TSBSGeant4File.h
       X_in = TVector3((fTree->Earm_BBGEM_hit_tx->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Earm_BBGEM_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Earm_BBGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
@@ -255,7 +272,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       X_out = TVector3(X_in.X()+3.0*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
 		       X_in.Y()+3.0*fTree->Earm_BBGEM_hit_typ->at(i), // in mm
 		       +1.5);//-1.6825);// in mm
-
+      
+      //if(X_out.X()-X_in.X()>0.01)
+      
       X_RO = TVector3(X_in.X()+9.185*fTree->Earm_BBGEM_hit_txp->at(i), // in mm 
 		      X_in.Y()+9.185*fTree->Earm_BBGEM_hit_typ->at(i), // in mm 
 		      +7.685);//4.5025);// in mm      
@@ -263,9 +282,10 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       //cout << "BBGEM: momentum: " << fTree->Earm_BBGEM_hit_p->at(i) << " < ? " << feMom.back() << endl;
       if(fabs(fTree->Earm_BBGEM_hit_pid->at(i))==11 && fTree->Earm_BBGEM_hit_p->at(i)<=feMom.back()){
 	eRangeSlope = sqrt(pow(fTree->Earm_BBGEM_hit_txp->at(i), 2)+pow(fTree->Earm_BBGEM_hit_typ->at(i), 2))*3.0e-3;//m
+	if(eRangeSlope>=5.0e-3 && fTree->Earm_BBGEM_hit_p->at(i)>=1.0e-2)cout << "e Range Slope " << eRangeSlope << " p (MeV) = " << fTree->Earm_BBGEM_hit_p->at(i)*1000 << " hit edep = " << edep << endl;
 	eRangeGas = FindGasRange(fTree->Earm_BBGEM_hit_p->at(i));//m
-	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
-       	if(eRangeSlope>eRangeGas){
+	if(d_flag>1)cout << " range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
+	if(eRangeSlope>eRangeGas){
        	  X_out.SetX(X_in.X()+3.0*fTree->Earm_BBGEM_hit_txp->at(i)*eRangeGas/eRangeSlope);
 	  X_out.SetY(X_in.Y()+3.0*fTree->Earm_BBGEM_hit_typ->at(i)*eRangeGas/eRangeSlope);
 	  
@@ -273,7 +293,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  X_RO.SetY(X_out.Y());
        	}
       }
-   
+      */
+      
       if(fabs(X_out.X())>=fManager->GetDX(plane, module)*5.0e2){
 	if(d_flag>0){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
@@ -467,6 +488,25 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		     fTree->Harm_SBSGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
+      X_in = TVector3((fTree->Harm_SBSGEM_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		      fTree->Harm_SBSGEM_hit_yin->at(i)*1.0e3, // in mm
+		      (fTree->Harm_SBSGEM_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, module))*1.0e3);// in mm
+      
+      X_out = TVector3((fTree->Harm_SBSGEM_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		       fTree->Harm_SBSGEM_hit_yout->at(i)*1.0e3, // in mm
+		       (fTree->Harm_SBSGEM_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
+			fManager->GetD0(plane, module))*1.0e3);// in mm
+
+      // we use X_in and X_out to extrapolate X_RO; 
+      // not very clean, but since we don't use it in the digitization at all, it does not really matter...
+      X_RO = TVector3(X_in.X()+(fTree->Harm_SBSGEM_hit_xout->at(i)-fTree->Harm_SBSGEM_hit_xin->at(i))*9.185/3.0 ,
+		      // in mm
+		      X_in.Y()+(fTree->Harm_SBSGEM_hit_yout->at(i)-fTree->Harm_SBSGEM_hit_yin->at(i))*9.185/3.0 ,
+		      // in mm
+		      +7.685);// in mm
+      
+      /* // see comment lines 138-141 of TSBSGeant4File.h
       X_in = TVector3((fTree->Harm_SBSGEM_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_SBSGEM_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Harm_SBSGEM_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
@@ -492,7 +532,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  X_RO.SetY(X_out.Y());
        	}
       }
-      
+      */
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 	if(d_flag>0){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
@@ -649,6 +689,25 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		     fTree->Harm_FT_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
+      X_in = TVector3((fTree->Harm_FT_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		      fTree->Harm_FT_hit_yin->at(i)*1.0e3, // in mm
+		      (fTree->Harm_FT_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, module))*1.0e3);// in mm
+      
+      X_out = TVector3((fTree->Harm_FT_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		       fTree->Harm_FT_hit_yout->at(i)*1.0e3, // in mm
+		       (fTree->Harm_FT_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
+			fManager->GetD0(plane, module))*1.0e3);// in mm
+
+      // we use X_in and X_out to extrapolate X_RO; 
+      // not very clean, but since we don't use it in the digitization at all, it does not really matter...
+      X_RO = TVector3(X_in.X()+(fTree->Harm_FT_hit_xout->at(i)-fTree->Harm_FT_hit_xin->at(i))*9.185/3.0 ,
+		      // in mm
+		      X_in.Y()+(fTree->Harm_FT_hit_yout->at(i)-fTree->Harm_FT_hit_yin->at(i))*9.185/3.0 ,
+		      // in mm
+		      +7.685);// in mm
+
+      /* // see comment lines 138-141 of TSBSGeant4File.h
       X_in = TVector3((fTree->Harm_FT_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_FT_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Harm_FT_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
@@ -676,7 +735,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  //cout << "Coucou ! FT" << endl;
        	}
       }
-      
+      */
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 	if(d_flag>0){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
@@ -880,6 +939,25 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		     fTree->Harm_FPP1_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
+      X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		      fTree->Harm_FPP1_hit_yin->at(i)*1.0e3, // in mm
+		      (fTree->Harm_FPP1_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, module))*1.0e3);// in mm
+      
+      X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		       fTree->Harm_FPP1_hit_yout->at(i)*1.0e3, // in mm
+		       (fTree->Harm_FPP1_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
+			fManager->GetD0(plane, module))*1.0e3);// in mm
+
+      // we use X_in and X_out to extrapolate X_RO; 
+      // not very clean, but since we don't use it in the digitization at all, it does not really matter...
+      X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
+		      // in mm
+		      X_in.Y()+(fTree->Harm_FPP1_hit_yout->at(i)-fTree->Harm_FPP1_hit_yin->at(i))*9.185/3.0 ,
+		      // in mm
+		      +7.685);// in mm
+
+      /* // see comment lines 138-141 of TSBSGeant4File.h
       X_in = TVector3((fTree->Harm_FPP1_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
@@ -907,6 +985,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  if(d_flag>1)cout << "Coucou ! FPP1 " << endl;
        	}
       }
+      */
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 	if(d_flag>0){
@@ -1081,6 +1160,25 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		     fTree->Harm_FPP2_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
+      X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		      fTree->Harm_FPP1_hit_yin->at(i)*1.0e3, // in mm
+		      (fTree->Harm_FPP1_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
+		       fManager->GetD0(plane, module))*1.0e3);// in mm
+      
+      X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		       fTree->Harm_FPP1_hit_yout->at(i)*1.0e3, // in mm
+		       (fTree->Harm_FPP1_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
+			fManager->GetD0(plane, module))*1.0e3);// in mm
+
+      // we use X_in and X_out to extrapolate X_RO; 
+      // not very clean, but since we don't use it in the digitization at all, it does not really matter...
+      X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
+		      // in mm
+		      X_in.Y()+(fTree->Harm_FPP1_hit_yout->at(i)-fTree->Harm_FPP1_hit_yin->at(i))*9.185/3.0 ,
+		      // in mm
+		      +7.685);// in mm
+
+      /* // see comment lines 138-141 of TSBSGeant4File.h
       X_in = TVector3((fTree->Harm_FPP2_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
 		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3, // in mm
 		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
@@ -1106,6 +1204,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  X_RO.SetY(X_out.Y());
        	}
       }
+      */
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 	if(d_flag>0){
@@ -1308,7 +1407,7 @@ void TSBSGeant4File::Clear(){
   return;
 }
 
-// NB: See comment lines 128-129 of TSBSGeant4File.h  // not valid anymore
+/* // NB: See comment lines 138-141 of TSBSGeant4File.h
 double TSBSGeant4File::FindGasRange(double p)
 {
   //find the electron range in the gas. Useful for very low energy electrons. 
@@ -1331,6 +1430,7 @@ double TSBSGeant4File::FindGasRange(double p)
   }
   return(res);
 }
+*/
 
 TSBSGEMSimHitData* TSBSGeant4File::GetGEMData()
 {

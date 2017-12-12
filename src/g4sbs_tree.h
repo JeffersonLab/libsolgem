@@ -107,6 +107,12 @@ public :
    std::vector<double>  *Earm_BBGEM_hit_ty;
    std::vector<double>  *Earm_BBGEM_hit_txp;
    std::vector<double>  *Earm_BBGEM_hit_typ;
+   std::vector<double>  *Earm_BBGEM_hit_xin;
+   std::vector<double>  *Earm_BBGEM_hit_yin;
+   std::vector<double>  *Earm_BBGEM_hit_zin;
+   std::vector<double>  *Earm_BBGEM_hit_xout;
+   std::vector<double>  *Earm_BBGEM_hit_yout;
+   std::vector<double>  *Earm_BBGEM_hit_zout;
    std::vector<double>  *Earm_BBGEM_hit_xg;
    std::vector<double>  *Earm_BBGEM_hit_yg;
    std::vector<double>  *Earm_BBGEM_hit_zg;
@@ -330,6 +336,12 @@ public :
    std::vector<double>  *Harm_FPP1_hit_ty;
    std::vector<double>  *Harm_FPP1_hit_txp;
    std::vector<double>  *Harm_FPP1_hit_typ;
+   std::vector<double>  *Harm_FPP1_hit_xin;
+   std::vector<double>  *Harm_FPP1_hit_yin;
+   std::vector<double>  *Harm_FPP1_hit_zin;
+   std::vector<double>  *Harm_FPP1_hit_xout;
+   std::vector<double>  *Harm_FPP1_hit_yout;
+   std::vector<double>  *Harm_FPP1_hit_zout;
    std::vector<double>  *Harm_FPP1_hit_xg;
    std::vector<double>  *Harm_FPP1_hit_yg;
    std::vector<double>  *Harm_FPP1_hit_zg;
@@ -384,6 +396,12 @@ public :
    std::vector<double>  *Harm_FPP2_hit_ty;
    std::vector<double>  *Harm_FPP2_hit_txp;
    std::vector<double>  *Harm_FPP2_hit_typ;
+   std::vector<double>  *Harm_FPP2_hit_xin;
+   std::vector<double>  *Harm_FPP2_hit_yin;
+   std::vector<double>  *Harm_FPP2_hit_zin;
+   std::vector<double>  *Harm_FPP2_hit_xout;
+   std::vector<double>  *Harm_FPP2_hit_yout;
+   std::vector<double>  *Harm_FPP2_hit_zout;
    std::vector<double>  *Harm_FPP2_hit_xg;
    std::vector<double>  *Harm_FPP2_hit_yg;
    std::vector<double>  *Harm_FPP2_hit_zg;
@@ -438,6 +456,12 @@ public :
    std::vector<double>  *Harm_FT_hit_ty;
    std::vector<double>  *Harm_FT_hit_txp;
    std::vector<double>  *Harm_FT_hit_typ;
+   std::vector<double>  *Harm_FT_hit_xin;
+   std::vector<double>  *Harm_FT_hit_yin;
+   std::vector<double>  *Harm_FT_hit_zin;
+   std::vector<double>  *Harm_FT_hit_xout;
+   std::vector<double>  *Harm_FT_hit_yout;
+   std::vector<double>  *Harm_FT_hit_zout;
    std::vector<double>  *Harm_FT_hit_xg;
    std::vector<double>  *Harm_FT_hit_yg;
    std::vector<double>  *Harm_FT_hit_zg;
@@ -549,6 +573,12 @@ public :
    std::vector<double>  *Harm_SBSGEM_hit_ty;
    std::vector<double>  *Harm_SBSGEM_hit_txp;
    std::vector<double>  *Harm_SBSGEM_hit_typ;
+   std::vector<double>  *Harm_SBSGEM_hit_xin;
+   std::vector<double>  *Harm_SBSGEM_hit_yin;
+   std::vector<double>  *Harm_SBSGEM_hit_zin;
+   std::vector<double>  *Harm_SBSGEM_hit_xout;
+   std::vector<double>  *Harm_SBSGEM_hit_yout;
+   std::vector<double>  *Harm_SBSGEM_hit_zout;
    std::vector<double>  *Harm_SBSGEM_hit_xg;
    std::vector<double>  *Harm_SBSGEM_hit_yg;
    std::vector<double>  *Harm_SBSGEM_hit_zg;
@@ -641,6 +671,12 @@ public :
    TBranch        *b_Earm_BBGEM_hit_ty;   //!
    TBranch        *b_Earm_BBGEM_hit_txp;   //!
    TBranch        *b_Earm_BBGEM_hit_typ;   //!
+   TBranch        *b_Earm_BBGEM_hit_xin;   //!
+   TBranch        *b_Earm_BBGEM_hit_yin;   //!
+   TBranch        *b_Earm_BBGEM_hit_zin;   //!
+   TBranch        *b_Earm_BBGEM_hit_xout;   //!
+   TBranch        *b_Earm_BBGEM_hit_yout;   //!
+   TBranch        *b_Earm_BBGEM_hit_zout;   //!
    TBranch        *b_Earm_BBGEM_hit_xg;   //!
    TBranch        *b_Earm_BBGEM_hit_yg;   //!
    TBranch        *b_Earm_BBGEM_hit_zg;   //!
@@ -860,6 +896,12 @@ public :
    TBranch        *b_Harm_FPP1_hit_ty;   //!
    TBranch        *b_Harm_FPP1_hit_txp;   //!
    TBranch        *b_Harm_FPP1_hit_typ;   //!
+   TBranch        *b_Harm_FPP1_hit_xin;   //!
+   TBranch        *b_Harm_FPP1_hit_yin;   //!
+   TBranch        *b_Harm_FPP1_hit_zin;   //!
+   TBranch        *b_Harm_FPP1_hit_xout;   //!
+   TBranch        *b_Harm_FPP1_hit_yout;   //!
+   TBranch        *b_Harm_FPP1_hit_zout;   //!
    TBranch        *b_Harm_FPP1_hit_xg;   //!
    TBranch        *b_Harm_FPP1_hit_yg;   //!
    TBranch        *b_Harm_FPP1_hit_zg;   //!
@@ -913,6 +955,12 @@ public :
    TBranch        *b_Harm_FPP2_hit_ty;   //!
    TBranch        *b_Harm_FPP2_hit_txp;   //!
    TBranch        *b_Harm_FPP2_hit_typ;   //!
+   TBranch        *b_Harm_FPP2_hit_xin;   //!
+   TBranch        *b_Harm_FPP2_hit_yin;   //!
+   TBranch        *b_Harm_FPP2_hit_zin;   //!
+   TBranch        *b_Harm_FPP2_hit_xout;   //!
+   TBranch        *b_Harm_FPP2_hit_yout;   //!
+   TBranch        *b_Harm_FPP2_hit_zout;   //!
    TBranch        *b_Harm_FPP2_hit_xg;   //!
    TBranch        *b_Harm_FPP2_hit_yg;   //!
    TBranch        *b_Harm_FPP2_hit_zg;   //!
@@ -966,6 +1014,12 @@ public :
    TBranch        *b_Harm_FT_hit_ty;   //!
    TBranch        *b_Harm_FT_hit_txp;   //!
    TBranch        *b_Harm_FT_hit_typ;   //!
+   TBranch        *b_Harm_FT_hit_xin;   //!
+   TBranch        *b_Harm_FT_hit_yin;   //!
+   TBranch        *b_Harm_FT_hit_zin;   //!
+   TBranch        *b_Harm_FT_hit_xout;   //!
+   TBranch        *b_Harm_FT_hit_yout;   //!
+   TBranch        *b_Harm_FT_hit_zout;   //!
    TBranch        *b_Harm_FT_hit_xg;   //!
    TBranch        *b_Harm_FT_hit_yg;   //!
    TBranch        *b_Harm_FT_hit_zg;   //!
@@ -1075,6 +1129,12 @@ public :
    TBranch        *b_Harm_SBSGEM_hit_ty;   //!
    TBranch        *b_Harm_SBSGEM_hit_txp;   //!
    TBranch        *b_Harm_SBSGEM_hit_typ;   //!
+   TBranch        *b_Harm_SBSGEM_hit_xin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_yin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_zin;   //!
+   TBranch        *b_Harm_SBSGEM_hit_xout;   //!
+   TBranch        *b_Harm_SBSGEM_hit_yout;   //!
+   TBranch        *b_Harm_SBSGEM_hit_zout;   //!
    TBranch        *b_Harm_SBSGEM_hit_xg;   //!
    TBranch        *b_Harm_SBSGEM_hit_yg;   //!
    TBranch        *b_Harm_SBSGEM_hit_zg;   //!
