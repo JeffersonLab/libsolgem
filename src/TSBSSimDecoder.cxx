@@ -315,6 +315,8 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
   assert( strip.fProj >= 0 && strip.fProj < fManager->GetNReadOut() );
   
   TSBSMCHitInfo mc;
+  mc.fSigType = strip.fSigType;
+  // cout<<kPrimaryStrip<<" "<<kSecondaryStrip<<" "<<kInducedStrip<<endl;getchar();0 1 2
     // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
   //   printf("%f \n", strip.fTime1);
   
@@ -331,10 +333,24 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
   mc.fMCCharge = strip.fCharge;
   // cout<<"strip: "<<istrip<<" cc: "<<mc.fMCCharge<<endl;
   Double_t nOverlapSignal = 0.;
+  // cout<<strip.fClusters.GetSize()<<" # "<<strip.fClusterRatio[0].GetSize()<<" # "<<strip.fClusterRatio[1].GetSize()<<" # "<<strip.fClusterRatio[2].GetSize()<<" # "<<strip.fClusterRatio[3].GetSize()<<endl;getchar();
   for( Int_t i = 0; i<strip.fClusters.GetSize(); ++i ) {
     Int_t iclust = strip.fClusters[i] - 1;  // yeah, array index = clusterID - 1
+
+   
+    //   cout<<mc.vClusterID.size()<<" : "<<mc.vClusterADC[1].size()<<endl;getchar(); 
+
     assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
     const TSBSSimEvent::GEMCluster& c = simEvent->fGEMClust[iclust];
+    mc.vClusterID.push_back(iclust);
+    mc.vClusterPeakTime.push_back(c.fTime);
+    mc.vClusterStripWeight.push_back(strip.fStripWeightInCluster[i]);
+    // cout<<strip.fStripWeightInCluster[i]<<endl;getchar();
+    for(Int_t its=0;its<6;its++)
+      {
+	mc.vClusterADC[its].push_back(strip.fClusterRatio[its][i]);
+      }
+
     assert( c.fID == iclust+1 );
     assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
     Int_t signalID = -1;

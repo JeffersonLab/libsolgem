@@ -8,6 +8,7 @@
 #include "TVector3.h"
 #include "TArrayI.h"
 
+
 #include "THaAnalysisObject.h"
 
 #include <vector>
@@ -46,6 +47,8 @@ private:
   Short_t*  fOverThr;  // # list of strips over threshold
 
   std::vector< std::vector<Short_t> > fStripClusters; // Clusters associated with each strip
+  std::vector< std::vector<Double_t> > fStripWeightInCluster;
+  std::vector< std::vector<Int_t> > fStripClusterADC[6];
 
   //used to simulate cross talk of APV25
   TRandom3 fRan;
@@ -76,6 +79,8 @@ public:
   Short_t  GetIdxOverThr (Int_t n) const {return fOverThr[n];}
 
   const std::vector<Short_t>& GetStripClusters(UInt_t n) const { return fStripClusters[n]; }
+  const std::vector<Double_t>& GetStripWeightInCluster(UInt_t n) const { return fStripWeightInCluster[n]; }
+  const std::vector<Int_t>& GetStripClusterADC(UInt_t k, UInt_t n) const { return fStripClusterADC[k][n]; }
 };
 
 
@@ -142,6 +147,10 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
 
   const std::vector<Short_t>& GetStripClusters(UInt_t ich, UInt_t ip, UInt_t n) const
   { return fDP[ich][ip]->GetStripClusters(n); }
+  const std::vector<Double_t>& GetStripWeightInCluster(UInt_t ich, UInt_t ip, UInt_t n) const
+  { return fDP[ich][ip]->GetStripWeightInCluster(n); }
+  const std::vector<Int_t>& GetStripClusterADC(UInt_t ich, UInt_t ip, UInt_t n, UInt_t k) const
+  { return fDP[ich][ip]->GetStripClusterADC(k, n); }
 
   TSBSSimEvent* GetEvent() const { return fEvent; }
   

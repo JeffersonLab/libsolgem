@@ -15,6 +15,8 @@
 #include "SimDecoder.h"
 #include "TVector3.h"
 #include "TArrayS.h"
+#include "TArrayI.h"
+#include "TArrayD.h"
 #include <vector>
 
 class TClonesArray;
@@ -129,7 +131,9 @@ public:
     UShort_t  fNsamp;     // Number of ADC samples
     Int_t     fADC[MC_MAXSAMP]; // [fNsamp] ADC samples
     //Int_t     fCommonMode[MC_MAMSAMP];// Real Common mode added to strip----going to work on next, needs to digitize all strips// seems no need to add strip to strip offset since it is just adding a constant in digitization and subtracting same known constant in analysis. "Strip specific pedestal rms and common mode are important"
-    TArrayS   fClusters;  // Clusters contributing to signal on this strip
+    TArrayS   fClusters;  // Clusters ID contributing to signal on this strip
+    TArrayI   fClusterRatio[MC_MAXSAMP];
+    TArrayD   fStripWeightInCluster;
   };
 
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs

@@ -6,7 +6,7 @@ ratedig.gasdriftvelocity = 5.5e7 # mm/s
 ratedig.avalanchefiducialband = 20.0 # n sigma
 ratedig.avalanchechargestatistics = 1 # 0 Furry, 1 Gaussian
 ratedig.ava_model = 2 #0 HeavySide, 1 Gaussian, 2 Cauchy-Lorentz
-ratedig.ava_gain = 100.0
+ratedig.ava_gain = 20.0
 ratedig.gainmean = 8000.0 #4000 for HeavySide
 ratedig.gain0 = 20.0
 ratedig.avalateraluncertainty = 0. #mm
@@ -17,7 +17,7 @@ ratedig.max_ion = 10000
 ratedig.triggeroffset = 121.0 121.5 122.0 122.5 126.0 # ns # to have everything land on 0 when no jitters
 ratedig.triggerjitter = 25.  # ns
 ratedig.apv_time_jitter = 25.  # ns 
-ratedig.elesamplingpoints = 10
+ratedig.elesamplingpoints = 6
 ratedig.elesamplingperiod = 25.  # ns 
 ratedig.adcoffset = 0.
 ratedig.adcgain = 1
@@ -40,8 +40,8 @@ ratedig.use_tracker_frame = 0
 ratedig.entrance_ref = -1.5 # mm # -4.6825
 
 #numerical integration parameter
-ratedig.y_integral_step_per_pitch = 8
-ratedig.x_integral_step_per_pitch = 8
+ratedig.y_integral_step_per_pitch = 8#8
+ratedig.x_integral_step_per_pitch = 8#8
 
 #APV25 cross talk parameter
 ratedig.do_crosstalk = 1

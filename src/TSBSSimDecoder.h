@@ -30,6 +30,11 @@ class TSBSMCHitInfo : public Podd::MCHitInfo
   void MCClear() { fMCTrack = fContam = 0; fMCPos = fMCTime = 0; fMCCharge = 0;}
   
   Double_t fMCCharge;    // GEM charge
+  vector<Int_t> vClusterID;
+  vector<Double_t> vClusterStripWeight;
+  vector<Double_t> vClusterPeakTime;
+  vector<Int_t> vClusterADC[6];
+  Int_t fSigType;
   
   ClassDef(TSBSMCHitInfo,1)  // Generic Monte Carlo hit info
 };

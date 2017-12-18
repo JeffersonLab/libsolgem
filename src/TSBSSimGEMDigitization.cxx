@@ -51,7 +51,9 @@ TSBSDigitizedPlane::TSBSDigitizedPlane (UShort_t nstrip,
 
   fStripADC.Set(fNSamples*fNStrips);
   fStripClusters.resize(fNStrips);
-
+  fStripWeightInCluster.resize(fNStrips);
+  for(int i=0; i<nsample; i++)
+    fStripClusterADC[i].resize(fNStrips);
   Clear();
 };
 
@@ -73,8 +75,13 @@ TSBSDigitizedPlane::Clear()
   memset( fCharge, 0, fNStrips*sizeof(Float_t) );
 
   for (Int_t i = 0; i < fNStrips; i++) {
-    fTime[i] = 9999.;
+    fType[i]   =  0;
+    fCharge[i] =  0;
+    fTime[i]   = 9999.;
     fStripClusters[i].clear();
+    fStripWeightInCluster[i].clear();
+  for(int its=0; its<fNSamples; its++)
+    fStripClusterADC[its][i].clear();
   }
   fNOT = 0;
 }
@@ -85,7 +92,9 @@ TSBSDigitizedPlane::Cumulate (const TSBSGEMHit *vv, Short_t type,
 {
   // cumulate hits (strips signals)
   if (vv) {
+    //if(vv->GetSize()>20) {cout<<vv->GetSize();getchar();}
     for( Int_t j=0; j < vv->GetSize(); j++ ) {
+      Double_t tempSumADC=0;
       Int_t idx = vv->GetIdx(j);
       assert( idx >= 0 && idx < fNStrips );
       fType[idx] |= type;
@@ -94,21 +103,27 @@ TSBSDigitizedPlane::Cumulate (const TSBSGEMHit *vv, Short_t type,
       bool was_below = !( fTotADC[idx] > fThreshold );
       for( UInt_t k=0; k<fNSamples; k++ ) {
 	Int_t nnn = vv->GetADC(j,k);
+	fStripClusterADC[k][idx].push_back(nnn);// new
 	//cout << nnn << " ";
 	assert( nnn >= 0 );
 	if( nnn == 0 ) continue;
 	Int_t iadc = idx*fNSamples+k;
 	//cout << fStripADC[iadc] << " ";
 	fStripADC[iadc] = fStripADC[iadc] + nnn;
+
 	//cout << fStripADC[iadc] << " ";
 	fTotADC[idx] += nnn;
+	tempSumADC   += nnn;
       }//cout << endl;
       if( was_below && fTotADC[idx] > fThreshold ) {
 	assert( fNOT < fNStrips );
 	fOverThr[fNOT] = idx;
 	++fNOT;
       }
+      fStripWeightInCluster[idx].push_back(tempSumADC/vv->GetTotalADC());
+      //cout<<((Double_t)fTotADC[idx])/vv->GetTotalADC()<<endl; getchar();
       fStripClusters[idx].push_back(clusterID);
+
     }
     
     //do cross talk if requested, a big signal along the strips 
@@ -129,6 +144,7 @@ TSBSDigitizedPlane::Cumulate (const TSBSGEMHit *vv, Short_t type,
       if (idxInduce < 0 || idxInduce >= fNStrips ) continue; //outside the readout
       
       SETBIT(fType[idxInduce], kInducedStrip);
+            
       //same time as the main signal strip
       fTime[idxInduce] = (fTime[idx] < vv->GetTime()) ? fTime[idx] : vv->GetTime();
       fCharge[idxInduce] += factor*vv->GetCharge(j);
@@ -375,6 +391,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
 	continue;
       }
     Short_t itype = (gdata.GetParticleType(ih)==1) ? 1 : 2; // primary = 1, secondaries = 2
+    // if(gdata.GetParticleType(ih)!=1){cout<<"x"<<endl;getchar();}
+
     // These vectors are in the spec frame, we need them in the chamber frame
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
@@ -472,7 +490,6 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
 #define DBG_ION 0
 
   TVector3 vseg = xo-xi; // mm
-
   // DEBUG  TRandom3 rnd(0);
   TRandom3& rnd = fTrnd;
 
@@ -521,12 +538,13 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
     Double_t ttime = LL/fGasDriftVelocity; // traveling time from the drift gap to the readout
     
     //cout << " rout Z  (mm?) " << fRoutZ << ", LD (mm?) " << LD << " vseg Z (mm?) " << vseg.Z()  << endl;
-    //cout << " travelling length (mm?) " << LL << ", travelling time:  " <<  ttime << endl;
+    //  cout << " travelling length (mm?) " << LL << ", travelling time:  " <<  ttime << endl;
     
     fRTime0 = TMath::Min(ttime, fRTime0); // minimum traveling time [s]
 
     ip.SNorm = TMath::Sqrt(2.*fGasDiffusion*ttime); // spatial sigma on readout [mm]
-
+    // cout<<"ip.SNorm: "<<ip.SNorm<<endl;
+    //  cout<<"vseg: "<<vseg.X()<<" deltaX: "<<vseg.X()*lion<<endl;
     if( fAvalancheChargeStatistics == 1 ) {
       Double_t gnorm = fGainMean/TMath::Sqrt(fGain0); // overall gain TBC
       ip.Charge = rnd.Gaus(fGainMean, gnorm); // Gaussian distribution of the charge
@@ -596,7 +614,6 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 				 const Double_t t0)
 {
 #define DBG_AVA 0
-
 #if DBG_AVA > 0
   cout << "Chamber " << ic << "----------------------------------" << endl;
   cout << "In  " << xi.X() << " " << xi.Y() << " " << xi.Z() << endl;
@@ -677,7 +694,6 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     Double_t xs1 = x1 * 1e-3; Double_t ys1 = y1 * 1e-3;
     pl.PlaneToStrip (xs1, ys1);
     xs1 *= 1e3; ys1 *= 1e3;
-
 #if DBG_AVA > 0
     cout << "glx gly gux guy " << glx << " " << gly << " " << gux << " " << guy << endl;
     cout << "xs0 ys0 xs1 ys1 " << xs0 << " " << ys0 << " " << xs1 << " " << ys1 << endl;
@@ -759,11 +775,13 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 #endif
     fSumA.resize(nx*ny);
     memset (&fSumA[0], 0, fSumA.size() * sizeof (Double_t));
+
     for (UInt_t i = 0; i < fRNIon; i++){
       Double_t frxs = fRIon[i].X * 1e-3;
       Double_t frys = fRIon[i].Y * 1e-3;
       pl.PlaneToStrip (frxs, frys);
       frxs *= 1e3; frys *= 1e3;
+      //  cout<<"IonStrip: "<<pl.GetStrip(frxs*1e-3,frys*1e-3)<<endl;
       // bin containing center and # bins each side to process
       Int_t ix = (frxs-xl) / xbw;
       Int_t iy = (frys-yb) / ybw;
@@ -785,7 +803,8 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       //
       Double_t ggnorm = fRIon[i].ggnorm;
       Double_t r2 = fRIon[i].R2;
-      Double_t eff_sigma = r2/(fSNormNsigma*fSNormNsigma);
+      Double_t eff_sigma = TMath::Sqrt(r2/(fSNormNsigma*fSNormNsigma));
+      
       // xc and yc are center of current bin
       Int_t jx = max(ix-dx,0);
       Double_t xc = xl + (jx+0.5) * xbw;
@@ -817,10 +836,12 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	      fSumA[jx*ny+jy] += 
 		fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)
 		/((xd2+yd2)+eff_sigma*eff_sigma);
+	      //    cout<<"eff_sigma: "<<eff_sigma<<"  "<<fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)/((xd2+yd2)+eff_sigma*eff_sigma)<<endl;
+	      //  cout<<setw(4)<<(Int_t)(ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)/((xd2+yd2)+eff_sigma*eff_sigma));
 	    }
 	  }
-	}
-      }
+	}//cout<<endl;
+      }//cout<<"##########################################################################"<<endl<<endl;getchar();
     }
 
 #if DBG_AVA > 0
@@ -840,14 +861,17 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     
     //cout << "number of strips: " << nstrips << ", number of samples " << fEleSamplingPoints << " area: " << area << endl;
     
+    //  if(nstrips>10){cout<<"nstrips: "<<nstrips<<" Nion: "<<fRNIon<<endl;}
+
     for (Int_t j = 0; j < nstrips; j++){
+      //  cout<<"strip: "<<iL+j<<":    ";
       Int_t posflag = 0;
       Double_t us = 0.;
       for (UInt_t k=0; k<fXIntegralStepsPerPitch; k++){
 	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
 	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
-      
+      //  cout <<setw(6)<< (Int_t)(us/100);
       //  cout<<iL+j<<" : "<<us<<endl;
       //generate the random pedestal phase and amplitude
       // Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
@@ -856,14 +880,14 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       for (Int_t b = 0; b < fEleSamplingPoints; b++){
 	Double_t pulse =
 	  TSBSSimAuxi::PulseShape (fEleSamplingPeriod * b - t0,
-				  us,
-				  fPulseShapeTau0,
-				  fPulseShapeTau1 );
+				   us,
+				   fPulseShapeTau0,
+				   fPulseShapeTau1 );
 
 	Short_t dadc = TSBSSimAuxi::ADCConvert( pulse,
-					       fADCoffset,
-					       fADCgain,
-					       fADCbits );
+						fADCoffset,
+						fADCgain,
+						fADCbits );
 #if DBG_AVA > 0
 	cout << "strip number " << j << ", sampling number " << b << ", t0 = " << t0 << endl
 	     << "pulse = " << pulse << ", (val - off)/gain = " 
@@ -871,7 +895,11 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 #endif
 	fDADC[b] = dadc;
 	posflag += dadc;
+	//	cout <<setw(6)<< dadc;
       }//cout << endl;
+
+      
+
       if (posflag > 0) { // store only strip with signal
 	for (Int_t b = 0; b < fEleSamplingPoints; b++)
 	  {virs[ipl]->AddSampleAt (fDADC[b], b, ai);}
@@ -879,7 +907,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	virs[ipl]->AddChargeAt (us, ai);
 	ai++;
       }
-    }
+
+      //  cout<<endl;
+    }//getchar();
     
     //cout << "number of strips with signal " << ai << endl;
 
@@ -1164,31 +1194,78 @@ TSBSSimGEMDigitization::SetTreeStrips()
       strip.fProj = (Short_t) ip;
       strip.fNsamp = TMath::Min((UShort_t)MC_MAXSAMP,
 				(UShort_t)GetNSamples(ich, ip));
-      UInt_t nover = GetNOverThr(ich, ip);
       
-      // if(strip.fPlane<10){	  
-      // 	cout << "Nover =  " << nover << " ich " << ich << " strip sector " <<  strip.fSector << " strip plane " << strip.fPlane << endl;
-      // }
-      for (UInt_t iover = 0; iover < nover; iover++) {
-	Short_t idx = GetIdxOverThr(ich, ip, iover);
-	strip.fChan = idx;
+      if(1)
+	{
+	  UInt_t nstrips = GetNStrips(ich,ip);
+	  for (UInt_t istrip = 0; istrip < nstrips; istrip++) {
+	    Short_t idx = istrip;
+	    strip.fChan = idx;
 
-	//setting strip sample adc and adding pedestal noise
-	for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
-	  strip.fADC[ss] = GetADC(ich, ip, idx, ss);
-	  // cout << strip.fADC[ss] << " ";
-	   strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
-	  // cout << strip.fADC[ss] << " ";
-	  if(strip.fADC[ss]>saturation)strip.fADC[ss]=saturation;
-	}//cout << endl;
-
-	strip.fSigType = GetType(ich, ip, idx);
-	strip.fCharge  = GetCharge(ich, ip, idx);
-	strip.fTime1   = GetTime(ich, ip, idx);
+	    //setting strip sample adc and adding pedestal noise
+	    for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
+	      strip.fADC[ss] = GetADC(ich, ip, idx, ss);
+	      // cout << strip.fADC[ss] << " ";
+	      strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
+	      // cout << strip.fADC[ss] << " ";
+	      if(strip.fADC[ss]>saturation)strip.fADC[ss]=saturation;
+	      const vector<Int_t>& sclust = GetStripClusterADC(ich, ip, idx, ss);
+	      
+	      strip.fClusterRatio[ss].Set( sclust.size(), &sclust[0] );
+	      //     if(sclust.size()!=0){
+	      //	 cout<<idx<<" "<<ss<<" "<<sclust.size()<<" == "<<strip.fClusterRatio[ss].GetSize()<<" == "<<GetStripClusters(ich, ip, idx).size()<<endl; getchar();
+	      //    }
+	    }//cout << endl;
+	    /*	    if(GetTotADC(ich, ip, idx)==0)
+	      {
+		cout<<"Type: "<<GetType(ich, ip, idx)<<" Charge: "<<GetCharge(ich, ip, idx)<<" Time: "
+		    <<GetTime(ich, ip, idx)<<" cluster: "<<GetStripClusters(ich, ip, idx).size();
+		getchar();
+		continue;
+	      }
+	    */
+	    strip.fSigType = GetType(ich, ip, idx);
+	    strip.fCharge  = GetCharge(ich, ip, idx);
+	    strip.fTime1   = GetTime(ich, ip, idx);
 	
-	const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
-	strip.fClusters.Set( sc.size(), &sc[0] );
-	fEvent->fGEMStrips.push_back( strip );
+	    const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
+	    strip.fClusters.Set( sc.size(), &sc[0] );
+	    const vector<Double_t>& swc = GetStripWeightInCluster(ich, ip, idx);
+	    strip.fStripWeightInCluster.Set( swc.size(), &swc[0] );
+
+	    fEvent->fGEMStrips.push_back( strip );
+	  }
+	}
+      else{
+	//modify this so recording all strips? 
+	UInt_t nover = GetNOverThr(ich, ip);
+	for (UInt_t iover = 0; iover < nover; iover++) {
+	  Short_t idx = GetIdxOverThr(ich, ip, iover);
+	  strip.fChan = idx;
+
+	  //setting strip sample adc and adding pedestal noise
+	  for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
+	    strip.fADC[ss] = GetADC(ich, ip, idx, ss);
+	    // cout << strip.fADC[ss] << " ";
+	    strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
+	    // cout << strip.fADC[ss] << " ";
+	    if(strip.fADC[ss]>saturation)strip.fADC[ss]=saturation;
+
+	    const vector<Int_t>& sclust = GetStripClusterADC(ich, ip, idx, ss);
+	    strip.fClusterRatio[ss].Set( sclust.size(), &sclust[0] );
+	    
+
+	  }//cout << endl;
+
+	  strip.fSigType = GetType(ich, ip, idx);
+	  strip.fCharge  = GetCharge(ich, ip, idx);
+	  strip.fTime1   = GetTime(ich, ip, idx);
+	
+	  const vector<Short_t>& sc = GetStripClusters(ich, ip, idx);
+	  strip.fClusters.Set( sc.size(), &sc[0] );
+	  
+	  fEvent->fGEMStrips.push_back( strip );
+	}
       }
     }
   }
