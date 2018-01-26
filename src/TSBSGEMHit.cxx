@@ -13,6 +13,7 @@ TSBSGEMHit::TSBSGEMHit(Short_t n, // number of strips in hit
   fTime = -1.;
   fADC = new TArrayS(fNsample*n);
   fHitCharge = 0;
+  fTotalADC = 0; 
 };
 
 TSBSGEMHit::~TSBSGEMHit() {

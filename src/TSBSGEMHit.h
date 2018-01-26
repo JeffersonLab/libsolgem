@@ -22,7 +22,7 @@ class TSBSGEMHit {
   Int_t fNsample; // number of samples
 
   Float_t fHitCharge;
-  Int_t fTotalADC=0; //sum of adc in all TimeSample and all strips
+  Int_t fTotalADC; //sum of adc in all TimeSample and all strips
 
   Short_t fSize; // effective size, maybe different from size of the array (some elements maybe not used)
 
