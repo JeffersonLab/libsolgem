@@ -472,8 +472,17 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       // ---------------------------------
       // Add calorimeter clustering here.
       // ---------------------------------
+      bbps_edep.clear();
+      bbps_ycell.clear();
+      bbsh_edep.clear();
+      bbsh_xcell.clear();
+      bbsh_ycell.clear();
       //first, loop on PS hits
-      for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){  
+      for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){
+	// evaluate energy deposit including smearing from the photoelectron yield:
+	// convert energy deposit in pe yield with Npe_Edep_PS conversion coefficiency, 
+	// and smearing sigma_Npe_Edep_PS. 
+	// Then reconvert into enegry deposit using Npe_Edep_PS
 	edep_cal = fTree->Earm_BBPSTF1_hit_sumedep->at(i);
 	npe = R->Gaus(Npe_Edep_PS*edep_cal, sigma_Npe_Edep_PS*edep_cal);
 	//Npe_fEdep_PS(R, fTree->Earm_BBPSTF1_hit_sumedep->at(i));
@@ -481,17 +490,21 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	//Edep_fNpe_PS(npe);
 	Edep_PS+= edep_cal;
 	
+	// if edep is the maximal energy deposit, store it in the "max" variables
 	if(edep_cal>Edep_PS_max){
 	  Edep_PS_max = edep_cal;
 	  EdepYmax = fTree->Earm_BBPSTF1_hit_ycell->at(i);
 	}
 	
+	// record all smeared energy deposits no matter what, + photon coordinates 
 	bbps_edep.push_back(edep_cal);
+	// X coordinates (in calorimeter) are not relevant for PS.
 	//bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
 	bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
       }
 
       //then, loop on SH hits
+      // same story as for PS, except we also store X coordinates
       for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
 	edep_cal = fTree->Earm_BBSHTF1_hit_sumedep->at(i);
 	npe = R->Gaus(Npe_Edep_SH*edep_cal, sigma_Npe_Edep_SH*edep_cal);
@@ -513,6 +526,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	bbsh_ycell.push_back(fTree->Earm_BBSHTF1_hit_ycell->at(i));
       }
       
+      // calculate reconstructed energy: 5x5 blocks around the max.
       for(int l = 0; l<bbps_edep.size(); l++){
 	if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
 	  E_rec+= bbps_edep[l];
@@ -520,6 +534,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
       }
       
+      // calculate reconstructed energy: 5x5 blocks around the max.
       for(int l = 0; l<bbsh_edep.size(); l++){
 	if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
 	   fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
@@ -531,6 +546,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
       }
       
+      // calculate reconstructed position: 
+      // mean of position of all cluster blocks weighted with energy deposit.
       //X_rec = X_rec/E_rec;
       X_rec = X_rec/E_rec_SH;
       Y_rec = Y_rec/E_rec_SH;

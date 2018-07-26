@@ -140,8 +140,17 @@ public:
     TArrayI   fClusterRatio[MC_MAXSAMP];
     TArrayD   fStripWeightInCluster;
   };
-
+  
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
+  
+  struct EcalCluster {
+    Double_t fEnergy;
+    Double_t fXPos;// in transport coordinates
+    Double_t fYPos;// in transport coordinates
+  };
+  
+  std::vector<EcalCluster> fECalClusters; // ECal clusters
+  
 
   ClassDef(TSBSSimEvent, 5) // Simulated data for one event
 };
