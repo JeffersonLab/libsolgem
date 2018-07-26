@@ -117,14 +117,14 @@ sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 0
 sbs_bbgem.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
 sbs_bbgem.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
 sbs_bbgem.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
-sbs_bbgem.tracker.${allsectors}.3d_maxmiss = 2
+sbs_bbgem.tracker.${allsectors}.3d_maxmiss = 2 # 3D max miss
 sbs_bbgem.tracker.${allsectors}.proj_to_z0 = 0
 
 #-----------------------------------------------------------------
 #  Global projection parameters
 #-----------------------------------------------------------------
 
-sbs_bbgem.tracker.${allsectors}.maxmiss = 2
+sbs_bbgem.tracker.${allsectors}.maxmiss = 1 # 2D track max miss each projection
 sbs_bbgem.tracker.${allsectors}.maxpat = 100000
 sbs_bbgem.tracker.${allsectors}.chi2_conflevel = 1e-06
 sbs_bbgem.tracker.${allsectors}.disable_chi2 = 0
@@ -135,13 +135,16 @@ sbs_bbgem.tracker.${allsectors}.disable_chi2 = 0
 
 sbs_bbgem.tracker.xp.res = 9e-05
 sbs_bbgem.tracker.maxhits = 1000
-sbs_bbgem.tracker.maxclustsiz = 10
+sbs_bbgem.tracker.maxclustsiz = 6
 sbs_bbgem.tracker.adc.min = 100
 sbs_bbgem.tracker.split.frac = 0.1
 sbs_bbgem.tracker.maxsamp = 6
 sbs_bbgem.tracker.adc.sigma = 0.2
 sbs_bbgem.tracker.do_noise = 0
 sbs_bbgem.tracker.check_pulse_shape = 0
+sbs_bbgem.tracker.pedestal_sigma = 5
+sbs_bbgem.tracker.tmp_pedestal_rms = 15
+sbs_bbgem.tracker.tmp_comm_range =200
 sbs_bbgem.tracker.do_histos = 1
 sbs_bbgem.tracker.commonmode_groupsize = 128
 

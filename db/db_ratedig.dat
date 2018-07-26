@@ -15,8 +15,8 @@ ratedig.max_ion = 10000
 
 # Electronics parameters:
 ratedig.triggeroffset = 121.0 121.5 122.0 122.5 126.0 # ns # to have everything land on 0 when no jitters
-ratedig.triggerjitter = 25.  # ns
-ratedig.apv_time_jitter = 25.  # ns 
+ratedig.triggerjitter = 9.  # ns
+ratedig.apv_time_jitter = 0.  # ns 
 ratedig.elesamplingpoints = 6
 ratedig.elesamplingperiod = 25.  # ns 
 ratedig.adcoffset = 0.
@@ -25,7 +25,7 @@ ratedig.adcbits = 12
 ratedig.gatewidth = 250.  # ns 
 
 # GEM pedestal noise
-ratedig.pulsenoisesigma = 25.    #ADC values
+ratedig.pulsenoisesigma = 20.    #ADC values
 ratedig.pulsenoiseperiod = 200. #ns
 ratedig.pulsenoiseampconst = 0. #ADC values
 ratedig.pulsenoiseampsigma = 0. #ADC values

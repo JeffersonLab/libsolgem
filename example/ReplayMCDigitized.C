@@ -46,9 +46,9 @@ void ReplayMCDigitized(const char* filename = "digitized",
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
-  gSystem->Load("../libsolgem.so");
-  gSystem->Load("/home/danning/TreeSearch/libTreeSearch.so");
-  gSystem->Load("/home/danning/TreeSearch/libTreeSearch-SBS.so");
+  gSystem->Load("libsolgem.so");
+  gSystem->Load("/home/danning/jlabdanning/danning/TreeSearch/libTreeSearch.so");
+  gSystem->Load("/home/danning/jlabdanning/danning/TreeSearch/libTreeSearch-SBS.so");
   gSystem->Load("libMinuit");
 
   TSBSDBManager* manager = TSBSDBManager::GetInstance();

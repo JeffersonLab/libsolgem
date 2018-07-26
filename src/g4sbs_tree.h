@@ -139,6 +139,8 @@ public :
    std::vector<double>  *Earm_BBGEM_Track_Y;
    std::vector<double>  *Earm_BBGEM_Track_Xp;
    std::vector<double>  *Earm_BBGEM_Track_Yp;
+   std::vector<double>  *Earm_BBGEM_Track_T;
+   std::vector<double>  *Earm_BBGEM_Track_P;
    std::vector<double>  *Earm_BBGEM_Track_Sx;
    std::vector<double>  *Earm_BBGEM_Track_Sy;
    std::vector<double>  *Earm_BBGEM_Track_Sz;
@@ -703,6 +705,9 @@ public :
    TBranch        *b_Earm_BBGEM_Track_Y;   //!
    TBranch        *b_Earm_BBGEM_Track_Xp;   //!
    TBranch        *b_Earm_BBGEM_Track_Yp;   //!
+   TBranch        *b_Earm_BBGEM_Track_T;   //!
+   TBranch        *b_Earm_BBGEM_Track_P;   //!
+
    TBranch        *b_Earm_BBGEM_Track_Sx;   //!
    TBranch        *b_Earm_BBGEM_Track_Sy;   //!
    TBranch        *b_Earm_BBGEM_Track_Sz;   //!

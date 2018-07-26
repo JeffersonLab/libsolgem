@@ -19,9 +19,11 @@ using namespace std;
 
 //-----------------------------------------------------------------------------
 TSBSSimTrack::TSBSSimTrack( Int_t number, Int_t pid,
-			    const TVector3& vertex, const TVector3& momentum )
+			    const TVector3& vertex, const TVector3& momentum, const TVector3& vertexAtTarget, const TVector3& momentumAtTarget  )
   : Podd::MCTrack( number, pid, vertex, momentum )
 {
+  vertex_target = vertexAtTarget;
+  momentum_target= momentumAtTarget;
 }
 
 //-----------------------------------------------------------------------------
@@ -108,13 +110,15 @@ TSBSSimEvent::~TSBSSimEvent()
 //-----------------------------------------------------------------------------
 TSBSSimTrack* TSBSSimEvent::AddTrack( Int_t number, Int_t pid,
 				      const TVector3& vertex,
-				      const TVector3& momentum )
+				      const TVector3& momentum, 
+				      const TVector3& vertexAtTarget, 
+				      const TVector3& momentumAtTarget )
 {
   // Add a physics track with the given parameters
 
   return
     new( (*fMCTracks)[GetNtracks()] ) TSBSSimTrack( number, pid,
-						    vertex, momentum );
+						    vertex, momentum, vertexAtTarget, momentumAtTarget );
 }
 
 //-----------------------------------------------------------------------------

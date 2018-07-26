@@ -204,7 +204,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   TVector3 Vtx;
   
   double hit_data_temp[24];
-  double gen_data_temp[9];
+  double gen_data_temp[15];
   
   // NB: See comment lines 138-141 of TSBSGeant4File.h
   // double eRangeSlope;
@@ -351,62 +351,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
       n_hits++;
       
-      //Filling gen_data temporary array...
-      gen_data_temp[0] = trid;
-      gen_data_temp[1] = pid;
-      for(int k = 0; k<3; k++){
-	gen_data_temp[k+2] = Mom[k];
-	gen_data_temp[k+5] = Vtx[k];
-      }
-      gen_data_temp[8] = weight;
-      
-      //store information to rescue, if necessary, the generated info
-      if(fTree->Earm_BBGEM_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
-	pmax = fTree->Earm_BBGEM_hit_p->at(i);
-	for(int k = 0; k<9; k++){
-	  gen_data_temp_max[k] = gen_data_temp[k];
-	}
-      }
-      
-      // ... to copy it in the actual g4sbsGenData structure.
-      // only store signal, primary MC tracks
-      if(fSource==0 && n_gen==0 && type==1){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-      }
-      /*else{// this determines if the track is new or not
-	newtrk = true; 
-	for(int z = n_gen-1; z>=0; z--){
-	dupli = true;
-	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	dupli=false;
-	}else{
-	for(int j = 5; j<8; j++){
-	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-	dupli=false;
-	break;
-	}
-	}
-	}
-	if(dupli){
-	newtrk = false;
-	break;
-	}
-	}
-	
-	if(newtrk){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-	}
-	}
-      */
-      
+
+            
       if(d_flag>1){
 	cout << "Hit number: " << i << " BBGEM: X_global : " 
 	     << fTree->Earm_BBGEM_hit_xg->at(i) << ", " 
@@ -446,6 +392,52 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       } //DEBUG      
     }//end loop on hits
     
+
+      //Filling gen_data temporary array...
+      
+   
+      // ... to copy it in the actual g4sbsGenData structure.
+      // only store signal, primary MC tracks
+      if(fSource==0 && n_gen==0 && fTree->Earm_BBGEM_Track_ntracks>0  && fTree->Earm_BBGEM_Track_MID->at(0)==0){
+
+	TVector3 trackOrigin;
+	trackOrigin = TVector3(fTree->Earm_BBGEM_Track_X->at(0)*1.0e3, // in mm
+			       fTree->Earm_BBGEM_Track_Y->at(0)*1.0e3, // in mm
+			       0);
+	pz = fTree->Earm_BBGEM_Track_P->at(0) / sqrt(1 + pow(fTree->Earm_BBGEM_Track_Xp->at(0),2) + pow(fTree->Earm_BBGEM_Track_Yp->at(0),2));
+	Mom = TVector3(pz * fTree->Earm_BBGEM_Track_Xp->at(0),
+		       pz * fTree->Earm_BBGEM_Track_Yp->at(0),
+		       pz);
+	TVector3 trackVertex;
+	TVector3 trackVertexMom;
+	trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
+	trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+
+
+	gen_data_temp[0] = fTree->Earm_BBGEM_Track_TID->at(0);
+	gen_data_temp[1] = fTree->Earm_BBGEM_Track_PID->at(0);
+	for(int k = 0; k<3; k++){
+	  gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
+	  gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
+	  gen_data_temp[k+9] = trackVertexMom[k];//momentum at target in global axis    in GeV
+	  gen_data_temp[k+12]= trackVertex[k];//vertex in global axis,                  in m
+	}
+	gen_data_temp[8] = weight;
+
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	
+	int jdd=0;
+	for(; jdd<15; jdd++){
+	  fg4sbsGenData[n_gen]->SetData(jdd, gen_data_temp[jdd]);
+	}
+	n_gen++;
+      }
+
+      // shi bu shi shou ji mei dian le a , bu shi a
+
+
+
+      /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
     // * the file read is signal; 
@@ -464,6 +456,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	n_gen++;
       }
     }
+      */
     break;
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){

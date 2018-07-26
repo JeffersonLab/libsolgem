@@ -296,6 +296,28 @@ Int_t TSBSSimDecoder::StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const
   return found->second;
 }
 
+//-----------------------------------------------------------------------------
+std::vector<std::vector<Double_t>> TSBSSimDecoder::GetAllMCHits() const
+{
+  std::vector<std::vector<Double_t>> hits;
+  std::vector<Double_t> vtemp = {0,0,0,0,0,0};//v[0]--posx, v[1]--posy, v[2]--charge, v[3]--planeID v[4]--moduleID v[5]time_zero
+  assert( buffer );       // Must still have the event buffer
+  const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
+  for(int i=0;i<simEvent->fGEMClust.size();i++){
+    const TSBSSimEvent::GEMCluster& clust = simEvent->fGEMClust[i];
+    if(clust.fSource!=0){continue;}
+    vtemp[0] = clust.fMCpos.X();
+    vtemp[1] = clust.fMCpos.Y();
+    vtemp[2] = clust.fCharge;
+    vtemp[3] = clust.fPlane;
+    vtemp[4] = clust.fModule;
+    vtemp[5] = clust.fTime;
+    // cout<<"######## "<<vtemp[1]<<endl;
+    hits.push_back(vtemp);
+  }
+
+  return hits;
+}
 
 //-----------------------------------------------------------------------------
 TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
@@ -330,6 +352,7 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
     //cout << "strip = " << strip.fChan << ", time = " << mc.fMCTime << ", pos = " <<  mc.fMCPos << endl;
     return mc;
   }
+
   mc.fMCCharge = strip.fCharge;
   // cout<<"strip: "<<istrip<<" cc: "<<mc.fMCCharge<<endl;
   Double_t nOverlapSignal = 0.;
@@ -343,7 +366,20 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
     assert( iclust >= 0 && static_cast<vsiz_t>(iclust) < simEvent->fGEMClust.size() );
     const TSBSSimEvent::GEMCluster& c = simEvent->fGEMClust[iclust];
     mc.vClusterID.push_back(iclust);
+
+    //work here! remove after finish!
+    // add cluster type info here to tell whether a cluster is a primary or background using "fSource" in simevent.h !!
+    // then go to get b_overtotal in gemplane.cxx and so u can tell whether a cluster has background in it. and how much! great!
+    mc.vClusterType.push_back(c.fSource);
+
+
+
+
+    //
     mc.vClusterPeakTime.push_back(c.fTime);
+    mc.vClusterPos.push_back(c.fHitpos);
+    mc.vClusterCharge.push_back(c.fCharge);
+
     mc.vClusterStripWeight.push_back(strip.fStripWeightInCluster[i]);
     // cout<<strip.fStripWeightInCluster[i]<<endl;getchar();
     for(Int_t its=0;its<6;its++)
@@ -355,7 +391,7 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
     assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
     Int_t signalID = -1;
     for (unsigned int ii = 0; ii<fSignalInfo.size(); ii++){
-      if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid)
+      if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested
 	signalID = ii;
     }
     // cout << "Plane " << strip.fPlane << ", proj (x: 0, y: 1) " << strip.fProj 
@@ -433,7 +469,15 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // in the input file (in TSBSSimFile). The pointer-to-unsigned integer is
   // needed compatibility with the standard decoder.
   const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
-  
+ 
+  /* 
+  cout<<simEvent->fGEMClust.size()<<endl;getchar();
+  for(Int_t i=0;i<simEvent->fGEMClust.size();i++){
+    cout<<"Plane: "<<simEvent->fGEMClust[i].fPlane<<" type: "<<simEvent->fGEMClust[i].fType<<"   x: "<<simEvent->fGEMClust[i].fMCpos.X()
+	<<"   y: "<<simEvent->fGEMClust[i].fMCpos.Y()<<endl;
+  }
+  */
+
   Int_t ret = HED_OK;
   if (first_decode || fNeedInit) {
     if( (ret = init_cmap()) != HED_OK )

@@ -116,6 +116,8 @@ void g4sbs_tree::Init(TTree *tree)
    Earm_BBGEM_Track_Y = 0;
    Earm_BBGEM_Track_Xp = 0;
    Earm_BBGEM_Track_Yp = 0;
+   Earm_BBGEM_Track_T = 0;
+   Earm_BBGEM_Track_P = 0;
    Earm_BBGEM_Track_Sx = 0;
    Earm_BBGEM_Track_Sy = 0;
    Earm_BBGEM_Track_Sz = 0;
@@ -585,7 +587,7 @@ void g4sbs_tree::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("ev", &ev_count, &b_ev);
-   fChain->SetBranchAddress("gen", &gen_thbb, &b_gen);
+   //fChain->SetBranchAddress("gen", &gen_thbb, &b_gen);
    
    if(fDetOption==1){
      fChain->SetBranchAddress("Earm.BBGEM.hit.nhits", &Earm_BBGEM_hit_nhits, &b_Earm_BBGEM_hit_nhits);
@@ -636,6 +638,8 @@ void g4sbs_tree::Init(TTree *tree)
      fChain->SetBranchAddress("Earm.BBGEM.Track.Y", &Earm_BBGEM_Track_Y, &b_Earm_BBGEM_Track_Y);
      fChain->SetBranchAddress("Earm.BBGEM.Track.Xp", &Earm_BBGEM_Track_Xp, &b_Earm_BBGEM_Track_Xp);
      fChain->SetBranchAddress("Earm.BBGEM.Track.Yp", &Earm_BBGEM_Track_Yp, &b_Earm_BBGEM_Track_Yp);
+     fChain->SetBranchAddress("Earm.BBGEM.Track.T", &Earm_BBGEM_Track_T, &b_Earm_BBGEM_Track_T);
+     fChain->SetBranchAddress("Earm.BBGEM.Track.P", &Earm_BBGEM_Track_P, &b_Earm_BBGEM_Track_P);
      fChain->SetBranchAddress("Earm.BBGEM.Track.Sx", &Earm_BBGEM_Track_Sx, &b_Earm_BBGEM_Track_Sx);
      fChain->SetBranchAddress("Earm.BBGEM.Track.Sy", &Earm_BBGEM_Track_Sy, &b_Earm_BBGEM_Track_Sy);
      fChain->SetBranchAddress("Earm.BBGEM.Track.Sz", &Earm_BBGEM_Track_Sz, &b_Earm_BBGEM_Track_Sz);

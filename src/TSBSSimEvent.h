@@ -25,11 +25,15 @@ class TClonesArray;
 class TSBSSimTrack : public Podd::MCTrack {
 public:
   TSBSSimTrack( Int_t number, Int_t pid,
-		const TVector3& vertex, const TVector3& momentum );
+		const TVector3& vertex, const TVector3& momentum, const TVector3& vertexAtTarget, const TVector3& momentumAtTarget );
   TSBSSimTrack();
   
   //Special function for debugging
   Double_t MCFitX_print()     const;
+
+  TVector3 vertex_target;
+  TVector3 momentum_target;
+
 
   // Accessors for SBS-specific parameters
   // EFuchey: 2017/01/24:
@@ -66,7 +70,8 @@ public:
   virtual void Clear( const Option_t* opt="" );
   virtual void Print( const Option_t* opt="" ) const;
   TSBSSimTrack* AddTrack( Int_t number, Int_t pid,
-			  const TVector3& vertex, const TVector3& momentum );
+			  const TVector3& vertex, const TVector3& momentum, 
+			  const TVector3& vertexAtTarget, const TVector3& momentumAtTarget);
 
   Int_t GetNclust()  const { return fGEMClust.size(); }
   Int_t GetNstrips() const { return fGEMStrips.size(); }

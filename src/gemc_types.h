@@ -18,7 +18,7 @@
 #define __GEM_TAG  110
 #define __FLUX_TAG 800
 
-#define __GENERATED_SIZE 7
+#define __GENERATED_SIZE 13
 #define __ECDATA_SIZE 6
 #define __FAEC_VIRTUAL_ID 3110000
 #define __LAEC_VIRTUAL_ID 3210000

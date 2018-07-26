@@ -378,8 +378,9 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
   // Randomize the event time for background events
   Float_t event_time=0,time_zero=0;
   // Trigger time jitter, This should be a fixed value for different hits in a certain event.
-  Double_t trigger_jitter = //fTriggerOffset + 
-    fTrnd.Uniform(-fTriggerJitter/2, fTriggerJitter/2);
+  Double_t trigger_jitter = fTrnd.Gaus(0,fTriggerJitter);
+  fTrnd.Uniform(-fAPVTimeJitter/2, fAPVTimeJitter/2);
+
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);
     UInt_t imodule = gdata.GetHitModule(ih);
@@ -861,7 +862,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     
     //cout << "number of strips: " << nstrips << ", number of samples " << fEleSamplingPoints << " area: " << area << endl;
     
-    //  if(nstrips>10){cout<<"nstrips: "<<nstrips<<" Nion: "<<fRNIon<<endl;}
+    // if(nstrips>0){cout<<"nstrips: "<<nstrips<<" Nion: "<<fRNIon<<endl;}
 
     for (Int_t j = 0; j < nstrips; j++){
       //  cout<<"strip: "<<iL+j<<":    ";
@@ -871,7 +872,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
 	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
-      //  cout <<setw(6)<< (Int_t)(us/100);
+      // cout <<setw(6)<< (Int_t)(us/100);
       //  cout<<iL+j<<" : "<<us<<endl;
       //generate the random pedestal phase and amplitude
       // Double_t phase = fTrnd.Uniform(0., fPulseNoisePeriod);
@@ -895,8 +896,8 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 #endif
 	fDADC[b] = dadc;
 	posflag += dadc;
-	//	cout <<setw(6)<< dadc;
-      }//cout << endl;
+	//cout <<setw(6)<< dadc;
+      }//cout <<"  "<<t0<< endl;
 
       
 
@@ -1017,6 +1018,9 @@ TSBSSimGEMDigitization::InitTree (const TSBSSpec& spect, const TString& ofile)
     }
 
   fOTree = new TTree( treeName, "Tree of digitized values");
+  fOTree -> SetMaxTreeSize(100000000000);
+  //fOTree -> SetMaxTreeSize(1000);
+
 
   // create the tree variables
 
@@ -1037,9 +1041,12 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
     const g4sbsgendata* gd = f.GetGenData(i);
     fEvent->AddTrack( gd->GetTRID(), gd->GetPID(),
 		      gd->GetV(), // Vertex coordinates in [m]
-		      gd->GetP()  // Momentum in [GeV]
-		      );
+		      gd->GetP(),  // Momentum in [GeV]
+		      gd->GetVertexAtTarget(),
+		      gd->GetMomentumAtTarget());
   }
+  //cout<<"nloop: "<<f.GetNGen()<<"   ntracks: "<<fEvent->GetNtracks()<<endl;
+  //getchar();
   // FIXED: one GenData per event: signal, primary particle
   if( f.GetNGen() > 0 )
     fEvent->fWeight = f.GetGenData(0)->GetWeight();
@@ -1066,7 +1073,7 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fModule = manager->GetModuleID(igem);
   clust.fSector   = 0;// disabling sector info for now, working to remove fSector//clust.fRealSector; // May change if mapped, see below
   clust.fSource   = tsgd.GetSource();  // Source of this hit (0=signal, >0 background)
-  clust.fType     = tsgd.GetParticleType(ih);   // GEANT particle counter
+  clust.fType     = tsgd.GetParticleType(ih);   // =1->primary,     >1 ->secondary
   clust.fTRID     = tsgd.GetTrackID(ih);   // GEANT particle counter
   clust.fPID      = tsgd.GetParticleID(ih); // PDG PID
   clust.fP        = tsgd.GetMomentum(ih); // [MeV] // Momentum vector in spec frame, transformed at (1); 
@@ -1087,10 +1094,11 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fHitpos   = (tsgd.GetHitEntrance(ih)+tsgd.GetHitExit(ih)) * 5e-1; // [mm] 
   // Position of the hit in tracker frame: no need to transform
   
-  if (fdh != NULL && fdh[0] != NULL)
-    clust.fCharge = fdh[0]->GetHitCharge();
-  else
-    clust.fCharge = 0;
+  // if (fdh != NULL && fdh[0] != NULL)
+  //  clust.fCharge = fdh[0]->GetHitCharge();
+  //else
+  //  clust.fCharge = 0;
+  clust.fCharge = tsgd.GetHitEnergy(ih);
   clust.fTime   = t0;  // [ns]
 
   const TSBSGEMChamber& ch = spect.GetChamber(igem);
@@ -1206,8 +1214,9 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	    for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
 	      strip.fADC[ss] = GetADC(ich, ip, idx, ss);
 	      // cout << strip.fADC[ss] << " ";
-	      strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
+	       strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
 	      // cout << strip.fADC[ss] << " ";
+	      saturation = 4000;
 	      if(strip.fADC[ss]>saturation)strip.fADC[ss]=saturation;
 	      const vector<Int_t>& sclust = GetStripClusterADC(ich, ip, idx, ss);
 	      
