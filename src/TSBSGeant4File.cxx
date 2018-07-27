@@ -1621,11 +1621,6 @@ void TSBSGeant4File::GetGEMData(TSBSGEMSimHitData* gd)
     }
   }
   gd->SetNHit(ngdata);
-  
-  for(int i = 0; i<fECalClusters.size(); i++){
-    gd->AddCluster(fECalClusters.at(i));
-  }
-  
 }
 
 

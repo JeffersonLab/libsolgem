@@ -126,6 +126,10 @@ class TSBSGeant4File {
   
   //double FindGasRange(double p); // NB: See comment lines 138-141
   
+  const UInt_t GetClusterSize(){return fECalClusters.size();};
+  void AddCluster(TSBSECalCluster* clus){fECalClusters.push_back(clus);};
+  const TSBSECalCluster* GetCluster(int i){return fECalClusters.at(i);};
+  
  private:
   // Members
   char  fFilename[255];

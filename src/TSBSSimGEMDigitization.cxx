@@ -1045,6 +1045,11 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
 		      gd->GetVertexAtTarget(),
 		      gd->GetMomentumAtTarget());
   }
+  
+  //for( UInt_t i=0; i<f.GetClusterSize(); i++ ) {
+    //fEvent->fECalClusters.push_back(f.GetCluster(i));
+  //}
+  
   //cout<<"nloop: "<<f.GetNGen()<<"   ntracks: "<<fEvent->GetNtracks()<<endl;
   //getchar();
   // FIXED: one GenData per event: signal, primary particle

@@ -143,6 +143,7 @@ void TSBSSimEvent::Clear( const Option_t* opt )
   fNSignal = 0;
   fGEMClust.clear();
   fGEMStrips.clear();
+  fECalClusters.clear();
   if( sopt.Contains("all",TString::kIgnoreCase) ) {
     if( fMCTracks ) fMCTracks->Clear(opt);
   }

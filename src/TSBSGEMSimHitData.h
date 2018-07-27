@@ -84,15 +84,11 @@ class TSBSGEMSimHitData
     TVector3  fVert;  // vertex position
   };
   
-  void AddCluster(TSBSECalCluster* clus){fECalClusters.push_back(clus);};
-  
  private:
 
   UInt_t fRunID, fEvtID;
   Int_t  fSource; // MC source file ID (0 = signal, >0 background)
   std::vector<GEMHitData_t> fHitData;
   
-  std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
-
 };
 #endif
