@@ -1,6 +1,7 @@
 #include "TSBSGeant4File.h"
 //#include "g4sbs_types.h"
 #include "gemc_types.h"
+#include "TRandom3.h"
 #include "fstream"
 
 #ifndef __CINT__
@@ -151,6 +152,8 @@ Int_t TSBSGeant4File::Close(){
     return ret;
 }
 
+
+
 Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   // Return 1 on success
   
@@ -162,7 +165,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   }
   
   Clear();
-    
+  
   int n_hits = 0;//total number of hits at the end of the event
   int n_gen = 0;//total number of tracks at the end of the event
   // bool newtrk, dupli;// These variables help avoid store many times the same MC track info
@@ -184,9 +187,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   }
   
   double weight = fTree->ev_solang*fTree->ev_sigma; 
-    
+  
   int det_id;//2017/02/09: now corresponds to fManager->Getg4sbsDetectorType()
-    
+  
   int pid;
   int trid;
   int type;
@@ -218,6 +221,37 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   std::vector<int> trid_hits;
   double gen_data_temp_max[9];
 
+  //variables for clustering
+  TRandom3* R = new TRandom3(0);
+  const double Npe_Edep_PS = 1.550e3;
+  const double sigma_Npe_Edep_PS = 1.58e2;
+  const double Npe_Edep_SH = 2.335e3;
+  const double sigma_Npe_Edep_SH = 1.47e2;
+  const int clustercrown_size = 2;
+  const double BBECalBlock_size = 0.085;
+  double edep_cal = 0;
+  double npe = 0;
+  
+  double Edep_PS = 0;
+  double Edep_SH = 0;
+  
+  double Edep_PS_max = 0;
+  double Edep_SH_max = 0;
+  double EdepXmax = 0;
+  double EdepYmax = 0;
+  
+  double E_rec = 0;
+  double X_rec = 0;
+  double Y_rec = 0;
+  double E_rec_SH = 0;
+  
+  std::vector<double> bbps_edep;
+  //std::vector<double> bbps_xcell;
+  std::vector<double> bbps_ycell;
+  std::vector<double> bbsh_edep;
+  std::vector<double> bbsh_xcell;
+  std::vector<double> bbsh_ycell;
+  
   switch(fManager->Getg4sbsDetectorType()){
     
   case(1)://BB GEMs
@@ -437,9 +471,95 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
 
       // shi bu shi shou ji mei dian le a , bu shi a
+      
+      // ---------------------------------
+      // Add calorimeter clustering here.
+      // ---------------------------------
+      bbps_edep.clear();
+      bbps_ycell.clear();
+      bbsh_edep.clear();
+      bbsh_xcell.clear();
+      bbsh_ycell.clear();
+      //first, loop on PS hits
+      for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){
+	// evaluate energy deposit including smearing from the photoelectron yield:
+	// convert energy deposit in pe yield with Npe_Edep_PS conversion coefficiency, 
+	// and smearing sigma_Npe_Edep_PS. 
+	// Then reconvert into enegry deposit using Npe_Edep_PS
+	edep_cal = fTree->Earm_BBPSTF1_hit_sumedep->at(i);
+	npe = R->Gaus(Npe_Edep_PS*edep_cal, sigma_Npe_Edep_PS*edep_cal);
+	//Npe_fEdep_PS(R, fTree->Earm_BBPSTF1_hit_sumedep->at(i));
+	edep_cal = npe/Npe_Edep_PS;
+	//Edep_fNpe_PS(npe);
+	Edep_PS+= edep_cal;
+	
+	// if edep is the maximal energy deposit, store it in the "max" variables
+	if(edep_cal>Edep_PS_max){
+	  Edep_PS_max = edep_cal;
+	  EdepYmax = fTree->Earm_BBPSTF1_hit_ycell->at(i);
+	}
+	
+	// record all smeared energy deposits no matter what, + photon coordinates 
+	bbps_edep.push_back(edep_cal);
+	// X coordinates (in calorimeter) are not relevant for PS.
+	//bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
+	bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
+      }
 
-
-
+      //then, loop on SH hits
+      // same story as for PS, except we also store X coordinates
+      for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
+	edep_cal = fTree->Earm_BBSHTF1_hit_sumedep->at(i);
+	npe = R->Gaus(Npe_Edep_SH*edep_cal, sigma_Npe_Edep_SH*edep_cal);
+	//Npe_fEdep_SH(R, fTree->Earm_BBSHTF1_hit_sumedep->at(i));
+	edep_cal = npe/Npe_Edep_SH;
+	//Edep_fNpe_SH(npe);
+	Edep_SH+= edep_cal;
+	
+	if(edep_cal>Edep_SH_max){
+	  Edep_SH_max = edep_cal;
+	  EdepXmax = fTree->Earm_BBSHTF1_hit_xcell->at(i);
+	  if(Edep_SH_max>Edep_PS_max){
+	    EdepYmax = fTree->Earm_BBSHTF1_hit_ycell->at(i);
+	  }
+	}
+	
+	bbsh_edep.push_back(edep_cal);
+	bbsh_xcell.push_back(fTree->Earm_BBSHTF1_hit_xcell->at(i));
+	bbsh_ycell.push_back(fTree->Earm_BBSHTF1_hit_ycell->at(i));
+      }
+      
+      // calculate reconstructed energy: 5x5 blocks around the max.
+      for(int l = 0; l<bbps_edep.size(); l++){
+	if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
+	  E_rec+= bbps_edep[l];
+	  //X_rec+= bbps_edep[l]*(-1)*bbps_ycell[l];
+	}
+      }
+      
+      // calculate reconstructed energy: 5x5 blocks around the max.
+      for(int l = 0; l<bbsh_edep.size(); l++){
+	if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
+	   fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
+	  E_rec+= bbsh_edep[l];
+	  E_rec_SH+= bbsh_edep[l];
+	  //transforming calo coordinates as stored in g4sbs output to transport coordinates.
+	  X_rec+= bbsh_edep[l]*(-1)*bbsh_ycell[l];
+	  Y_rec+= bbsh_edep[l]*bbsh_xcell[l];
+	}
+      }
+      
+      // calculate reconstructed position: 
+      // mean of position of all cluster blocks weighted with energy deposit.
+      //X_rec = X_rec/E_rec;
+      X_rec = X_rec/E_rec_SH;
+      Y_rec = Y_rec/E_rec_SH;
+      //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
+      fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
+      // -------------------------------
+      // end: calorimeter reconstruction
+      // -------------------------------
+      
       /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
@@ -1394,7 +1514,9 @@ void TSBSGeant4File::Clear(){
 
   fg4sbsHitData.clear();
   fg4sbsGenData.clear();
-
+  
+  fECalClusters.clear();
+  
 #if D_FLAG>1
   fprintf(stderr, "%s %s line %d: Hits deleted\n",
 	  __FILE__, __FUNCTION__, __LINE__);

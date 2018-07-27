@@ -86,6 +86,18 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 */
 
 //-----------------------------------------------------------------------------
+TSBSECalCluster::TSBSECalCluster()
+  : fEnergy(0), fXPos(0), fYPos(0), fTime(0)
+{
+}
+
+//-----------------------------------------------------------------------------
+TSBSECalCluster::TSBSECalCluster(double E, double X, double Y, double t)
+  : fEnergy(E), fXPos(X), fYPos(Y), fTime(t)
+{
+}
+
+//-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent()
   : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0), fSectorsMapped(false),
     fSignalSector(0)
@@ -131,6 +143,7 @@ void TSBSSimEvent::Clear( const Option_t* opt )
   fNSignal = 0;
   fGEMClust.clear();
   fGEMStrips.clear();
+  fECalClusters.clear();
   if( sopt.Contains("all",TString::kIgnoreCase) ) {
     if( fMCTracks ) {
       fMCTracks->Clear(opt);
