@@ -145,7 +145,9 @@ void TSBSSimEvent::Clear( const Option_t* opt )
   fGEMStrips.clear();
   fECalClusters.clear();
   if( sopt.Contains("all",TString::kIgnoreCase) ) {
-    if( fMCTracks ) fMCTracks->Clear(opt);
+    if( fMCTracks ) {
+      fMCTracks->Clear(opt);
+    }
   }
 }
 

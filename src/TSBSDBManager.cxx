@@ -104,6 +104,8 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
       fPMGeoInfo[i] = thisInfo;
     }
 
+    delete NModule;
+
     //fModulesPerChamber = fModulesPerReadOut * fNReadOut;
     
     // fChambersPerCrate = 

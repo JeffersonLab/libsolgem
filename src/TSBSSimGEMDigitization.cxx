@@ -24,6 +24,8 @@
 #include <cassert>
 #include <algorithm>
 #include <utility>
+#include <time.h>
+
 
 using namespace std;
 
@@ -214,8 +216,10 @@ void TSBSSimGEMDigitization::DeleteObjects()
 {
   for (UInt_t ic = 0; ic < fNChambers; ++ic)
     {
-      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip)
+      for (UInt_t ip = 0; ip < fNPlanes[ic]; ++ip){
 	delete fDP[ic][ip];
+	//delete fdh[ip]
+      }
       delete[] fDP[ic];
     }
   delete[] fDP;       fDP = 0;
@@ -364,6 +368,7 @@ TSBSSimGEMDigitization::Digitize (const TSBSGEMSimHitData& gdata, const TSBSSpec
 Int_t
 TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect)
 {
+  
   // Digitize event. Add results to any existing digitized data.
   
   UInt_t nh = gdata.GetNHit();
@@ -398,7 +403,9 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
     
+  
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
+  
     // Get Signal Start Time 'time_zero'
     if( is_background ) {
       // For background data, uniformly randomize event time between
@@ -422,7 +429,9 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
 	   << endl;
 #endif
     if (fRNIon > 0) {
+  
       fdh = AvaModel (igem, spect, vv1, vv2, time_zero);
+  
     }
     // for (UInt_t j = 0; j < 2; j++) {
     //   cout << "after filling (j = " << j << ") : " << endl;
@@ -448,8 +457,13 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
 	fDP[igem][j]->Cumulate (fdh[j], itype, id );
 	// cout << "after cumulate (j = " << j << ") : " << endl;
 	// fdh[j]->Print();
+
+	delete fdh[j]; //Danning: This line is newly added, because one needs to release memory fdh points if one really wants to points fdh to NULL in the following line
+	               //         On the other hand, fdh seems to be specific to a certain GEM thus shouldn't be member of TSBSSimGEMDigitization and should
+	               //         only exist within this function(additiveDigitize)  ???
       }
-      fdh = NULL;
+      delete fdh;      //Danning: added along with the line above, it's needed because the code will try to point fdh to another address for next hits on gem chamber
+      fdh = NULL; //Danning: shouldn't delete pointer before delete the memory it points, or leading to memory leak
     }
     
   }
@@ -714,7 +728,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	   << "iU_raw " << pl.GetStripUnchecked(xs1*1e-3) << endl
 	   << endl << endl;
 #endif
-      if( ipl == 1 ) delete virs[0];
+      if( ipl == 1 ) {
+	delete virs[0];
+      }
       delete [] virs;
       return 0;
     }

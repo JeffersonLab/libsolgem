@@ -128,6 +128,7 @@ Int_t TSBSGeant4File::Open(){
     }
     
     fTree = new g4sbs_tree(C1, fManager->Getg4sbsDetectorType());
+    
     // g4sbs_tree declare all variables, branches, etc... 
     // to read, event by event, the varaibles stored in the tree. 
     // See comments in g4sbs_tree for more details...
@@ -145,6 +146,8 @@ Int_t TSBSGeant4File::Close(){
     
     fFile->Close();
     
+    
+    delete fTree; 
     delete fFile; fFile = 0;
     return ret;
 }
