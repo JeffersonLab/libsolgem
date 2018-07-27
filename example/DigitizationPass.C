@@ -167,7 +167,7 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
       
       // Add some number of background files...
       int N_bg_file_g_post = N_bg_file_g+nbacktoadd;
-
+      
       if(nbacktoadd){
 	for(int Nfile = N_bg_file_g; Nfile < N_bg_file_g_post; Nfile++){
 	  //if(print)cout << N_bg_file_g << " <= " << Nfile << " < " << N_bg_file_g+nbacktoadd << endl;
@@ -237,8 +237,10 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
       //if(nevent==7)dSimDigi->GetEvent()->Print("all");
       if(print)dSimDigi->GetEvent()->Print("all");
       //dSimDigi->GetEvent()->Print("clust");
-        
+      
+      
       delete gd;
+      delete gb;//Also needs to delete gb...Or there will be huge memory leak, especially at high background
       nevent++;
     }
     cout << "closing file " << endl;
