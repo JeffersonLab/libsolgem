@@ -87,13 +87,13 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 
 //-----------------------------------------------------------------------------
 TSBSECalCluster::TSBSECalCluster()
-  : fEnergy(0), fXPos(0), fYPos(0)
+  : fEnergy(0), fXPos(0), fYPos(0), fTime(0)
 {
 }
 
 //-----------------------------------------------------------------------------
-TSBSECalCluster::TSBSECalCluster(double E, double X, double Y)
-  : fEnergy(E), fXPos(X), fYPos(Y)
+TSBSECalCluster::TSBSECalCluster(double E, double X, double Y, double t)
+  : fEnergy(E), fXPos(X), fYPos(Y), fTime(t)
 {
 }
 

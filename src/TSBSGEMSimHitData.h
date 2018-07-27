@@ -84,6 +84,8 @@ class TSBSGEMSimHitData
     TVector3  fVert;  // vertex position
   };
   
+  void AddCluster(TSBSECalCluster* clus){fECalClusters.push_back(clus);};
+  
  private:
 
   UInt_t fRunID, fEvtID;
