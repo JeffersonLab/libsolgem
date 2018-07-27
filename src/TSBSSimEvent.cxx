@@ -238,3 +238,4 @@ void TSBSSimEvent::Print( const Option_t* opt ) const
 //-----------------------------------------------------------------------------
 ClassImp(TSBSSimEvent)
 ClassImp(TSBSSimTrack)
+ClassImp(TSBSECalCluster)

@@ -54,9 +54,9 @@ public:
 //
 class TSBSECalCluster : public TObject {
  public:
-  TSBSECalCluster();
   TSBSECalCluster(double E, double X, double Y, double t = 0);
-  ~TSBSECalCluster();
+  TSBSECalCluster();
+  ~TSBSECalCluster(){};
   
   double GetEnergy(){return fEnergy;};
   double GetXPos(){return fXPos;};
@@ -74,7 +74,7 @@ class TSBSECalCluster : public TObject {
   Double_t fYPos;// in transport coordinates
   Double_t fTime;
   
-  ClassDef(TSBSECalCluster,3)  // A MC physics track in SBS
+  ClassDef(TSBSECalCluster,1)  // A MC physics track in SBS
 };
 
 //-----------------------------------------------------------------------------
