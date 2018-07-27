@@ -1046,9 +1046,11 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
 		      gd->GetMomentumAtTarget());
   }
   
-  //for( UInt_t i=0; i<f.GetClusterSize(); i++ ) {
+  for( UInt_t i=0; i<f.GetClusterSize(); i++ ) {
+    TSBSECalCluster* clus = f.GetCluster(i);
+    
     //fEvent->fECalClusters.push_back(f.GetCluster(i));
-  //}
+  }
   
   //cout<<"nloop: "<<f.GetNGen()<<"   ntracks: "<<fEvent->GetNtracks()<<endl;
   //getchar();

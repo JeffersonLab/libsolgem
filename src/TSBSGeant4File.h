@@ -126,9 +126,9 @@ class TSBSGeant4File {
   
   //double FindGasRange(double p); // NB: See comment lines 138-141
   
-  const UInt_t GetClusterSize(){return fECalClusters.size();};
+  UInt_t GetClusterSize() const {return fECalClusters.size();};
   void AddCluster(TSBSECalCluster* clus){fECalClusters.push_back(clus);};
-  const TSBSECalCluster* GetCluster(int i){return fECalClusters.at(i);};
+  TSBSECalCluster* GetCluster(int i) const {return fECalClusters.at(i);};
   
  private:
   // Members
@@ -154,7 +154,7 @@ class TSBSGeant4File {
   vector<g4sbshitdata *> fg4sbsHitData;
   vector<g4sbsgendata *> fg4sbsGenData;
   
-  std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
+  vector<TSBSECalCluster *> fECalClusters; // ECal clusters
   
   unsigned int fEvNum;// global event incrementer
 

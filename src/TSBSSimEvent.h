@@ -170,8 +170,7 @@ public:
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
   
   std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
-
-
+  
   ClassDef(TSBSSimEvent, 5) // Simulated data for one event
 };
 
