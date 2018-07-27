@@ -12,6 +12,7 @@
 #include "g4sbs_tree.h"
 #include "TSBSGEMSimHitData.h"
 #include "TSBSDBManager.h"
+#include <TSBSSimEvent.h>
 
 #define __DEFAULT_DATA_SIZE 32
 
@@ -148,6 +149,8 @@ class TSBSGeant4File {
   //hit data arrays
   vector<g4sbshitdata *> fg4sbsHitData;
   vector<g4sbsgendata *> fg4sbsGenData;
+  
+  std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
   
   unsigned int fEvNum;// global event incrementer
 

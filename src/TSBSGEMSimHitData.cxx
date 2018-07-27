@@ -17,6 +17,7 @@ void
 TSBSGEMSimHitData::ClearEvent() 
 {
   fHitData.clear();
+  fECalClusters.clear();
 };
 
 void

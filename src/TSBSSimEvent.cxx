@@ -86,6 +86,18 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 */
 
 //-----------------------------------------------------------------------------
+TSBSECalCluster::TSBSECalCluster()
+  : fEnergy(0), fXPos(0), fYPos(0)
+{
+}
+
+//-----------------------------------------------------------------------------
+TSBSECalCluster::TSBSECalCluster(double E, double X, double Y)
+  : fEnergy(E), fXPos(X), fYPos(Y)
+{
+}
+
+//-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent()
   : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0), fSectorsMapped(false),
     fSignalSector(0)

@@ -51,6 +51,29 @@ public:
   ClassDef(TSBSSimTrack,3)  // A MC physics track in SBS
 };
 
+//
+class TSBSECalCluster : public TObject {
+ public:
+  TSBSECalCluster();
+  TSBSECalCluster(double, double, double);
+  ~TSBSECalCluster();
+  
+  double GetEnergy(){return fEnergy;};
+  double GetXPos(){return fXPos;};
+  double GetYPos(){return fYPos;};
+  
+  void SetEnergy(double E){fEnergy = E;};
+  void SetXPos(double X){fXPos = X;};
+  void SetYPos(double Y){fYPos = Y;};
+   
+ private:
+  Double_t fEnergy;
+  Double_t fXPos;// in transport coordinates
+  Double_t fYPos;// in transport coordinates
+  
+  ClassDef(TSBSECalCluster,3)  // A MC physics track in SBS
+};
+
 //-----------------------------------------------------------------------------
 // Kludgy hardcoded parameters necessary because I can't get ROOT to allocate
 // arrays dynamically via TTree::GetEntry
@@ -143,14 +166,8 @@ public:
   
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
   
-  struct EcalCluster {
-    Double_t fEnergy;
-    Double_t fXPos;// in transport coordinates
-    Double_t fYPos;// in transport coordinates
-  };
-  
-  std::vector<EcalCluster> fECalClusters; // ECal clusters
-  
+  std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
+
 
   ClassDef(TSBSSimEvent, 5) // Simulated data for one event
 };

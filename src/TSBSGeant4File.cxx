@@ -551,6 +551,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       //X_rec = X_rec/E_rec;
       X_rec = X_rec/E_rec_SH;
       Y_rec = Y_rec/E_rec_SH;
+      //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
+      fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
       // -------------------------------
       // end: calorimeter reconstruction
       // -------------------------------
@@ -1509,7 +1511,9 @@ void TSBSGeant4File::Clear(){
 
   fg4sbsHitData.clear();
   fg4sbsGenData.clear();
-
+  
+  fECalClusters.clear();
+  
 #if D_FLAG>1
   fprintf(stderr, "%s %s line %d: Hits deleted\n",
 	  __FILE__, __FUNCTION__, __LINE__);
@@ -1617,6 +1621,9 @@ void TSBSGeant4File::GetGEMData(TSBSGEMSimHitData* gd)
     }
   }
   gd->SetNHit(ngdata);
+  
+  
+  
 }
 
 
