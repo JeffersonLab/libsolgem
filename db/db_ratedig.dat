@@ -3,7 +3,7 @@
 ratedig.gasionwidth = 26.  # eV
 ratedig.gasdiffusion = 100000.  # mm2/s
 ratedig.gasdriftvelocity = 5.5e7 # mm/s
-ratedig.avalanchefiducialband = 20.0 # n sigma
+ratedig.avalanchefiducialband = 10.0 # n sigma
 ratedig.avalanchechargestatistics = 1 # 0 Furry, 1 Gaussian
 ratedig.ava_model = 2 #0 HeavySide, 1 Gaussian, 2 Cauchy-Lorentz
 ratedig.ava_gain = 20.0
@@ -40,8 +40,8 @@ ratedig.use_tracker_frame = 0
 ratedig.entrance_ref = -1.5 # mm # -4.6825
 
 #numerical integration parameter
-ratedig.y_integral_step_per_pitch = 8#8
-ratedig.x_integral_step_per_pitch = 8#8
+ratedig.y_integral_step_per_pitch = 4#8
+ratedig.x_integral_step_per_pitch = 4#8
 
 #APV25 cross talk parameter
 ratedig.do_crosstalk = 1

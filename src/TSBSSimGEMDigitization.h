@@ -251,7 +251,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Double_t fRTotalCharge;
   Double_t fRTime0;
 
-  std::vector<Double_t> fSumA;
+  //std::vector<Double_t> fSumA;
   std::vector<Short_t>  fDADC;
 
   // Tree

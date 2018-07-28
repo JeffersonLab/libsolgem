@@ -470,7 +470,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	n_gen++;
       }
 
-      // shi bu shi shou ji mei dian le a , bu shi a
+      
       
       // ---------------------------------
       // Add calorimeter clustering here.
@@ -555,6 +555,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       X_rec = X_rec/E_rec_SH;
       Y_rec = Y_rec/E_rec_SH;
       //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
+
+
       fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
       // -------------------------------
       // end: calorimeter reconstruction
@@ -1489,8 +1491,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     }
     break;// end case(4)
       
-  }//end switch(fManager->Getg4sbsDetectorType)
+   }//end switch(fManager->Getg4sbsDetectorType)
     
+  delete R;
   return 1;
 }
 

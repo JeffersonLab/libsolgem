@@ -209,6 +209,7 @@ TSBSSimGEMDigitization::TSBSSimGEMDigitization( const TSBSSpec& spect,
 
 TSBSSimGEMDigitization::~TSBSSimGEMDigitization()
 {
+  fEvent->Clear("all");
   DeleteObjects();
 }
 
@@ -228,6 +229,7 @@ void TSBSSimGEMDigitization::DeleteObjects()
 
   delete fOFile;      fOFile = 0;
   delete fOTree;      fOTree = 0;
+  // fEvent->Clear("all");
   delete fEvent;      fEvent = 0;
 }
 
@@ -261,7 +263,7 @@ TSBSSimGEMDigitization::Initialize(const TSBSSpec& spect)
   Double_t f = ( 2 * fAvalancheFiducialBand * 0.1 /* fRSMax */ ) / pitch + 6 /* track slope */;
   Int_t est_area = TMath::Nint( fYIntegralStepsPerPitch * f*f );
   est_area = 128 * TMath::CeilNint( est_area/128. );
-  fSumA.reserve(est_area);
+  // fSumA.reserve(est_area);
 
   fDADC.resize(fEleSamplingPoints);
   fFilledStrips = true;
@@ -403,7 +405,11 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
     TVector3 vv1 = gdata.GetHitEntrance (ih);
     TVector3 vv2 = gdata.GetHitExit (ih);
     
-  
+    if(abs(vv1.X()-vv2.X())>50 || abs(vv1.Y()-vv2.Y())>50){//in mm
+      //cout<<abs(vv1.X()-vv2.X())<<endl;
+      //getchar();
+      continue;
+    }
     IonModel (vv1, vv2, gdata.GetHitEnergy(ih) );
   
     // Get Signal Start Time 'time_zero'
@@ -613,6 +619,7 @@ Double_t IntegralY( Double_t* a, Int_t ix, Int_t nx, Int_t ny )
 inline static
 Bool_t IsInActiveArea( const TSBSGEMPlane& pl, Double_t xc, Double_t yc )
 {
+  
   pl.StripToSpec(xc,yc);
   return pl.GetBox().Contains(xc,yc);
 }
@@ -790,8 +797,16 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 #if DBG_AVA > 0
     cout << "xbw ybw " << xbw << " " << ybw << endl;
 #endif
-    fSumA.resize(nx*ny);
-    memset (&fSumA[0], 0, fSumA.size() * sizeof (Double_t));
+    
+    Int_t sumASize = nx * ny;
+    //  cout<<nx<<" : "<<ny<<" Nstrips: "<<nstrips<<endl;
+    Double_t fSumA[sumASize];
+    for(Int_t i=0; i<sumASize; i++){
+      fSumA[i] = 0;
+    }
+    
+    //    fSumA.resize(nx*ny);
+    //memset (&fSumA[0], 0, fSumA.size() * sizeof (Double_t));
 
     for (UInt_t i = 0; i < fRNIon; i++){
       Double_t frxs = fRIon[i].X * 1e-3;
@@ -820,25 +835,45 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       //
       Double_t ggnorm = fRIon[i].ggnorm;
       Double_t r2 = fRIon[i].R2;
-      Double_t eff_sigma = TMath::Sqrt(r2/(fSNormNsigma*fSNormNsigma));
-      
+      Double_t eff_sigma_square = r2/(fSNormNsigma*fSNormNsigma);
+      Double_t eff_sigma = TMath::Sqrt(eff_sigma_square);
+      Double_t current_ion_amplitude = fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma);
+
+
       // xc and yc are center of current bin
-      Int_t jx = max(ix-dx,0);
-      Double_t xc = xl + (jx+0.5) * xbw;
+      
       // Loop over bins
-      for (; jx < min(ix+dx+1,nx); ++jx, xc += xbw){
+      Int_t min_binNb_x = max(ix-dx,0);
+      Int_t min_binNb_y = max(iy-dy,0);
+      Int_t max_binNb_x = min(ix+dx+1,nx);
+      Int_t max_binNb_y = min(iy+dy+1,ny);
+      Int_t jx = min_binNb_x;
+      Double_t xc = xl + (jx+0.5) * xbw;
+      for (; jx < max_binNb_x; ++jx, xc += xbw){
 	Double_t xd2 = frxs-xc; xd2 *= xd2;
-	if( xd2 > r2 ) continue;
-	Int_t jy = max(iy-dy,0);
+	//if( xd2 > r2 ){
+	//  if( (xc - frxs)>0 )
+	//    break;
+	//  else
+	//    continue;
+	//}
+	Int_t jx_base = jx * ny;
+	Int_t jy = min_binNb_y;
 	Double_t yc = yb + (jy+0.5) * ybw;
 	
-	for (; jy < min(iy+dy+1,ny); ++jy, yc += ybw){
+	for (; jy < max_binNb_y; ++jy, yc += ybw){
 	  Double_t yd2 = frys-yc; yd2 *= yd2;
-
-	  if( xd2 + (frys-yc)*(frys-yc) <= r2 ) {
-	    if( (clipped || bb_clipped) && !IsInActiveArea(pl,xc*1e-3,yc*1e-3) )
-	      continue;
-	    switch (fAvaModel){
+	  //if( yd2 > r2 ){
+	  //  if( (yc - frys)>0 )
+	  //    break;
+	  //  else
+	  //    continue;
+	  // }
+	  if( xd2 + yd2 <= r2 ) {
+	    //if( (clipped || bb_clipped) && !IsInActiveArea(pl,xc*1e-3,yc*1e-3) )
+	    //continue;
+	    
+	    /*	    switch (fAvaModel){
 	    case 0:
 	      // Original Heavyside distribution 
 	      fSumA[jx*ny+jy] += ggnorm;
@@ -849,13 +884,15 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 		fAvaGain*ggnorm*exp(-1.*(xd2+yd2)/(2.*r2/(fSNormNsigma*fSNormNsigma)));
 	      break;
 	    default:
+*/
 	      // Cauchy-Larentz: 
-	      fSumA[jx*ny+jy] += 
-		fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)
-		/((xd2+yd2)+eff_sigma*eff_sigma);
-	      //    cout<<"eff_sigma: "<<eff_sigma<<"  "<<fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)/((xd2+yd2)+eff_sigma*eff_sigma)<<endl;
+	    fSumA[jx_base+jy] += current_ion_amplitude / ((xd2+yd2)+eff_sigma_square);
+	      
+	    //fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)
+
+	    //    cout<<"eff_sigma: "<<eff_sigma<<"  "<<fAvaGain*ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)/((xd2+yd2)+eff_sigma*eff_sigma)<<endl;
 	      //  cout<<setw(4)<<(Int_t)(ggnorm*(1./(TMath::Pi()*eff_sigma))*(eff_sigma*eff_sigma)/((xd2+yd2)+eff_sigma*eff_sigma));
-	    }
+	      //}
 	  }
 	}//cout<<endl;
       }//cout<<"##########################################################################"<<endl<<endl;getchar();
@@ -879,13 +916,19 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     //cout << "number of strips: " << nstrips << ", number of samples " << fEleSamplingPoints << " area: " << area << endl;
     
     // if(nstrips>0){cout<<"nstrips: "<<nstrips<<" Nion: "<<fRNIon<<endl;}
-
+    
     for (Int_t j = 0; j < nstrips; j++){
       //  cout<<"strip: "<<iL+j<<":    ";
       Int_t posflag = 0;
       Double_t us = 0.;
       for (UInt_t k=0; k<fXIntegralStepsPerPitch; k++){
-	us += IntegralY( &fSumA[0], j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
+	Double_t integralY_tmp = 0;
+	int kx = j * fXIntegralStepsPerPitch * ny;
+	for( Int_t jy = ny; jy != 0; --jy )
+	  integralY_tmp += fSumA[kx++];
+	
+	us += integralY_tmp * area;
+	//	us += IntegralY( fSumA, j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
 	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
       // cout <<setw(6)<< (Int_t)(us/100);
@@ -1062,6 +1105,7 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
 		      gd->GetMomentumAtTarget());
   }
   
+  
   for( UInt_t i=0; i<f.GetClusterSize(); i++ ) {
     TSBSECalCluster* clus = f.GetCluster(i);
     
@@ -1075,9 +1119,9 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
       //We assume a Gate width of +- 50 ns for the time being
     }
     clus->SetTime(Time);
-    fEvent->fECalClusters.push_back(clus);
+    fEvent->fECalClusters.push_back(*clus);
+    delete clus;
   }
-  
   //cout<<"nloop: "<<f.GetNGen()<<"   ntracks: "<<fEvent->GetNtracks()<<endl;
   //getchar();
   // FIXED: one GenData per event: signal, primary particle
@@ -1331,7 +1375,7 @@ TSBSSimGEMDigitization::FillTree ()
       )
     {
       fOFile->cd();
-      //fEvent->Print("all");
+      //fEvent->Print("all"); 
       fOTree->Fill();
     }
 }
