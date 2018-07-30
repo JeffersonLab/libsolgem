@@ -53,7 +53,7 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
         {"modules_per_readout", &fModulesPerReadOut   , kInt,    0, 1},
 	{"g4sbs_detectortype",  &fg4sbsDetectorType   , kInt,    0, 1},
 	{"g4sbs_z_specoffset",  &fg4sbsZSpecOffset    , kDouble, 0, 1},
-	{"calothreshold",       &fCaloThr             , kDouble, 0, 1},
+	{"calo_thr",            &fCaloThr             , kDouble, 0, 1},
 	{"z0",                  &fgZ0                 , kDouble, 0, 1},
 	{"calo_z",              &fgCaloZ              , kDouble, 0, 1},
 	{"calo_res",            &fgCaloRes            , kDouble, 0, 1},

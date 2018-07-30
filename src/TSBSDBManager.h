@@ -57,6 +57,7 @@ public:
     const int    &   Getg4sbsDetectorType() { return fg4sbsDetectorType;   }
     const double &   Getg4sbsZSpecOffset()  { return fg4sbsZSpecOffset;    }
     
+    const double &   GetCaloThreshold()     { return fCaloThr;             }
     const double &   GetZ0()                { return fgZ0;                 }
     const double &   GetCaloZ()             { return fgCaloZ;              }
     const double &   GetCaloRes()           { return fgCaloRes;            }

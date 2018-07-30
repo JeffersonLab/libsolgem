@@ -557,7 +557,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
 
       //hardcode threshold for the moment, will add in the DB later.
-      if(E_rec>2.4){
+      if(E_rec>fManager->GetCaloThreshold()){
 	fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
       }
       // -------------------------------
