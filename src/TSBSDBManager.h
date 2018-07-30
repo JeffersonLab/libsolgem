@@ -125,6 +125,9 @@ protected:
     double fg4sbsZSpecOffset;
     //Offset between the local z value recorded in g4sbs and the actual distance 
     //of the GEM from the midplane pivot
+
+    // Parameters for simple calorimeter analysis
+    double fCaloThr;
     
     // Parameters for TSBSSimDecoder
     // Calorimeter emulation
