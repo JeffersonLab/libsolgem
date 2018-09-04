@@ -556,8 +556,10 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       Y_rec = Y_rec/E_rec_SH;
       //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
 
-
-      fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
+      //hardcode threshold for the moment, will add in the DB later.
+      if(E_rec>fManager->GetCaloThreshold()){
+	fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
+      }
       // -------------------------------
       // end: calorimeter reconstruction
       // -------------------------------

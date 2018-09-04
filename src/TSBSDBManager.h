@@ -57,6 +57,7 @@ public:
     const int    &   Getg4sbsDetectorType() { return fg4sbsDetectorType;   }
     const double &   Getg4sbsZSpecOffset()  { return fg4sbsZSpecOffset;    }
     
+    const double &   GetCaloThreshold()     { return fCaloThr;             }
     const double &   GetZ0()                { return fgZ0;                 }
     const double &   GetCaloZ()             { return fgCaloZ;              }
     const double &   GetCaloRes()           { return fgCaloRes;            }
@@ -125,6 +126,9 @@ protected:
     double fg4sbsZSpecOffset;
     //Offset between the local z value recorded in g4sbs and the actual distance 
     //of the GEM from the midplane pivot
+
+    // Parameters for simple calorimeter analysis
+    double fCaloThr;
     
     // Parameters for TSBSSimDecoder
     // Calorimeter emulation
