@@ -27,7 +27,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
 		       //"bbgem" for BigBite spectrometer (GMn, GEn, SIDIS);
 		       //"FT" for Front Tracker spectrometer (GEp);
 		       //"FPP" for Focal Plane Polarimeters (GEp).
-		       bool bkgd,// flag to indicate if digitized file includes background or not.
+		       bool bkgd = false,// flag to indicate if digitized file includes background or not.
 		       Int_t nevent = -1, // number of events to process
 		       Int_t nseg = 0, // number of segments
 		       bool do_cuts = true )
@@ -46,7 +46,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
-  gSystem->Load("libsolgem.so");
+  gSystem->Load("../libsolgem.so");
   gSystem->Load("/home/danning/jlabdanning/danning/TreeSearch/libTreeSearch.so");
   gSystem->Load("/home/danning/jlabdanning/danning/TreeSearch/libTreeSearch-SBS.so");
   gSystem->Load("libMinuit");

@@ -104,7 +104,7 @@ sbs_bbgem.tracker.3.thetaV = 10
 # Tracker feature configuration
 #-----------------------------------------------------------------
 
-sbs_bbgem.tracker.${allsectors}.search_depth = 10
+sbs_bbgem.tracker.${allsectors}.search_depth = 5
 sbs_bbgem.tracker.${allsectors}.maxthreads = 1
 sbs_bbgem.tracker.${allsectors}.disable_tracking = 0
 sbs_bbgem.tracker.${allsectors}.disable_finetrack = 1
