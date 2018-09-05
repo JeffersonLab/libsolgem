@@ -25,43 +25,43 @@ public:
     void LoadGeneralInfo(const string& fileName);
     void LoadGeoInfo(const string& prefix);
    
-    const int    &   DoMapSector()          { return fDoMapSector;         }
-    const int    &   DoSelfDefineSector()   { return fDoSelfDefinedSector; }
-    const int    &   GetSectorMapped()      { return fMappedSector;        }
-    const int    &   GetNChamber()          { return fNChamber;            }
-    const int    &   GetNSector()           { return fNSector;             }
-    const int    &   GetNGEMPlane()         { return fNGEMPlane;           }
-    const int    &   GetNModule(int plane)  { if(plane<0) return 0; else return fNModule[plane];      }
-    const int    &   GetPlaneID(int igem)   { return fmIgemtoPlane[igem];  }
-    const int    &   GetModuleID(int igem)  { return fmIgemtoModule[igem]; }
-    const int    &   GetGEMID(int ip,int im){ return fmPMtoIgem[ip][im];   }
+    int       DoMapSector() const          { return fDoMapSector;         }
+    int       DoSelfDefineSector() const   { return fDoSelfDefinedSector; }
+    int       GetSectorMapped() const      { return fMappedSector;        }
+    int       GetNChamber() const          { return fNChamber;            }
+    int       GetNSector() const           { return fNSector;             }
+    int       GetNGEMPlane() const         { return fNGEMPlane;           }
+    int       GetNModule(int plane) const  { if(plane<0) return 0; else return fNModule[plane]; }
+    int       GetPlaneID(int igem)         { return fmIgemtoPlane[igem];  }
+    int       GetModuleID(int igem)        { return fmIgemtoModule[igem]; }
+    int       GetGEMID(int ip,int im)      { return fmPMtoIgem[ip][im];   }
     /* // see comment l. 93-95. */
-    /* const int    &   GetNChamber2()          { return fNChamber2;            } */
-    /* const int    &   GetNSector2()           { return fNSector2;             } */
-    const int    &   GetNReadOut()          { return fNReadOut;            }
-    const int    &   GetGEMDriftID()        { return fGEMDriftID;          }
-    const int    &   GetGEMCopperFrontID()  { return fGEMCopperFrontID;    }
-    const int    &   GetGEMCopperBackID()   { return fGEMCopperBackID;     }
-    const int    &   GetGEMStripID()        { return fGEMStripID;          }
-    const int    &   GetNSigParticle()      { return fNSigParticle;        }
-    const int    &   GetFAECID()            { return fFAECID;              }
-    const int    &   GetLAECID()            { return fLAECID;              }
-    const int    &   GetChanPerSlot()       { return fChanPerSlot;         }
-    const int    &   GetModulesPerReadOut() { return fModulesPerReadOut;   }
-    const int    &   GetModulesPerChamber() { return fModulesPerChamber;   }
-    const int    &   GetChambersPerCrate()  { return fChambersPerCrate;    }
+    /* int      GetNChamber2() const          { return fNChamber2;            } */
+    /* int      GetNSector2() const           { return fNSector2;             } */
+    int       GetNReadOut() const          { return fNReadOut;            }
+    int       GetGEMDriftID() const        { return fGEMDriftID;          }
+    int       GetGEMCopperFrontID() const  { return fGEMCopperFrontID;    }
+    int       GetGEMCopperBackID() const   { return fGEMCopperBackID;     }
+    int       GetGEMStripID() const        { return fGEMStripID;          }
+    int       GetNSigParticle() const      { return fNSigParticle;        }
+    int       GetFAECID() const            { return fFAECID;              }
+    int       GetLAECID() const            { return fLAECID;              }
+    int       GetChanPerSlot() const       { return fChanPerSlot;         }
+    int       GetModulesPerReadOut() const { return fModulesPerReadOut;   }
+    int       GetModulesPerChamber() const { return fModulesPerChamber;   }
+    int       GetChambersPerCrate() const  { return fChambersPerCrate;    }
     
-    const int    &   GetSigPID(unsigned int i);
-    const int    &   GetSigTID(unsigned int i);
+    int       GetSigPID(unsigned int i) const;
+    int       GetSigTID(unsigned int i) const;
     
-    const int    &   Getg4sbsDetectorType() { return fg4sbsDetectorType;   }
-    const double &   Getg4sbsZSpecOffset()  { return fg4sbsZSpecOffset;    }
+    int       Getg4sbsDetectorType() const { return fg4sbsDetectorType;   }
+    double    Getg4sbsZSpecOffset() const  { return fg4sbsZSpecOffset;    }
     
-    const double &   GetCaloThreshold()     { return fCaloThr;             }
-    const double &   GetZ0()                { return fgZ0;                 }
-    const double &   GetCaloZ()             { return fgCaloZ;              }
-    const double &   GetCaloRes()           { return fgCaloRes;            }
-    const int    &   DoCalo()               { return fgDoCalo;             }
+    double    GetCaloThreshold() const     { return fCaloThr;             }
+    double    GetZ0() const                { return fgZ0;                 }
+    double    GetCaloZ() const             { return fgCaloZ;              }
+    double    GetCaloRes() const           { return fgCaloRes;            }
+    int       DoCalo() const               { return fgDoCalo;             }
 
     void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
     // Support for calorimeter emulation. Static functions to allow script access
@@ -69,15 +69,15 @@ public:
     void     SetCaloZ( Double_t z )     { fgCaloZ   = z; }
     void     SetCaloRes( Double_t res ) { fgCaloRes = res; }
     
-    const double &   GetDMag(int i, int j);
-    const double &   GetD0(int i, int j);
-    const double &   GetXOffset(int i, int j);
-    const double &   GetDX(int i, int j);
-    const double &   GetDY(int i, int j);
-    //const double &   GetThetaH(int i, int j);
-    const double &   GetThetaV(int i, int j);
-    const double &   GetStripAngle(int i, int j, int k);
-    const double &   GetPitch(int i, int j, int k);
+    double    GetDMag(int i, int j);
+    double    GetD0(int i, int j);
+    double    GetXOffset(int i, int j);
+    double    GetDX(int i, int j);
+    double    GetDY(int i, int j);
+    //double    GetThetaH(int i, int j);
+    double    GetThetaV(int i, int j);
+    double    GetStripAngle(int i, int j, int k);
+    //double    GetPitch(int i, int j, int k);
     
     int GetModuleIDFromPos(int iplane, double x, double y = 0);
     double GetPosFromModuleStrip(int iproj, int iplane, int isector, int istrip);
@@ -85,8 +85,8 @@ public:
 protected:
     TSBSDBManager();
     int    LoadDB(ifstream& inp, DBRequest* request, const string& prefix);
-    string FindKey( ifstream& inp, const string& key );
-    bool   CheckIndex(int i, int j=0, int k=0);
+    string FindKey( ifstream& inp, const string& key ) const;
+    bool   CheckIndex(int i, int j=0, int k=0) const;
     
     static TSBSDBManager* fManager;
 

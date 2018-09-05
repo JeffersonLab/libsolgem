@@ -168,7 +168,7 @@ void TSBSDBManager::LoadGeoInfo(const string& prefix)
 
 
 //______________________________________________________________
-string TSBSDBManager::FindKey( ifstream& inp, const string& key )
+string TSBSDBManager::FindKey( ifstream& inp, const string& key ) const
 {
   static const string empty("");
   string line;
@@ -189,7 +189,7 @@ string TSBSDBManager::FindKey( ifstream& inp, const string& key )
   return empty;
 }
 //_________________________________________________________________________
-bool TSBSDBManager::CheckIndex(int i, int j, int k)//(plane, module, readoutAxis)
+bool TSBSDBManager::CheckIndex(int i, int j, int k) const//(plane, module, readoutAxis)
 {
     if (i >= fNChamber || i < 0){
         cout<<"invalid chamber ID requested: "<<i<<endl;
@@ -248,7 +248,7 @@ int TSBSDBManager::LoadDB( ifstream& inp, DBRequest* request, const string& pref
   return 0;
 }
 //_____________________________________________________________________
-const int & TSBSDBManager::GetSigPID(unsigned int i)
+int TSBSDBManager::GetSigPID(unsigned int i) const
 {
     if ( i >= fSigPID.size() ){ 
         cout<<"only "<<fSigPID.size()<<" signal particle registered"<<endl;
@@ -257,7 +257,7 @@ const int & TSBSDBManager::GetSigPID(unsigned int i)
     return fSigPID[i];
 }
 //______________________________________________________________________
-const int & TSBSDBManager::GetSigTID(unsigned int i)
+int TSBSDBManager::GetSigTID(unsigned int i) const
 {
     if ( i >= fSigPID.size() ){ 
         cout<<"only "<<fSigPID.size()<<" signal particle registered"<<endl;
@@ -267,56 +267,56 @@ const int & TSBSDBManager::GetSigTID(unsigned int i)
 }
 
 //______________________________________________________________________
-const double & TSBSDBManager::GetDMag(int i, int j)
+double TSBSDBManager::GetDMag(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).dmag;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetD0(int i, int j)
+double TSBSDBManager::GetD0(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).d0;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetXOffset(int i, int j)
+double TSBSDBManager::GetXOffset(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).xoffset;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetDX(int i, int j)
+double TSBSDBManager::GetDX(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).dx;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetDY(int i, int j)
+double TSBSDBManager::GetDY(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).dy;
 }
 //______________________________________________________________________
-// const double & TSBSDBManager::GetThetaH(int i, int j)
+// double TSBSDBManager::GetThetaH(int i, int j) const
 // {
 //     if (!CheckIndex(i, j)) return fErrVal;
 //     return fGeoInfo[j].at(i).thetaH;
 // }
 //______________________________________________________________________
-const double & TSBSDBManager::GetThetaV(int i, int j)
+double TSBSDBManager::GetThetaV(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).thetaV;
 }
 //_________________________________________________________________________
-const double & TSBSDBManager::GetStripAngle(int i, int j, int k)
+double TSBSDBManager::GetStripAngle(int i, int j, int k)
 {
   if (!CheckIndex(i, j, k)) return fErrVal;
   if (k == 0) return fPMGeoInfo[i].at(j).stripangle_u;
   else return fPMGeoInfo[i].at(j).stripangle_u;
 }
 //_________________________________________________________________________
-//const double & TSBSDBManager::GetPitch(int i, int j, int k)
+//double TSBSDBManager::GetPitch(int i, int j, int k)
 //{
 //    if (!CheckIndex(i, j, k)) return fErrVal;
 //    if (k == 0) return fGeoInfo[j].at(i).pitch_u;
