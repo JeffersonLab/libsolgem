@@ -17,6 +17,7 @@
 #include "THaBenchmark.h"
 #include "VarDef.h"
 #include "TSBSDBManager.h"
+#include "ha_compiledata.h"
 
 #include "TError.h"
 #include "TSystem.h"
@@ -482,7 +483,11 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   if (first_decode || fNeedInit) {
     if( (ret = init_cmap()) != HED_OK )
       return ret;
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
+    if( (ret = init_slotdata()) != HED_OK)
+#else
     if( (ret = init_slotdata(fMap)) != HED_OK)
+#endif
       return ret;
     first_decode = false;
   }
