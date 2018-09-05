@@ -71,7 +71,10 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
     if( err ) {cout<<"Load DB error"<<endl;exit(2);} 
 
     
-    if(fNGEMPlane!=NModule->size()){cout<<"Check consistency of number of GEM Planes"<<endl;exit(2);}
+    if(fNGEMPlane!=(int)NModule->size()) {
+      cout<<"Check consistency of number of GEM Planes"<<endl;
+      exit(2);
+    }
     int nGEMtot=0;
     for(int i=0;i<fNGEMPlane;i++)
       {
@@ -151,7 +154,7 @@ void TSBSDBManager::LoadGeoInfo(const string& prefix)
     
     for (int j=0; j<fNModule[i]; j++){
       ostringstream plane_prefix(prefix, ios_base::ate);
-      int idx = j;
+      //      int idx = j;
       plane_prefix<<".plane"<<i<<".module"<<j<<".";
       
       int err = LoadDB(input, request, plane_prefix.str());
@@ -330,7 +333,7 @@ int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double y)
   if (!CheckIndex(iplane)) return fErrVal;
   
   int module = -1;
-  for(int k = 0; k<fPMGeoInfo[iplane].size(); k++){
+  for(size_t k = 0; k<fPMGeoInfo[iplane].size(); k++){
     if(fPMGeoInfo[iplane].at(k).xoffset-fPMGeoInfo[iplane].at(k).dx/2.0<=x && 
        x<=fPMGeoInfo[iplane].at(k).xoffset+fPMGeoInfo[iplane].at(k).dx/2.0)
       {
@@ -343,7 +346,8 @@ int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double y)
 
 //__________________________________________________________________________
 
-double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane, int imodule, int istrip)
+double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane,
+					    int imodule, int istrip)
 {
   if (!CheckIndex(iplane, imodule)) return fErrVal;
 
@@ -360,7 +364,7 @@ double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane, int imodule, 
   }
   
   //cout << " " << pos << endl;
-  return( pos );
+  return pos;
 }
 
 

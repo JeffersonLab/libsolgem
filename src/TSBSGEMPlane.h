@@ -135,7 +135,7 @@ class TSBSGEMPlane : public THaSubDetector {
 inline void
 TSBSGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
 {
-  register Double_t temp = x;
+  Double_t temp = x;
   x = fCBS * x - fSBS * y;
   y = fSBS * temp + fCBS * y;
   return;

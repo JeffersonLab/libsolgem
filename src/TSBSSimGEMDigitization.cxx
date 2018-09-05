@@ -390,7 +390,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
 
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);
-    UInt_t imodule = gdata.GetHitModule(ih);
+    //    UInt_t imodule = gdata.GetHitModule(ih);
     UInt_t iplane = gdata.GetHitPlane(ih);
     //cout<<igem<<":"<<imodule<<":"<<iplane<<endl;
     if (igem >= fNChambers)
@@ -690,7 +690,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     return 0;
   }
 
-  bool bb_clipped = (x0<glx||y0<gly||x1>gux||y1>guy);
+  //bool bb_clipped = (x0<glx||y0<gly||x1>gux||y1>guy);
   if(x0<glx) x0=glx;
   if(y0<gly) y0=gly;
   if(x1>gux) x1=gux;
@@ -741,7 +741,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       delete [] virs;
       return 0;
     }
-    bool clipped = ( iL < 0 || iU < 0 );
+    //bool clipped = ( iL < 0 || iU < 0 );
     if( iL < 0 )
       iL = pl.GetStripInRange( xs0 * 1e-3 );
     else if( iU < 0 )
@@ -1260,7 +1260,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 
   TSBSSimEvent::DigiGEMStrip strip;
   Double_t saturation = static_cast<Double_t>( (1<<fADCbits)-1 )-1300;
-  for (Int_t ich = 0; ich < GetNChambers(); ++ich) {
+  for (UInt_t ich = 0; ich < GetNChambers(); ++ich) {
     
     strip.fSector=0;
     strip.fPlane=manager->GetPlaneID(ich);

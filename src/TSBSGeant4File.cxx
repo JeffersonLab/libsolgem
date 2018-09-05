@@ -188,34 +188,40 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   
   double weight = fTree->ev_solang*fTree->ev_sigma; 
   
-  int det_id;//2017/02/09: now corresponds to fManager->Getg4sbsDetectorType()
+  //  int det_id;//2017/02/09: now corresponds to fManager->Getg4sbsDetectorType()
   
-  int pid;
-  int trid;
-  int type;
-  int plane;
-  int module;
-  int sector;
-  double edep;
-  double tmin;
-  double tmax;
+  //These are now local variables within each case statement below
+  //as they logically should be
+  // int pid;
+  // int trid;
+  // int type;
+  // int plane;
+  //FIXME: there seems to be confusion as to the meanings of "module" and "sector"
+  // in the cases below. Keep them global for now, even though I strongly believe
+  // they should also be local, like the other variables here
+  int module = 0;
+  int sector = 0;
+  // double edep;
+  // double tmin;
+  // double tmax;
     
-  TVector3 Mom;
-  double pz;
+  // TVector3 Mom;
+  // double pz;
 
-  TVector3 X_in;
-  TVector3 X_out;
-  TVector3 X_RO;
+  // TVector3 X_in;
+  // TVector3 X_out;
+  // TVector3 X_RO;
     
-  TVector3 Vtx;
+  // TVector3 Vtx;
   
+  //FIXME: are these ever reset between modules?
   double hit_data_temp[24];
   double gen_data_temp[15];
   
   // NB: See comment lines 138-141 of TSBSGeant4File.h
   // double eRangeSlope;
   // double eRangeGas;
-  double temp;
+  // double temp;
   
   double pmax = 0.0;
   std::vector<int> trid_hits;
@@ -253,47 +259,47 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   std::vector<double> bbsh_ycell;
   
   switch(fManager->Getg4sbsDetectorType()){
-    
+
   case(1)://BB GEMs
     if(d_flag>1){
       cout << "Number of Hits: " << fTree->Earm_BBGEM_hit_nhits << endl;
     } // DEBUG
     for(int i = 0; i<fTree->Earm_BBGEM_hit_nhits; i++){
-      det_id = 1;
-      pid = fTree->Earm_BBGEM_hit_pid->at(i);
-      trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
-      type = fTree->Earm_BBGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Earm_BBGEM_hit_plane->at(i)-1;
-      edep = fTree->Earm_BBGEM_hit_edep->at(i)*1.0e3;
-      tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
-      tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
+      int det_id = 1;
+      int pid = fTree->Earm_BBGEM_hit_pid->at(i);
+      int trid = fTree->Earm_BBGEM_hit_trid->at(i);// track ID: particle counter
+      int type = fTree->Earm_BBGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int plane = fTree->Earm_BBGEM_hit_plane->at(i)-1;
+      double edep = fTree->Earm_BBGEM_hit_edep->at(i)*1.0e3;
+      double tmin = fTree->Earm_BBGEM_hit_tmin->at(i);
+      double tmax = fTree->Earm_BBGEM_hit_tmax->at(i);
       
       trid_hits.push_back(trid);
       
       module = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
       if(module==-1)continue;
       
-      pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
+      double pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
 		   pow(fTree->Earm_BBGEM_hit_typ->at(i), 2) + 1.0) );
      
-      Mom = TVector3(fTree->Earm_BBGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
+      TVector3 Mom = TVector3(fTree->Earm_BBGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Earm_BBGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3((fTree->Earm_BBGEM_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_in = TVector3((fTree->Earm_BBGEM_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Earm_BBGEM_hit_yin->at(i)*1.0e3, // in mm
 		      (fTree->Earm_BBGEM_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, module))*1.0e3);// in mm
       
-      X_out = TVector3((fTree->Earm_BBGEM_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_out = TVector3((fTree->Earm_BBGEM_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		       fTree->Earm_BBGEM_hit_yout->at(i)*1.0e3, // in mm
 		       (fTree->Earm_BBGEM_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
 			fManager->GetD0(plane, module))*1.0e3);// in mm
 
       // we use X_in and X_out to extrapolate X_RO; 
       // not very clean, but since we don't use it in the digitization at all, it does not really matter...
-      X_RO = TVector3(X_in.X()+(fTree->Earm_BBGEM_hit_xout->at(i)-fTree->Earm_BBGEM_hit_xin->at(i))*9.185/3.0 ,
+      TVector3 X_RO = TVector3(X_in.X()+(fTree->Earm_BBGEM_hit_xout->at(i)-fTree->Earm_BBGEM_hit_xin->at(i))*9.185/3.0 ,
 		      // in mm
 		      X_in.Y()+(fTree->Earm_BBGEM_hit_yout->at(i)-fTree->Earm_BBGEM_hit_yin->at(i))*9.185/3.0 ,
 		      // in mm
@@ -335,9 +341,10 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       if(fabs(X_out.X())>=fManager->GetDX(plane, module)*5.0e2){
 	if(d_flag>0){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
-	       << ": X_out.X " << X_out.X() << " outside BBGEM plane " << plane << " sector " << sector;
+	       << ": X_out.X " << X_out.X() << " outside BBGEM plane " << plane
+	       << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.X());
+	double temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, module)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
@@ -350,7 +357,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.Y());
+	double temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, module)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
@@ -359,7 +366,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	X_RO.SetY(X_out.Y());
       }
       
-      Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
+      TVector3 Vtx = TVector3(fTree->Earm_BBGEM_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Earm_BBGEM_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Earm_BBGEM_hit_vz->at(i)*1.0e3);// in mm
       
@@ -437,18 +444,15 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       // only store signal, primary MC tracks
       if(fSource==0 && n_gen==0 && fTree->Earm_BBGEM_Track_ntracks>0  && fTree->Earm_BBGEM_Track_MID->at(0)==0){
 
-	TVector3 trackOrigin;
-	trackOrigin = TVector3(fTree->Earm_BBGEM_Track_X->at(0)*1.0e3, // in mm
+	TVector3 trackOrigin = TVector3(fTree->Earm_BBGEM_Track_X->at(0)*1.0e3, // in mm
 			       fTree->Earm_BBGEM_Track_Y->at(0)*1.0e3, // in mm
 			       0);
-	pz = fTree->Earm_BBGEM_Track_P->at(0) / sqrt(1 + pow(fTree->Earm_BBGEM_Track_Xp->at(0),2) + pow(fTree->Earm_BBGEM_Track_Yp->at(0),2));
-	Mom = TVector3(pz * fTree->Earm_BBGEM_Track_Xp->at(0),
+	double pz = fTree->Earm_BBGEM_Track_P->at(0) / sqrt(1 + pow(fTree->Earm_BBGEM_Track_Xp->at(0),2) + pow(fTree->Earm_BBGEM_Track_Yp->at(0),2));
+	TVector3 Mom = TVector3(pz * fTree->Earm_BBGEM_Track_Xp->at(0),
 		       pz * fTree->Earm_BBGEM_Track_Yp->at(0),
 		       pz);
-	TVector3 trackVertex;
-	TVector3 trackVertexMom;
-	trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
-	trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
+	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
 
 
 	gen_data_temp[0] = fTree->Earm_BBGEM_Track_TID->at(0);
@@ -530,7 +534,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
       
       // calculate reconstructed energy: 5x5 blocks around the max.
-      for(int l = 0; l<bbps_edep.size(); l++){
+      for(size_t l = 0; l<bbps_edep.size(); l++){
 	if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
 	  E_rec+= bbps_edep[l];
 	  //X_rec+= bbps_edep[l]*(-1)*bbps_ycell[l];
@@ -538,7 +542,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
       
       // calculate reconstructed energy: 5x5 blocks around the max.
-      for(int l = 0; l<bbsh_edep.size(); l++){
+      for(size_t l = 0; l<bbsh_edep.size(); l++){
 	if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
 	   fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
 	  E_rec+= bbsh_edep[l];
@@ -587,40 +591,43 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     break;
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
-      det_id = 2;
-      
-      pid = fTree->Harm_SBSGEM_hit_pid->at(i);
-      trid = fTree->Harm_SBSGEM_hit_trid->at(i);
-      type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_SBSGEM_hit_plane->at(i)-1;
-      edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
-      tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
-      tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
+      int det_id = 2;
+
+      int pid = fTree->Harm_SBSGEM_hit_pid->at(i);
+      int trid = fTree->Harm_SBSGEM_hit_trid->at(i);
+      int type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int plane = fTree->Harm_SBSGEM_hit_plane->at(i)-1;
+      int edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
+      int tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
+      int tmax = fTree->Harm_SBSGEM_hit_tmax->at(i);
+      //FIXME: note how 'sector' is set here and 'module' isn't, but then 'module'
+      // is used in the Get... calls right below, holding the value left over from
+      // a different case
       sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_SBSGEM_hit_tx->at(i));
-      
+
       trid_hits.push_back(trid);
 
-      pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
+      double pz = sqrt( pow(fTree->Harm_SBSGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_SBSGEM_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_SBSGEM_hit_typ->at(i), 2) + 1.0) );
       
-      Mom = TVector3(fTree->Harm_SBSGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
+      TVector3 Mom = TVector3(fTree->Harm_SBSGEM_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Harm_SBSGEM_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3((fTree->Harm_SBSGEM_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_in = TVector3((fTree->Harm_SBSGEM_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Harm_SBSGEM_hit_yin->at(i)*1.0e3, // in mm
 		      (fTree->Harm_SBSGEM_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, module))*1.0e3);// in mm
       
-      X_out = TVector3((fTree->Harm_SBSGEM_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_out = TVector3((fTree->Harm_SBSGEM_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		       fTree->Harm_SBSGEM_hit_yout->at(i)*1.0e3, // in mm
 		       (fTree->Harm_SBSGEM_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
 			fManager->GetD0(plane, module))*1.0e3);// in mm
 
       // we use X_in and X_out to extrapolate X_RO; 
       // not very clean, but since we don't use it in the digitization at all, it does not really matter...
-      X_RO = TVector3(X_in.X()+(fTree->Harm_SBSGEM_hit_xout->at(i)-fTree->Harm_SBSGEM_hit_xin->at(i))*9.185/3.0 ,
+      TVector3 X_RO = TVector3(X_in.X()+(fTree->Harm_SBSGEM_hit_xout->at(i)-fTree->Harm_SBSGEM_hit_xin->at(i))*9.185/3.0 ,
 		      // in mm
 		      X_in.Y()+(fTree->Harm_SBSGEM_hit_yout->at(i)-fTree->Harm_SBSGEM_hit_yin->at(i))*9.185/3.0 ,
 		      // in mm
@@ -658,7 +665,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.X());
+	double temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
@@ -671,7 +678,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.Y());
+	double temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
@@ -680,7 +687,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	X_RO.SetY(X_out.Y());
       }
       
-      Vtx = TVector3(fTree->Harm_SBSGEM_hit_vx->at(i)*1.0e3, // in mm
+      TVector3 Vtx = TVector3(fTree->Harm_SBSGEM_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_SBSGEM_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_SBSGEM_hit_vz->at(i)*1.0e3);// in mm
 
@@ -789,39 +796,40 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   case(3)://FT
     //Loop on the Forward Tracker detector hits:
     for(int i = 0; i<fTree->Harm_FT_hit_nhits; i++){
-      det_id = 3;
-      pid = fTree->Harm_FT_hit_pid->at(i);
-      trid = fTree->Harm_FT_hit_trid->at(i);
-      type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_FT_hit_plane->at(i)-1;
-      edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
-      tmin = fTree->Harm_FT_hit_tmin->at(i);
-      tmax = fTree->Harm_FT_hit_tmax->at(i);
+      int det_id = 3;
+      int pid = fTree->Harm_FT_hit_pid->at(i);
+      int trid = fTree->Harm_FT_hit_trid->at(i);
+      int type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int plane = fTree->Harm_FT_hit_plane->at(i)-1;
+      double edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
+      double tmin = fTree->Harm_FT_hit_tmin->at(i);
+      double tmax = fTree->Harm_FT_hit_tmax->at(i);
       
       sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
+
       trid_hits.push_back(trid);
 
-      pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
+      double pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FT_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FT_hit_typ->at(i), 2) + 1.0) );
       
-      Mom = TVector3(fTree->Harm_FT_hit_txp->at(i)*pz*1.0e3, // in MeV
+      TVector3 Mom = TVector3(fTree->Harm_FT_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Harm_FT_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3((fTree->Harm_FT_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_in = TVector3((fTree->Harm_FT_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Harm_FT_hit_yin->at(i)*1.0e3, // in mm
 		      (fTree->Harm_FT_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, module))*1.0e3);// in mm
       
-      X_out = TVector3((fTree->Harm_FT_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_out = TVector3((fTree->Harm_FT_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		       fTree->Harm_FT_hit_yout->at(i)*1.0e3, // in mm
 		       (fTree->Harm_FT_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
 			fManager->GetD0(plane, module))*1.0e3);// in mm
 
       // we use X_in and X_out to extrapolate X_RO; 
       // not very clean, but since we don't use it in the digitization at all, it does not really matter...
-      X_RO = TVector3(X_in.X()+(fTree->Harm_FT_hit_xout->at(i)-fTree->Harm_FT_hit_xin->at(i))*9.185/3.0 ,
+      TVector3 X_RO = TVector3(X_in.X()+(fTree->Harm_FT_hit_xout->at(i)-fTree->Harm_FT_hit_xin->at(i))*9.185/3.0 ,
 		      // in mm
 		      X_in.Y()+(fTree->Harm_FT_hit_yout->at(i)-fTree->Harm_FT_hit_yin->at(i))*9.185/3.0 ,
 		      // in mm
@@ -861,7 +869,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.X " << X_out.X() << " outside FT plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.X());
+	double temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
@@ -874,7 +882,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << i 
 	       << ": X_out.Y " << X_out.Y() << " outside FT plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.Y());
+	double temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
@@ -883,7 +891,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	X_RO.SetY(X_out.Y());
       }
       
-      Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
+      TVector3 Vtx = TVector3(fTree->Harm_FT_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FT_hit_vz->at(i)*1.0e3);// in mm
 
@@ -1033,15 +1041,15 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
-      det_id = 4;
-      
-      pid = fTree->Harm_FPP1_hit_pid->at(i);
-      trid = fTree->Harm_FPP1_hit_trid->at(i);
-      type = fTree->Harm_FPP1_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fTree->Harm_FPP1_hit_plane->at(i)-1;
-      edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
-      tmin = fTree->Harm_FPP1_hit_tmin->at(i);
-      tmax = fTree->Harm_FPP1_hit_tmax->at(i);
+      int det_id = 4;
+
+      int pid = fTree->Harm_FPP1_hit_pid->at(i);
+      int trid = fTree->Harm_FPP1_hit_trid->at(i);
+      int type = fTree->Harm_FPP1_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int plane = fTree->Harm_FPP1_hit_plane->at(i)-1;
+      double edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
+      double tmin = fTree->Harm_FPP1_hit_tmin->at(i);
+      double tmax = fTree->Harm_FPP1_hit_tmax->at(i);
       
       if(d_flag>1)cout << plane << " " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
       
@@ -1051,27 +1059,27 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       trid_hits.push_back(trid);
       
-      pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
+      double pz = sqrt( pow(fTree->Harm_FPP1_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP1_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FPP1_hit_typ->at(i), 2) + 1.0) );
       
-      Mom = TVector3(fTree->Harm_FPP1_hit_txp->at(i)*pz*1.0e3, // in MeV
+      TVector3 Mom = TVector3(fTree->Harm_FPP1_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Harm_FPP1_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Harm_FPP1_hit_yin->at(i)*1.0e3, // in mm
 		      (fTree->Harm_FPP1_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, module))*1.0e3);// in mm
       
-      X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		       fTree->Harm_FPP1_hit_yout->at(i)*1.0e3, // in mm
 		       (fTree->Harm_FPP1_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
 			fManager->GetD0(plane, module))*1.0e3);// in mm
 
       // we use X_in and X_out to extrapolate X_RO; 
       // not very clean, but since we don't use it in the digitization at all, it does not really matter...
-      X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
+      TVector3 X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
 		      // in mm
 		      X_in.Y()+(fTree->Harm_FPP1_hit_yout->at(i)-fTree->Harm_FPP1_hit_yin->at(i))*9.185/3.0 ,
 		      // in mm
@@ -1112,7 +1120,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	       << ": X_out.X " << X_out.X() << " outside FPP1 plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.X());
+	double temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout << "; set at limit: " << X_out.X() << " mm " << endl;
@@ -1125,7 +1133,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	       << ": X_out.Y " << X_out.Y() << " outside FPP1 plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.Y());
+	double temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
@@ -1134,7 +1142,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	X_RO.SetY(X_out.Y());
       }
       
-      Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
+      TVector3 Vtx = TVector3(fTree->Harm_FPP1_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP1_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP1_hit_vz->at(i)*1.0e3);// in mm
       
@@ -1259,40 +1267,40 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     // where Forward Tracker data are unfolded.
     if(d_flag>0)cout << "read FPP2" << endl;
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
-      det_id = 4;
-      
-      pid = fTree->Harm_FPP2_hit_pid->at(i);
-      trid = fTree->Harm_FPP2_hit_trid->at(i);
-      type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      plane = fManager->GetNChamber()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
-      edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
-      tmin = fTree->Harm_FPP2_hit_tmin->at(i);
-      tmax = fTree->Harm_FPP2_hit_tmax->at(i);
+      int det_id = 4;
+
+      int pid = fTree->Harm_FPP2_hit_pid->at(i);
+      int trid = fTree->Harm_FPP2_hit_trid->at(i);
+      int type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int plane = fManager->GetNChamber()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
+      double edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
+      double tmin = fTree->Harm_FPP2_hit_tmin->at(i);
+      double tmax = fTree->Harm_FPP2_hit_tmax->at(i);
       sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
-      
+
       trid_hits.push_back(trid);
 
-      pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
+      double pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FPP2_hit_typ->at(i), 2) + 1.0) );
       
-      Mom = TVector3(fTree->Harm_FPP2_hit_txp->at(i)*pz*1.0e3, // in MeV
+      TVector3 Mom = TVector3(fTree->Harm_FPP2_hit_txp->at(i)*pz*1.0e3, // in MeV
 		     fTree->Harm_FPP2_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		      fTree->Harm_FPP1_hit_yin->at(i)*1.0e3, // in mm
 		      (fTree->Harm_FPP1_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, module))*1.0e3);// in mm
       
-      X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+      TVector3 X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
 		       fTree->Harm_FPP1_hit_yout->at(i)*1.0e3, // in mm
 		       (fTree->Harm_FPP1_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
 			fManager->GetD0(plane, module))*1.0e3);// in mm
 
       // we use X_in and X_out to extrapolate X_RO; 
       // not very clean, but since we don't use it in the digitization at all, it does not really matter...
-      X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
+      TVector3 X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
 		      // in mm
 		      X_in.Y()+(fTree->Harm_FPP1_hit_yout->at(i)-fTree->Harm_FPP1_hit_yin->at(i))*9.185/3.0 ,
 		      // in mm
@@ -1332,7 +1340,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	       << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	       << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.X());
+	double temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
@@ -1346,7 +1354,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	       << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
 	       << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane << " sector " << sector;
 	} //D_FLAG
-	temp = fabs(X_out.Y());
+	double temp = fabs(X_out.Y());
 	X_out[1]*=fManager->GetDY(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
 	  cout  << "; set at limit: " << X_out.Y() << " mm " << endl;
@@ -1354,8 +1362,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
-      
-      Vtx = TVector3(fTree->Harm_FPP2_hit_vx->at(i)*1.0e3, // in mm
+
+      TVector3 Vtx = TVector3(fTree->Harm_FPP2_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP2_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP2_hit_vz->at(i)*1.0e3);// in mm
 

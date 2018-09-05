@@ -261,7 +261,7 @@ void StripToROCD( Int_t s_plane, Int_t s_module, Int_t s_proj,
 		 Int_t& crate, Int_t& slot, Int_t& chan )
 {
   div_t d = div( s_chan, fManager->GetChanPerSlot() );
-  Int_t module = d.quot;
+  //  Int_t module = d.quot;
   chan = d.rem;
   //total slot id
   Int_t ix = s_proj + 2*( s_module + fManager->GetNModule(s_plane-1)*s_plane );
@@ -304,7 +304,7 @@ std::vector<std::vector<Double_t>> TSBSSimDecoder::GetAllMCHits() const
   std::vector<Double_t> vtemp = {0,0,0,0,0,0};//v[0]--posx, v[1]--posy, v[2]--charge, v[3]--planeID v[4]--moduleID v[5]time_zero
   assert( buffer );       // Must still have the event buffer
   const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
-  for(int i=0;i<simEvent->fGEMClust.size();i++){
+  for(size_t i=0;i<simEvent->fGEMClust.size();i++){
     const TSBSSimEvent::GEMCluster& clust = simEvent->fGEMClust[i];
     if(clust.fSource!=0){continue;}
     vtemp[0] = clust.fMCpos.X();
@@ -324,7 +324,7 @@ std::vector<std::vector<Double_t>> TSBSSimDecoder::GetAllMCHits() const
 TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
 {
   // Get MC truth info for the given hardware channel
-  const char* const here = "TSBSSimDecoder::GetSBSMCHitInfo";
+//  const char* const here = "TSBSSimDecoder::GetSBSMCHitInfo";
 
   Int_t istrip = StripFromROC( crate, slot, chan );
   assert( istrip >= 0 );  // else logic error in caller or bad fStripMap
