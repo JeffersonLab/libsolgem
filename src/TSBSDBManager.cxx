@@ -5,6 +5,7 @@
 #include "TMath.h"
 #include "TVector2.h"
 #include "TRandom3.h"
+#include "TSystem.h"
 
 TSBSDBManager * TSBSDBManager::fManager = NULL;
 
@@ -16,6 +17,47 @@ TSBSDBManager::TSBSDBManager()
 TSBSDBManager::~TSBSDBManager()
 {
 }
+
+//______________________________________________________________
+static bool OpenInput( const string& filename, ifstream& ifs )
+{
+  // Open input stream 'ifs' for file 'filename'.
+  // Look first in current directory, then in $DB_DIR, then in
+  // $LIBSBSGEM/db
+
+  ifs.close();
+
+  struct FileLoc {
+    FileLoc() : env(0) {}
+    const char* env;
+    string subdir;
+  };
+  const int N = 3;
+  FileLoc fileloc[N];
+  fileloc[0].env = "";
+  fileloc[1].env = gSystem->Getenv("DB_DIR");
+  fileloc[2].env = gSystem->Getenv("LIBSBSGEM");
+  fileloc[2].subdir = "db";
+
+  for( int i=0; i<N; i++ ) {
+    FileLoc& f = fileloc[i];
+    if( !f.env )
+      continue;
+    string path(f.env);
+    if( !path.empty() )
+      path += "/";
+    if( !f.subdir.empty() )
+      path += f.subdir + "/";
+    path += filename;
+
+    ifs.clear();
+    ifs.open(path.c_str());
+    if( ifs.good() )
+      return true;
+  }
+  return false;
+}
+
 //______________________________________________________________
 void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 {  
@@ -23,16 +65,15 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
   //Instead, "Plane-Module" is introduced. "Plane" means tracking plane and 
   //"Module" means a independent GEM module which is a sub division of the "Plane"
   
-    ifstream input(fileName.c_str());
-    if (!input.is_open()){
+    ifstream input;
+    if ( !OpenInput(fileName,input) ){
         cout<<"cannot find general information file "<<fileName
             <<". Exiting the program"<<endl;
         exit(0);
     }
     const string prefix = "generalinfo.";
 
-    std::vector<Int_t>* NModule = 0;
-    NModule = new vector<Int_t>;
+    std::vector<Int_t>* NModule = new vector<Int_t>;
     DBRequest request[] = {
         {"do_map_sector",       &fDoMapSector         , kInt,    0, 1},
         {"self_define_sector",  &fDoSelfDefinedSector , kInt,    0, 1},
@@ -69,7 +110,6 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 
     int err = LoadDB( input, request,  prefix);
     if( err ) {cout<<"Load DB error"<<endl;exit(2);} 
-
     
     if(fNGEMPlane!=(int)NModule->size()) {
       cout<<"Check consistency of number of GEM Planes"<<endl;
@@ -114,14 +154,15 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
     
     // fChambersPerCrate = 
     // (TSBSSimDecoder::GetMAXSLOT()/fModulesPerChamber/fNChamber) * fNChamber;
+    input.close();
 }
 
 void TSBSDBManager::LoadGeoInfo(const string& prefix)
 {
   const string& fileName = "db_"+prefix+".dat";
     
-  ifstream input(fileName.c_str());
-  if (!input.is_open()){
+  ifstream input;
+  if( !OpenInput(fileName,input) ) {
     cout<<"cannot find geometry file "<<fileName
 	<<". Exiting the program"<<endl;
     exit(0);
@@ -166,6 +207,7 @@ void TSBSDBManager::LoadGeoInfo(const string& prefix)
       fPMGeoInfo[i].push_back(thisGeo);
     }
   }
+  input.close();
 }
 
 
