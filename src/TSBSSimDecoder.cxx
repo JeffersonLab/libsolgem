@@ -43,6 +43,11 @@ enum EProjType { kUPlane = 0, kVPlane =1, kXPlane = 2, kYPlane = 3};
 
 typedef vector<int>::size_type vsiz_t;
 
+// TODO: Have dbconvert write out MAXSLOT (and possibly other parameters)
+//  to the database to allow client to understand the generated detector maps.
+// FIXME: The number 30 is hardcoded in dbconvert
+static const Int_t SIM_MAXSLOT = TMath::Min(Decoder::MAXSLOT,30);
+
 //-----------------------------------------------------------------------------
 TSBSSimDecoder::TSBSSimDecoder()
 {
@@ -268,7 +273,7 @@ void StripToROCD( Int_t s_plane, Int_t s_module, Int_t s_proj,
   
   //  cout << "StripToROC: module " << module << ", ix " << ix << Decoder::MAXSLOT<<endl;
   
-  d = div( ix, Decoder::MAXSLOT);//fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
+  d = div( ix, SIM_MAXSLOT);//fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
   crate = d.quot;
   slot  = d.rem;
 }
@@ -278,7 +283,7 @@ static inline
 Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan )
 {
   return chan +
-    fManager->GetChanPerSlot()*( slot + Decoder::MAXSLOT*crate );
+    fManager->GetChanPerSlot()*( slot + SIM_MAXSLOT*crate );
 }
 
 //-----------------------------------------------------------------------------
