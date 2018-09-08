@@ -2,9 +2,9 @@
 #define __TSBSGEANT4FILE_H
 
 // Put prototypes here first so that it doens't freak out
-#ifndef __CINT__
-#include "evioUtil.hxx"
-#endif//__CINT__
+//#ifndef __CINT__
+//#include "evioUtil.hxx"
+//#endif//__CINT__
 
 #include "TROOT.h"
 #include "TFile.h"

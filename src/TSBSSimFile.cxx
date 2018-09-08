@@ -14,7 +14,6 @@
 
 #include "TSBSSimFile.h"
 #include "TSBSSimEvent.h"
-#include "evio.h"     // for S_SUCCESS
 
 #include "TFile.h"
 #include "TTree.h"
@@ -114,7 +113,7 @@ Int_t TSBSSimFile::Open()
   if( !fROOTFile || fROOTFile->IsZombie() ) {
     Error( __FUNCTION__, "Cannot open input file %s", fROOTFileName.Data() );
     Close();
-    return -1;
+    return READ_FATAL;
   }
 
   fTree = static_cast<TTree*>( fROOTFile->Get(treeName) );
@@ -122,7 +121,7 @@ Int_t TSBSSimFile::Open()
     Error( __FUNCTION__, "Tree %s does not exist in the input file.",
 	   treeName );
     Close();
-    return -2;
+    return READ_FATAL;
   }
 
   //  fTree->SetBranchStatus("*", kFALSE);
@@ -143,14 +142,14 @@ Int_t TSBSSimFile::Open()
     Error( __FUNCTION__, "No event branch \"%s\" in the input tree.",
 	   eventBranchName );
     Close();
-    return -3;
+    return READ_FATAL;
   }
 
   fNEntries = fTree->GetEntries();
   fEntry = 0;
 
   fOpened = kTRUE;
-  return 0;
+  return READ_OK;
 }
 
 //-----------------------------------------------------------------------------
@@ -163,7 +162,7 @@ Int_t TSBSSimFile::Close()
   }
   delete fEvent; fEvent = 0;
   fOpened = kFALSE;
-  return 0;
+  return READ_OK;
 }
 
 //-----------------------------------------------------------------------------
@@ -172,7 +171,7 @@ Int_t TSBSSimFile::ReadEvent()
   // Read next event from ROOT file
 
   if( fEntry >= fNEntries )
-    return EOF;
+    return READ_EOF;
 
   Int_t ret;
   if( !IsOpen() ) {
@@ -186,11 +185,11 @@ Int_t TSBSSimFile::ReadEvent()
   // Read input file
   ret = fTree->GetEntry(fEntry++);
   if( ret == 0 )
-    return EOF;
+    return READ_EOF;
   if( ret < 0 )
-    return -128;  // CODA_ERR
+    return READ_ERROR;  // CODA_ERR
 
-  return S_SUCCESS;
+  return READ_OK;
 }
 
 //-----------------------------------------------------------------------------
