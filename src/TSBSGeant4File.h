@@ -11,8 +11,9 @@
 #include "TChain.h"
 #include "g4sbs_tree.h"
 #include "TSBSGEMSimHitData.h"
-#include "TSBSDBManager.h"
-#include <TSBSSimEvent.h>
+#include "TSBSSimEvent.h"
+
+class TSBSDBManager;
 
 #define __DEFAULT_DATA_SIZE 32
 

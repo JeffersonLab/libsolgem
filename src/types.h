@@ -18,9 +18,14 @@ struct SignalInfo{
     Double_t ECEDep;
     Double_t momentum;
     Double_t R;
-    SignalInfo() {}
-    SignalInfo(Int_t apid, Int_t atid):pid(apid), tid(atid),
-    fillBitsGEM(0), fillBitsEC(0), signalSector(-1), ECEDep(0.) {}
+    SignalInfo()
+      : pid(0), tid(0), fillBitsGEM(0), fillBitsEC(0), signalSector(-1),
+        ECEDep(0), momentum(0), R(0)
+      {}
+    SignalInfo(Int_t apid, Int_t atid)
+      : pid(apid), tid(atid), fillBitsGEM(0), fillBitsEC(0), signalSector(-1),
+        ECEDep(0.), momentum(0), R(0)
+      {}
     ~SignalInfo() {}
 };
 

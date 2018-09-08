@@ -7,7 +7,7 @@
 #include <TRandom.h>
 #include <TVector3.h>
 #include <vector>
-#include <TSBSSimEvent.h>
+#include "TSBSSimEvent.h"
 
 class TSBSGEMSimHitData 
 {

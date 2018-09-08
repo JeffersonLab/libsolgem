@@ -9,8 +9,15 @@
 
 TSBSDBManager * TSBSDBManager::fManager = NULL;
 
-TSBSDBManager::TSBSDBManager() 
-: fErrID(-999), fErrVal(-999.)
+TSBSDBManager::TSBSDBManager()
+  : fDoMapSector(0), fMappedSector(0), fDoSelfDefinedSector(0),
+    fNChamber(0), fNSector(0), fNGEMPlane(0), fNReadOut(0), fNSigParticle(0),
+    fGEMDriftID(0), fGEMCopperFrontID(0), fGEMCopperBackID(0), fGEMStripID(0),
+    fFAECID(0), fLAECID(0),
+    fChanPerSlot(2048), fModulesPerReadOut(1), fModulesPerChamber(1), fChambersPerCrate(1),
+    fg4sbsDetectorType(0), fg4sbsZSpecOffset(0),
+    fCaloThr(0), fgCaloZ(0), fgCaloRes(0), fgDoCalo(0), fgZ0(0),
+    fErrID(-999), fErrVal(-999.)
 {
 }
 //______________________________________________________________

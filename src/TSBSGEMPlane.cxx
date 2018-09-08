@@ -14,7 +14,7 @@
 using namespace std;
 
 TSBSGEMPlane::TSBSGEMPlane()
-  : THaSubDetector()
+  : fClusters(0), fSAngle(0), fNStrips(0), fSPitch(0), fSBeg(0), fCBS(0), fSBS(0)
 {
   fBox = new TSBSBox;
   return;
@@ -22,7 +22,8 @@ TSBSGEMPlane::TSBSGEMPlane()
 
 TSBSGEMPlane::TSBSGEMPlane( const char *name, const char *desc,
 			    THaDetectorBase* parent )
-  : THaSubDetector (name, desc, parent)
+  : THaSubDetector(name, desc, parent),
+    fClusters(0), fSAngle(0), fNStrips(0), fSPitch(0), fSBeg(0), fCBS(0), fSBS(0)
 {
   fBox = new TSBSBox;
   return;

@@ -14,6 +14,7 @@
 #include "TSBSGEMPlane.h"
 #include "TSBSSimAuxi.h"
 #include "TSBSSimEvent.h"
+#include "TSBSDBManager.h"
 
 #include <cmath>
 #include <iomanip>
@@ -605,6 +606,7 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
 
 //-------------------------------------------------------
 // Helper functions for integration in AvaModel
+#if 0
 inline static
 Double_t IntegralY( Double_t* a, Int_t ix, Int_t nx, Int_t ny )
 {
@@ -623,6 +625,7 @@ Bool_t IsInActiveArea( const TSBSGEMPlane& pl, Double_t xc, Double_t yc )
   pl.StripToSpec(xc,yc);
   return pl.GetBox().Contains(xc,yc);
 }
+#endif
 
 //.......................................................
 // avalanche model

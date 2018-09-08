@@ -1,4 +1,5 @@
 #include "TSBSGeant4File.h"
+#include "TSBSDBManager.h"
 //#include "g4sbs_types.h"
 #include "gemc_types.h"
 #include "TRandom3.h"
@@ -11,7 +12,7 @@
 #define D_FLAG 0 //0: nothing; 1: warning; 2: debug;
 #endif
 
-TSBSGeant4File::TSBSGeant4File() : fFile(0), fSource(0) {
+TSBSGeant4File::TSBSGeant4File() : fFile(0), fTree(0), fSource(0), fEvNum(0), fManager(0) {
   fFilename[0] = '\0';
 }
 
