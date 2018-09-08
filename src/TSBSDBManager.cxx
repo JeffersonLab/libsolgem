@@ -7,6 +7,8 @@
 #include "TRandom3.h"
 #include "TSystem.h"
 
+using namespace std;
+
 TSBSDBManager * TSBSDBManager::fManager = NULL;
 
 TSBSDBManager::TSBSDBManager()

@@ -12,8 +12,6 @@
 #include "TMath.h"
 #include "types.h"
 
-using namespace std;
-
 class TSBSDBManager {
 public:
     ~TSBSDBManager();
@@ -22,8 +20,8 @@ public:
         return fManager;
     }
     
-    void LoadGeneralInfo(const string& fileName);
-    void LoadGeoInfo(const string& prefix);
+    void LoadGeneralInfo(const std::string& fileName);
+    void LoadGeoInfo(const std::string& prefix);
    
     int       DoMapSector() const          { return fDoMapSector;         }
     int       DoSelfDefineSector() const   { return fDoSelfDefinedSector; }
@@ -84,8 +82,8 @@ public:
 
 protected:
     TSBSDBManager();
-    int    LoadDB(ifstream& inp, DBRequest* request, const string& prefix);
-    string FindKey( ifstream& inp, const string& key ) const;
+    int    LoadDB(std::ifstream& inp, DBRequest* request, const std::string& prefix);
+    std::string FindKey( std::ifstream& inp, const std::string& key ) const;
     bool   CheckIndex(int i, int j=0, int k=0) const;
     
     static TSBSDBManager* fManager;
@@ -140,12 +138,12 @@ protected:
     int    fErrID;
     double fErrVal;
     
-    vector<int>    fSigPID;
-    vector<int>    fSigTID;
+    std::vector<int>    fSigPID;
+    std::vector<int>    fSigTID;
     
     /* vector<double> fChamberZ; */
-    map< int, vector<GeoInfo> > fGeoInfo;
-    map< int, vector<GeoInfo> > fPMGeoInfo; //plane module format geo info
+    std::map< int, std::vector<GeoInfo> > fGeoInfo;
+    std::map< int, std::vector<GeoInfo> > fPMGeoInfo; //plane module format geo info
     
 };
 

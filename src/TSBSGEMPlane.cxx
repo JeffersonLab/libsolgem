@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <cstring>
 
 using namespace std;
 
@@ -319,12 +320,12 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
 }
 
 void 
-TSBSGEMPlane::Print(bool printcham) const
+TSBSGEMPlane::Print( Option_t* opt ) const
 {
   //Print GEM plane info
   cout << "I'm a GEM plane named " << GetName() << endl;
 
-  if(printcham){
+  if( opt && *opt && strchr(opt,'P') != 0 ){
     TVector3 o (GetOrigin());
     cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
 	 << " (rho,theta,phi)=(" << o.Mag() << "," << o.Theta()*TMath::RadToDeg()

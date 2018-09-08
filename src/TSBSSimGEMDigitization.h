@@ -102,7 +102,7 @@ class TSBSSimGEMDigitization: public THaAnalysisObject
   Int_t AdditiveDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect); // add more digitized data, e.g. background
   void NoDigitize (const TSBSGEMSimHitData& gdata, const TSBSSpec& spect); // do not digitize event, just fill tree
   const TSBSDigitizedPlane& GetDigitizedPlane (UInt_t ich, UInt_t ip) const {return *(fDP[ich][ip]);}; 
-  void Print() const;// print info
+  void Print( Option_t* opt="" ) const;// print info
   void PrintCharges() const;
   void PrintSamples() const;
   

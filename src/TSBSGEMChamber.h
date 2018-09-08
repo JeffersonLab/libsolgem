@@ -101,7 +101,7 @@ class TSBSGEMChamber : public THaDetector {
     
   TSBSGEMPlane& GetPlane (UInt_t i) const {return *(fPlanes[i]);};
   Int_t InitPlane (const UInt_t i, const char* name, const char* desc);
-  void Print (const Bool_t printplanes = kTRUE);
+  virtual void Print ( Option_t* opt="P" ) const;
 
  private:
   TSBSGEMPlane** fPlanes; // List of planes

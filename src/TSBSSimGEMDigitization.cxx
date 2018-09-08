@@ -990,7 +990,7 @@ inline Double_t TSBSSimGEMDigitization::GetPedNoise(Double_t &phase, Double_t& a
 }
 //___________________________________________________________________________________
 void
-TSBSSimGEMDigitization::Print() const
+TSBSSimGEMDigitization::Print(Option_t*) const
 {
   cout << "GEM digitization:" << endl;
   cout << "  Gas parameters:" << endl;

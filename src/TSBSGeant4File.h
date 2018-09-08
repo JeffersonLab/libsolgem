@@ -101,7 +101,7 @@ class TSBSGeant4File {
   Int_t Open();
   Int_t Close();
   
-  const Long64_t GetEntries(){
+  Long64_t GetEntries(){
     return fTree->GetEntries();
   };
   
@@ -152,10 +152,10 @@ class TSBSGeant4File {
   /* vector<double> fgasErange; */
   
   //hit data arrays
-  vector<g4sbshitdata *> fg4sbsHitData;
-  vector<g4sbsgendata *> fg4sbsGenData;
+  std::vector<g4sbshitdata *> fg4sbsHitData;
+  std::vector<g4sbsgendata *> fg4sbsGenData;
   
-  vector<TSBSECalCluster *> fECalClusters; // ECal clusters
+  std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
   
   unsigned int fEvNum;// global event incrementer
 

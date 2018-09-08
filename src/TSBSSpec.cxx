@@ -55,7 +55,7 @@ Int_t TSBSSpec::FindVertices(TClonesArray &a){
 }
 
 void
-TSBSSpec::Print() const
+TSBSSpec::Print(Option_t*) const
 {
   cout << "Hello, I'm a spectrometer named " << GetName() << endl;
 	

@@ -5,6 +5,8 @@
 #include "TRandom3.h"
 #include "fstream"
 
+using namespace std;
+
 #ifndef __CINT__
 
 // Set following variables to 1 (and recompile) t get some useful printouts
