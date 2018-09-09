@@ -50,7 +50,7 @@ Int_t TSBSSpec::Reconstruct(){
     return 0;
 }
 
-Int_t TSBSSpec::FindVertices(TClonesArray &a){
+Int_t TSBSSpec::FindVertices(TClonesArray &){
     return 0;
 }
 

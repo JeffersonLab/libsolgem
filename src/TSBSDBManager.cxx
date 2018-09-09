@@ -379,7 +379,7 @@ double TSBSDBManager::GetStripAngle(int i, int j, int k)
 
 
 
-int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double y)
+int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double /*y*/)
 {
   if (!CheckIndex(iplane)) return fErrVal;
   

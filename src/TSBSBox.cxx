@@ -105,7 +105,7 @@ TSBSBox::LabToBox (Double_t& x, Double_t& y, Double_t& z) const  // input and ou
 }
 
 void
-TSBSBox::HallCenterToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
+TSBSBox::HallCenterToLab (Double_t& /*x*/, Double_t& /*y*/, Double_t& /*z*/) const  // input and output in mm!!!
 {
   //TODO ? if possible: reprogram this, but using the spectrometer angle
   //x = x + fDMag*sin(fThetaH)*1.0e3;
@@ -134,7 +134,7 @@ TSBSBox::LabToSpec (Double_t& x, Double_t& y, Double_t& z) const  // input and o
 }
 
 void
-TSBSBox::SpecToBox (Double_t& x, Double_t& y) const  // input and output in mm!!!
+TSBSBox::SpecToBox (Double_t& x, Double_t& /*y*/) const  // input and output in mm!!!
 {
   x = x-fXOffset*1.0e3;
   //neutral for y
@@ -143,7 +143,7 @@ TSBSBox::SpecToBox (Double_t& x, Double_t& y) const  // input and output in mm!!
 }
 
 void
-TSBSBox::BoxToSpec (Double_t& x, Double_t& y) const  // input and output in mm!!!
+TSBSBox::BoxToSpec (Double_t& x, Double_t& /*y*/) const  // input and output in mm!!!
 {
   x = x+fXOffset*1.0e3;
   //neutral for y
@@ -169,7 +169,7 @@ TSBSBox::SpecToLab (Double_t& x, Double_t& y, Double_t& z) const  // input and o
 }
 
 void
-TSBSBox::LabToHallCenter (Double_t& x, Double_t& y, Double_t& z) const  // input and output in mm!!!
+TSBSBox::LabToHallCenter (Double_t& /*x*/, Double_t& /*y*/, Double_t& /*z*/) const  // input and output in mm!!!
 {
   //TODO ? if possible: reprogram this, but using the spectrometer angle
   //x = x - fDMag*sin(fThetaH)*1.0e3;
