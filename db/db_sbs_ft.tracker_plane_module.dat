@@ -1,0 +1,333 @@
+# -*- mode: Text -*-
+#
+# Database for TreeSearch-SoLID
+#
+# Converted from db_g4sbs_ft.dat
+
+sbs_ft.tracker.${allsectors}.MCdata = 1
+
+# Plane configuration. One string of the all plane names.
+
+#sbs_ft.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6
+sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y
+
+# Strip angles: angles of the normal to the strips, pointing
+# along the direction of increasing strip number.
+
+sbs_ft.tracker.${allsectors}.x.angle = 0
+sbs_ft.tracker.${allsectors}.y.angle = 90
+
+# "Crate map". Specifies the overall DAQ module configuration.
+# The map can be common to all sectors. It's just a lookup table
+# for (crate,slot) -> (model,nchan)
+#
+# Each row is:     crate slot_lo slot_hi model# nchan
+#
+sbs_ft.tracker.${allsectors}.cratemap = \
+                   0     0       23      6425   2048 \
+                   1     0       23      6425   2048
+
+# GEM detector maps
+# 3 sectors * 6 planes * 2 readout coordinates = 36 detectors
+#
+sbs_ft.tracker.1.1.x.detmap = \
+                0  0  0 1279 0 \
+                0  2  0 1279 1 \
+                0  4  0 1279 2
+sbs_ft.tracker.1.1.y.detmap = \
+                0  1  0 1023 0 \
+                0  3  0 1023 1 \
+                0  5  0 1023 2
+
+sbs_ft.tracker.1.2.x.detmap = \
+                0  6  0 1279 0 \
+                0  8  0 1279 1 \
+                0  10  0 1279 2
+sbs_ft.tracker.1.2.y.detmap = \
+                0  7  0 1023 0 \
+                0  9  0 1023 1 \
+                0  11  0 1023 2
+
+sbs_ft.tracker.1.3.x.detmap = \
+                0  12  0 1279 0 \
+                0  14  0 1279 1 \
+                0  16  0 1279 2
+sbs_ft.tracker.1.3.y.detmap = \
+                0  13  0 1023 0 \
+                0  15  0 1023 1 \
+                0  17  0 1023 2
+
+sbs_ft.tracker.1.4.x.detmap = \
+                0  18  0 1279 0 \
+                0  20  0 1279 1 \
+                0  22  0 1279 2
+sbs_ft.tracker.1.4.y.detmap = \
+                0  19  0 1023 0 \
+                0  21  0 1023 1 \
+                0  23  0 1023 2
+
+sbs_ft.tracker.1.5.x.detmap = \
+                0  24  0 1279 0 \
+                0  26  0 1279 1 \
+                0  28  0 1279 2
+sbs_ft.tracker.1.5.y.detmap = \
+                0  25  0 1023 0 \
+                0  27  0 1023 1 \
+                0  29  0 1023 2
+
+sbs_ft.tracker.1.1.x.detmap = \
+                1  0  0 1279 0 \
+                1  2  0 1279 1 \
+                1  4  0 1279 2
+sbs_ft.tracker.1.1.y.detmap = \
+                1  1  0 1023 0 \
+                1  3  0 1023 1 \
+                1  5  0 1023 2
+
+#-----------------------------------------------------------------
+#  X offset of the sectors (in transport coordinates)
+#  and common position parameters (D_magnet, theta_H, theta_V)
+#-----------------------------------------------------------------
+
+sbs_ft.tracker.1.dmag = 1.6125
+sbs_ft.tracker.1.xoff = -0.5
+sbs_ft.tracker.1.thetaV = 5
+sbs_ft.tracker.2.dmag = 1.6125
+sbs_ft.tracker.2.xoff = 0
+sbs_ft.tracker.2.thetaV = 5
+sbs_ft.tracker.3.dmag = 1.6125
+sbs_ft.tracker.3.xoff = 0.5
+sbs_ft.tracker.3.thetaV = 5
+
+#-----------------------------------------------------------------
+# Tracker feature configuration
+#-----------------------------------------------------------------
+
+sbs_ft.tracker.${allsectors}.search_depth = 10
+sbs_ft.tracker.${allsectors}.maxthreads = 1
+sbs_ft.tracker.${allsectors}.disable_tracking = 0
+sbs_ft.tracker.${allsectors}.disable_finetrack = 1
+sbs_ft.tracker.${allsectors}.3d_disable_chi2 = 0
+
+#-----------------------------------------------------------------
+#  Global reconstruction parameters
+#-----------------------------------------------------------------
+
+sbs_ft.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
+sbs_ft.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
+sbs_ft.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
+sbs_ft.tracker.${allsectors}.3d_maxmiss = 2
+sbs_ft.tracker.${allsectors}.proj_to_z0 = 0
+
+#-----------------------------------------------------------------
+#  Global projection parameters
+#-----------------------------------------------------------------
+
+sbs_ft.tracker.${allsectors}.maxmiss = 2
+sbs_ft.tracker.${allsectors}.maxpat = 100000
+sbs_ft.tracker.${allsectors}.chi2_conflevel = 1e-06
+sbs_ft.tracker.${allsectors}.disable_chi2 = 0
+
+#-----------------------------------------------------------------
+#  Global plane parameters
+#-----------------------------------------------------------------
+
+sbs_ft.tracker.xp.res = 9e-05
+sbs_ft.tracker.maxclustsiz = 4
+sbs_ft.tracker.adc.min = 1500
+sbs_ft.tracker.timecut.cv = 0
+sbs_ft.tracker.timecut.hw = 0
+sbs_ft.tracker.split.frac = 0.1
+sbs_ft.tracker.maxhits = 1000
+sbs_ft.tracker.maxsamp = 3
+sbs_ft.tracker.adc.sigma = 0.2
+sbs_ft.tracker.do_noise = 0
+sbs_ft.tracker.check_pulse_shape = 1
+sbs_ft.tracker.do_histos = 0
+
+#-----------------------------------------------------------------
+#   Plane-specific data
+#   Detector maps are above
+#-----------------------------------------------------------------
+
+#new plane module
+
+sbs_ft.tracker.1.1.x.description = x module 1 in plane 1
+sbs_ft.tracker.1.1.x.nstrips = 3840
+sbs_ft.tracker.1.1.x.partner = 1.y
+sbs_ft.tracker.1.1.x.type = x
+sbs_ft.tracker.1.1.x.strip.pos = -0.768
+sbs_ft.tracker.1.1.x.strip.pitch = 0.0004
+sbs_ft.tracker.1.1.x.d0 = 1.83551
+sbs_ft.tracker.1.1.x.dx = 0.512
+sbs_ft.tracker.1.1.x.dy = 0.4096
+sbs_ft.tracker.1.1.x.dz = 0.015955
+sbs_ft.tracker.1.1.x.nmodule = 3			   
+sbs_ft.tracker.1.1.x.1.offset = 0 
+sbs_ft.tracker.1.1.x.2.offset = 0.512
+sbs_ft.tracker.1.1.x.3.offset = 1.024
+
+sbs_ft.tracker.1.1.y.description = y module 1 in plane 1
+sbs_ft.tracker.1.1.y.nstrips = 3072
+sbs_ft.tracker.1.1.y.partner = 1.x
+sbs_ft.tracker.1.1.y.type = y
+sbs_ft.tracker.1.1.y.strip.pos = -0.2048
+sbs_ft.tracker.1.1.y.strip.pitch = 0.0004
+sbs_ft.tracker.1.1.y.d0 = 1.83551
+sbs_ft.tracker.1.1.y.dx = 0.512
+sbs_ft.tracker.1.1.y.dy = 0.4096
+sbs_ft.tracker.1.1.y.dz = 0.015955
+sbs_ft.tracker.1.1.y.nmodule = 3			   
+sbs_ft.tracker.1.1.y.1.offset = 0. 
+sbs_ft.tracker.1.1.y.2.offset = 0.
+sbs_ft.tracker.1.1.y.3.offset = 0.
+
+sbs_ft.tracker.1.2.x.description = x module 1 in plane 2
+sbs_ft.tracker.1.2.x.nstrips = 3840
+sbs_ft.tracker.1.2.x.partner = 2.y
+sbs_ft.tracker.1.2.x.type = x
+sbs_ft.tracker.1.2.x.strip.pos = -0.768
+sbs_ft.tracker.1.2.x.strip.pitch = 0.0004
+sbs_ft.tracker.1.2.x.d0 = 1.92551
+sbs_ft.tracker.1.2.x.dx = 0.512
+sbs_ft.tracker.1.2.x.dy = 0.4096
+sbs_ft.tracker.1.2.x.dz = 0.015955
+sbs_ft.tracker.1.2.x.nmodule = 3			   
+sbs_ft.tracker.1.2.x.1.offset = 0 
+sbs_ft.tracker.1.2.x.2.offset = 0.512
+sbs_ft.tracker.1.2.x.3.offset = 1.024
+
+sbs_ft.tracker.1.2.y.description = y module 1 in plane 2
+sbs_ft.tracker.1.2.y.nstrips = 3072
+sbs_ft.tracker.1.2.y.partner = 2.x
+sbs_ft.tracker.1.2.y.type = y
+sbs_ft.tracker.1.2.y.strip.pos = -0.2048
+sbs_ft.tracker.1.2.y.strip.pitch = 0.0004
+sbs_ft.tracker.1.2.y.d0 = 1.92551
+sbs_ft.tracker.1.2.y.dx = 0.512
+sbs_ft.tracker.1.2.y.dy = 0.4096
+sbs_ft.tracker.1.2.y.dz = 0.015955
+sbs_ft.tracker.1.2.y.nmodule = 3			   
+sbs_ft.tracker.1.2.y.1.offset = 0. 
+sbs_ft.tracker.1.2.y.2.offset = 0.
+sbs_ft.tracker.1.2.y.3.offset = 0.
+
+sbs_ft.tracker.1.3.x.description = x module 1 in plane 3
+sbs_ft.tracker.1.3.x.nstrips = 3840
+sbs_ft.tracker.1.3.x.partner = 3.y
+sbs_ft.tracker.1.3.x.type = x
+sbs_ft.tracker.1.3.x.strip.pos = -0.768
+sbs_ft.tracker.1.3.x.strip.pitch = 0.0004
+sbs_ft.tracker.1.3.x.d0 = 2.01551
+sbs_ft.tracker.1.3.x.dx = 0.512
+sbs_ft.tracker.1.3.x.dy = 0.4096
+sbs_ft.tracker.1.3.x.dz = 0.015955
+sbs_ft.tracker.1.3.x.nmodule = 3			   
+sbs_ft.tracker.1.3.x.1.offset = 0 
+sbs_ft.tracker.1.3.x.2.offset = 0.512
+sbs_ft.tracker.1.3.x.3.offset = 1.024
+
+sbs_ft.tracker.1.3.y.description = y module 1 in plane 3
+sbs_ft.tracker.1.3.y.nstrips = 3072
+sbs_ft.tracker.1.3.y.partner = 3.x
+sbs_ft.tracker.1.3.y.type = y
+sbs_ft.tracker.1.3.y.strip.pos = -0.2048
+sbs_ft.tracker.1.3.y.strip.pitch = 0.0004
+sbs_ft.tracker.1.3.y.d0 = 2.01551
+sbs_ft.tracker.1.3.y.dx = 0.512
+sbs_ft.tracker.1.3.y.dy = 0.4096
+sbs_ft.tracker.1.3.y.dz = 0.015955
+sbs_ft.tracker.1.3.y.nmodule = 3			   
+sbs_ft.tracker.1.3.y.1.offset = 0. 
+sbs_ft.tracker.1.3.y.2.offset = 0.
+sbs_ft.tracker.1.3.y.3.offset = 0.
+
+sbs_ft.tracker.1.4.x.description = x module 1 in plane 4
+sbs_ft.tracker.1.4.x.nstrips = 3840
+sbs_ft.tracker.1.4.x.partner = 4.y
+sbs_ft.tracker.1.4.x.type = x
+sbs_ft.tracker.1.4.x.strip.pos = -0.768
+sbs_ft.tracker.1.4.x.strip.pitch = 0.0004
+sbs_ft.tracker.1.4.x.d0 = 2.10551
+sbs_ft.tracker.1.4.x.dx = 0.512
+sbs_ft.tracker.1.4.x.dy = 0.4096
+sbs_ft.tracker.1.4.x.dz = 0.015955
+sbs_ft.tracker.1.4.x.nmodule = 3			   
+sbs_ft.tracker.1.4.x.1.offset = 0 
+sbs_ft.tracker.1.4.x.2.offset = 0.512
+sbs_ft.tracker.1.4.x.3.offset = 1.024
+
+sbs_ft.tracker.1.4.y.description = y module 1 in plane 4
+sbs_ft.tracker.1.4.y.nstrips = 3072
+sbs_ft.tracker.1.4.y.partner = 4.x
+sbs_ft.tracker.1.4.y.type = y
+sbs_ft.tracker.1.4.y.strip.pos = -0.2048
+sbs_ft.tracker.1.4.y.strip.pitch = 0.0004
+sbs_ft.tracker.1.4.y.d0 = 2.10551
+sbs_ft.tracker.1.4.y.dx = 0.512
+sbs_ft.tracker.1.4.y.dy = 0.4096
+sbs_ft.tracker.1.4.y.dz = 0.015955
+sbs_ft.tracker.1.4.y.nmodule = 3			   
+sbs_ft.tracker.1.4.y.1.offset = 0. 
+sbs_ft.tracker.1.4.y.2.offset = 0.
+sbs_ft.tracker.1.4.y.3.offset = 0.
+
+sbs_ft.tracker.1.5.x.description = x module 1 in plane 5
+sbs_ft.tracker.1.5.x.nstrips = 3840
+sbs_ft.tracker.1.5.x.partner = 5.y
+sbs_ft.tracker.1.5.x.type = x
+sbs_ft.tracker.1.5.x.strip.pos = -0.768
+sbs_ft.tracker.1.5.x.strip.pitch = 0.0004
+sbs_ft.tracker.1.5.x.d0 = 2.19551
+sbs_ft.tracker.1.5.x.dx = 0.512
+sbs_ft.tracker.1.5.x.dy = 0.4096
+sbs_ft.tracker.1.5.x.dz = 0.015955
+sbs_ft.tracker.1.5.x.nmodule = 3			   
+sbs_ft.tracker.1.5.x.1.offset = 0 
+sbs_ft.tracker.1.5.x.2.offset = 0.512
+sbs_ft.tracker.1.5.x.3.offset = 1.024
+
+sbs_ft.tracker.1.5.y.description = y module 1 in plane 5
+sbs_ft.tracker.1.5.y.nstrips = 3072
+sbs_ft.tracker.1.5.y.partner = 5.x
+sbs_ft.tracker.1.5.y.type = y
+sbs_ft.tracker.1.5.y.strip.pos = -0.2048
+sbs_ft.tracker.1.5.y.strip.pitch = 0.0004
+sbs_ft.tracker.1.5.y.d0 = 2.19551
+sbs_ft.tracker.1.5.y.dx = 0.512
+sbs_ft.tracker.1.5.y.dy = 0.4096
+sbs_ft.tracker.1.5.y.dz = 0.015955
+sbs_ft.tracker.1.5.y.nmodule = 3			   
+sbs_ft.tracker.1.5.y.1.offset = 0. 
+sbs_ft.tracker.1.5.y.2.offset = 0.
+sbs_ft.tracker.1.5.y.3.offset = 0.
+
+sbs_ft.tracker.1.6.x.description = x module 1 in plane 6
+sbs_ft.tracker.1.6.x.nstrips = 3840
+sbs_ft.tracker.1.6.x.partner = 6.y
+sbs_ft.tracker.1.6.x.type = x
+sbs_ft.tracker.1.6.x.strip.pos = -0.768
+sbs_ft.tracker.1.6.x.strip.pitch = 0.0004
+sbs_ft.tracker.1.6.x.d0 = 2.28551
+sbs_ft.tracker.1.6.x.dx = 0.512
+sbs_ft.tracker.1.6.x.dy = 0.4096
+sbs_ft.tracker.1.6.x.dz = 0.015955
+sbs_ft.tracker.1.6.x.nmodule = 3			   
+sbs_ft.tracker.1.6.x.1.offset = 0 
+sbs_ft.tracker.1.6.x.2.offset = 0.512
+sbs_ft.tracker.1.6.x.3.offset = 1.024
+
+sbs_ft.tracker.1.6.y.description = y module 1 in plane 6
+sbs_ft.tracker.1.6.y.nstrips = 3072
+sbs_ft.tracker.1.6.y.partner = 6.x
+sbs_ft.tracker.1.6.y.type = y
+sbs_ft.tracker.1.6.y.strip.pos = -0.2048
+sbs_ft.tracker.1.6.y.strip.pitch = 0.0004
+sbs_ft.tracker.1.6.y.d0 = 2.28551
+sbs_ft.tracker.1.6.y.dx = 0.512
+sbs_ft.tracker.1.6.y.dy = 0.4096
+sbs_ft.tracker.1.6.y.dz = 0.015955
+sbs_ft.tracker.1.6.y.nmodule = 3			   
+sbs_ft.tracker.1.6.y.1.offset = 0. 
+sbs_ft.tracker.1.6.y.2.offset = 0.
+sbs_ft.tracker.1.6.y.3.offset = 0.

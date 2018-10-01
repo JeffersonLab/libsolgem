@@ -1,0 +1,29 @@
+generalinfo.do_map_sector = 0
+generalinfo.self_define_sector = 0
+generalinfo.sector_mapped = 0
+generalinfo.nchamber = 10
+generalinfo.nsector = 1
+generalinfo.nplane = 10
+generalinfo.nmodule = 4 4 4 4 4 4 4 4 4 4
+generalinfo.nreadout = 2
+generalinfo.gem_drift_id = 6
+generalinfo.gem_copper_front_id = 5
+generalinfo.gem_copper_back_id = 7
+generalinfo.gem_strip_id = 19
+generalinfo.faec_id = 3110000
+generalinfo.laec_id = 3210000
+generalinfo.chan_per_slot = 2048
+generalinfo.modules_per_readout = 1
+
+generalinfo.nsignal = 1
+generalinfo.signal1.pid = 2212
+generalinfo.signal1.tid = 1
+
+generalinfo.g4sbs_detectortype = 4
+generalinfo.g4sbs_z_specoffset = 1.7886925
+
+generalinfo.calo_thr = 2.4 # GeV
+generalinfo.calo_z = 6.800000
+generalinfo.calo_res = 0.010000
+generalinfo.docalo = 0
+generalinfo.z0 = 1.835510
