@@ -24,10 +24,9 @@ sbs_fpp.tracker.${allsectors}.y.angle = 90
 # Each row is:     crate slot_lo slot_hi model# nchan
 #
 sbs_fpp.tracker.${allsectors}.cratemap = \
-                   0     0       19      6425   2048 \
-                   1     0       19      6425   2048 \
-                   2     0       19      6425   2048 \
-                   3     0       19      6425   2048
+                   1     6       29      6425   2048 \
+                   2     0       29      6425   2048 \
+                   3     0       25      6425   2048
 
 # GEM detector maps
 # 4 sectors * 10 planes * 2 readout coordinates = 80 detectors
