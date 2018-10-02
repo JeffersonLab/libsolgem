@@ -58,7 +58,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
     do_parts = false;
     nseg = 1;
   }
-  
+ 
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
@@ -146,16 +146,16 @@ void ReplayMCDigitized(const char* filename = "digitized",
       // TSBSSimDecoder::EmulateCalorimeter(false);
     }//end loop on trackers
     /*
-    THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
-    tracker->Print("");
-    if( tracker ) {
+      THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
+      tracker->Print("");
+      if( tracker ) {
       // The SBS trackers' origin really is the origin of the first plane
       Double_t z0 = tracker->GetOrigin().Z();
       cout << "z0 = " << z0 << endl;
       manager->SetZ0(z0);
-    } else {
+      } else {
       cerr << "ERROR: cannot get tracker detector! z0 may be wrong" << endl;
-    }
+      }
     */
     manager->EmulateCalorimeter(false);
     

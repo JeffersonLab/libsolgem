@@ -147,24 +147,28 @@ sbs_fpp.tracker.1.10.y.detmap = \
 #  and common position parameters (D_magnet, theta_H, theta_V)
 #-----------------------------------------------------------------
 
+# Only one sector now.
 sbs_fpp.tracker.1.dmag = 1.6125
-sbs_fpp.tracker.1.xoff = -0.75
+sbs_fpp.tracker.1.xoff = 0
 sbs_fpp.tracker.1.thetaV = 5
-sbs_fpp.tracker.2.dmag = 1.6125
-sbs_fpp.tracker.2.xoff = -0.25
-sbs_fpp.tracker.2.thetaV = 5
-sbs_fpp.tracker.3.dmag = 1.6125
-sbs_fpp.tracker.3.xoff = 0.25
-sbs_fpp.tracker.3.thetaV = 5
-sbs_fpp.tracker.4.dmag = 1.6125
-sbs_fpp.tracker.4.xoff = 0.75
-sbs_fpp.tracker.4.thetaV = 5
+#sbs_fpp.tracker.2.dmag = 1.6125
+#sbs_fpp.tracker.2.xoff = -0.25
+#sbs_fpp.tracker.2.thetaV = 5
+#sbs_fpp.tracker.3.dmag = 1.6125
+#sbs_fpp.tracker.3.xoff = 0.25
+#sbs_fpp.tracker.3.thetaV = 5
+#sbs_fpp.tracker.4.dmag = 1.6125
+#sbs_fpp.tracker.4.xoff = 0.75
+#sbs_fpp.tracker.4.thetaV = 5
 
 #-----------------------------------------------------------------
 # Tracker feature configuration
 #-----------------------------------------------------------------
 
 sbs_fpp.tracker.${allsectors}.search_depth = 10
+sbs_fpp.tracker.${allsectors}.x.search_depth = 10
+sbs_fpp.tracker.${allsectors}.y.search_depth = 10
+sbs_fpp.tracker.${allsectors}.module_order = 4 3 2 1
 sbs_fpp.tracker.${allsectors}.maxthreads = 1
 sbs_fpp.tracker.${allsectors}.disable_tracking = 0
 sbs_fpp.tracker.${allsectors}.disable_finetrack = 1

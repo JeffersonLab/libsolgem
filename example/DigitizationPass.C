@@ -52,7 +52,7 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
     manager->LoadGeoInfo("g4sbs_bbgem"); //new plane--module Geo for SBS GEMs
     dSpectro = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
     outname = Form("rootfiles/digitized_bbgem_%s.root", bg.c_str());
-    infile_sig_prefix = "/work/halla/sbs/efuchey/gmn13.5_elastic_sig_20180709_22/";
+    infile_sig_prefix = "/work/halla/sbs/efuchey/gmn13.5_elastic_sig_20180709_22";
     //infile_sig_prefix = "/volatile/halla/sbs/efuchey/gmn_elastic/gmn13.5_elastic_sig_20171018_14";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/misc/gmn13.5_BBgemMIP_20171018_14";
     infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn13.5_beam_bkgd_20180718_22";

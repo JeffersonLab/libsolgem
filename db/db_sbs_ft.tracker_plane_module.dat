@@ -89,21 +89,25 @@ sbs_ft.tracker.1.6.y.detmap = \
 #  and common position parameters (D_magnet, theta_H, theta_V)
 #-----------------------------------------------------------------
 
+# Only one sector now.
 sbs_ft.tracker.1.dmag = 1.6125
-sbs_ft.tracker.1.xoff = -0.5
+sbs_ft.tracker.1.xoff = 0
 sbs_ft.tracker.1.thetaV = 5
-sbs_ft.tracker.2.dmag = 1.6125
-sbs_ft.tracker.2.xoff = 0
-sbs_ft.tracker.2.thetaV = 5
-sbs_ft.tracker.3.dmag = 1.6125
-sbs_ft.tracker.3.xoff = 0.5
-sbs_ft.tracker.3.thetaV = 5
+#sbs_ft.tracker.2.dmag = 1.6125
+#sbs_ft.tracker.2.xoff = 0
+#sbs_ft.tracker.2.thetaV = 5
+#sbs_ft.tracker.3.dmag = 1.6125
+#sbs_ft.tracker.3.xoff = 0.5
+#sbs_ft.tracker.3.thetaV = 5
 
 #-----------------------------------------------------------------
 # Tracker feature configuration
 #-----------------------------------------------------------------
 
-sbs_ft.tracker.${allsectors}.search_depth = 10
+#sbs_ft.tracker.${allsectors}.search_depth = 10
+sbs_ft.tracker.${allsectors}.x.search_depth = 10
+sbs_ft.tracker.${allsectors}.y.search_depth = 10
+sbs_ft.tracker.${allsectors}.module_order = 3 2 1
 sbs_ft.tracker.${allsectors}.maxthreads = 1
 sbs_ft.tracker.${allsectors}.disable_tracking = 0
 sbs_ft.tracker.${allsectors}.disable_finetrack = 1
