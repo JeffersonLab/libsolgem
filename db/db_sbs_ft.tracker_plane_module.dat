@@ -142,8 +142,12 @@ sbs_ft.tracker.maxhits = 1000
 sbs_ft.tracker.maxsamp = 3
 sbs_ft.tracker.adc.sigma = 0.2
 sbs_ft.tracker.do_noise = 0
-sbs_ft.tracker.check_pulse_shape = 1
-sbs_ft.tracker.do_histos = 0
+sbs_ft.tracker.check_pulse_shape = 0
+sbs_ft.tracker.pedestal_sigma = 5
+sbs_ft.tracker.tmp_pedestal_rms = 15
+sbs_ft.tracker.tmp_comm_range =200
+sbs_ft.tracker.do_histos = 1
+sbs_ft.tracker.commonmode_groupsize = 128
 
 #-----------------------------------------------------------------
 #   Plane-specific data
@@ -154,6 +158,8 @@ sbs_ft.tracker.do_histos = 0
 
 sbs_ft.tracker.1.1.x.description = x module 1 in plane 1
 sbs_ft.tracker.1.1.x.nstrips = 3840
+sbs_ft.tracker.1.1.x.ncoords = 2
+sbs_ft.tracker.1.1.x.nhits = 2
 sbs_ft.tracker.1.1.x.partner = 1.y
 sbs_ft.tracker.1.1.x.type = x
 sbs_ft.tracker.1.1.x.strip.pos = -0.768
@@ -169,6 +175,7 @@ sbs_ft.tracker.1.1.x.3.offset = 1.024
 
 sbs_ft.tracker.1.1.y.description = y module 1 in plane 1
 sbs_ft.tracker.1.1.y.nstrips = 3072
+sbs_ft.tracker.1.1.y.ncoords = 2
 sbs_ft.tracker.1.1.y.partner = 1.x
 sbs_ft.tracker.1.1.y.type = y
 sbs_ft.tracker.1.1.y.strip.pos = -0.2048

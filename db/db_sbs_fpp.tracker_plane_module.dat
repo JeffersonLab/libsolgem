@@ -203,8 +203,12 @@ sbs_fpp.tracker.maxhits = 1000
 sbs_fpp.tracker.maxsamp = 3
 sbs_fpp.tracker.adc.sigma = 0.2
 sbs_fpp.tracker.do_noise = 0
-sbs_fpp.tracker.check_pulse_shape = 1
-sbs_fpp.tracker.do_histos = 0
+sbs_fpp.tracker.check_pulse_shape = 0
+sbs_fpp.tracker.pedestal_sigma = 5
+sbs_fpp.tracker.tmp_pedestal_rms = 15
+sbs_fpp.tracker.tmp_comm_range =200
+sbs_fpp.tracker.do_histos = 1
+sbs_fpp.tracker.commonmode_groupsize = 128
 
 #-----------------------------------------------------------------
 #   Plane-specific data
