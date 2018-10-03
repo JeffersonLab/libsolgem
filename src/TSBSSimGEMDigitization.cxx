@@ -1190,13 +1190,13 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fP = (clust.fP)*1.0e-3;
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   clust.fHitpos = (clust.fHitpos)*1.0e-3;
-  
-  // cout << " TSBSSimGEMDigitization.cxx:  hit in plane " << clust.fPlane << " (clust.fHitPos):  " << endl;
+
+  // cout << " TSBSSimGEMDigitization.cxx::SetTreeHit  hit in plane " << clust.fPlane << " (clust.fHitPos):  " << endl;
   // clust.fHitpos.Print();
   // cout << " => (clust.fMCPos): " << endl;
   // clust.fMCpos.Print();
   // //hitpos_temp.Print();
-  
+  // cout << "igem " << igem << ", plane " << clust.fPlane << ", module " << clust.fModule << endl;
   //clust.fHitpos = hitpos_temp;
   
   

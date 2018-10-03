@@ -134,6 +134,7 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 	    fmPMtoIgem[i][j]=nGEMtot;
 	    fmIgemtoPlane[nGEMtot]=i;
 	    fmIgemtoModule[nGEMtot]=j;
+	    //cout << "igem = " << nGEMtot << ", plane = " << i << ", module = " << j << endl;
 	    nGEMtot++;
 	  }
       }
@@ -389,6 +390,10 @@ int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double /*y*/)
        x<=fPMGeoInfo[iplane].at(k).xoffset+fPMGeoInfo[iplane].at(k).dx/2.0)
       {
         module = k;
+	// cout << " TSBSDBManager::GetModuleIDFromPos: iplane= " << iplane << ", x= " << x 
+	//      << ", plane offset " << fPMGeoInfo[iplane].at(k).xoffset 
+	//      << ", half size " << fPMGeoInfo[iplane].at(k).dx/2.0 
+	//      << ", module " << k << endl;
       }
   }
 

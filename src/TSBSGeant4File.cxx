@@ -808,8 +808,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       double tmin = fTree->Harm_FT_hit_tmin->at(i);
       double tmax = fTree->Harm_FT_hit_tmax->at(i);
       
-      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
-
+      module = fManager->GetModuleIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
+      //cout << fTree->Harm_FT_hit_xin->at(i) << " " << fTree->Harm_FT_hit_xout->at(i) << endl;
+      
       trid_hits.push_back(trid);
 
       double pz = sqrt( pow(fTree->Harm_FT_hit_p->at(i), 2)/
@@ -906,7 +907,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       hit_data_temp[13] = (double)type;
       hit_data_temp[17] = (double)trid;
       hit_data_temp[18] = (double)pid;
-      hit_data_temp[19] = sector;
+      hit_data_temp[19] = module;
+      //cout << "module !!!!!!!!!!! " << module << " " << hit_data_temp[19] << endl;
+      hit_data_temp[23] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -915,7 +918,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	hit_data_temp[k+20] = Mom[k];
       }
       
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  24));
 
       // ... to copy it in the actual g4sbsHitData structure.
       for(int j = 0; j<23; j++){
@@ -1056,7 +1059,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       if(d_flag>1)cout << plane << " " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
       
-      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
+      module = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP1_hit_tx->at(i));
 
       if(d_flag>1)cout << plane << ",  " << sector << ",  " << fTree->Harm_FPP1_hit_tx->at(i) << endl; 
       
@@ -1156,7 +1159,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       hit_data_temp[13] = (double)type;
       hit_data_temp[17] = (double)trid;
       hit_data_temp[18] = (double)pid;
-      hit_data_temp[19] = sector;
+      hit_data_temp[19] = module;
+      hit_data_temp[23] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -1165,7 +1169,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	hit_data_temp[k+20] = Mom[k];
       }
       
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id,  data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id, 24));
 
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
@@ -1279,8 +1283,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       double edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       double tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       double tmax = fTree->Harm_FPP2_hit_tmax->at(i);
-      sector = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
-
+      module = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
+      
       trid_hits.push_back(trid);
 
       double pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
@@ -1291,21 +1295,21 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		     fTree->Harm_FPP2_hit_typ->at(i)*pz*1.0e3, // in MeV
 		     pz*1.0e3);// in MeV
       
-      TVector3 X_in = TVector3((fTree->Harm_FPP1_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
-		      fTree->Harm_FPP1_hit_yin->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FPP1_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
+      TVector3 X_in = TVector3((fTree->Harm_FPP2_hit_xin->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		      fTree->Harm_FPP2_hit_yin->at(i)*1.0e3, // in mm
+		      (fTree->Harm_FPP2_hit_zin->at(i)+fManager->Getg4sbsZSpecOffset()-
 		       fManager->GetD0(plane, module))*1.0e3);// in mm
       
-      TVector3 X_out = TVector3((fTree->Harm_FPP1_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
-		       fTree->Harm_FPP1_hit_yout->at(i)*1.0e3, // in mm
-		       (fTree->Harm_FPP1_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
+      TVector3 X_out = TVector3((fTree->Harm_FPP2_hit_xout->at(i)-fManager->GetXOffset(plane, module))*1.0e3, // in mm
+		       fTree->Harm_FPP2_hit_yout->at(i)*1.0e3, // in mm
+		       (fTree->Harm_FPP2_hit_zout->at(i)+fManager->Getg4sbsZSpecOffset()-
 			fManager->GetD0(plane, module))*1.0e3);// in mm
 
       // we use X_in and X_out to extrapolate X_RO; 
       // not very clean, but since we don't use it in the digitization at all, it does not really matter...
-      TVector3 X_RO = TVector3(X_in.X()+(fTree->Harm_FPP1_hit_xout->at(i)-fTree->Harm_FPP1_hit_xin->at(i))*9.185/3.0 ,
+      TVector3 X_RO = TVector3(X_in.X()+(fTree->Harm_FPP2_hit_xout->at(i)-fTree->Harm_FPP2_hit_xin->at(i))*9.185/3.0 ,
 		      // in mm
-		      X_in.Y()+(fTree->Harm_FPP1_hit_yout->at(i)-fTree->Harm_FPP1_hit_yin->at(i))*9.185/3.0 ,
+		      X_in.Y()+(fTree->Harm_FPP2_hit_yout->at(i)-fTree->Harm_FPP2_hit_yin->at(i))*9.185/3.0 ,
 		      // in mm
 		      +7.685);// in mm
 
@@ -1377,7 +1381,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       hit_data_temp[13] = (double)type;
       hit_data_temp[17] = (double)trid;
       hit_data_temp[18] = (double)pid;
-      hit_data_temp[19] = sector;
+      hit_data_temp[19] = module;
+      hit_data_temp[23] = sector;
       for(int k = 0; k<3; k++){
 	hit_data_temp[k+2] = X_RO[k];
 	hit_data_temp[k+5] = X_in[k];
@@ -1386,7 +1391,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	hit_data_temp[k+20] = Mom[k];
       }
       
-      fg4sbsHitData.push_back(new g4sbshitdata(det_id, data_size(__GEM_TAG)));
+      fg4sbsHitData.push_back(new g4sbshitdata(det_id, 24));
       
       for(int j = 0; j<23; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
@@ -1630,11 +1635,13 @@ void TSBSGeant4File::GetGEMData(TSBSGEMSimHitData* gd)
       gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
     
       // gd->SetHitChamber(ngdata, h->GetData(23)*fManager->GetNChamber()+h->GetData(0));
-      gd->SetHitChamber(ngdata, h->GetData(0)*3+h->GetData(19));
+      gd->SetHitChamber(ngdata, fManager->GetGEMID(h->GetData(0), h->GetData(19)));
       //cout<<(h->GetData(23)*fManager->GetNChamber()+h->GetData(0))<<" : "<<(h->GetData(0)*3+h->GetData(19))<<endl;
-
+      
       gd->SetHitPlane(ngdata, h->GetData(0));
       gd->SetHitModule(ngdata,h->GetData(19));
+      
+      //cout << "ngdata = " << ngdata << "TSBSGeant4File::GetGEMData: igem " << gd->GetHitChamber(ngdata) << ", plane " << gd->GetHitPlane(ngdata) << ", module" <<  gd->GetHitModule(ngdata) << endl;
       
       ngdata++;
     }
