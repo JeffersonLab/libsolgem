@@ -199,13 +199,12 @@ sbs_fpp.tracker.${allsectors}.disable_chi2 = 0
 #-----------------------------------------------------------------
 
 sbs_fpp.tracker.xp.res = 9e-05
-sbs_fpp.tracker.maxclustsiz = 4
-sbs_fpp.tracker.adc.min = 1500
-sbs_fpp.tracker.timecut.cv = 0
-sbs_fpp.tracker.timecut.hw = 0
-sbs_fpp.tracker.split.frac = 0.1
 sbs_fpp.tracker.maxhits = 1000
 sbs_fpp.tracker.maxsamp = 3
+sbs_fpp.tracker.maxclustsiz = 6
+sbs_fpp.tracker.adc.min = 100
+sbs_fpp.tracker.split.frac = 0.1
+sbs_fpp.tracker.maxsamp = 6
 sbs_fpp.tracker.adc.sigma = 0.2
 sbs_fpp.tracker.do_noise = 0
 sbs_fpp.tracker.check_pulse_shape = 0

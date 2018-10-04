@@ -58,7 +58,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
     do_parts = false;
     nseg = 1;
   }
- 
+  
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
@@ -75,12 +75,12 @@ void ReplayMCDigitized(const char* filename = "digitized",
 
   int Ns = manager->GetNSector();
   const int Nsect = Ns;
-  
+
   cout << "detector " << detsuffix << ": " << Nsect << " sectors." << endl;
-  
+
   // dde = new TSBSSimDecoder();
   // dde->SetCrateMapName("db_sbssim_cratemap.dat");
-  
+
   THaInterface::SetDecoder( TSBSSimDecoder::Class() );
   
   cout << "Reading " << detsuffix << endl;
@@ -95,9 +95,9 @@ void ReplayMCDigitized(const char* filename = "digitized",
   db_prefix += ".tracker";
   gHaTextvars->Add( "DET", db_prefix.Data() );
   gHaTextvars->Add( "APP", SBS_GEMdet->GetName() );
-  
+
   THaAnalyzer* analyzer = new THaAnalyzer;
-  
+
   TString rootfile(Form("rootfiles/%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
   TString odeffile("sbssim.odef"), cutfile(Form("sbs_%ssim.cuts",detsuffix));
   rootfile.Append("_replayed_new.root");
@@ -107,8 +107,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   if( do_cuts ) analyzer->SetCutFile(cutfile);
   analyzer->SetSummaryFile(Form("%s_%s_new.sum", filename, detsuffix));
   analyzer->SetCrateMapFileName("sbssim_cratemap");
-  
-  
+
   //static int Nrun = TMath::Max(nseg,1);
   THaRunBase* run[0];
   TString title0 = "Digitized MC data";
@@ -127,6 +126,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   if( analyzer->Init(run[0]) == 0 ) {
     cout << "initialization successful..." << endl;
     THaDetector* tracker[Nsect];
+    
     for(int ns = 0; ns < Nsect; ns++){
       //THaDetector* 
       cout << ns << " " << tracker[ns] << endl;
@@ -178,14 +178,14 @@ void ReplayMCDigitized(const char* filename = "digitized",
       cout << "Analyzed " << ntotal << " events" << endl;
     analyzer->Close();
   }
-  
+
   for( int i=0; i<nseg; ++i ) {
     delete run[i]; run[i] = 0;
   }
   delete analyzer; analyzer = 0;
   gHaApps->Delete();
   //}
-  
+
   //TFile* f =
   if( !fail )
     new TFile(rootfile,"r");

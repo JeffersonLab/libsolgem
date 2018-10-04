@@ -104,7 +104,10 @@ sbs_bbgem.tracker.3.thetaV = 10
 # Tracker feature configuration
 #-----------------------------------------------------------------
 
-sbs_bbgem.tracker.${allsectors}.search_depth = 5
+sbs_bbgem.tracker.${allsectors}.x.search_depth = 5
+sbs_bbgem.tracker.${allsectors}.y.search_depth = 5
+sbs_bbgem.tracker.${allsectors}.module_order = 0 64 85 149 165 169 170 256 277 320 325 337 340 341 533 553 549 581 593 596 597 645 657 661 673 677 681 682 809 810 906 930 936 937 938
+#85 170 256 277 340 341 533 549 581 593 596 597 810 906 930 937 938
 sbs_bbgem.tracker.${allsectors}.maxthreads = 1
 sbs_bbgem.tracker.${allsectors}.disable_tracking = 0
 sbs_bbgem.tracker.${allsectors}.disable_finetrack = 1

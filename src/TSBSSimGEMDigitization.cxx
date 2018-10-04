@@ -1101,6 +1101,7 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const g4sbsgendata* gd = f.GetGenData(i);
+    //cout << "TSBSSimGEMDigitization::SetTreeEvent: PID = " << gd->GetPID() << endl;
     fEvent->AddTrack( gd->GetTRID(), gd->GetPID(),
 		      gd->GetV(), // Vertex coordinates in [m]
 		      gd->GetP(),  // Momentum in [GeV]

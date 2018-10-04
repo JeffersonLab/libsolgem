@@ -439,158 +439,158 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       } //DEBUG      
     }//end loop on hits
     
-
-      //Filling gen_data temporary array...
+    
+    //Filling gen_data temporary array...
+    
+    
+    // ... to copy it in the actual g4sbsGenData structure.
+    // only store signal, primary MC tracks
+    if(fSource==0 && n_gen==0 && fTree->Earm_BBGEM_Track_ntracks>0  && fTree->Earm_BBGEM_Track_MID->at(0)==0){
       
-   
-      // ... to copy it in the actual g4sbsGenData structure.
-      // only store signal, primary MC tracks
-      if(fSource==0 && n_gen==0 && fTree->Earm_BBGEM_Track_ntracks>0  && fTree->Earm_BBGEM_Track_MID->at(0)==0){
-
-	TVector3 trackOrigin = TVector3(fTree->Earm_BBGEM_Track_X->at(0)*1.0e3, // in mm
-			       fTree->Earm_BBGEM_Track_Y->at(0)*1.0e3, // in mm
-			       0);
-	double pz = fTree->Earm_BBGEM_Track_P->at(0) / sqrt(1 + pow(fTree->Earm_BBGEM_Track_Xp->at(0),2) + pow(fTree->Earm_BBGEM_Track_Yp->at(0),2));
-	TVector3 Mom = TVector3(pz * fTree->Earm_BBGEM_Track_Xp->at(0),
-		       pz * fTree->Earm_BBGEM_Track_Yp->at(0),
-		       pz);
-	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
-	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
-
-
-	gen_data_temp[0] = fTree->Earm_BBGEM_Track_TID->at(0);
-	gen_data_temp[1] = fTree->Earm_BBGEM_Track_PID->at(0);
-	for(int k = 0; k<3; k++){
-	  gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
-	  gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
-	  gen_data_temp[k+9] = trackVertexMom[k];//momentum at target in global axis    in GeV
-	  gen_data_temp[k+12]= trackVertex[k];//vertex in global axis,                  in m
-	}
-	gen_data_temp[8] = weight;
-
-	fg4sbsGenData.push_back(new g4sbsgendata());
+      TVector3 trackOrigin = TVector3(fTree->Earm_BBGEM_Track_X->at(0)*1.0e3, // in mm
+				      fTree->Earm_BBGEM_Track_Y->at(0)*1.0e3, // in mm
+				      0);
+      double pz = fTree->Earm_BBGEM_Track_P->at(0) / sqrt(1 + pow(fTree->Earm_BBGEM_Track_Xp->at(0),2) + pow(fTree->Earm_BBGEM_Track_Yp->at(0),2));
+      TVector3 Mom = TVector3(pz * fTree->Earm_BBGEM_Track_Xp->at(0),
+			      pz * fTree->Earm_BBGEM_Track_Yp->at(0),
+			      pz);
+      TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
+      TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+      
+      
+      gen_data_temp[0] = fTree->Earm_BBGEM_Track_TID->at(0);
+      gen_data_temp[1] = fTree->Earm_BBGEM_Track_PID->at(0);
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
+	gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
+	gen_data_temp[k+9] = trackVertexMom[k];//momentum at target in global axis    in GeV
+	gen_data_temp[k+12]= trackVertex[k];//vertex in global axis,                  in m
+      }
+      gen_data_temp[8] = weight;
+      
+      fg4sbsGenData.push_back(new g4sbsgendata());
+      
+      int jdd=0;
+      for(; jdd<15; jdd++){
+	fg4sbsGenData[n_gen]->SetData(jdd, gen_data_temp[jdd]);
+      }
+      n_gen++;
+    }
+    
+    
+      
+    // ---------------------------------
+    // Add calorimeter clustering here.
+    // ---------------------------------
+    bbps_edep.clear();
+    bbps_ycell.clear();
+    bbsh_edep.clear();
+    bbsh_xcell.clear();
+    bbsh_ycell.clear();
+    //first, loop on PS hits
+    for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){
+      // evaluate energy deposit including smearing from the photoelectron yield:
+      // convert energy deposit in pe yield with Npe_Edep_PS conversion coefficiency, 
+      // and smearing sigma_Npe_Edep_PS. 
+      // Then reconvert into enegry deposit using Npe_Edep_PS
+      edep_cal = fTree->Earm_BBPSTF1_hit_sumedep->at(i);
+      npe = R->Gaus(Npe_Edep_PS*edep_cal, sigma_Npe_Edep_PS*edep_cal);
+      //Npe_fEdep_PS(R, fTree->Earm_BBPSTF1_hit_sumedep->at(i));
+      edep_cal = npe/Npe_Edep_PS;
+      //Edep_fNpe_PS(npe);
+      Edep_PS+= edep_cal;
 	
-	int jdd=0;
-	for(; jdd<15; jdd++){
-	  fg4sbsGenData[n_gen]->SetData(jdd, gen_data_temp[jdd]);
-	}
-	n_gen++;
+      // if edep is the maximal energy deposit, store it in the "max" variables
+      if(edep_cal>Edep_PS_max){
+	Edep_PS_max = edep_cal;
+	EdepYmax = fTree->Earm_BBPSTF1_hit_ycell->at(i);
       }
+	
+      // record all smeared energy deposits no matter what, + photon coordinates 
+      bbps_edep.push_back(edep_cal);
+      // X coordinates (in calorimeter) are not relevant for PS.
+      //bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
+      bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
+    }
 
-      
-      
-      // ---------------------------------
-      // Add calorimeter clustering here.
-      // ---------------------------------
-      bbps_edep.clear();
-      bbps_ycell.clear();
-      bbsh_edep.clear();
-      bbsh_xcell.clear();
-      bbsh_ycell.clear();
-      //first, loop on PS hits
-      for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){
-	// evaluate energy deposit including smearing from the photoelectron yield:
-	// convert energy deposit in pe yield with Npe_Edep_PS conversion coefficiency, 
-	// and smearing sigma_Npe_Edep_PS. 
-	// Then reconvert into enegry deposit using Npe_Edep_PS
-	edep_cal = fTree->Earm_BBPSTF1_hit_sumedep->at(i);
-	npe = R->Gaus(Npe_Edep_PS*edep_cal, sigma_Npe_Edep_PS*edep_cal);
-	//Npe_fEdep_PS(R, fTree->Earm_BBPSTF1_hit_sumedep->at(i));
-	edep_cal = npe/Npe_Edep_PS;
-	//Edep_fNpe_PS(npe);
-	Edep_PS+= edep_cal;
+    //then, loop on SH hits
+    // same story as for PS, except we also store X coordinates
+    for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
+      edep_cal = fTree->Earm_BBSHTF1_hit_sumedep->at(i);
+      npe = R->Gaus(Npe_Edep_SH*edep_cal, sigma_Npe_Edep_SH*edep_cal);
+      //Npe_fEdep_SH(R, fTree->Earm_BBSHTF1_hit_sumedep->at(i));
+      edep_cal = npe/Npe_Edep_SH;
+      //Edep_fNpe_SH(npe);
+      Edep_SH+= edep_cal;
 	
-	// if edep is the maximal energy deposit, store it in the "max" variables
-	if(edep_cal>Edep_PS_max){
-	  Edep_PS_max = edep_cal;
-	  EdepYmax = fTree->Earm_BBPSTF1_hit_ycell->at(i);
+      if(edep_cal>Edep_SH_max){
+	Edep_SH_max = edep_cal;
+	EdepXmax = fTree->Earm_BBSHTF1_hit_xcell->at(i);
+	if(Edep_SH_max>Edep_PS_max){
+	  EdepYmax = fTree->Earm_BBSHTF1_hit_ycell->at(i);
 	}
-	
-	// record all smeared energy deposits no matter what, + photon coordinates 
-	bbps_edep.push_back(edep_cal);
-	// X coordinates (in calorimeter) are not relevant for PS.
-	//bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
-	bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
       }
+	
+      bbsh_edep.push_back(edep_cal);
+      bbsh_xcell.push_back(fTree->Earm_BBSHTF1_hit_xcell->at(i));
+      bbsh_ycell.push_back(fTree->Earm_BBSHTF1_hit_ycell->at(i));
+    }
+      
+    // calculate reconstructed energy: 5x5 blocks around the max.
+    for(size_t l = 0; l<bbps_edep.size(); l++){
+      if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
+	E_rec+= bbps_edep[l];
+	//X_rec+= bbps_edep[l]*(-1)*bbps_ycell[l];
+      }
+    }
+      
+    // calculate reconstructed energy: 5x5 blocks around the max.
+    for(size_t l = 0; l<bbsh_edep.size(); l++){
+      if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
+	 fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
+	E_rec+= bbsh_edep[l];
+	E_rec_SH+= bbsh_edep[l];
+	//transforming calo coordinates as stored in g4sbs output to transport coordinates.
+	X_rec+= bbsh_edep[l]*(-1)*bbsh_ycell[l];
+	Y_rec+= bbsh_edep[l]*bbsh_xcell[l];
+      }
+    }
+      
+    // calculate reconstructed position: 
+    // mean of position of all cluster blocks weighted with energy deposit.
+    //X_rec = X_rec/E_rec;
+    X_rec = X_rec/E_rec_SH;
+    Y_rec = Y_rec/E_rec_SH;
+    //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
 
-      //then, loop on SH hits
-      // same story as for PS, except we also store X coordinates
-      for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
-	edep_cal = fTree->Earm_BBSHTF1_hit_sumedep->at(i);
-	npe = R->Gaus(Npe_Edep_SH*edep_cal, sigma_Npe_Edep_SH*edep_cal);
-	//Npe_fEdep_SH(R, fTree->Earm_BBSHTF1_hit_sumedep->at(i));
-	edep_cal = npe/Npe_Edep_SH;
-	//Edep_fNpe_SH(npe);
-	Edep_SH+= edep_cal;
-	
-	if(edep_cal>Edep_SH_max){
-	  Edep_SH_max = edep_cal;
-	  EdepXmax = fTree->Earm_BBSHTF1_hit_xcell->at(i);
-	  if(Edep_SH_max>Edep_PS_max){
-	    EdepYmax = fTree->Earm_BBSHTF1_hit_ycell->at(i);
-	  }
-	}
-	
-	bbsh_edep.push_back(edep_cal);
-	bbsh_xcell.push_back(fTree->Earm_BBSHTF1_hit_xcell->at(i));
-	bbsh_ycell.push_back(fTree->Earm_BBSHTF1_hit_ycell->at(i));
-      }
+    //hardcode threshold for the moment, will add in the DB later.
+    if(E_rec>fManager->GetCaloThreshold()){
+      fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
+    }
+    // -------------------------------
+    // end: calorimeter reconstruction
+    // -------------------------------
       
-      // calculate reconstructed energy: 5x5 blocks around the max.
-      for(size_t l = 0; l<bbps_edep.size(); l++){
-	if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
-	  E_rec+= bbps_edep[l];
-	  //X_rec+= bbps_edep[l]*(-1)*bbps_ycell[l];
-	}
-      }
-      
-      // calculate reconstructed energy: 5x5 blocks around the max.
-      for(size_t l = 0; l<bbsh_edep.size(); l++){
-	if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
-	   fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
-	  E_rec+= bbsh_edep[l];
-	  E_rec_SH+= bbsh_edep[l];
-	  //transforming calo coordinates as stored in g4sbs output to transport coordinates.
-	  X_rec+= bbsh_edep[l]*(-1)*bbsh_ycell[l];
-	  Y_rec+= bbsh_edep[l]*bbsh_xcell[l];
-	}
-      }
-      
-      // calculate reconstructed position: 
-      // mean of position of all cluster blocks weighted with energy deposit.
-      //X_rec = X_rec/E_rec;
-      X_rec = X_rec/E_rec_SH;
-      Y_rec = Y_rec/E_rec_SH;
-      //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
-
-      //hardcode threshold for the moment, will add in the DB later.
-      if(E_rec>fManager->GetCaloThreshold()){
-	fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
-      }
-      // -------------------------------
-      // end: calorimeter reconstruction
-      // -------------------------------
-      
-      /*
+    /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
     // * the file read is signal; 
     // * there is no gen data stored already; 
     // * and there are at least 3 hits associated to the rescued particle
     if(fSource==0 && n_gen==0 && n_hits>=3){
-      int n_hits_max = 0;
-      for(UInt_t k = 0; k<trid_hits.size(); k++){
-	if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
-      }
-      if(n_hits_max>=3){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-      }
+    int n_hits_max = 0;
+    for(UInt_t k = 0; k<trid_hits.size(); k++){
+    if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
     }
-      */
+    if(n_hits_max>=3){
+    fg4sbsGenData.push_back(new g4sbsgendata());
+    for(int j = 0; j<9; j++){
+    fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+    }
+    n_gen++;
+    }
+    }
+    */
     break;
   case(2)://SIDIS SBS GEMs
     for(int i = 0; i<fTree->Harm_SBSGEM_hit_nhits; i++){
@@ -807,7 +807,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       double edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       double tmin = fTree->Harm_FT_hit_tmin->at(i);
       double tmax = fTree->Harm_FT_hit_tmax->at(i);
-      
+      //cout << "pid ??" << pid << endl;
       module = fManager->GetModuleIDFromPos(plane, fTree->Harm_FT_hit_tx->at(i));
       //cout << fTree->Harm_FT_hit_xin->at(i) << " " << fTree->Harm_FT_hit_xout->at(i) << endl;
       
@@ -907,6 +907,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       hit_data_temp[13] = (double)type;
       hit_data_temp[17] = (double)trid;
       hit_data_temp[18] = (double)pid;
+      //cout << "pid ??" << pid << " hit_data_temp[18] ?? " << hit_data_temp[18] << endl;
       hit_data_temp[19] = module;
       //cout << "module !!!!!!!!!!! " << module << " " << hit_data_temp[19] << endl;
       hit_data_temp[23] = sector;
@@ -921,11 +922,12 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       fg4sbsHitData.push_back(new g4sbshitdata(det_id,  24));
 
       // ... to copy it in the actual g4sbsHitData structure.
-      for(int j = 0; j<23; j++){
+      for(int j = 0; j<24; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
-      
+ 
+      /*
       //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
@@ -952,6 +954,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
 	n_gen++;
       }
+      */
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
@@ -1021,6 +1024,40 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       } //DEBUG
     }
     
+    // only store signal, primary MC tracks
+    if(fSource==0 && n_gen==0 && fTree->Harm_FT_Track_ntracks>0  && fTree->Harm_FT_Track_MID->at(0)==0){
+      
+      TVector3 trackOrigin = TVector3(fTree->Harm_FT_Track_X->at(0)*1.0e3, // in mm
+				      fTree->Harm_FT_Track_Y->at(0)*1.0e3, // in mm
+				      0);
+      double pz = fTree->Harm_FT_Track_P->at(0) / sqrt(1 + pow(fTree->Harm_FT_Track_Xp->at(0),2) + pow(fTree->Harm_FT_Track_Yp->at(0),2));
+      TVector3 Mom = TVector3(pz * fTree->Harm_FT_Track_Xp->at(0),
+			      pz * fTree->Harm_FT_Track_Yp->at(0),
+			      pz);
+      TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
+      TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+      
+      
+      gen_data_temp[0] = fTree->Harm_FT_Track_TID->at(0);
+      gen_data_temp[1] = fTree->Harm_FT_Track_PID->at(0);
+      for(int k = 0; k<3; k++){
+	gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
+	gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
+	gen_data_temp[k+9] = trackVertexMom[k];//momentum at target in global axis    in GeV
+	gen_data_temp[k+12]= trackVertex[k];//vertex in global axis,                  in m
+      }
+      gen_data_temp[8] = weight;
+      
+      fg4sbsGenData.push_back(new g4sbsgendata());
+      
+      int jdd=0;
+      for(; jdd<15; jdd++){
+	fg4sbsGenData[n_gen]->SetData(jdd, gen_data_temp[jdd]);
+      }
+      n_gen++;
+    }
+        
+    /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
     // * the file read is signal; 
@@ -1038,7 +1075,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
 	n_gen++;
       }
+      
     }
+    */
     break;// end case(3)
     
   case(4):
@@ -1171,11 +1210,12 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       fg4sbsHitData.push_back(new g4sbshitdata(det_id, 24));
 
-      for(int j = 0; j<23; j++){
+      for(int j = 0; j<24; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
       
+      /*
       //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
@@ -1202,7 +1242,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
 	n_gen++;
       }
-
+      */
+      
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
@@ -1266,6 +1307,39 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
 	cout << endl;
       } //DEBUG 
+      
+      if(fSource==0 && n_gen==0 && fTree->Harm_FPP1_Track_ntracks>0  && fTree->Harm_FPP1_Track_PID->at(0)==2212){
+	
+	TVector3 trackOrigin = TVector3(fTree->Harm_FPP1_Track_X->at(0)*1.0e3, // in mm
+					fTree->Harm_FPP1_Track_Y->at(0)*1.0e3, // in mm
+					0);
+	double pz = fTree->Harm_FPP1_Track_P->at(0) / sqrt(1 + pow(fTree->Harm_FPP1_Track_Xp->at(0),2) + pow(fTree->Harm_FPP1_Track_Yp->at(0),2));
+	TVector3 Mom = TVector3(pz * fTree->Harm_FPP1_Track_Xp->at(0),
+				pz * fTree->Harm_FPP1_Track_Yp->at(0),
+				pz);
+	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
+	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+	
+	
+	gen_data_temp[0] = fTree->Harm_FPP1_Track_TID->at(0);
+	gen_data_temp[1] = fTree->Harm_FPP1_Track_PID->at(0);
+	for(int k = 0; k<3; k++){
+	  gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
+	  gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
+	  gen_data_temp[k+9] = trackVertexMom[k];//momentum at target in global axis    in GeV
+	  gen_data_temp[k+12]= trackVertex[k];//vertex in global axis,                  in m
+	}
+	gen_data_temp[8] = weight;
+	
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	
+	int jdd=0;
+	for(; jdd<15; jdd++){
+	  fg4sbsGenData[n_gen]->SetData(jdd, gen_data_temp[jdd]);
+	}
+	n_gen++;
+      }
+      
     }
     
     //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
@@ -1393,11 +1467,12 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
       fg4sbsHitData.push_back(new g4sbshitdata(det_id, 24));
       
-      for(int j = 0; j<23; j++){
+      for(int j = 0; j<24; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
 
+      /*
       //Filling gen_data temporary array...
       gen_data_temp[0] = trid;
       gen_data_temp[1] = pid;
@@ -1423,7 +1498,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
 	}
 	n_gen++;
-      }
+	}
+      */
       /*else{// this determines if the track is new or not
 	newtrk = true; 
 	for(int z = n_gen-1; z>=0; z--){
@@ -1489,6 +1565,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       } //DEBUG          
     }
     
+    /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
     // * the file read is signal; 
@@ -1507,6 +1584,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	n_gen++;
       }
     }
+    */
     break;// end case(4)
       
    }//end switch(fManager->Getg4sbsDetectorType)
@@ -1633,7 +1711,8 @@ void TSBSGeant4File::GetGEMData(TSBSGEMSimHitData* gd)
       gd->SetParticleType(ngdata, (UInt_t)h->GetData(13) );//  Track type (1 primary, >1 secondary) 
       gd->SetTrackID(ngdata, (UInt_t) h->GetData(17) );// track ID
       gd->SetParticleID(ngdata, h->GetData(18) );//  PID 
-    
+      //cout << "ngdata = " << ngdata << " TSBSGeant4File::GetGEMData: pid " <<h->GetData(18)<<" : "<<gd->GetParticleID(ngdata)<<endl;
+      
       // gd->SetHitChamber(ngdata, h->GetData(23)*fManager->GetNChamber()+h->GetData(0));
       gd->SetHitChamber(ngdata, fManager->GetGEMID(h->GetData(0), h->GetData(19)));
       //cout<<(h->GetData(23)*fManager->GetNChamber()+h->GetData(0))<<" : "<<(h->GetData(0)*3+h->GetData(19))<<endl;

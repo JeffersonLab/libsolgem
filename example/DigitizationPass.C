@@ -66,7 +66,8 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
     outname = Form("rootfiles/digitized_ft_%s.root", bg.c_str());
     infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_elastic_sig_20180920_21";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_FTFPP_MIP_20170828_10";
-    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep12_beam_bkgd_20180917_12";
+    //infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep12_beam_bkgd_20180917_12";
+    infile_bkgd_prefix = "/work/halla/sbs/efuchey/gep12_beam_bkgd_20181001_12";
     dSpectro->Init(run_time);
     break;
   case(4):
@@ -76,7 +77,8 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
     outname = Form("rootfiles/digitized_fpp_%s.root", bg.c_str());
     infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_elastic_sig_20180920_21";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_FTFPP_MIP_20170828_10";
-    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep12_beam_bkgd_20180917_12";
+    //infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep12_beam_bkgd_20180917_12";
+    infile_bkgd_prefix = "/work/halla/sbs/efuchey/gep12_beam_bkgd_20181001_12";
     dSpectro->Init(run_time);
     break;
   default:
@@ -125,6 +127,8 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
   
   int N_bg_file_g = 0;
   
+  cout << "start loop on sig files " << endl;
+  
   //Add the loop on the signal files
   for(int i_sig = 0; i_sig<NsigFiles; i_sig++){
     if(mips){
@@ -143,7 +147,9 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
       printf("Opening g4sbs file returned %d\n", res);
       continue;
     }
-
+    
+    cout << "about to go through events for file " << f->GetFileName() << endl;
+    
     int d_flag_readevent = 0;
     while( f->ReadNextEvent(d_flag_readevent) && hadback && nevent<Nmax ){
 
@@ -242,20 +248,18 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 	N_bg_file_g = N_bg_file_g_post;
       }//end if nbacktoadd
     
-      if(N_bg_file_g>=2000)N_bg_file_g = 0;
-    
+      if(N_bg_file_g>=1000)N_bg_file_g = 0;
+      
       dSimDigi->FillTree();
       
       //if(nevent==7)dSimDigi->GetEvent()->Print("all");
       if(print)dSimDigi->GetEvent()->Print("all");
       //dSimDigi->GetEvent()->Print("clust");
       
-      
       delete gd;
-      delete gb;//Also needs to delete gb...Or there will be huge memory leak, especially at high background
+      if(nbacktoadd)delete gb;//Also needs to delete gb...Or there will be huge memory leak, especially at high background
       nevent++;
     }
-    cout << "closing file " << endl;
     f->Close();
   }
   printf("Completed %d events total: %d good events \n", nevent, Ngood);

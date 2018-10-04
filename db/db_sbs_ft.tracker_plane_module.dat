@@ -105,10 +105,11 @@ sbs_ft.tracker.1.thetaV = 5
 #-----------------------------------------------------------------
 
 #sbs_ft.tracker.${allsectors}.search_depth = 10
-sbs_ft.tracker.${allsectors}.x.search_depth = 10
-sbs_ft.tracker.${allsectors}.y.search_depth = 10
+sbs_ft.tracker.${allsectors}.x.search_depth = 5
+sbs_ft.tracker.${allsectors}.y.search_depth = 5
 sbs_ft.tracker.${allsectors}.do_eltracksel = 0
-sbs_ft.tracker.${allsectors}.module_order = 0
+sbs_ft.tracker.${allsectors}.module_order = 0 1 5 17 20 21 68 85 106 169 170 277 325 337 340 341 554 581 597 650 661 674 677 680 682 1024 1045 1093 1105 1108 1109 1285 1297 1300 1301 1345 1348 1349 1360 1361 1364 1365 2090 2129 2132 2133 2186 2189 2210 2216 2217 2218 2325 2389 2570 2581  2594 2600 2602 2628 2645 2689 2690 2693 2696 2697 2698 2709 2710 2720 2722 2728 2729 2730
+#1704 1450? 
 sbs_ft.tracker.${allsectors}.maxthreads = 1
 sbs_ft.tracker.${allsectors}.disable_tracking = 0
 sbs_ft.tracker.${allsectors}.disable_finetrack = 1
@@ -138,13 +139,11 @@ sbs_ft.tracker.${allsectors}.disable_chi2 = 0
 #-----------------------------------------------------------------
 
 sbs_ft.tracker.xp.res = 9e-05
-sbs_ft.tracker.maxclustsiz = 4
-sbs_ft.tracker.adc.min = 1500
-sbs_ft.tracker.timecut.cv = 0
-sbs_ft.tracker.timecut.hw = 0
-sbs_ft.tracker.split.frac = 0.1
 sbs_ft.tracker.maxhits = 1000
-sbs_ft.tracker.maxsamp = 3
+sbs_ft.tracker.maxclustsiz = 6
+sbs_ft.tracker.adc.min = 100
+sbs_ft.tracker.split.frac = 0.1
+sbs_ft.tracker.maxsamp = 6
 sbs_ft.tracker.adc.sigma = 0.2
 sbs_ft.tracker.do_noise = 0
 sbs_ft.tracker.check_pulse_shape = 0
