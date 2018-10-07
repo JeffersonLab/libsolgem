@@ -15,6 +15,8 @@ ratedig.max_ion = 10000
 
 # Electronics parameters:
 ratedig.triggeroffset = 121.0 121.5 122.0 122.5 126.0 # ns # to have everything land on 0 when no jitters
+#ratedig.triggeroffset = 125.0 125.5 126.0 126.5 127.0 127.5 # ns
+#ratedig.triggeroffset = 131.0 131.5 132.0 132.5 133.0 135.0 135.5 136.0 136.5 137.0 # ns
 ratedig.triggerjitter = 9.  # ns
 ratedig.apv_time_jitter = 0.  # ns 
 ratedig.elesamplingpoints = 6

@@ -1,4 +1,22 @@
-// #ifndef __CINT__
+#if !defined(__CLING__) || defined(__ROOTCLING__)
+#include "TSystem.h"
+#include "TDatime.h"
+#include "TSBSGeant4File.h"
+#include "TSBSSimFile.h"
+#include "TSBSDBManager.h"
+#include "TSBSGEMChamber.h"
+#include "TSBSGEMPlane.h"
+#include "TSBSSpec.h"
+#include "TSBSSimGEMDigitization.h"
+#include "TSBSSimDecoder.h"
+#include "THaInterface.h"
+#include "THaTextvars.h"
+#include "THaRunBase.h"
+#include "THaAnalyzer.h"
+#include "THaAnalysisObject.h"
+#include "SBSSpec.h"
+#endif
+/// #ifndef __CINT__
 
 //#include "SBSSpec.h"
 //#include "TSBSSimDecoder.h"
@@ -19,8 +37,6 @@
 // #include <iostream>
 
 // #endif
-
-
 
 void ReplayMCDigitized(const char* filename = "digitized", 
 		       const char* detsuffix = "bbgem",//detector suffix: 
@@ -46,9 +62,11 @@ void ReplayMCDigitized(const char* filename = "digitized",
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
+  gSystem->AddDynamicPath("${LIBSBSGEM}");
+  gSystem->AddDynamicPath("${TREESEARCH}");
   gSystem->Load("../libsolgem.so");
-  gSystem->Load("/home/danning/jlabdanning/danning/TreeSearch/libTreeSearch.so");
-  gSystem->Load("/home/danning/jlabdanning/danning/TreeSearch/libTreeSearch-SBS.so");
+  gSystem->Load("/home/efuchey/g4work/Tracking/TreeSearch/libTreeSearch.so");
+  gSystem->Load("/home/efuchey/g4work/Tracking/TreeSearch/libTreeSearch-SBS.so");
   gSystem->Load("libMinuit");
 
   TSBSDBManager* manager = TSBSDBManager::GetInstance();
@@ -57,16 +75,17 @@ void ReplayMCDigitized(const char* filename = "digitized",
 
   int Ns = manager->GetNSector();
   const int Nsect = Ns;
-  
+
   cout << "detector " << detsuffix << ": " << Nsect << " sectors." << endl;
-  
+
   // dde = new TSBSSimDecoder();
   // dde->SetCrateMapName("db_sbssim_cratemap.dat");
-  
+
   THaInterface::SetDecoder( TSBSSimDecoder::Class() );
   
   cout << "Reading " << detsuffix << endl;
   THaApparatus* SBS_GEMdet = new SBS::SBSSpec( Form("sbs_%s",detsuffix), "SBS / BB GEMs", Nsect );
+  //THaApparatus* SBS_GEMdet = new SBSSpec( Form("sbs_%s",detsuffix), "SBS / BB GEMs", Nsect );
   gHaApps->Add( SBS_GEMdet );
   cout << "Just read " << detsuffix << endl;
 
@@ -76,10 +95,10 @@ void ReplayMCDigitized(const char* filename = "digitized",
   db_prefix += ".tracker";
   gHaTextvars->Add( "DET", db_prefix.Data() );
   gHaTextvars->Add( "APP", SBS_GEMdet->GetName() );
-  
+
   THaAnalyzer* analyzer = new THaAnalyzer;
-  
-  TString rootfile(Form("%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
+
+  TString rootfile(Form("rootfiles/%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
   TString odeffile("sbssim.odef"), cutfile(Form("sbs_%ssim.cuts",detsuffix));
   rootfile.Append("_replayed_new.root");
   analyzer->EnableBenchmarks();
@@ -88,13 +107,12 @@ void ReplayMCDigitized(const char* filename = "digitized",
   if( do_cuts ) analyzer->SetCutFile(cutfile);
   analyzer->SetSummaryFile(Form("%s_%s_new.sum", filename, detsuffix));
   analyzer->SetCrateMapFileName("sbssim_cratemap");
-  
-  
+
   //static int Nrun = TMath::Max(nseg,1);
   THaRunBase* run[0];
   TString title0 = "Digitized MC data";
   for( int i=0; i<nseg; ++i ) {
-    TString title(title0), infile(infile0);
+    TString title(title0), infile("rootfiles/"+infile0);
     if( do_parts ) {
       title.Append(Form(" part %d", i+1));
       infile.Append(Form("_p%d", i+1));
@@ -108,6 +126,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   if( analyzer->Init(run[0]) == 0 ) {
     cout << "initialization successful..." << endl;
     THaDetector* tracker[Nsect];
+    
     for(int ns = 0; ns < Nsect; ns++){
       //THaDetector* 
       cout << ns << " " << tracker[ns] << endl;
@@ -127,16 +146,16 @@ void ReplayMCDigitized(const char* filename = "digitized",
       // TSBSSimDecoder::EmulateCalorimeter(false);
     }//end loop on trackers
     /*
-    THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
-    tracker->Print("");
-    if( tracker ) {
+      THaDetector* tracker = SBS_GEMdet->GetDetector("tracker.1");
+      tracker->Print("");
+      if( tracker ) {
       // The SBS trackers' origin really is the origin of the first plane
       Double_t z0 = tracker->GetOrigin().Z();
       cout << "z0 = " << z0 << endl;
       manager->SetZ0(z0);
-    } else {
+      } else {
       cerr << "ERROR: cannot get tracker detector! z0 may be wrong" << endl;
-    }
+      }
     */
     manager->EmulateCalorimeter(false);
     
@@ -159,14 +178,14 @@ void ReplayMCDigitized(const char* filename = "digitized",
       cout << "Analyzed " << ntotal << " events" << endl;
     analyzer->Close();
   }
-  
+
   for( int i=0; i<nseg; ++i ) {
     delete run[i]; run[i] = 0;
   }
   delete analyzer; analyzer = 0;
   gHaApps->Delete();
   //}
-  
+
   //TFile* f =
   if( !fail )
     new TFile(rootfile,"r");

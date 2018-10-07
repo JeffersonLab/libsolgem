@@ -134,7 +134,7 @@ TSBSGEMChamber::InitPlane (const UInt_t i, const char* name, const char* desc)
 }
 
 void
-TSBSGEMChamber::Print (const Bool_t printplanes)
+TSBSGEMChamber::Print (Option_t* opt) const
 {
   //Print TSBSGEMChamber (and dependent TSBSGEMPlanes) info
   cout << "I'm a GEM chamber named " << GetName() << endl;
@@ -165,11 +165,12 @@ TSBSGEMChamber::Print (const Bool_t printplanes)
   fBox->HallCenterToSpec(x, y, z);
   cout << "Origin: recomputed: " << x << " " << y << " " << z << endl;
   
+  bool printplanes = (opt && *opt && strchr(opt,'P') != 0);
   if (printplanes){
     cout << "I contain the " << GetNPlanes() << " following planes: " << endl;
     for (UInt_t i = 0; i < GetNPlanes(); ++i)
       {
-	fPlanes[i]->Print(!printplanes);
+	fPlanes[i]->Print("");
       }
   }
 }

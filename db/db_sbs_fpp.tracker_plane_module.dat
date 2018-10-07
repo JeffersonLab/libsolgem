@@ -1,0 +1,543 @@
+# -*- mode: Text -*-
+#
+# Database for TreeSearch-SoLID
+#
+# Converted from db_g4sbs_fpp.dat
+
+sbs_fpp.tracker.${allsectors}.MCdata = 1
+
+# Plane configuration. One string of the all plane names.
+
+#sbs_fpp.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6 x7 y7 x8 y8 x9 y9 x10 y10
+sbs_fpp.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y 7.x 7.y 8.x 8.y 9.x 9.y 10.x 10.y
+
+# Strip angles: angles of the normal to the strips, pointing
+# along the direction of increasing strip number.
+
+sbs_fpp.tracker.${allsectors}.x.angle = 0
+sbs_fpp.tracker.${allsectors}.y.angle = 90
+
+# "Crate map". Specifies the overall DAQ module configuration.
+# The map can be common to all sectors. It's just a lookup table
+# for (crate,slot) -> (model,nchan)
+#
+# Each row is:     crate slot_lo slot_hi model# nchan
+#
+sbs_fpp.tracker.${allsectors}.cratemap = \
+                   1     6       29      6425   2048 \
+                   2     0       29      6425   2048 \
+                   3     0       25      6425   2048
+
+# GEM detector maps
+# 4 sectors * 10 planes * 2 readout coordinates = 80 detectors
+#
+sbs_fpp.tracker.1.1.x.detmap = \
+                 1  6  0 1279 0 \
+                 1  8  0 1279 1 \
+                 1  10  0 1279 2 \
+                 1  12  0 1279 3
+sbs_fpp.tracker.1.1.y.detmap = \
+                 1  7  0 1535 0 \
+                 1  9  0 1535 1 \
+                 1  11  0 1535 2 \
+                 1  13  0 1535 3
+
+sbs_fpp.tracker.1.2.x.detmap = \
+                 1  14  0 1279 0 \
+                 1  16  0 1279 1 \
+                 1  18  0 1279 2 \
+                 1  20  0 1279 3
+sbs_fpp.tracker.1.2.y.detmap = \
+                 1  15  0 1535 0 \
+                 1  17  0 1535 1 \
+                 1  19  0 1535 2 \
+                 1  21  0 1535 3
+
+sbs_fpp.tracker.1.3.x.detmap = \
+                 1  22  0 1279 0 \
+                 1  24  0 1279 1 \
+                 1  26  0 1279 2 \
+                 1  28  0 1279 3
+sbs_fpp.tracker.1.3.y.detmap = \
+                 1  23  0 1535 0 \
+                 1  25  0 1535 1 \
+                 1  27  0 1535 2 \
+                 1  29  0 1535 3
+
+sbs_fpp.tracker.1.4.x.detmap = \
+                 2  0  0 1279 0 \
+                 2  2  0 1279 1 \
+                 2  4  0 1279 2 \
+                 2  6  0 1279 3
+sbs_fpp.tracker.1.4.y.detmap = \
+                 2  1  0 1535 0 \
+                 2  3  0 1535 1 \
+                 2  5  0 1535 2 \
+                 2  7  0 1535 3
+
+sbs_fpp.tracker.1.5.x.detmap = \
+                 2  8  0 1279 0 \
+                 2  10  0 1279 1 \
+                 2  12  0 1279 2 \
+                 2  14  0 1279 3
+sbs_fpp.tracker.1.5.y.detmap = \
+                 2  9  0 1535 0 \
+                 2  11  0 1535 1 \
+                 2  13  0 1535 2 \
+                 2  15  0 1535 3
+
+sbs_fpp.tracker.1.6.x.detmap = \
+                 2  16  0 1279 0 \
+                 2  18  0 1279 1 \
+                 2  20  0 1279 2 \
+                 2  22  0 1279 3
+sbs_fpp.tracker.1.6.y.detmap = \
+                 2  17  0 1535 0 \
+                 2  19  0 1535 1 \
+                 2  21  0 1535 2 \
+                 2  23  0 1535 3
+
+sbs_fpp.tracker.1.7.x.detmap = \
+                 2  24  0 1279 0 \
+                 2  26  0 1279 1 \
+                 2  28  0 1279 2 \
+                 3  0  0 1279 3
+sbs_fpp.tracker.1.7.y.detmap = \
+                 2  25  0 1535 0 \
+                 2  27  0 1535 1 \
+                 2  29  0 1535 2 \
+                 3  1  0 1535 3
+
+sbs_fpp.tracker.1.8.x.detmap = \
+                 3  2  0 1279 0 \
+                 3  4  0 1279 1 \
+                 3  6  0 1279 2 \
+                 3  8  0 1279 3
+sbs_fpp.tracker.1.8.y.detmap = \
+                 3  3  0 1535 0 \
+                 3  5  0 1535 1 \
+                 3  7  0 1535 2 \
+                 3  9  0 1535 3
+
+sbs_fpp.tracker.1.9.x.detmap = \
+                 3  10  0 1279 0 \
+                 3  12  0 1279 1 \
+                 3  14  0 1279 2 \
+                 3  16  0 1279 3
+sbs_fpp.tracker.1.9.y.detmap = \
+                 3  11  0 1535 0 \
+                 3  13  0 1535 1 \
+                 3  15  0 1535 2 \
+                 3  17  0 1535 3
+
+sbs_fpp.tracker.1.10.x.detmap = \
+                 3  18  0 1279 0 \
+                 3  20  0 1279 1 \
+                 3  22  0 1279 2 \
+                 3  24  0 1279 3
+sbs_fpp.tracker.1.10.y.detmap = \
+                 3  19  0 1535 0 \
+                 3  21  0 1535 1 \
+                 3  23  0 1535 2 \
+                 3  25  0 1535 3
+
+
+#-----------------------------------------------------------------
+#  X offset of the sectors (in transport coordinates)
+#  and common position parameters (D_magnet, theta_H, theta_V)
+#-----------------------------------------------------------------
+
+# Only one sector now.
+sbs_fpp.tracker.1.dmag = 1.6125
+sbs_fpp.tracker.1.xoff = 0
+sbs_fpp.tracker.1.thetaV = 5
+#sbs_fpp.tracker.2.dmag = 1.6125
+#sbs_fpp.tracker.2.xoff = -0.25
+#sbs_fpp.tracker.2.thetaV = 5
+#sbs_fpp.tracker.3.dmag = 1.6125
+#sbs_fpp.tracker.3.xoff = 0.25
+#sbs_fpp.tracker.3.thetaV = 5
+#sbs_fpp.tracker.4.dmag = 1.6125
+#sbs_fpp.tracker.4.xoff = 0.75
+#sbs_fpp.tracker.4.thetaV = 5
+
+#-----------------------------------------------------------------
+# Tracker feature configuration
+#-----------------------------------------------------------------
+
+sbs_fpp.tracker.${allsectors}.search_depth = 10
+sbs_fpp.tracker.${allsectors}.x.search_depth = 10
+sbs_fpp.tracker.${allsectors}.y.search_depth = 10
+sbs_fpp.tracker.${allsectors}.do_eltracksel = 0
+sbs_fpp.tracker.${allsectors}.module_order = 0
+sbs_fpp.tracker.${allsectors}.maxthreads = 1
+sbs_fpp.tracker.${allsectors}.disable_tracking = 0
+sbs_fpp.tracker.${allsectors}.disable_finetrack = 1
+sbs_fpp.tracker.${allsectors}.3d_disable_chi2 = 0
+
+#-----------------------------------------------------------------
+#  Global reconstruction parameters
+#-----------------------------------------------------------------
+
+sbs_fpp.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
+sbs_fpp.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
+sbs_fpp.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
+sbs_fpp.tracker.${allsectors}.3d_maxmiss = 2
+sbs_fpp.tracker.${allsectors}.proj_to_z0 = 0
+
+#-----------------------------------------------------------------
+#  Global projection parameters
+#-----------------------------------------------------------------
+
+sbs_fpp.tracker.${allsectors}.maxmiss = 2
+sbs_fpp.tracker.${allsectors}.maxpat = 100000
+sbs_fpp.tracker.${allsectors}.chi2_conflevel = 1e-06
+sbs_fpp.tracker.${allsectors}.disable_chi2 = 0
+
+#-----------------------------------------------------------------
+#  Global plane parameters
+#-----------------------------------------------------------------
+
+sbs_fpp.tracker.xp.res = 9e-05
+sbs_fpp.tracker.maxhits = 1000
+sbs_fpp.tracker.maxsamp = 3
+sbs_fpp.tracker.maxclustsiz = 6
+sbs_fpp.tracker.adc.min = 100
+sbs_fpp.tracker.split.frac = 0.1
+sbs_fpp.tracker.maxsamp = 6
+sbs_fpp.tracker.adc.sigma = 0.2
+sbs_fpp.tracker.do_noise = 0
+sbs_fpp.tracker.check_pulse_shape = 0
+sbs_fpp.tracker.pedestal_sigma = 5
+sbs_fpp.tracker.tmp_pedestal_rms = 15
+sbs_fpp.tracker.tmp_comm_range =200
+sbs_fpp.tracker.do_histos = 1
+sbs_fpp.tracker.commonmode_groupsize = 128
+
+#-----------------------------------------------------------------
+#   Plane-specific data
+#   Detector maps are above
+#-----------------------------------------------------------------
+
+#new plane module
+
+sbs_fpp.tracker.1.1.x.description = x module 1 in plane 1
+sbs_fpp.tracker.1.1.x.nstrips = 5120
+sbs_fpp.tracker.1.1.x.partner = 1.y
+sbs_fpp.tracker.1.1.x.type = x
+sbs_fpp.tracker.1.1.x.strip.pos = -1.024
+sbs_fpp.tracker.1.1.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.1.x.d0 = 3.07276
+sbs_fpp.tracker.1.1.x.dx = 0.512
+sbs_fpp.tracker.1.1.x.dy = 0.6144
+sbs_fpp.tracker.1.1.x.dz = 0.015955
+sbs_fpp.tracker.1.1.x.nmodule = 4
+sbs_fpp.tracker.1.1.x.1.offset = 0 
+sbs_fpp.tracker.1.1.x.2.offset = 0.512
+sbs_fpp.tracker.1.1.x.3.offset = 1.024
+sbs_fpp.tracker.1.1.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.1.y.description = y module 1 in plane 1
+sbs_fpp.tracker.1.1.y.nstrips = 6144
+sbs_fpp.tracker.1.1.y.partner = 1.x
+sbs_fpp.tracker.1.1.y.type = y
+sbs_fpp.tracker.1.1.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.1.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.1.y.d0 = 3.07276
+sbs_fpp.tracker.1.1.y.dx = 0.512
+sbs_fpp.tracker.1.1.y.dy = 0.6144
+sbs_fpp.tracker.1.1.y.dz = 0.015955
+sbs_fpp.tracker.1.1.y.nmodule = 4			   
+sbs_fpp.tracker.1.1.y.1.offset = 0. 
+sbs_fpp.tracker.1.1.y.2.offset = 0.
+sbs_fpp.tracker.1.1.y.3.offset = 0.
+sbs_fpp.tracker.1.1.y.4.offset = 0.
+
+sbs_fpp.tracker.1.2.x.description = x module 1 in plane 2
+sbs_fpp.tracker.1.2.x.nstrips = 5120
+sbs_fpp.tracker.1.2.x.partner = 2.y
+sbs_fpp.tracker.1.2.x.type = x
+sbs_fpp.tracker.1.2.x.strip.pos = -1.024
+sbs_fpp.tracker.1.2.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.2.x.d0 = 3.16591
+sbs_fpp.tracker.1.2.x.dx = 0.512
+sbs_fpp.tracker.1.2.x.dy = 0.6144
+sbs_fpp.tracker.1.2.x.dz = 0.015955
+sbs_fpp.tracker.1.2.x.nmodule = 4
+sbs_fpp.tracker.1.2.x.1.offset = 0 
+sbs_fpp.tracker.1.2.x.2.offset = 0.512
+sbs_fpp.tracker.1.2.x.3.offset = 1.024
+sbs_fpp.tracker.1.2.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.2.y.description = y module 1 in plane 2
+sbs_fpp.tracker.1.2.y.nstrips = 6144
+sbs_fpp.tracker.1.2.y.partner = 2.x
+sbs_fpp.tracker.1.2.y.type = y
+sbs_fpp.tracker.1.2.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.2.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.2.y.d0 = 3.16591
+sbs_fpp.tracker.1.2.y.dx = 0.512
+sbs_fpp.tracker.1.2.y.dy = 0.6144
+sbs_fpp.tracker.1.2.y.dz = 0.015955
+sbs_fpp.tracker.1.2.y.nmodule = 4			   
+sbs_fpp.tracker.1.2.y.1.offset = 0. 
+sbs_fpp.tracker.1.2.y.2.offset = 0.
+sbs_fpp.tracker.1.2.y.3.offset = 0.
+sbs_fpp.tracker.1.2.y.4.offset = 0.
+
+sbs_fpp.tracker.1.3.x.description = x module 1 in plane 3
+sbs_fpp.tracker.1.3.x.nstrips = 5120
+sbs_fpp.tracker.1.3.x.partner = 3.y
+sbs_fpp.tracker.1.3.x.type = x
+sbs_fpp.tracker.1.3.x.strip.pos = -1.024
+sbs_fpp.tracker.1.3.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.3.x.d0 = 3.25906
+sbs_fpp.tracker.1.3.x.dx = 0.512
+sbs_fpp.tracker.1.3.x.dy = 0.6144
+sbs_fpp.tracker.1.3.x.dz = 0.015955
+sbs_fpp.tracker.1.3.x.nmodule = 4
+sbs_fpp.tracker.1.3.x.1.offset = 0 
+sbs_fpp.tracker.1.3.x.2.offset = 0.512
+sbs_fpp.tracker.1.3.x.3.offset = 1.024
+sbs_fpp.tracker.1.3.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.3.y.description = y module 1 in plane 3
+sbs_fpp.tracker.1.3.y.nstrips = 6144
+sbs_fpp.tracker.1.3.y.partner = 3.x
+sbs_fpp.tracker.1.3.y.type = y
+sbs_fpp.tracker.1.3.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.3.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.3.y.d0 = 3.25906
+sbs_fpp.tracker.1.3.y.dx = 0.512
+sbs_fpp.tracker.1.3.y.dy = 0.6144
+sbs_fpp.tracker.1.3.y.dz = 0.015955
+sbs_fpp.tracker.1.3.y.nmodule = 4			   
+sbs_fpp.tracker.1.3.y.1.offset = 0. 
+sbs_fpp.tracker.1.3.y.2.offset = 0.
+sbs_fpp.tracker.1.3.y.3.offset = 0.
+sbs_fpp.tracker.1.3.y.4.offset = 0.
+
+sbs_fpp.tracker.1.4.x.description = x module 1 in plane 4
+sbs_fpp.tracker.1.4.x.nstrips = 5120
+sbs_fpp.tracker.1.4.x.partner = 4.y
+sbs_fpp.tracker.1.4.x.type = x
+sbs_fpp.tracker.1.4.x.strip.pos = -1.024
+sbs_fpp.tracker.1.4.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.4.x.d0 = 3.35221
+sbs_fpp.tracker.1.4.x.dx = 0.512
+sbs_fpp.tracker.1.4.x.dy = 0.6144
+sbs_fpp.tracker.1.4.x.dz = 0.015955
+sbs_fpp.tracker.1.4.x.nmodule = 4
+sbs_fpp.tracker.1.4.x.1.offset = 0 
+sbs_fpp.tracker.1.4.x.2.offset = 0.512
+sbs_fpp.tracker.1.4.x.3.offset = 1.024
+sbs_fpp.tracker.1.4.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.4.y.description = y module 1 in plane 4
+sbs_fpp.tracker.1.4.y.nstrips = 6144
+sbs_fpp.tracker.1.4.y.partner = 4.x
+sbs_fpp.tracker.1.4.y.type = y
+sbs_fpp.tracker.1.4.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.4.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.4.y.d0 = 3.35221
+sbs_fpp.tracker.1.4.y.dx = 0.512
+sbs_fpp.tracker.1.4.y.dy = 0.6144
+sbs_fpp.tracker.1.4.y.dz = 0.015955
+sbs_fpp.tracker.1.4.y.nmodule = 4			   
+sbs_fpp.tracker.1.4.y.1.offset = 0. 
+sbs_fpp.tracker.1.4.y.2.offset = 0.
+sbs_fpp.tracker.1.4.y.3.offset = 0.
+sbs_fpp.tracker.1.4.y.4.offset = 0.
+
+sbs_fpp.tracker.1.5.x.description = x module 1 in plane 5
+sbs_fpp.tracker.1.5.x.nstrips = 5120
+sbs_fpp.tracker.1.5.x.partner = 5.y
+sbs_fpp.tracker.1.5.x.type = x
+sbs_fpp.tracker.1.5.x.strip.pos = -1.024
+sbs_fpp.tracker.1.5.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.5.x.d0 = 3.44536
+sbs_fpp.tracker.1.5.x.dx = 0.512
+sbs_fpp.tracker.1.5.x.dy = 0.6144
+sbs_fpp.tracker.1.5.x.dz = 0.015955
+sbs_fpp.tracker.1.5.x.nmodule = 4
+sbs_fpp.tracker.1.5.x.1.offset = 0 
+sbs_fpp.tracker.1.5.x.2.offset = 0.512
+sbs_fpp.tracker.1.5.x.3.offset = 1.024
+sbs_fpp.tracker.1.5.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.5.y.description = y module 1 in plane 5
+sbs_fpp.tracker.1.5.y.nstrips = 6144
+sbs_fpp.tracker.1.5.y.partner = 5.x
+sbs_fpp.tracker.1.5.y.type = y
+sbs_fpp.tracker.1.5.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.5.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.5.y.d0 = 3.44536
+sbs_fpp.tracker.1.5.y.dx = 0.512
+sbs_fpp.tracker.1.5.y.dy = 0.6144
+sbs_fpp.tracker.1.5.y.dz = 0.015955
+sbs_fpp.tracker.1.5.y.nmodule = 4			   
+sbs_fpp.tracker.1.5.y.1.offset = 0. 
+sbs_fpp.tracker.1.5.y.2.offset = 0.
+sbs_fpp.tracker.1.5.y.3.offset = 0.
+sbs_fpp.tracker.1.5.y.4.offset = 0.
+
+
+sbs_fpp.tracker.1.6.x.description = x module 1 in plane 6
+sbs_fpp.tracker.1.6.x.nstrips = 5120
+sbs_fpp.tracker.1.6.x.partner = 6.y
+sbs_fpp.tracker.1.6.x.type = x
+sbs_fpp.tracker.1.6.x.strip.pos = -1.024
+sbs_fpp.tracker.1.6.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.6.x.d0 = 4.19046
+sbs_fpp.tracker.1.6.x.dx = 0.512
+sbs_fpp.tracker.1.6.x.dy = 0.6144
+sbs_fpp.tracker.1.6.x.dz = 0.015955
+sbs_fpp.tracker.1.6.x.nmodule = 4
+sbs_fpp.tracker.1.6.x.1.offset = 0 
+sbs_fpp.tracker.1.6.x.2.offset = 0.512
+sbs_fpp.tracker.1.6.x.3.offset = 1.024
+sbs_fpp.tracker.1.6.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.6.y.description = y module 1 in plane 6
+sbs_fpp.tracker.1.6.y.nstrips = 6144
+sbs_fpp.tracker.1.6.y.partner = 6.x
+sbs_fpp.tracker.1.6.y.type = y
+sbs_fpp.tracker.1.6.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.6.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.6.y.d0 = 4.19046
+sbs_fpp.tracker.1.6.y.dx = 0.512
+sbs_fpp.tracker.1.6.y.dy = 0.6144
+sbs_fpp.tracker.1.6.y.dz = 0.015955
+sbs_fpp.tracker.1.6.y.nmodule = 4			   
+sbs_fpp.tracker.1.6.y.1.offset = 0. 
+sbs_fpp.tracker.1.6.y.2.offset = 0.
+sbs_fpp.tracker.1.6.y.3.offset = 0.
+sbs_fpp.tracker.1.6.y.4.offset = 0.
+
+sbs_fpp.tracker.1.7.x.description = x module 1 in plane 7
+sbs_fpp.tracker.1.7.x.nstrips = 5120
+sbs_fpp.tracker.1.7.x.partner = 7.y
+sbs_fpp.tracker.1.7.x.type = x
+sbs_fpp.tracker.1.7.x.strip.pos = -1.024
+sbs_fpp.tracker.1.7.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.7.x.d0 = 4.28361
+sbs_fpp.tracker.1.7.x.dx = 0.512
+sbs_fpp.tracker.1.7.x.dy = 0.6144
+sbs_fpp.tracker.1.7.x.dz = 0.015955
+sbs_fpp.tracker.1.7.x.nmodule = 4
+sbs_fpp.tracker.1.7.x.1.offset = 0 
+sbs_fpp.tracker.1.7.x.2.offset = 0.512
+sbs_fpp.tracker.1.7.x.3.offset = 1.024
+sbs_fpp.tracker.1.7.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.7.y.description = y module 1 in plane 7
+sbs_fpp.tracker.1.7.y.nstrips = 6144
+sbs_fpp.tracker.1.7.y.partner = 7.x
+sbs_fpp.tracker.1.7.y.type = y
+sbs_fpp.tracker.1.7.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.7.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.7.y.d0 = 4.28361
+sbs_fpp.tracker.1.7.y.dx = 0.512
+sbs_fpp.tracker.1.7.y.dy = 0.6144
+sbs_fpp.tracker.1.7.y.dz = 0.015955
+sbs_fpp.tracker.1.7.y.nmodule = 4			   
+sbs_fpp.tracker.1.7.y.1.offset = 0. 
+sbs_fpp.tracker.1.7.y.2.offset = 0.
+sbs_fpp.tracker.1.7.y.3.offset = 0.
+sbs_fpp.tracker.1.7.y.4.offset = 0.
+
+sbs_fpp.tracker.1.8.x.description = x module 1 in plane 8
+sbs_fpp.tracker.1.8.x.nstrips = 5120
+sbs_fpp.tracker.1.8.x.partner = 8.y
+sbs_fpp.tracker.1.8.x.type = x
+sbs_fpp.tracker.1.8.x.strip.pos = -1.024
+sbs_fpp.tracker.1.8.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.8.x.d0 = 4.37676
+sbs_fpp.tracker.1.8.x.dx = 0.512
+sbs_fpp.tracker.1.8.x.dy = 0.6144
+sbs_fpp.tracker.1.8.x.dz = 0.015955
+sbs_fpp.tracker.1.8.x.nmodule = 4
+sbs_fpp.tracker.1.8.x.1.offset = 0 
+sbs_fpp.tracker.1.8.x.2.offset = 0.512
+sbs_fpp.tracker.1.8.x.3.offset = 1.024
+sbs_fpp.tracker.1.8.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.8.y.description = y module 1 in plane 8
+sbs_fpp.tracker.1.8.y.nstrips = 6144
+sbs_fpp.tracker.1.8.y.partner = 8.x
+sbs_fpp.tracker.1.8.y.type = y
+sbs_fpp.tracker.1.8.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.8.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.8.y.d0 = 4.37676
+sbs_fpp.tracker.1.8.y.dx = 0.512
+sbs_fpp.tracker.1.8.y.dy = 0.6144
+sbs_fpp.tracker.1.8.y.dz = 0.015955
+sbs_fpp.tracker.1.8.y.nmodule = 4			   
+sbs_fpp.tracker.1.8.y.1.offset = 0. 
+sbs_fpp.tracker.1.8.y.2.offset = 0.
+sbs_fpp.tracker.1.8.y.3.offset = 0.
+sbs_fpp.tracker.1.8.y.4.offset = 0.
+
+sbs_fpp.tracker.1.9.x.description = x module 1 in plane 9
+sbs_fpp.tracker.1.9.x.nstrips = 5120
+sbs_fpp.tracker.1.9.x.partner = 9.y
+sbs_fpp.tracker.1.9.x.type = x
+sbs_fpp.tracker.1.9.x.strip.pos = -1.024
+sbs_fpp.tracker.1.9.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.9.x.d0 = 4.46991
+sbs_fpp.tracker.1.9.x.dx = 0.512
+sbs_fpp.tracker.1.9.x.dy = 0.6144
+sbs_fpp.tracker.1.9.x.dz = 0.015955
+sbs_fpp.tracker.1.9.x.nmodule = 4
+sbs_fpp.tracker.1.9.x.1.offset = 0 
+sbs_fpp.tracker.1.9.x.2.offset = 0.512
+sbs_fpp.tracker.1.9.x.3.offset = 1.024
+sbs_fpp.tracker.1.9.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.9.y.description = y module 1 in plane 9
+sbs_fpp.tracker.1.9.y.nstrips = 6144
+sbs_fpp.tracker.1.9.y.partner = 9.x
+sbs_fpp.tracker.1.9.y.type = y
+sbs_fpp.tracker.1.9.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.9.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.9.y.d0 = 4.46991
+sbs_fpp.tracker.1.9.y.dx = 0.512
+sbs_fpp.tracker.1.9.y.dy = 0.6144
+sbs_fpp.tracker.1.9.y.dz = 0.015955
+sbs_fpp.tracker.1.9.y.nmodule = 4			   
+sbs_fpp.tracker.1.9.y.1.offset = 0. 
+sbs_fpp.tracker.1.9.y.2.offset = 0.
+sbs_fpp.tracker.1.9.y.3.offset = 0.
+sbs_fpp.tracker.1.9.y.4.offset = 0.
+
+sbs_fpp.tracker.1.10.x.description = x module 1 in plane 10
+sbs_fpp.tracker.1.10.x.nstrips = 5120
+sbs_fpp.tracker.1.10.x.partner = 10.y
+sbs_fpp.tracker.1.10.x.type = x
+sbs_fpp.tracker.1.10.x.strip.pos = -1.024
+sbs_fpp.tracker.1.10.x.strip.pitch = 0.0004
+sbs_fpp.tracker.1.10.x.d0 = 4.56306
+sbs_fpp.tracker.1.10.x.dx = 0.512
+sbs_fpp.tracker.1.10.x.dy = 0.6144
+sbs_fpp.tracker.1.10.x.dz = 0.015955
+sbs_fpp.tracker.1.10.x.nmodule = 4
+sbs_fpp.tracker.1.10.x.1.offset = 0 
+sbs_fpp.tracker.1.10.x.2.offset = 0.512
+sbs_fpp.tracker.1.10.x.3.offset = 1.024
+sbs_fpp.tracker.1.10.x.4.offset = 1.136
+
+sbs_fpp.tracker.1.10.y.description = y module 1 in plane 10
+sbs_fpp.tracker.1.10.y.nstrips = 6144
+sbs_fpp.tracker.1.10.y.partner = 10.x
+sbs_fpp.tracker.1.10.y.type = y
+sbs_fpp.tracker.1.10.y.strip.pos = -0.3072
+sbs_fpp.tracker.1.10.y.strip.pitch = 0.0004
+sbs_fpp.tracker.1.10.y.d0 = 4.56306
+sbs_fpp.tracker.1.10.y.dx = 0.512
+sbs_fpp.tracker.1.10.y.dy = 0.6144
+sbs_fpp.tracker.1.10.y.dz = 0.015955
+sbs_fpp.tracker.1.10.y.nmodule = 4			   
+sbs_fpp.tracker.1.10.y.1.offset = 0. 
+sbs_fpp.tracker.1.10.y.2.offset = 0.
+sbs_fpp.tracker.1.10.y.3.offset = 0.
+sbs_fpp.tracker.1.10.y.4.offset = 0.

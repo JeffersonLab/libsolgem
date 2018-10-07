@@ -5,17 +5,68 @@
 #include "TMath.h"
 #include "TVector2.h"
 #include "TRandom3.h"
+#include "TSystem.h"
+
+using namespace std;
 
 TSBSDBManager * TSBSDBManager::fManager = NULL;
 
-TSBSDBManager::TSBSDBManager() 
-: fErrID(-999), fErrVal(-999.)
+TSBSDBManager::TSBSDBManager()
+  : fDoMapSector(0), fMappedSector(0), fDoSelfDefinedSector(0),
+    fNChamber(0), fNSector(0), fNGEMPlane(0), fNReadOut(0), fNSigParticle(0),
+    fGEMDriftID(0), fGEMCopperFrontID(0), fGEMCopperBackID(0), fGEMStripID(0),
+    fFAECID(0), fLAECID(0),
+    fChanPerSlot(2048), fModulesPerReadOut(1), fModulesPerChamber(1), fChambersPerCrate(1),
+    fg4sbsDetectorType(0), fg4sbsZSpecOffset(0),
+    fCaloThr(0), fgCaloZ(0), fgCaloRes(0), fgDoCalo(0), fgZ0(0),
+    fErrID(-999), fErrVal(-999.)
 {
 }
 //______________________________________________________________
 TSBSDBManager::~TSBSDBManager()
 {
 }
+
+//______________________________________________________________
+static bool OpenInput( const string& filename, ifstream& ifs )
+{
+  // Open input stream 'ifs' for file 'filename'.
+  // Look first in current directory, then in $DB_DIR, then in
+  // $LIBSBSGEM/db
+
+  ifs.close();
+
+  struct FileLoc {
+    FileLoc() : env(0) {}
+    const char* env;
+    string subdir;
+  };
+  const int N = 3;
+  FileLoc fileloc[N];
+  fileloc[0].env = "";
+  fileloc[1].env = gSystem->Getenv("DB_DIR");
+  fileloc[2].env = gSystem->Getenv("LIBSBSGEM");
+  fileloc[2].subdir = "db";
+
+  for( int i=0; i<N; i++ ) {
+    FileLoc& f = fileloc[i];
+    if( !f.env )
+      continue;
+    string path(f.env);
+    if( !path.empty() )
+      path += "/";
+    if( !f.subdir.empty() )
+      path += f.subdir + "/";
+    path += filename;
+
+    ifs.clear();
+    ifs.open(path.c_str());
+    if( ifs.good() )
+      return true;
+  }
+  return false;
+}
+
 //______________________________________________________________
 void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 {  
@@ -23,16 +74,15 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
   //Instead, "Plane-Module" is introduced. "Plane" means tracking plane and 
   //"Module" means a independent GEM module which is a sub division of the "Plane"
   
-    ifstream input(fileName.c_str());
-    if (!input.is_open()){
+    ifstream input;
+    if ( !OpenInput(fileName,input) ){
         cout<<"cannot find general information file "<<fileName
             <<". Exiting the program"<<endl;
         exit(0);
     }
     const string prefix = "generalinfo.";
 
-    std::vector<Int_t>* NModule = 0;
-    NModule = new vector<Int_t>;
+    std::vector<Int_t>* NModule = new vector<Int_t>;
     DBRequest request[] = {
         {"do_map_sector",       &fDoMapSector         , kInt,    0, 1},
         {"self_define_sector",  &fDoSelfDefinedSector , kInt,    0, 1},
@@ -69,9 +119,11 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 
     int err = LoadDB( input, request,  prefix);
     if( err ) {cout<<"Load DB error"<<endl;exit(2);} 
-
     
-    if(fNGEMPlane!=NModule->size()){cout<<"Check consistency of number of GEM Planes"<<endl;exit(2);}
+    if(fNGEMPlane!=(int)NModule->size()) {
+      cout<<"Check consistency of number of GEM Planes"<<endl;
+      exit(2);
+    }
     int nGEMtot=0;
     for(int i=0;i<fNGEMPlane;i++)
       {
@@ -82,6 +134,7 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 	    fmPMtoIgem[i][j]=nGEMtot;
 	    fmIgemtoPlane[nGEMtot]=i;
 	    fmIgemtoModule[nGEMtot]=j;
+	    //cout << "igem = " << nGEMtot << ", plane = " << i << ", module = " << j << endl;
 	    nGEMtot++;
 	  }
       }
@@ -111,14 +164,15 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
     
     // fChambersPerCrate = 
     // (TSBSSimDecoder::GetMAXSLOT()/fModulesPerChamber/fNChamber) * fNChamber;
+    input.close();
 }
 
 void TSBSDBManager::LoadGeoInfo(const string& prefix)
 {
   const string& fileName = "db_"+prefix+".dat";
     
-  ifstream input(fileName.c_str());
-  if (!input.is_open()){
+  ifstream input;
+  if( !OpenInput(fileName,input) ) {
     cout<<"cannot find geometry file "<<fileName
 	<<". Exiting the program"<<endl;
     exit(0);
@@ -151,7 +205,7 @@ void TSBSDBManager::LoadGeoInfo(const string& prefix)
     
     for (int j=0; j<fNModule[i]; j++){
       ostringstream plane_prefix(prefix, ios_base::ate);
-      int idx = j;
+      //      int idx = j;
       plane_prefix<<".plane"<<i<<".module"<<j<<".";
       
       int err = LoadDB(input, request, plane_prefix.str());
@@ -163,12 +217,13 @@ void TSBSDBManager::LoadGeoInfo(const string& prefix)
       fPMGeoInfo[i].push_back(thisGeo);
     }
   }
+  input.close();
 }
 
 
 
 //______________________________________________________________
-string TSBSDBManager::FindKey( ifstream& inp, const string& key )
+string TSBSDBManager::FindKey( ifstream& inp, const string& key ) const
 {
   static const string empty("");
   string line;
@@ -189,7 +244,7 @@ string TSBSDBManager::FindKey( ifstream& inp, const string& key )
   return empty;
 }
 //_________________________________________________________________________
-bool TSBSDBManager::CheckIndex(int i, int j, int k)//(plane, module, readoutAxis)
+bool TSBSDBManager::CheckIndex(int i, int j, int k) const//(plane, module, readoutAxis)
 {
     if (i >= fNChamber || i < 0){
         cout<<"invalid chamber ID requested: "<<i<<endl;
@@ -248,7 +303,7 @@ int TSBSDBManager::LoadDB( ifstream& inp, DBRequest* request, const string& pref
   return 0;
 }
 //_____________________________________________________________________
-const int & TSBSDBManager::GetSigPID(unsigned int i)
+int TSBSDBManager::GetSigPID(unsigned int i) const
 {
     if ( i >= fSigPID.size() ){ 
         cout<<"only "<<fSigPID.size()<<" signal particle registered"<<endl;
@@ -257,7 +312,7 @@ const int & TSBSDBManager::GetSigPID(unsigned int i)
     return fSigPID[i];
 }
 //______________________________________________________________________
-const int & TSBSDBManager::GetSigTID(unsigned int i)
+int TSBSDBManager::GetSigTID(unsigned int i) const
 {
     if ( i >= fSigPID.size() ){ 
         cout<<"only "<<fSigPID.size()<<" signal particle registered"<<endl;
@@ -267,56 +322,56 @@ const int & TSBSDBManager::GetSigTID(unsigned int i)
 }
 
 //______________________________________________________________________
-const double & TSBSDBManager::GetDMag(int i, int j)
+double TSBSDBManager::GetDMag(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).dmag;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetD0(int i, int j)
+double TSBSDBManager::GetD0(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).d0;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetXOffset(int i, int j)
+double TSBSDBManager::GetXOffset(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).xoffset;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetDX(int i, int j)
+double TSBSDBManager::GetDX(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).dx;
 }
 //______________________________________________________________________
-const double & TSBSDBManager::GetDY(int i, int j)
+double TSBSDBManager::GetDY(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).dy;
 }
 //______________________________________________________________________
-// const double & TSBSDBManager::GetThetaH(int i, int j)
+// double TSBSDBManager::GetThetaH(int i, int j) const
 // {
 //     if (!CheckIndex(i, j)) return fErrVal;
 //     return fGeoInfo[j].at(i).thetaH;
 // }
 //______________________________________________________________________
-const double & TSBSDBManager::GetThetaV(int i, int j)
+double TSBSDBManager::GetThetaV(int i, int j)
 {
   if (!CheckIndex(i, j)) return fErrVal;
   return fPMGeoInfo[i].at(j).thetaV;
 }
 //_________________________________________________________________________
-const double & TSBSDBManager::GetStripAngle(int i, int j, int k)
+double TSBSDBManager::GetStripAngle(int i, int j, int k)
 {
   if (!CheckIndex(i, j, k)) return fErrVal;
   if (k == 0) return fPMGeoInfo[i].at(j).stripangle_u;
   else return fPMGeoInfo[i].at(j).stripangle_u;
 }
 //_________________________________________________________________________
-//const double & TSBSDBManager::GetPitch(int i, int j, int k)
+//double TSBSDBManager::GetPitch(int i, int j, int k)
 //{
 //    if (!CheckIndex(i, j, k)) return fErrVal;
 //    if (k == 0) return fGeoInfo[j].at(i).pitch_u;
@@ -325,16 +380,20 @@ const double & TSBSDBManager::GetStripAngle(int i, int j, int k)
 
 
 
-int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double y)
+int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double /*y*/)
 {
   if (!CheckIndex(iplane)) return fErrVal;
   
   int module = -1;
-  for(int k = 0; k<fPMGeoInfo[iplane].size(); k++){
+  for(size_t k = 0; k<fPMGeoInfo[iplane].size(); k++){
     if(fPMGeoInfo[iplane].at(k).xoffset-fPMGeoInfo[iplane].at(k).dx/2.0<=x && 
        x<=fPMGeoInfo[iplane].at(k).xoffset+fPMGeoInfo[iplane].at(k).dx/2.0)
       {
         module = k;
+	// cout << " TSBSDBManager::GetModuleIDFromPos: iplane= " << iplane << ", x= " << x 
+	//      << ", plane offset " << fPMGeoInfo[iplane].at(k).xoffset 
+	//      << ", half size " << fPMGeoInfo[iplane].at(k).dx/2.0 
+	//      << ", module " << k << endl;
       }
   }
 
@@ -343,7 +402,8 @@ int TSBSDBManager::GetModuleIDFromPos(int iplane, double x, double y)
 
 //__________________________________________________________________________
 
-double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane, int imodule, int istrip)
+double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane,
+					    int imodule, int istrip)
 {
   if (!CheckIndex(iplane, imodule)) return fErrVal;
 
@@ -360,7 +420,7 @@ double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane, int imodule, 
   }
   
   //cout << " " << pos << endl;
-  return( pos );
+  return pos;
 }
 
 

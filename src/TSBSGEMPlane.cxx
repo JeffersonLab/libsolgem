@@ -10,11 +10,12 @@
 
 #include <iostream>
 #include <cassert>
+#include <cstring>
 
 using namespace std;
 
 TSBSGEMPlane::TSBSGEMPlane()
-  : THaSubDetector()
+  : fClusters(0), fSAngle(0), fNStrips(0), fSPitch(0), fSBeg(0), fCBS(0), fSBS(0)
 {
   fBox = new TSBSBox;
   return;
@@ -22,7 +23,8 @@ TSBSGEMPlane::TSBSGEMPlane()
 
 TSBSGEMPlane::TSBSGEMPlane( const char *name, const char *desc,
 			    THaDetectorBase* parent )
-  : THaSubDetector (name, desc, parent)
+  : THaSubDetector(name, desc, parent),
+    fClusters(0), fSAngle(0), fNStrips(0), fSPitch(0), fSBeg(0), fCBS(0), fSBS(0)
 {
   fBox = new TSBSBox;
   return;
@@ -54,7 +56,7 @@ TSBSGEMPlane::ReadDatabase (const TDatime& date)
 
 Int_t 
 TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
-			    Bool_t required)
+			    Bool_t /* required */)
 {
   // Get x/y position, size, and angles from database if and only
   // if parent is null otherwise copy from parent
@@ -148,7 +150,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   Double_t ys[4] = {ys0, -ys0, ys0, -ys0};
   
   Int_t smin = 1e9;
-  Int_t smax = 1e-9;
+  Int_t smax = 1e-9;  //FIXME: this obviously cannot be. -1e9 would make more sense
   for (UInt_t i = 0; i < 4; ++i)
     {
       PlaneToStrip (xs[i], ys[i]);
@@ -167,7 +169,7 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
   return kOK;
 }
 
-Int_t TSBSGEMPlane::Decode( const THaEvData &d ){
+Int_t TSBSGEMPlane::Decode( const THaEvData & ){
     // Clusters get made as so
 
   //    int i = 0;
@@ -318,12 +320,12 @@ TSBSGEMPlane::GetStrip (Double_t x, Double_t yc) const
 }
 
 void 
-TSBSGEMPlane::Print(bool printcham) const
+TSBSGEMPlane::Print( Option_t* opt ) const
 {
   //Print GEM plane info
   cout << "I'm a GEM plane named " << GetName() << endl;
 
-  if(printcham){
+  if( opt && *opt && strchr(opt,'P') != 0 ){
     TVector3 o (GetOrigin());
     cout << "  Origin: " << o(0) << " " << o(1) << " " << o(2)
 	 << " (rho,theta,phi)=(" << o.Mag() << "," << o.Theta()*TMath::RadToDeg()

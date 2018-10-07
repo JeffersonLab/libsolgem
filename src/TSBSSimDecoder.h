@@ -20,9 +20,10 @@ class THaCrateMap;
 class TSBSMCHitInfo : public Podd::MCHitInfo 
 {
  public:
- TSBSMCHitInfo() : MCHitInfo(), fMCCharge(0) {}
- TSBSMCHitInfo( Int_t mctrk, Double_t mcpos, Double_t time, Double_t charge = 0.0, Int_t contam = 0 )
-   : MCHitInfo(mctrk, mcpos, time, contam), fMCCharge(charge){}
+ TSBSMCHitInfo() : MCHitInfo(), fMCCharge(0), fSigType(0) {}
+ TSBSMCHitInfo( Int_t mctrk, Double_t mcpos, Double_t time,
+                Double_t charge = 0.0, Int_t contam = 0 )
+   : MCHitInfo(mctrk, mcpos, time, contam), fMCCharge(charge), fSigType(0) {}
   
   virtual ~TSBSMCHitInfo() {}
 
@@ -30,26 +31,27 @@ class TSBSMCHitInfo : public Podd::MCHitInfo
   void MCClear() { fMCTrack = fContam = 0; fMCPos = fMCTime = 0; fMCCharge = 0;}
   
   Double_t fMCCharge;    // GEM charge
-  vector<Int_t> vClusterID;
-  vector<Int_t> vClusterType;
-  vector<Double_t> vClusterStripWeight;
-  vector<Double_t> vClusterPeakTime;
-  vector<TVector3> vClusterPos;
-  vector<Double_t> vClusterCharge;
-  vector<Int_t> vClusterADC[6];
+  std::vector<Int_t> vClusterID;
+  std::vector<Int_t> vClusterType;
+  std::vector<Double_t> vClusterStripWeight;
+  std::vector<Double_t> vClusterPeakTime;
+  std::vector<TVector3> vClusterPos;
+  std::vector<Double_t> vClusterCharge;
+  std::vector<Int_t> vClusterADC[6];
   Int_t fSigType;
   
   ClassDef(TSBSMCHitInfo,1)  // Generic Monte Carlo hit info
 };
-
-
 
 //-----------------------------------------------------------------------------
 // Helper classes for making decoded event data available via global variables
 
 class TSBSSimGEMHit : public TObject {
 public:
-  TSBSSimGEMHit() {}
+  TSBSSimGEMHit()
+    : fID(0), fSector(0), fPlane(0), fRealSector(0), fSource(0), fType(0),
+      fPID(0), fCharge(0), fTime(0), fUSize(0), fUStart(0), fUPos(0),
+      fVSize(0), fVStart(0), fVPos(0) {}
   TSBSSimGEMHit( const TSBSSimEvent::GEMCluster& cl );
 
   virtual void Print( const Option_t* opt="" ) const;
@@ -92,7 +94,9 @@ public:
 //-----------------------------------------------------------------------------
 class TSBSSimBackTrack : public TObject {
 public:
-  TSBSSimBackTrack() {}
+  TSBSSimBackTrack()
+    : fType(0), fPID(0), fSector(0), fSource(0), fHitBits(0),
+      fUfailBits(0), fVfailBits(0) {}
   TSBSSimBackTrack( const TSBSSimEvent::GEMCluster& cl );
 
   Double_t X()         const { return fOrigin.X(); }
@@ -157,7 +161,7 @@ class TSBSSimDecoder : public Podd::SimDecoder {
   virtual Int_t DefineVariables( THaAnalysisObject::EMode mode =
 				 THaAnalysisObject::kDefine );
   TSBSMCHitInfo GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const;
-  vector<vector<Double_t>> GetAllMCHits() const;
+  std::vector<std::vector<Double_t> > GetAllMCHits() const;
   
   Int_t  GetNBackTracks() const { return fBackTracks->GetLast()+1; }
 

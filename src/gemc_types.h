@@ -31,7 +31,7 @@ static int __gemc_types_datasize[NBANKS] = {23,21};
 static int __gemc_types_detidnum[NBANKS] = {23,21};
 
 // FIXME:  Need to do this better,  map?
-static int data_size(int tag){
+inline int data_size(int tag){
     if( tag == __GEM_TAG ) {
 	return __gemc_types_datasize[0];
     }
@@ -43,7 +43,7 @@ static int data_size(int tag){
     return 0;
 }
 
-static int data_detid(int tag){
+inline int data_detid(int tag){
     if( tag == __GEM_TAG ) {
 	return __gemc_types_detidnum[0];
     } 

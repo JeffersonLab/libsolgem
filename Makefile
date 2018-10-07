@@ -17,37 +17,38 @@ ANAINCDIRS  := $(wildcard $(addprefix $(ANALYZER)/, include src hana_decode hana
 ifeq ($(strip $(ANAINCDIRS)),)
   $(error No Analyzer header files found. Check $$ANALYZER)
 endif
+SOLINCLUDE += $(addprefix -I, $(ANAINCDIRS) )
 
+# The code is littered with initialization blocks that leave trailing
+# fields at their default value of zero, which is exactly as intended
+CXXFLAGS += -Wno-missing-field-initializers
 
 #------------------------------------------------------------------------------
 # EVIO
 
-PLATFORM = $(shell uname -s)-$(shell uname -i)
-# EVIO default locations as a last resort if $EVIO isn't set in build env
-EVIO ?= $(CODA)
-EVIO ?= ../libevio
-# Possible EVIO header directories, will be used in the order found
-EVIOINC := $(wildcard $(addprefix $(EVIO)/, include src/libsrc src/libsrc++))
-# Possible EVIO library locations, the first one found will be used
-EVIOLIB := $(firstword $(wildcard $(addprefix $(EVIO)/, $(PLATFORM)/lib lib)))
-ifeq ($(strip $(EVIOINC)),)
-  $(error No EVIO header files found. Check $$EVIO)
-endif
-ifeq ($(strip $(EVIOLIB)),)
-  $(error No EVIO library directory found. Check $$EVIO)
-endif
+#PLATFORM = $(shell uname -s)-$(shell uname -m)
+## EVIO default locations as a last resort if $EVIO isn't set in build env
+#EVIO ?= $(CODA)
+#EVIO ?= ../libevio
+## Possible EVIO header directories, will be used in the order found
+#EVIOINC := $(wildcard $(addprefix $(EVIO)/, common/include include src/libsrc src/libsrc++))
+## Possible EVIO library locations, the first one found will be used
+#EVIOLIB := $(firstword $(wildcard $(addprefix $(EVIO)/, $(PLATFORM)/lib lib)))
+#ifeq ($(strip $(EVIOINC)),)
+#  $(error No EVIO header files found. Check $$EVIO)
+#endif
+#ifeq ($(strip $(EVIOLIB)),)
+#  $(error No EVIO library directory found. Check $$EVIO)
+#endif
 ifeq (debug,$(findstring debug,$(ROOTBUILD)))
-  DBGSFX = -dbg
+##  DBGSFX = -dbg
   CXXFLAGS += -O0
-else
-  CXXFLAGS += -O2 #-DNDEBUG
+#else
+#  CXXFLAGS += -O2 #-DNDEBUG
 endif
-SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
-LDFLAGS  += -L$(EVIOLIB) -levioxx$(DBGSFX) -levio$(DBGSFX) -lz -lexpat
-
-# Some of the analyzer include dirs conflict with headers in
-# EVIO
-SOLINCLUDE += $(addprefix -I, $(ANAINCDIRS) )
+#SOLINCLUDE += $(addprefix -I, $(EVIOINC) )
+##LDFLAGS  += -L$(EVIOLIB) -levioxx$(DBGSFX) -levio$(DBGSFX) -lz -lexpat
+#LDFLAGS  += -L$(EVIOLIB) -levio$(DBGSFX)
 
 #------------------------------------------------------------------------------
 

@@ -1,3 +1,14 @@
+#if !defined(__CLING__) || defined(__ROOTCLING__)
+#include "TSystem.h"
+#include "TDatime.h"
+#include "TSBSGeant4File.h"
+#include "TSBSDBManager.h"
+#include "TSBSGEMChamber.h"
+#include "TSBSSpec.h"
+#include "TSBSSimGEMDigitization.h"
+#include "TSBSSimDecoder.h"
+#include "THaAnalysisObject.h"
+#endif
 // Example "replay" script
 //#define DEBUG 1
 
@@ -15,6 +26,7 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
   
   TDatime run_time = 991231;
   
+  gSystem->AddDynamicPath("${LIBSBSGEM}");
   gSystem->Load("../libsolgem.so");
   
   ////////////////////////////////////////////////////////////////
@@ -39,33 +51,35 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
     manager->LoadGeneralInfo("db_generalinfo_bbgem.dat");
     manager->LoadGeoInfo("g4sbs_bbgem"); //new plane--module Geo for SBS GEMs
     dSpectro = new TSBSSpec ("g4sbs_bbgem", "BB spectrometer");
-    outname = Form("digitized_bbgem_%s.root", bg.c_str());
-    infile_sig_prefix = "/volatile/halla/sbs/efuchey/gmn_elastic/gmn13.5_elastic_sig_20171211_08";
+    outname = Form("rootfiles/digitized_bbgem_%s.root", bg.c_str());
+    infile_sig_prefix = "/work/halla/sbs/efuchey/gmn13.5_elastic_sig_20180709_22";
     //infile_sig_prefix = "/volatile/halla/sbs/efuchey/gmn_elastic/gmn13.5_elastic_sig_20171018_14";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/misc/gmn13.5_BBgemMIP_20171018_14";
-    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn_beam_bkgd/gmn13.5_beam_bkgd_20171211_15";
+    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn13.5_beam_bkgd_20180718_22";
     //infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gmn_beam_bkgd/gmn13.5_beam_bkgd_20170630_14";
     dSpectro->Init(run_time);
     break;
   case(3):
     manager->LoadGeneralInfo("db_generalinfo_ft.dat");
     manager->LoadGeoInfo("g4sbs_ft");
-    dds = new TSBSSpec ("g4sbs_ft", "SBS spectrometer FT");
-    outname = Form("digitized_ft_%s.root", bg.c_str());
-    infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep_elastic/gep12_elastic_sig_20170727_14";
+    dSpectro = new TSBSSpec ("g4sbs_ft", "SBS spectrometer FT");
+    outname = Form("rootfiles/digitized_ft_%s.root", bg.c_str());
+    infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_elastic_sig_20180920_21";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_FTFPP_MIP_20170828_10";
-    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep_beam_bkgd/gep12_beam_bkgd_20170114_11";
-    dds->Init(run_time);
+    //infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep12_beam_bkgd_20180917_12";
+    infile_bkgd_prefix = "/work/halla/sbs/efuchey/gep12_beam_bkgd_20181001_12";
+    dSpectro->Init(run_time);
     break;
   case(4):
     manager->LoadGeneralInfo("db_generalinfo_fpp.dat");
     manager->LoadGeoInfo("g4sbs_fpp");
-    dds = new TSBSSpec ("g4sbs_fpp", "SBS spectrometer FPP");
-    outname = Form("digitized_fpp_%s.root", bg.c_str());
-    infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep_elastic/gep12_elastic_sig_20170727_14";
+    dSpectro = new TSBSSpec ("g4sbs_fpp", "SBS spectrometer FPP");
+    outname = Form("rootfiles/digitized_fpp_%s.root", bg.c_str());
+    infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_elastic_sig_20180920_21";
     if(mips)infile_sig_prefix = "/volatile/halla/sbs/efuchey/gep12_FTFPP_MIP_20170828_10";
-    infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep_beam_bkgd/gep12_beam_bkgd_20170114_11";
-    dds->Init(run_time);
+    //infile_bkgd_prefix = "/volatile/halla/sbs/efuchey/gep12_beam_bkgd_20180917_12";
+    infile_bkgd_prefix = "/work/halla/sbs/efuchey/gep12_beam_bkgd_20181001_12";
+    dSpectro->Init(run_time);
     break;
   default:
     cout << "No corresponding geometry; choose: " << endl 
@@ -113,6 +127,8 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
   
   int N_bg_file_g = 0;
   
+  cout << "start loop on sig files " << endl;
+  
   //Add the loop on the signal files
   for(int i_sig = 0; i_sig<NsigFiles; i_sig++){
     if(mips){
@@ -131,7 +147,9 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
       printf("Opening g4sbs file returned %d\n", res);
       continue;
     }
-
+    
+    cout << "about to go through events for file " << f->GetFileName() << endl;
+    
     int d_flag_readevent = 0;
     while( f->ReadNextEvent(d_flag_readevent) && hadback && nevent<Nmax ){
 
@@ -177,7 +195,7 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 	    N_bg_file_g_post++;
 	    N_bg_file_g++;
 	    
-	    if(N_bg_file_g>=2000){
+	    if(N_bg_file_g>=1000){
 	      int n_temp = Nfile;
 	      Nfile = N_bg_file_g_post-n_temp;
 	      N_bg_file_g_post = nbacktoadd;
@@ -230,20 +248,18 @@ void DigitizationPass(UInt_t fspec = 1, // Spectrometer flag:
 	N_bg_file_g = N_bg_file_g_post;
       }//end if nbacktoadd
     
-      if(N_bg_file_g>=2000)N_bg_file_g = 0;
-    
+      if(N_bg_file_g>=1000)N_bg_file_g = 0;
+      
       dSimDigi->FillTree();
       
       //if(nevent==7)dSimDigi->GetEvent()->Print("all");
       if(print)dSimDigi->GetEvent()->Print("all");
       //dSimDigi->GetEvent()->Print("clust");
       
-      
       delete gd;
-      delete gb;//Also needs to delete gb...Or there will be huge memory leak, especially at high background
+      if(nbacktoadd)delete gb;//Also needs to delete gb...Or there will be huge memory leak, especially at high background
       nevent++;
     }
-    cout << "closing file " << endl;
     f->Close();
   }
   printf("Completed %d events total: %d good events \n", nevent, Ngood);

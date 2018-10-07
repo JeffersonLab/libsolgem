@@ -41,7 +41,7 @@ class TSBSSpec : public THaSpectrometer {
 	TSBSGEMChamber &GetChamber(Int_t i) const { return *(fChambers.at(i)); }
 	
 	//Print spectrometer info, with each individual GEM chamber
-	void Print() const;
+	void Print(Option_t* opt="") const;
 
     private:
         std::vector<TSBSGEMChamber*>  fChambers;

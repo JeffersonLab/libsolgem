@@ -99,14 +99,14 @@ TSBSECalCluster::TSBSECalCluster(double E, double X, double Y, double t)
 
 //-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent()
-  : fRunID(0), fEvtID(0), fMCTracks(0), fNSignal(0), fSectorsMapped(false),
-    fSignalSector(0)
+  : fRunID(0), fEvtID(0), fWeight(1.), fMCTracks(0), fNSignal(0),
+    fSectorsMapped(false), fSignalSector(0)
 {
 }
 
 //-----------------------------------------------------------------------------
 TSBSSimEvent::TSBSSimEvent( UInt_t ntracks )
-  : fRunID(0), fEvtID(0), fNSignal(0), fSectorsMapped(false),
+  : fRunID(0), fEvtID(0), fWeight(1.), fNSignal(0), fSectorsMapped(false),
     fSignalSector(0)
 {
   if( ntracks == 0 ) ntracks = 1;
@@ -134,7 +134,7 @@ TSBSSimTrack* TSBSSimEvent::AddTrack( Int_t number, Int_t pid,
 }
 
 //-----------------------------------------------------------------------------
-void TSBSSimEvent::Clear( const Option_t* opt )
+void TSBSSimEvent::Clear( Option_t* opt )
 {
   // Clear the event in preparation for reading next tree entry
 
@@ -161,7 +161,7 @@ Int_t TSBSSimEvent::GetNtracks() const
 }
 
 //-----------------------------------------------------------------------------
-void TSBSSimEvent::Print( const Option_t* opt ) const
+void TSBSSimEvent::Print( Option_t* opt ) const
 {
   // Print current event info
 

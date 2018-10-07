@@ -17,6 +17,7 @@
 #include "THaBenchmark.h"
 #include "VarDef.h"
 #include "TSBSDBManager.h"
+#include "ha_compiledata.h"
 
 #include "TError.h"
 #include "TSystem.h"
@@ -41,6 +42,11 @@ static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 enum EProjType { kUPlane = 0, kVPlane =1, kXPlane = 2, kYPlane = 3};
 
 typedef vector<int>::size_type vsiz_t;
+
+// TODO: Have dbconvert write out MAXSLOT (and possibly other parameters)
+//  to the database to allow client to understand the generated detector maps.
+// FIXME: The number 30 is hardcoded in dbconvert
+static const Int_t SIM_MAXSLOT = TMath::Min(Decoder::MAXSLOT,30);
 
 //-----------------------------------------------------------------------------
 TSBSSimDecoder::TSBSSimDecoder()
@@ -260,14 +266,14 @@ void StripToROCD( Int_t s_plane, Int_t s_module, Int_t s_proj,
 		 Int_t& crate, Int_t& slot, Int_t& chan )
 {
   div_t d = div( s_chan, fManager->GetChanPerSlot() );
-  Int_t module = d.quot;
+  //  Int_t module = d.quot;
   chan = d.rem;
   //total slot id
   Int_t ix = s_proj + 2*( s_module + fManager->GetNModule(s_plane-1)*s_plane );
   
   //  cout << "StripToROC: module " << module << ", ix " << ix << Decoder::MAXSLOT<<endl;
   
-  d = div( ix, Decoder::MAXSLOT);//fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
+  d = div( ix, SIM_MAXSLOT);//fManager->GetChambersPerCrate()*fManager->GetModulesPerChamber() );
   crate = d.quot;
   slot  = d.rem;
 }
@@ -277,7 +283,7 @@ static inline
 Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan )
 {
   return chan +
-    fManager->GetChanPerSlot()*( slot + Decoder::MAXSLOT*crate );
+    fManager->GetChanPerSlot()*( slot + SIM_MAXSLOT*crate );
 }
 
 //-----------------------------------------------------------------------------
@@ -303,7 +309,7 @@ std::vector<std::vector<Double_t>> TSBSSimDecoder::GetAllMCHits() const
   std::vector<Double_t> vtemp = {0,0,0,0,0,0};//v[0]--posx, v[1]--posy, v[2]--charge, v[3]--planeID v[4]--moduleID v[5]time_zero
   assert( buffer );       // Must still have the event buffer
   const TSBSSimEvent* simEvent = reinterpret_cast<const TSBSSimEvent*>(buffer);
-  for(int i=0;i<simEvent->fGEMClust.size();i++){
+  for(size_t i=0;i<simEvent->fGEMClust.size();i++){
     const TSBSSimEvent::GEMCluster& clust = simEvent->fGEMClust[i];
     if(clust.fSource!=0){continue;}
     vtemp[0] = clust.fMCpos.X();
@@ -323,7 +329,7 @@ std::vector<std::vector<Double_t>> TSBSSimDecoder::GetAllMCHits() const
 TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t chan ) const
 {
   // Get MC truth info for the given hardware channel
-  const char* const here = "TSBSSimDecoder::GetSBSMCHitInfo";
+//  const char* const here = "TSBSSimDecoder::GetSBSMCHitInfo";
 
   Int_t istrip = StripFromROC( crate, slot, chan );
   assert( istrip >= 0 );  // else logic error in caller or bad fStripMap
@@ -482,7 +488,11 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   if (first_decode || fNeedInit) {
     if( (ret = init_cmap()) != HED_OK )
       return ret;
+#if ANALYZER_VERSION_CODE >= ANALYZER_VERSION(1,6,0)
+    if( (ret = init_slotdata()) != HED_OK)
+#else
     if( (ret = init_slotdata(fMap)) != HED_OK)
+#endif
       return ret;
     first_decode = false;
   }

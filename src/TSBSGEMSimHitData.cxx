@@ -5,6 +5,7 @@
 using namespace std;
 
 TSBSGEMSimHitData::TSBSGEMSimHitData (UInt_t h)
+  : fRunID(0), fEvtID(0), fSource(0)
 {
   fHitData.reserve(h);
 }

@@ -14,6 +14,7 @@
 #include "TSBSGEMPlane.h"
 #include "TSBSSimAuxi.h"
 #include "TSBSSimEvent.h"
+#include "TSBSDBManager.h"
 
 #include <cmath>
 #include <iomanip>
@@ -390,7 +391,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
 
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);
-    UInt_t imodule = gdata.GetHitModule(ih);
+    //    UInt_t imodule = gdata.GetHitModule(ih);
     UInt_t iplane = gdata.GetHitPlane(ih);
     //cout<<igem<<":"<<imodule<<":"<<iplane<<endl;
     if (igem >= fNChambers)
@@ -605,6 +606,7 @@ TSBSSimGEMDigitization::IonModel(const TVector3& xi,
 
 //-------------------------------------------------------
 // Helper functions for integration in AvaModel
+#if 0
 inline static
 Double_t IntegralY( Double_t* a, Int_t ix, Int_t nx, Int_t ny )
 {
@@ -623,6 +625,7 @@ Bool_t IsInActiveArea( const TSBSGEMPlane& pl, Double_t xc, Double_t yc )
   pl.StripToSpec(xc,yc);
   return pl.GetBox().Contains(xc,yc);
 }
+#endif
 
 //.......................................................
 // avalanche model
@@ -690,7 +693,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     return 0;
   }
 
-  bool bb_clipped = (x0<glx||y0<gly||x1>gux||y1>guy);
+  //bool bb_clipped = (x0<glx||y0<gly||x1>gux||y1>guy);
   if(x0<glx) x0=glx;
   if(y0<gly) y0=gly;
   if(x1>gux) x1=gux;
@@ -741,7 +744,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       delete [] virs;
       return 0;
     }
-    bool clipped = ( iL < 0 || iU < 0 );
+    //bool clipped = ( iL < 0 || iU < 0 );
     if( iL < 0 )
       iL = pl.GetStripInRange( xs0 * 1e-3 );
     else if( iU < 0 )
@@ -987,7 +990,7 @@ inline Double_t TSBSSimGEMDigitization::GetPedNoise(Double_t &phase, Double_t& a
 }
 //___________________________________________________________________________________
 void
-TSBSSimGEMDigitization::Print() const
+TSBSSimGEMDigitization::Print(Option_t*) const
 {
   cout << "GEM digitization:" << endl;
   cout << "  Gas parameters:" << endl;
@@ -1098,6 +1101,7 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
   fEvent->fEvtID = (evnum < 0) ? tsgd.GetEvent() : evnum;
   for( UInt_t i=0; i<f.GetNGen(); ++i ) {
     const g4sbsgendata* gd = f.GetGenData(i);
+    //cout << "TSBSSimGEMDigitization::SetTreeEvent: PID = " << gd->GetPID() << endl;
     fEvent->AddTrack( gd->GetTRID(), gd->GetPID(),
 		      gd->GetV(), // Vertex coordinates in [m]
 		      gd->GetP(),  // Momentum in [GeV]
@@ -1187,13 +1191,13 @@ TSBSSimGEMDigitization::SetTreeHit (const UInt_t ih,
   clust.fP = (clust.fP)*1.0e-3;
   clust.fMCpos = (clust.fMCpos)*1.0e-3;
   clust.fHitpos = (clust.fHitpos)*1.0e-3;
-  
-  // cout << " TSBSSimGEMDigitization.cxx:  hit in plane " << clust.fPlane << " (clust.fHitPos):  " << endl;
+
+  // cout << " TSBSSimGEMDigitization.cxx::SetTreeHit  hit in plane " << clust.fPlane << " (clust.fHitPos):  " << endl;
   // clust.fHitpos.Print();
   // cout << " => (clust.fMCPos): " << endl;
   // clust.fMCpos.Print();
   // //hitpos_temp.Print();
-  
+  // cout << "igem " << igem << ", plane " << clust.fPlane << ", module " << clust.fModule << endl;
   //clust.fHitpos = hitpos_temp;
   
   
@@ -1260,7 +1264,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 
   TSBSSimEvent::DigiGEMStrip strip;
   Double_t saturation = static_cast<Double_t>( (1<<fADCbits)-1 )-1300;
-  for (Int_t ich = 0; ich < GetNChambers(); ++ich) {
+  for (UInt_t ich = 0; ich < GetNChambers(); ++ich) {
     
     strip.fSector=0;
     strip.fPlane=manager->GetPlaneID(ich);

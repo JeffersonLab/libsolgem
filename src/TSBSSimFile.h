@@ -27,7 +27,7 @@ class TSBSSimFile : public THaRunBase {
   virtual ~TSBSSimFile();
   virtual TSBSSimFile &operator=(const THaRunBase &rhs);
   // for ROOT RTTI
-  TSBSSimFile() : fROOTFile(0), fTree(0), fEvent(0), fEntry(0) {}
+  TSBSSimFile() : fROOTFile(0), fTree(0), fEvent(0), fNEntries(0), fEntry(0) {}
 
   virtual void  Print( Option_t* opt="" ) const;
 

@@ -105,7 +105,7 @@ class TSBSGEMPlane : public THaSubDetector {
 	// strip frame, or -1 if outside (2-d) bounds
 	Int_t GetStrip (Double_t x, Double_t y) const;
 	
-	void Print(bool printCham = true) const;
+	void Print( Option_t* opt="P" ) const;
 	void SetRotations();
 
     private:
@@ -135,7 +135,7 @@ class TSBSGEMPlane : public THaSubDetector {
 inline void
 TSBSGEMPlane::PlaneToStrip (Double_t& x, Double_t& y) const
 {
-  register Double_t temp = x;
+  Double_t temp = x;
   x = fCBS * x - fSBS * y;
   y = fSBS * temp + fCBS * y;
   return;

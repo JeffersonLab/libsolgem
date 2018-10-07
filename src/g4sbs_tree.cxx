@@ -1217,7 +1217,7 @@ void g4sbs_tree::Show(Long64_t entry)
    fChain->Show(entry);
 }
 
-Int_t g4sbs_tree::Cut(Long64_t entry)
+Int_t g4sbs_tree::Cut(Long64_t /*entry*/)
 {
 // This function may be called from Loop.
 // returns  1 if entry is accepted.

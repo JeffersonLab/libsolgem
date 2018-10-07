@@ -104,6 +104,7 @@ sbs_bbgem.tracker.3.thetaV = 10
 # Tracker feature configuration
 #-----------------------------------------------------------------
 
+
 sbs_bbgem.tracker.1.x.search_depth = 13
 sbs_bbgem.tracker.1.y.search_depth = 11
 
@@ -120,6 +121,7 @@ sbs_bbgem.tracker.1.y.CorrSlope_min = -0.08
 sbs_bbgem.tracker.1.y.CorrSlope_max = 0.08
 sbs_bbgem.tracker.1.y.CorrIntercept_high = 0.05
 sbs_bbgem.tracker.1.y.CorrIntercept_low  = -0.06
+
 
 sbs_bbgem.tracker.${allsectors}.maxthreads = 1
 sbs_bbgem.tracker.${allsectors}.disable_tracking = 0

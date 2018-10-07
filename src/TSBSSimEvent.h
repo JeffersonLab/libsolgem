@@ -93,8 +93,8 @@ public:
   TSBSSimEvent( UInt_t ntracks ); // Construct and initialize fMCTracks
   virtual ~TSBSSimEvent();
 
-  virtual void Clear( const Option_t* opt="" );
-  virtual void Print( const Option_t* opt="" ) const;
+  virtual void Clear( Option_t* opt="" );
+  virtual void Print( Option_t* opt="" ) const;
   TSBSSimTrack* AddTrack( Int_t number, Int_t pid,
 			  const TVector3& vertex, const TVector3& momentum, 
 			  const TVector3& vertexAtTarget, const TVector3& momentumAtTarget);

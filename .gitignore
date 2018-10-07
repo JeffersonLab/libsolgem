@@ -5,6 +5,7 @@ lib*.so*
 # Generated files
 *_dict.h
 *_dict.cxx
+*_rdict.pcm
 
 # Editor lint
 .#*
@@ -18,3 +19,8 @@ lib*.so*
 *.png
 *.patch
 *.diff
+
+# Eclipse project/workspace clutter
+.project
+.cproject
+.settings

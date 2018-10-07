@@ -2,17 +2,18 @@
 #define __TSBSGEANT4FILE_H
 
 // Put prototypes here first so that it doens't freak out
-#ifndef __CINT__
-#include "evioUtil.hxx"
-#endif//__CINT__
+//#ifndef __CINT__
+//#include "evioUtil.hxx"
+//#endif//__CINT__
 
 #include "TROOT.h"
 #include "TFile.h"
 #include "TChain.h"
 #include "g4sbs_tree.h"
 #include "TSBSGEMSimHitData.h"
-#include "TSBSDBManager.h"
-#include <TSBSSimEvent.h>
+#include "TSBSSimEvent.h"
+
+class TSBSDBManager;
 
 #define __DEFAULT_DATA_SIZE 32
 
@@ -100,7 +101,7 @@ class TSBSGeant4File {
   Int_t Open();
   Int_t Close();
   
-  const Long64_t GetEntries(){
+  Long64_t GetEntries(){
     return fTree->GetEntries();
   };
   
@@ -151,10 +152,10 @@ class TSBSGeant4File {
   /* vector<double> fgasErange; */
   
   //hit data arrays
-  vector<g4sbshitdata *> fg4sbsHitData;
-  vector<g4sbsgendata *> fg4sbsGenData;
+  std::vector<g4sbshitdata *> fg4sbsHitData;
+  std::vector<g4sbsgendata *> fg4sbsGenData;
   
-  vector<TSBSECalCluster *> fECalClusters; // ECal clusters
+  std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
   
   unsigned int fEvNum;// global event incrementer
 

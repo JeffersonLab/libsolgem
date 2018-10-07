@@ -50,12 +50,12 @@ Int_t TSBSSpec::Reconstruct(){
     return 0;
 }
 
-Int_t TSBSSpec::FindVertices(TClonesArray &a){
+Int_t TSBSSpec::FindVertices(TClonesArray &){
     return 0;
 }
 
 void
-TSBSSpec::Print() const
+TSBSSpec::Print(Option_t*) const
 {
   cout << "Hello, I'm a spectrometer named " << GetName() << endl;
 	
