@@ -17,7 +17,7 @@ generalinfo.modules_per_readout = 1
 
 generalinfo.nsignal = 1
 generalinfo.signal1.pid = 2212
-generalinfo.signal1.tid = 1
+generalinfo.signal1.tid = 2
 
 generalinfo.g4sbs_detectortype = 3
 generalinfo.g4sbs_z_specoffset = 1.7886925

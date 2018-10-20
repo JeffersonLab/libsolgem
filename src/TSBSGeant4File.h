@@ -116,6 +116,7 @@ class TSBSGeant4File {
   UInt_t GetNGen() const { return fg4sbsGenData.size(); }
   
   UInt_t GetEvNum() const { return fEvNum; }
+  void SetFirstEvNum(UInt_t evnum){ fEvNum = evnum-1; }
   
   //get one hit from the hit data arrays
   g4sbshitdata *GetHitData(Int_t i) const { return fg4sbsHitData[i]; }

@@ -104,21 +104,22 @@ sbs_bbgem.tracker.3.thetaV = 10
 # Tracker feature configuration
 #-----------------------------------------------------------------
 
-sbs_bbgem.tracker.${allsectors}.x.search_depth = 5
-sbs_bbgem.tracker.${allsectors}.y.search_depth = 5
-sbs_bbgem.tracker.${allsectors}.module_order = 0 64 85 149 165 169 170 256 277 320 325 337 340 341 533 553 549 581 593 596 597 645 657 661 673 677 681 682 809 810 906 930 936 937 938
-#85 170 256 277 340 341 533 549 581 593 596 597 810 906 930 937 938
+sbs_bbgem.tracker.${allsectors}.x.search_depth = 12
+sbs_bbgem.tracker.${allsectors}.y.search_depth = 10
+sbs_bbgem.tracker.${allsectors}.module_order = 0 
+#sbs_bbgem.tracker.${allsectors}.module_order = 0 85 86 149 165 169 170 256 257 261 277 325 337 340 341 512 533 553 581 593 596 597 645 649 657 660 661 673 677 680 681 682 724 768 805 810 853 906 930 936 938 1045 1093 1109 1450 1557 1674 1704 1706 2133 2474 
+#sbs_bbgem.tracker.${allsectors}.module_order = 0 64 85 149 165 169 170 256 277 320 325 337 340 341 533 553 549 581 593 596 597 645 657 661 673 677 681 682 809 810 906 930 936 937 938
 sbs_bbgem.tracker.${allsectors}.maxthreads = 1
 sbs_bbgem.tracker.${allsectors}.disable_tracking = 0
 sbs_bbgem.tracker.${allsectors}.disable_finetrack = 1
-sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 0
+sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 1
 
 #-----------------------------------------------------------------
 #  Global reconstruction parameters
 #-----------------------------------------------------------------
 
 sbs_bbgem.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
-sbs_bbgem.tracker.${allsectors}.3d_ampcorr_nsigma = 0.18
+sbs_bbgem.tracker.${allsectors}.3d_ampcorr_nsigma = 0.3
 sbs_bbgem.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
 sbs_bbgem.tracker.${allsectors}.3d_maxmiss = 2 # 3D max miss
 sbs_bbgem.tracker.${allsectors}.proj_to_z0 = 0
@@ -130,13 +131,13 @@ sbs_bbgem.tracker.${allsectors}.proj_to_z0 = 0
 sbs_bbgem.tracker.${allsectors}.maxmiss = 1 # 2D track max miss each projection
 sbs_bbgem.tracker.${allsectors}.maxpat = 100000
 sbs_bbgem.tracker.${allsectors}.chi2_conflevel = 1e-06
-sbs_bbgem.tracker.${allsectors}.disable_chi2 = 0
+sbs_bbgem.tracker.${allsectors}.disable_chi2 = 1
 
 #-----------------------------------------------------------------
 #  Global plane parameters
 #-----------------------------------------------------------------
 
-sbs_bbgem.tracker.xp.res = 9e-05
+sbs_bbgem.tracker.xp.res = 300e-06
 sbs_bbgem.tracker.maxhits = 1000
 sbs_bbgem.tracker.maxclustsiz = 6
 sbs_bbgem.tracker.adc.min = 100
