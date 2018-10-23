@@ -387,7 +387,7 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
   Float_t event_time=0,time_zero=0;
   // Trigger time jitter, This should be a fixed value for different hits in a certain event.
   Double_t trigger_jitter = fTrnd.Gaus(0,fTriggerJitter);
-  fTrnd.Uniform(-fAPVTimeJitter/2, fAPVTimeJitter/2);
+  //fTrnd.Uniform(-fAPVTimeJitter/2, fAPVTimeJitter/2);
 
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);

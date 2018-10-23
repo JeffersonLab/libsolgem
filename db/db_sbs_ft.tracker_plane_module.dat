@@ -114,7 +114,7 @@ sbs_ft.tracker.${allsectors}.module_order = 0
 sbs_ft.tracker.${allsectors}.maxthreads = 1
 sbs_ft.tracker.${allsectors}.disable_tracking = 0
 sbs_ft.tracker.${allsectors}.disable_finetrack = 1
-sbs_ft.tracker.${allsectors}.3d_disable_chi2 = 1
+sbs_ft.tracker.${allsectors}.3d_disable_chi2 = 0
 
 #-----------------------------------------------------------------
 #  Global reconstruction parameters
@@ -133,7 +133,7 @@ sbs_ft.tracker.${allsectors}.proj_to_z0 = 0
 sbs_ft.tracker.${allsectors}.maxmiss = 1
 sbs_ft.tracker.${allsectors}.maxpat = 100000
 sbs_ft.tracker.${allsectors}.chi2_conflevel = 1e-06
-sbs_ft.tracker.${allsectors}.disable_chi2 = 1
+sbs_ft.tracker.${allsectors}.disable_chi2 = 0
 
 #-----------------------------------------------------------------
 #  Global plane parameters
@@ -148,7 +148,7 @@ sbs_ft.tracker.maxsamp = 6
 sbs_ft.tracker.adc.sigma = 0.2
 sbs_ft.tracker.do_noise = 0
 sbs_ft.tracker.check_pulse_shape = 0
-sbs_ft.tracker.pedestal_sigma =5
+sbs_ft.tracker.pedestal_sigma = 4
 sbs_ft.tracker.tmp_pedestal_rms = 15
 sbs_ft.tracker.tmp_comm_range =200
 sbs_ft.tracker.do_histos = 1

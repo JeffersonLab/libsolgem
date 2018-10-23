@@ -112,7 +112,7 @@ sbs_bbgem.tracker.${allsectors}.module_order = 0
 sbs_bbgem.tracker.${allsectors}.maxthreads = 1
 sbs_bbgem.tracker.${allsectors}.disable_tracking = 0
 sbs_bbgem.tracker.${allsectors}.disable_finetrack = 1
-sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 1
+sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 0
 
 #-----------------------------------------------------------------
 #  Global reconstruction parameters
@@ -131,7 +131,7 @@ sbs_bbgem.tracker.${allsectors}.proj_to_z0 = 0
 sbs_bbgem.tracker.${allsectors}.maxmiss = 1 # 2D track max miss each projection
 sbs_bbgem.tracker.${allsectors}.maxpat = 100000
 sbs_bbgem.tracker.${allsectors}.chi2_conflevel = 1e-06
-sbs_bbgem.tracker.${allsectors}.disable_chi2 = 1
+sbs_bbgem.tracker.${allsectors}.disable_chi2 = 0
 
 #-----------------------------------------------------------------
 #  Global plane parameters
