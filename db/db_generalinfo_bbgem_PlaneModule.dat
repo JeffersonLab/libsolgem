@@ -23,7 +23,7 @@ generalinfo.g4sbs_detectortype = 1
 generalinfo.g4sbs_z_specoffset = 0.8031825 #0.800000
 
 generalinfo.calo_thr = 2.4 # GeV
-generalinfo.calo_z = 2.704 #Z of BB ECal at max shower energy deposit, in m
+generalinfo.calo_z = 2.7034 #Z of BB ECal at max shower energy deposit, in m
 generalinfo.calo_res = 0.010000
-generalinfo.docalo = 0
+generalinfo.docalo = 1
 generalinfo.z0 = 0.850000

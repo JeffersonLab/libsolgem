@@ -163,7 +163,9 @@ TSBSGEMPlane::ReadGeometry (FILE* file, const TDatime& date,
       if (s < smin) smin = s;
       if (s > smax) smax = s;
     }
-  fNStrips = smax - smin + 1;
+  fNStrips = smax - smin + 1; //appears to be wrong.
+				 //fNStrips = smax - smin;
+  
   fSBeg = -fNStrips * fSPitch * 0.5;
   
   return kOK;

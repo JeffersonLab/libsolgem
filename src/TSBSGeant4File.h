@@ -114,6 +114,7 @@ class TSBSGeant4File {
   //return the size of the hit arrays
   UInt_t GetNData() const { return fg4sbsHitData.size(); }
   UInt_t GetNGen() const { return fg4sbsGenData.size(); }
+  UInt_t GetNECal() const { return fECalClusters.size(); }
   
   UInt_t GetEvNum() const { return fEvNum; }
   

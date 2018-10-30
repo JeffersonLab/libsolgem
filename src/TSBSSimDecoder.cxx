@@ -92,12 +92,23 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
   RVarDef vars[] = {
     // Generated track info
     //{ "tr.n",      "Number of tracks",      "GetNMCTracks()" },  // already defined in Podd::SimDecoder
-    { "tr.vx",     "Track origin x (m)",    "fMCTracks.TSBSSimTrack.VX()" },
-    { "tr.vy",     "Track origin y (m)",    "fMCTracks.TSBSSimTrack.VY()" },
-    { "tr.vz",     "Track origin z (m)",    "fMCTracks.TSBSSimTrack.VZ()" },
-    { "tr.p",      "Track momentum (GeV)",  "fMCTracks.TSBSSimTrack.P() "},
-    { "tr.theta",  "Track theta_p (rad)",   "fMCTracks.TSBSSimTrack.PTheta()" },
-    { "tr.phi",    "Track phi_p (rad)",     "fMCTracks.TSBSSimTrack.PPhi()" },
+    { "tr.vx",     "Track origin x (m)",    "fMCTracks.TSBSSimTrack.targetX()" },
+    { "tr.vy",     "Track origin y (m)",    "fMCTracks.TSBSSimTrack.targetY()" },
+    { "tr.vz",     "Track origin z (m)",    "fMCTracks.TSBSSimTrack.targetZ()" },
+    { "tr.p",      "Track momentum (GeV)",  "fMCTracks.TSBSSimTrack.targetP() "},
+    { "tr.theta",  "Track theta_p (rad)",   "fMCTracks.TSBSSimTrack.targetPTheta()" },
+    { "tr.phi",    "Track phi_p (rad)",     "fMCTracks.TSBSSimTrack.targetPPhi()" },
+    { "tr.ptarx", "Track px(GeV)",         "fMCTracks.TSBSSimTrack.targetPX()" },
+    { "tr.ptary", "Track py(GeV)",         "fMCTracks.TSBSSimTrack.targetPY()" },
+    { "tr.ptarz", "Track pz(GeV)",         "fMCTracks.TSBSSimTrack.targetPZ()" },
+    //variables in GEM detector coordinates
+    { "tr.x",     "Track x in Transport",    "fMCTracks.TSBSSimTrack.VX()" },
+    { "tr.y",     "Track y in Transport",    "fMCTracks.TSBSSimTrack.VY()" },
+    { "tr.p_transport",   "Track momentum in Transport", "fMCTracks.TSBSSimTrack.P()"},
+    { "tr.px",   "Track x_momentum in Transport", "fMCTracks.TSBSSimTrack.PX()"},
+    { "tr.py",   "Track y_momentum in Transport", "fMCTracks.TSBSSimTrack.PY()"},
+    { "tr.pz",   "Track z_momentum in Transport", "fMCTracks.TSBSSimTrack.PZ()"},
+
     { "tr.pid",    "Track PID (PDG)",       "fMCTracks.TSBSSimTrack.fPID" },
     { "tr.num",    "GEANT track number",    "fMCTracks.TSBSSimTrack.fNumber" },
     { "tr.planes", "Bitpattern of planes hit", "fMCTracks.TSBSSimTrack.fHitBits" },
@@ -561,11 +572,30 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // variables.
   TClonesArray* tracks = simEvent->fMCTracks;
   assert( tracks );
+  double trkProjCaloX, trkProjCaloY;
   for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
     TSBSSimTrack* trk = static_cast<TSBSSimTrack*>(tracks->UncheckedAt(i));
+
+    trkProjCaloX = trk->fMomentum.X()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.X()/1000;
+    trkProjCaloY = trk->fMomentum.Y()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.Y()/1000;
+    cout<<"MC trk projected calo position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+
+    trkProjCaloX = trk->fMomentum.X()/trk->P()*(1.3-0.8) + trk->fOrigin.X()/1000;
+    trkProjCaloY = trk->fMomentum.Y()/trk->P()*(1.3-0.8) + trk->fOrigin.Y()/1000;
+    cout<<"MC trk projected 4th  GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+
+    trkProjCaloX = trk->fMomentum.X()/trk->P()*(2.33-0.8) + trk->fOrigin.X()/1000;
+    trkProjCaloY = trk->fMomentum.Y()/trk->P()*(2.33-0.8) + trk->fOrigin.Y()/1000;
+    cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    
    new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
   }
   assert( GetNMCTracks() > 0 );
+  
+  
+
+
+
 
   // MC hit data ("clusters") and "back tracks"
   Int_t best_primary = -1, best_primary_plane = fManager->GetNChamber(), primary_sector = -1;
@@ -694,74 +724,85 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     //   to the front of the emulated calorimeter.
     // - The measured calorimeter position is independent of the incident
     //   track angle.
-    if( fManager->DoCalo() && trk->fNHits == 2*fManager->GetNChamber() ) {
-      // Retrieve last MC track point
-      assert( GetNMCPoints() == 2*fManager->GetNChamber() );
-      MCTrackPoint* pt =
-	static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*fManager->GetNChamber()-1) );
-      assert( pt );
-      const TVector3& pos = pt->fMCPoint;
-      TVector3 dir = pt->fMCP.Unit();
-      if( fManager->GetCaloZ() <= pos.Z() ) {
-	Error( here, "Calorimeter z = %lf less than z of last GEM plane = %lf. "
-	       "Set correct value with SetCaloZ() or turn off calo emulation.",
-	       fManager->GetCaloZ(), pos.Z() );
-	return HED_FATAL;
-      }
-      if( TMath::Abs(dir.Z()) < 1e-6 ) {
-	Error( here, "Illegal primary track direction (%lf,%lf,%lf). "
-	       "Should never happen. Call expert.", dir.X(), dir.Y(), dir.Z() );
-	return HED_ERR;
-      }
-      dir *= 1.0/dir.Z();  // Make dir a transport vector
-      TVector3 hitpos = pos + (fManager->GetCaloZ()-pos.Z()) * dir;
+    
+    if( fManager->DoCalo() ){// && trk->fNHits == 2*fManager->GetNChamber() ) {
+	double tempCaloX;
+	double tempCaloY;
+	for(Int_t i=0; i< simEvent->fECalClusters.size(); i++){
+	  const TSBSECalCluster& eCalHit = simEvent -> fECalClusters[i];
+	  tempCaloX = eCalHit.GetXPos();
+	  tempCaloY = eCalHit.GetYPos();
+	  union FloatIntUnion {
+	    Float_t f;
+	    Int_t   i;
+	  } datx, daty;
 
-      // Smear the position with the given resolution
-      // Assumes z-axis normal to calorimeter plane. Otherwise we would have to
-      // get the plane's fXax and fYax
-      TVector3 res( gRandom->Gaus(0.0, fManager->GetCaloRes()),
-		    gRandom->Gaus(0.0, fManager->GetCaloRes()), 0.0 );
-      hitpos += res;
-
-      // Encode the raw hit data for the dummy GEM planes.
-      // The actual coordinate transformation to u or v takes place in each
-      // plane's Decode() where all the required geometry information is at hand.
-      // This bypasses any type of digitization. That should be fine for dummy
-      // planes where we want to inject known lab hit positions into the tracking.
-      //
-      // Because of the way the detector map is layed out at the moment,
-      // we place the calorimeter in fake sector 31, so the data are in two slots
-      // (for u and v coordinates, respectively) in the ROC immediately
-      // following the GEM trackers for sector 30. In each slot, channels
-      // 0-29 correspond to the sector of the MC track sector (should always be 0
-      // if mapping sectors. Each "hit" corresponds to one measured position.
-      // Currently, there is only ever one hit per channel since there is only
-      // one MC track. The hit's raw data are hitpos.X(), the data, hitpos.Y(),
-      // each a Float_t value interpreted as Int_t.
-      assert( primary_sector == 0 );
-
-      union FloatIntUnion {
-	Float_t f;
-	Int_t   i;
-      } datx, daty;
-      datx.f = static_cast<Float_t>(hitpos.X());
-      daty.f = static_cast<Float_t>(hitpos.Y());
-
-      Int_t crate, slot, chan;
-      //StripToROC( 0, fManager->GetNSector(), kUPlane, primary_sector, crate, slot, chan );
-      StripToROC( 0, fManager->GetNSector(), kXPlane, primary_sector, crate, slot, chan );
-       if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
-	  == SD_ERR )
-	 {
-	   return HED_ERR;
-	 }
-	//StripToROC( 0, fManager->GetNSector(), kVPlane, primary_sector, crate, slot, chan );
-      StripToROC( 0, fManager->GetNSector(), kYPlane, primary_sector, crate, slot, chan );
-      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i)
-	  == SD_ERR )
-	{
-	  return HED_ERR;
+	  cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
+	  datx.f = static_cast<Float_t>(tempCaloX);
+	  daty.f = static_cast<Float_t>(tempCaloY);
+	  Int_t crate, slot, chan;
+	  crate = 2;
+	  slot  = 0;
+	  chan  = 0;
+	  if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	    return HED_ERR;
+	  }
+	  crate = 2;
+	  slot  = 1;
+	  chan  = 0;
+	  if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	    return HED_ERR;
+	  }
 	}
+	/*The previous predicting method below seems to be quite off from the reconstructed
+	  ECal position and projected position from the MCTrack, thus switching to reconstructed 
+	  ECal position method above
+
+	  // Retrieve last MC track point
+	  assert( GetNMCPoints() == 2*fManager->GetNChamber() );
+	  MCTrackPoint* pt =
+	  static_cast<MCTrackPoint*>( fMCPoints->UncheckedAt(2*fManager->GetNChamber()-1) );
+	  assert( pt );
+	  const TVector3& pos = pt->fMCPoint;
+	  TVector3 dir = pt->fMCP.Unit();
+	  if( fManager->GetCaloZ() <= pos.Z() ) {
+	  Error( here, "Calorimeter z = %lf less than z of last GEM plane = %lf. "
+	  "Set correct value with SetCaloZ() or turn off calo emulation.",
+	  fManager->GetCaloZ(), pos.Z() );
+	  return HED_FATAL;
+	  }
+	  if( TMath::Abs(dir.Z()) < 1e-6 ) {
+	  Error( here, "Illegal primary track direction (%lf,%lf,%lf). "
+	  "Should never happen. Call expert.", dir.X(), dir.Y(), dir.Z() );
+	  return HED_ERR;
+	  }
+	  dir *= 1.0/dir.Z();  // Make dir a transport vector
+	  TVector3 hitpos = pos + (fManager->GetCaloZ()-pos.Z()) * dir;
+
+	  // Smear the position with the given resolution
+	  // Assumes z-axis normal to calorimeter plane. Otherwise we would have to
+	  // get the plane's fXax and fYax
+	  TVector3 res( gRandom->Gaus(0.0, fManager->GetCaloRes()),
+	  gRandom->Gaus(0.0, fManager->GetCaloRes()), 0.0 );
+	  hitpos += res;
+
+	  // Encode the raw hit data for the dummy GEM planes.
+	  // The actual coordinate transformation to u or v takes place in each
+	  // plane's Decode() where all the required geometry information is at hand.
+	  // This bypasses any type of digitization. That should be fine for dummy
+	  // planes where we want to inject known lab hit positions into the tracking.
+	  //
+	  // Because of the way the detector map is layed out at the moment,
+	  // we place the calorimeter in fake sector 31, so the data are in two slots
+	  // (for u and v coordinates, respectively) in the ROC immediately
+	  // following the GEM trackers for sector 30. In each slot, channels
+	  // 0-29 correspond to the sector of the MC track sector (should always be 0
+	  // if mapping sectors. Each "hit" corresponds to one measured position.
+	  // Currently, there is only ever one hit per channel since there is only
+	  // one MC track. The hit's raw data are hitpos.X(), the data, hitpos.Y(),
+	  // each a Float_t value interpreted as Int_t.
+	  assert( primary_sector == 0 );
+	*/
     }
   }
 

@@ -723,7 +723,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     cout << "glx gly gux guy " << glx << " " << gly << " " << gux << " " << guy << endl;
     cout << "xs0 ys0 xs1 ys1 " << xs0 << " " << ys0 << " " << xs1 << " " << ys1 << endl;
 #endif
-
+    //cout<<"xxxx : "<<(xs0/2+xs1/2)*1e-3<<" y: "<<(ys0/2+ys1/2)*1e-3<<endl;
     Int_t iL = pl.GetStrip (xs0 * 1e-3, ys0 * 1e-3);
     Int_t iU = pl.GetStrip (xs1 * 1e-3, ys1 * 1e-3);
 
@@ -810,12 +810,16 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     
     //    fSumA.resize(nx*ny);
     //memset (&fSumA[0], 0, fSumA.size() * sizeof (Double_t));
-
+  
+ 
     for (UInt_t i = 0; i < fRNIon; i++){
       Double_t frxs = fRIon[i].X * 1e-3;
       Double_t frys = fRIon[i].Y * 1e-3;
+
+
       pl.PlaneToStrip (frxs, frys);
       frxs *= 1e3; frys *= 1e3;
+     
       //  cout<<"IonStrip: "<<pl.GetStrip(frxs*1e-3,frys*1e-3)<<endl;
       // bin containing center and # bins each side to process
       Int_t ix = (frxs-xl) / xbw;
@@ -900,7 +904,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	}//cout<<endl;
       }//cout<<"##########################################################################"<<endl<<endl;getchar();
     }
-
+   
 #if DBG_AVA > 0
     cout << "t0 = " << t0 << " plane " << ipl 
 	 << endl;
@@ -919,14 +923,14 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
     //cout << "number of strips: " << nstrips << ", number of samples " << fEleSamplingPoints << " area: " << area << endl;
     
     // if(nstrips>0){cout<<"nstrips: "<<nstrips<<" Nion: "<<fRNIon<<endl;}
-    
+    double total_us = 0, total_pos = 0;
     for (Int_t j = 0; j < nstrips; j++){
       //  cout<<"strip: "<<iL+j<<":    ";
       Int_t posflag = 0;
       Double_t us = 0.;
       for (UInt_t k=0; k<fXIntegralStepsPerPitch; k++){
 	Double_t integralY_tmp = 0;
-	int kx = j * fXIntegralStepsPerPitch * ny;
+	int kx = (j * fXIntegralStepsPerPitch + k) * ny;
 	for( Int_t jy = ny; jy != 0; --jy )
 	  integralY_tmp += fSumA[kx++];
 	
@@ -934,6 +938,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	//	us += IntegralY( fSumA, j * fXIntegralStepsPerPitch + k, nx, ny ) * area;
 	//if(us>0)cout << "k " << k << ", us " << us << endl;
       }
+
+      total_us += us;
+      total_pos += (iL+j)*0.0004*us;
       // cout <<setw(6)<< (Int_t)(us/100);
       //  cout<<iL+j<<" : "<<us<<endl;
       //generate the random pedestal phase and amplitude
@@ -964,8 +971,9 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       
 
       if (posflag > 0) { // store only strip with signal
-	for (Int_t b = 0; b < fEleSamplingPoints; b++)
-	  {virs[ipl]->AddSampleAt (fDADC[b], b, ai);}
+	for (Int_t b = 0; b < fEleSamplingPoints; b++){
+	  virs[ipl]->AddSampleAt (fDADC[b], b, ai);
+	}
 	virs[ipl]->AddStripAt (iL+j, ai);
 	virs[ipl]->AddChargeAt (us, ai);
 	ai++;
@@ -974,8 +982,13 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
       //  cout<<endl;
     }//getchar();
     
+    
+    //    cout<<"avg pos(in m): "<<pl.GetSBeg() + total_pos/total_us<<endl;
+    
+    //cout<<"nstrips: "<<pl.GetNStrips()<<" begin: "<<pl.GetSBeg()<<"  diff in(um)"<<(pl.GetSBeg() + total_pos/total_us - (xs0/2+xs1/2)*1e-3)*1e6<<endl;
+    //    getchar();
     //cout << "number of strips with signal " << ai << endl;
-
+    
     virs[ipl]->SetSize(ai);
   }
   
