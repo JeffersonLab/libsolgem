@@ -34,6 +34,22 @@ public:
   TVector3 vertex_target;
   TVector3 momentum_target;
 
+  Double_t targetX()      { return vertex_target.X(); }
+  Double_t targetY()      { return vertex_target.Y(); }
+  Double_t targetZ()      { return vertex_target.Z(); }
+  Double_t targetP()      { return momentum_target.Mag();   }
+  Double_t targetPX()      { return momentum_target.X();   }
+  Double_t targetPY()      { return momentum_target.Y();   }
+  Double_t targetPZ()      { return momentum_target.Z();   }
+  Double_t targetPTheta() { return momentum_target.Theta(); }
+  Double_t targetPPhi()   { return momentum_target.Phi();   }
+
+
+  
+  Double_t PX()           { return fMomentum.X(); }
+  Double_t PY()           { return fMomentum.Y(); }
+  Double_t PZ()           { return fMomentum.Z(); }
+
 
   // Accessors for SBS-specific parameters
   // EFuchey: 2017/01/24:
@@ -59,8 +75,8 @@ class TSBSECalCluster : public TObject {
   ~TSBSECalCluster(){};
   
   double GetEnergy(){return fEnergy;};
-  double GetXPos(){return fXPos;};
-  double GetYPos(){return fYPos;};
+  double GetXPos() const {return fXPos;};
+  double GetYPos() const {return fYPos;};
   double GetTime(){return fTime;};
   
   void SetEnergy(double E){fEnergy = E;};

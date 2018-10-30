@@ -280,8 +280,10 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       trid_hits.push_back(trid);
       
       module = fManager->GetModuleIDFromPos(plane, fTree->Earm_BBGEM_hit_tx->at(i));
-      if(module==-1)continue;
-      
+      if(module==-1){
+	cout<<"invalid module id"<<endl;getchar();
+	continue;
+      }
       double pz = sqrt( pow(fTree->Earm_BBGEM_hit_p->at(i), 2)/
 		 ( pow(fTree->Earm_BBGEM_hit_txp->at(i), 2) + 
 		   pow(fTree->Earm_BBGEM_hit_typ->at(i), 2) + 1.0) );

@@ -62,13 +62,13 @@ void ReplayMCDigitized(const char* filename = "digitized",
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
-  gSystem->AddDynamicPath("${LIBSBSGEM}");
+  /* gSystem->AddDynamicPath("${LIBSBSGEM}");
   gSystem->AddDynamicPath("${TREESEARCH}");
   gSystem->Load("../libsolgem.so");
   gSystem->Load("/home/efuchey/g4work/Tracking/TreeSearch/libTreeSearch.so");
   gSystem->Load("/home/efuchey/g4work/Tracking/TreeSearch/libTreeSearch-SBS.so");
   gSystem->Load("libMinuit");
-
+  */
   TSBSDBManager* manager = TSBSDBManager::GetInstance();
   manager->LoadGeneralInfo(Form("db_generalinfo_%s.dat", detsuffix));
   manager->LoadGeoInfo(Form("g4sbs_%s", detsuffix));
@@ -85,6 +85,9 @@ void ReplayMCDigitized(const char* filename = "digitized",
   
   cout << "Reading " << detsuffix << endl;
   THaApparatus* SBS_GEMdet = new SBS::SBSSpec( Form("sbs_%s",detsuffix), "SBS / BB GEMs", Nsect );
+
+  // SBS_GEMdet -> SetDebugAll(4);
+
   //THaApparatus* SBS_GEMdet = new SBSSpec( Form("sbs_%s",detsuffix), "SBS / BB GEMs", Nsect );
   gHaApps->Add( SBS_GEMdet );
   cout << "Just read " << detsuffix << endl;
@@ -157,7 +160,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
       cerr << "ERROR: cannot get tracker detector! z0 may be wrong" << endl;
       }
     */
-    manager->EmulateCalorimeter(false);
+    //    manager->EmulateCalorimeter(false);
     
     // Process the runs
     Int_t ret = 0, ntotal = 0;

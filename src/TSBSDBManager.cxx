@@ -116,10 +116,12 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
         {"tid",                 &tid,                   kInt, 0, 1},
         { 0 }
     };
+    
+
 
     int err = LoadDB( input, request,  prefix);
     if( err ) {cout<<"Load DB error"<<endl;exit(2);} 
-    
+   
     if(fNGEMPlane!=(int)NModule->size()) {
       cout<<"Check consistency of number of GEM Planes"<<endl;
       exit(2);
@@ -165,6 +167,8 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
     // fChambersPerCrate = 
     // (TSBSSimDecoder::GetMAXSLOT()/fModulesPerChamber/fNChamber) * fNChamber;
     input.close();
+
+    
 }
 
 void TSBSDBManager::LoadGeoInfo(const string& prefix)

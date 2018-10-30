@@ -107,6 +107,7 @@ class TSBSGEMPlane : public THaSubDetector {
 	
 	void Print( Option_t* opt="P" ) const;
 	void SetRotations();
+	Double_t GetSBeg() const { return fSBeg;}
 
     private:
 	TClonesArray  *fClusters; // Clusters
