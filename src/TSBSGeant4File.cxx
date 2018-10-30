@@ -147,8 +147,8 @@ Int_t TSBSGeant4File::Close(){
     
     if( !fFile->IsOpen() ){ return 0; }
     
+    Clear();
     fFile->Close();
-    
     
     delete fTree; 
     delete fFile; fFile = 0;
