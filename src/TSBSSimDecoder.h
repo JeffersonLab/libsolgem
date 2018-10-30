@@ -49,7 +49,7 @@ class TSBSMCHitInfo : public Podd::MCHitInfo
 class TSBSSimGEMHit : public TObject {
 public:
   TSBSSimGEMHit()
-    : fID(0), fSector(0), fPlane(0), fRealSector(0), fSource(0), fType(0),
+    : fID(0), fSector(0), fPlane(0), fModule(0), fRealSector(0), fSource(0), fType(0),
       fPID(0), fCharge(0), fTime(0), fUSize(0), fUStart(0), fUPos(0),
       fVSize(0), fVStart(0), fVPos(0) {}
   TSBSSimGEMHit( const TSBSSimEvent::GEMCluster& cl );
@@ -70,6 +70,7 @@ public:
   Int_t     fSector;    // Sector number
   Int_t     fPlane;     // Plane number
   Int_t     fRealSector;// Real sector number (may be !=fSector if mapped)
+  Int_t     fModule;    // Module number
   Int_t     fSource;    // MC data set source (0 = signal, >0 background)
   Int_t     fType;      // GEANT particle counter (1 = primary)
   Int_t     fPID;       // PDG ID of particle generating the cluster

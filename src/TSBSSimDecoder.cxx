@@ -182,6 +182,7 @@ Int_t TSBSSimDecoder::DefineVariables( THaAnalysisObject::EMode mode )
     { "hit.sect",  "MC hit sector",              "fMCHits.TSBSSimGEMHit.fSector" },
     { "hit.rsect", "MC hit non-mapped sector",   "fMCHits.TSBSSimGEMHit.fRealSector" },
     { "hit.plane", "MC hit plane",               "fMCHits.TSBSSimGEMHit.fPlane" },
+    { "hit.module","MC hit module",              "fMCHits.TSBSSimGEMHit.fModule" },
     { "hit.src",   "MC data set source",         "fMCHits.TSBSSimGEMHit.fSource" },
     { "hit.type",  "MC hit GEANT counter",       "fMCHits.TSBSSimGEMHit.fType" },
     { "hit.pid",   "MC hit PID (PDG)",           "fMCHits.TSBSSimGEMHit.fPID" },
@@ -572,7 +573,11 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // variables.
   TClonesArray* tracks = simEvent->fMCTracks;
   assert( tracks );
+
   double trkProjCaloX, trkProjCaloY;
+
+  Int_t itrack = 0;
+
   for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
     TSBSSimTrack* trk = static_cast<TSBSSimTrack*>(tracks->UncheckedAt(i));
 
@@ -589,6 +594,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
     
    new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
+   if(i==0)itrack = trk->fNumber;//even better
   }
   assert( GetNMCTracks() > 0 );
   
@@ -618,7 +624,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     if( c.fType == kPrimaryType && c.fSource == kPrimarySource ) {
       // Record the primary track's points for access via the SimDecoder interface.
       // Record one point per projection so that we can study residuals.
-      Int_t itrack = 1;
+      //Int_t itrack = 1;//dont' use the by default value...
+      //Int_t itrack = fManager->GetSigTID(0);//better
+      //cout << "itrack ??? " << itrack << endl;
       primary_sector = c.fSector;
       MCTrackPoint* upt = // kUPlane changed to kXPlane: necessary to match TreeSearch EProjType
 	new( (*fMCPoints)[GetNMCPoints()] ) MCTrackPoint( itrack,
@@ -816,7 +824,8 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 //-----------------------------------------------------------------------------
 TSBSSimGEMHit::TSBSSimGEMHit( const TSBSSimEvent::GEMCluster& c )
   : fID(c.fID), fSector(c.fSector), fPlane(c.fPlane),
-    fRealSector(c.fRealSector), fSource(c.fSource), fType(c.fType),
+    //fRealSector(c.fRealSector), 
+    fModule(c.fModule), fSource(c.fSource), fType(c.fType),
     fPID(c.fPID), fP(c.fP), fXEntry(c.fXEntry), fMCpos(c.fMCpos),
     fHitpos(c.fHitpos), fCharge(c.fCharge), fTime(c.fTime),
     fUSize(c.fSize[0]), fUStart(c.fStart[0]), fUPos(c.fXProj[0]),
