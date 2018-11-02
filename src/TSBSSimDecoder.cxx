@@ -356,6 +356,7 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
   
   TSBSMCHitInfo mc;
   mc.fSigType = strip.fSigType;
+  //if(strip.fSigType==1)cout << "TSBSSimDecoder::GetSBSMCHitInfo mc.fSigType " << mc.fSigType << " strip ? " << istrip << " crate " << crate << " slot " << slot << " chan " << chan << endl;
   // cout<<kPrimaryStrip<<" "<<kSecondaryStrip<<" "<<kInducedStrip<<endl;getchar();0 1 2
     // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
   //   printf("%f \n", strip.fTime1);
@@ -409,11 +410,15 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
     assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
     Int_t signalID = -1;
     for (unsigned int ii = 0; ii<fSignalInfo.size(); ii++){
-      if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested
+      //cout << "c.fType " << c.fType << " fSignalInfo.at(ii).tid " << fSignalInfo.at(ii).tid << ", c.fPID " << c.fPID << " fSignalInfo.at(ii).pid " << fSignalInfo.at(ii).pid << endl;
+      //if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested 
+      // cluster type has _nothing_ to do with signal track ID !!!!!!!! 
+      if (c.fType == 1 && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested
 	signalID = ii;
     }
     // cout << "Plane " << strip.fPlane << ", proj (x: 0, y: 1) " << strip.fProj 
     //  	 << ": pos[proj] = "  << c.fXProj[strip.fProj] << endl;
+    //cout << "signalID " << signalID << "; " << c.fSource << " ==? " << kPrimarySource << endl;
     if( signalID >= 0 && c.fSource == kPrimarySource ) {
       if( mc.fMCTrack > 0 ) {
         //this means that there two signal hits overlapping
@@ -583,15 +588,15 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.Y()/1000;
-    cout<<"MC trk projected calo position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    //cout<<"MC trk projected calo position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
 
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(1.3-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(1.3-0.8) + trk->fOrigin.Y()/1000;
-    cout<<"MC trk projected 4th  GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    //cout<<"MC trk projected 4th  GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
 
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(2.33-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(2.33-0.8) + trk->fOrigin.Y()/1000;
-    cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    //cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
     
    new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
    if(i==0)itrack = trk->fNumber;//even better
