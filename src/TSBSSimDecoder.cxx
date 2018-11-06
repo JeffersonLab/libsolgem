@@ -583,15 +583,15 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.Y()/1000;
-    cout<<"MC trk projected calo position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    //cout<<"MC trk projected calo position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
 
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(1.3-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(1.3-0.8) + trk->fOrigin.Y()/1000;
-    cout<<"MC trk projected 4th  GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    //cout<<"MC trk projected 4th  GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
 
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(2.33-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(2.33-0.8) + trk->fOrigin.Y()/1000;
-    cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
+    //cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
     
    new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
    if(i==0)itrack = trk->fNumber;//even better
@@ -745,7 +745,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    Int_t   i;
 	  } datx, daty;
 
-	  cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
+	  //cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
 	  datx.f = static_cast<Float_t>(tempCaloX);
 	  daty.f = static_cast<Float_t>(tempCaloY);
 	  Int_t crate, slot, chan;
