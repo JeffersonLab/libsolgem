@@ -238,9 +238,12 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   const double sigma_Npe_Edep_SH = 1.47e2;
   const int clustercrown_size = 2;
   const double BBECalBlock_size = 0.085;
+  const double Npe_Edep_ECAL = 5.38e2;//>1.0GeV
+  const double sigma_Npe_Edep_ECAL = 2.5e1;//dummy value ftm
   double edep_cal = 0;
   double npe = 0;
   
+  //Variables for BBPS/SH
   double Edep_PS = 0;
   double Edep_SH = 0;
   
@@ -254,12 +257,37 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   double Y_rec = 0;
   double E_rec_SH = 0;
   
+  //variables for GEp ECal
+  int i_ch;
+  double Edep_Max;
+  double Edep_tot_ECal;
+  double x_pos, y_pos;
+  //double x_pos_max, y_pos_max;
+  int N_blocks_added;
+
+  
   std::vector<double> bbps_edep;
   //std::vector<double> bbps_xcell;
   std::vector<double> bbps_ycell;
   std::vector<double> bbsh_edep;
   std::vector<double> bbsh_xcell;
   std::vector<double> bbsh_ycell;
+  
+  std::vector<double> E_blocks;
+  std::vector<double> x_blocks;
+  std::vector<double> y_blocks;
+  
+  std::vector<double> E_eprim_clus;
+  std::vector<double> x_eprim_clus;
+  std::vector<double> y_eprim_clus;
+  
+  E_blocks.clear();
+  x_blocks.clear();
+  y_blocks.clear();
+  
+  E_eprim_clus.clear();
+  x_eprim_clus.clear();
+  y_eprim_clus.clear();
   
   switch(fManager->Getg4sbsDetectorType()){
 
@@ -514,7 +542,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       //bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
       bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
     }
-
+    
     //then, loop on SH hits
     // same story as for PS, except we also store X coordinates
     for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
@@ -1080,6 +1108,131 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       
     }
     */
+    
+    E_rec = 0;
+    X_rec = 0;
+    Y_rec = 0;
+    
+    Edep_tot_ECal = 0;
+    
+    
+    // ---------------------------------
+    // Add GEp ECal clustering here.
+    // ---------------------------------
+    if(fTree->Earm_ECalTF1_hit_nhits){
+      for(int i = 0; i<fTree->Earm_ECalTF1_hit_nhits; i++){	
+	edep_cal = fTree->Earm_ECalTF1_hit_sumedep->at(i);
+	npe = R->Gaus(Npe_Edep_ECAL*edep_cal, sigma_Npe_Edep_ECAL*edep_cal);
+	edep_cal = npe/Npe_Edep_ECAL;
+	//if(fTree->Earm_ECalTF1_hit_sumedep()){
+	i_ch = fTree->Earm_ECalTF1_hit_cell->at(i);
+	//Edep = fTree->Earm_ECAL_hit_NumPhotoelectrons->at(i)/Npe_Edep_ECAL;
+	x_pos = fTree->Earm_ECalTF1_hit_xcell->at(i);
+	y_pos = fTree->Earm_ECalTF1_hit_ycell->at(i);
+	
+	Edep_tot_ECal+= edep_cal;//Edep;
+	
+	//cout << Edep << " " << Edep_Max << endl;
+	
+	if(edep_cal>Edep_Max){
+	  Edep_Max = edep_cal;
+	  // row_edepmax = fTree->Earm_ECAL_hit_row->at(i);
+	  // col_edepmax = fTree->Earm_ECAL_hit_col->at(i);
+	  // x_pos_max = x_pos;
+	  // y_pos_max = y_pos;
+	  
+	  // E_blocks;
+	  // x_blocks;
+	  // y_blocks;
+	  if(E_eprim_clus.size()>0){
+	    E_blocks.push_back(E_eprim_clus[0]);
+	    x_blocks.push_back(x_eprim_clus[0]);
+	    y_blocks.push_back(y_eprim_clus[0]);
+	    
+	    E_eprim_clus.clear();
+	    x_eprim_clus.clear();
+	    y_eprim_clus.clear();
+	    // 	E_pos_blocks.insert(std::pair< E_pos_eprime[0].first, std::pair< E_pos_eprime[0].second.first, E_pos_eprime[0].second.second > >);
+	    // 	E_pos_eprime.clear();
+	  }
+	  E_eprim_clus.push_back(edep_cal);
+	  x_eprim_clus.push_back(x_pos);
+	  y_eprim_clus.push_back(y_pos);
+	  //   E_pos_eprime.insert(std::pair< Edep, std::pair< x_pos, y_pos > >);
+	}else{
+	  E_blocks.push_back(edep_cal);
+	  x_blocks.push_back(x_pos);
+	  y_blocks.push_back(y_pos);
+	  //   E_pos_blocks.insert(std::pair< Edep, make_pair< x_pos, y_pos > >);
+	}
+	//
+      }//end loop on hits
+      
+      if(Edep_tot_ECal>fManager->GetCaloThreshold()){
+	//cout << "E_eprim_clus[0] : " << E_eprim_clus[0] << " x_eprim_clus[0] : " << x_eprim_clus[0] << " y_eprim_clus[0] : " << y_eprim_clus[0] << endl;
+	N_blocks_added = 1;
+	//sanity check
+	if(E_blocks.size()==x_blocks.size() && x_blocks.size()==y_blocks.size() &&
+	   E_eprim_clus.size()==x_eprim_clus.size() && x_eprim_clus.size()==y_eprim_clus.size()){
+	  while(N_blocks_added>0){
+	    N_blocks_added = 0;
+	    //cout << "E_blocks size " << E_blocks.size() << endl;
+	    for(int i = E_blocks.size()-1; i>=0; i--){
+	      for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+		//cout << "i = " << i << ", i_ = " << i_ << endl;
+		if(sqrt(pow(x_blocks[i]-x_eprim_clus[i_], 2)+pow(y_blocks[i]-y_eprim_clus[i_], 2)) < 0.0525){
+		  E_eprim_clus.push_back(E_blocks[i]);
+		  x_eprim_clus.push_back(x_blocks[i]);
+		  y_eprim_clus.push_back(y_blocks[i]);
+		  
+		  E_blocks.erase(E_blocks.begin()+i);
+		  x_blocks.erase(x_blocks.begin()+i);
+		  y_blocks.erase(y_blocks.begin()+i);
+		  N_blocks_added++;
+		  if(i>=E_blocks.size()){
+		    if(i>0){
+		      i--;
+		    }else{
+		      break;
+		    }
+		  }
+		  //cout << "transfering block: i = " << i << ", i_ = " << i_ << endl;
+		}
+	      }//end loop cluster blocks
+	    }//end loop all blocks
+	    // cout << "E_blocks new size " << E_blocks.size() 
+	    //  	 << ", N blocks 'transfered' to clusters " << N_blocks_added << endl;
+	  }//end while 
+	}
+	
+	for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+	  E_rec+= E_eprim_clus[i_];
+	  X_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+	  Y_rec+= y_eprim_clus[i_]*E_eprim_clus[i_];
+	  
+	  //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
+	}
+	X_rec = X_rec/E_rec;
+	Y_rec = Y_rec/E_rec;
+	
+	//cout << "E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
+	/**/
+	if(E_rec>fManager->GetCaloThreshold()){
+	  fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
+	}
+      }//end if...
+    }
+    // -------------------------------
+    // end: calorimeter reconstruction
+    // -------------------------------
+    E_blocks.clear();
+    x_blocks.clear();
+    y_blocks.clear();
+    
+    E_eprim_clus.clear();
+    x_eprim_clus.clear();
+    y_eprim_clus.clear();
+    
     break;// end case(3)
     
   case(4):
