@@ -356,6 +356,7 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
   
   TSBSMCHitInfo mc;
   mc.fSigType = strip.fSigType;
+  //if(strip.fSigType==1)cout << "TSBSSimDecoder::GetSBSMCHitInfo mc.fSigType " << mc.fSigType << " strip ? " << istrip << " crate " << crate << " slot " << slot << " chan " << chan << endl;
   // cout<<kPrimaryStrip<<" "<<kSecondaryStrip<<" "<<kInducedStrip<<endl;getchar();0 1 2
     // if(strip.fProj==0 && strip.fPlane==4 && strip.fTime1>50.0)
   //   printf("%f \n", strip.fTime1);
@@ -409,11 +410,15 @@ TSBSMCHitInfo TSBSSimDecoder::GetSBSMCHitInfo( Int_t crate, Int_t slot, Int_t ch
     assert( strip.fPlane == c.fPlane && strip.fSector == c.fSector );
     Int_t signalID = -1;
     for (unsigned int ii = 0; ii<fSignalInfo.size(); ii++){
-      if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested
+      //cout << "c.fType " << c.fType << " fSignalInfo.at(ii).tid " << fSignalInfo.at(ii).tid << ", c.fPID " << c.fPID << " fSignalInfo.at(ii).pid " << fSignalInfo.at(ii).pid << endl;
+      //if (c.fType == fSignalInfo.at(ii).tid && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested 
+      // cluster type has _nothing_ to do with signal track ID !!!!!!!! 
+      if (c.fType == 1 && c.fPID == fSignalInfo.at(ii).pid) // cluster_type(primary or secondary) == type_requested(primary) && particle == partical_requested
 	signalID = ii;
     }
     // cout << "Plane " << strip.fPlane << ", proj (x: 0, y: 1) " << strip.fProj 
     //  	 << ": pos[proj] = "  << c.fXProj[strip.fProj] << endl;
+    //cout << "signalID " << signalID << "; " << c.fSource << " ==? " << kPrimarySource << endl;
     if( signalID >= 0 && c.fSource == kPrimarySource ) {
       if( mc.fMCTrack > 0 ) {
         //this means that there two signal hits overlapping
