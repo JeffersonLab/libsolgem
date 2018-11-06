@@ -750,7 +750,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    Int_t   i;
 	  } datx, daty;
 
-	  cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
+	  //cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
 	  datx.f = static_cast<Float_t>(tempCaloX);
 	  daty.f = static_cast<Float_t>(tempCaloY);
 	  Int_t crate, slot, chan;
