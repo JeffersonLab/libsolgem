@@ -136,6 +136,8 @@ sbs_bbgem.tracker.${allsectors}.3d_disable_chi2 = 0
 
 sbs_bbgem.tracker.${allsectors}.3d_ampcorr_maxmiss = 2
 sbs_bbgem.tracker.${allsectors}.3d_ampcorr_nsigma = 0.3
+#skip adc matching if one plane one of the projection has hit less than this adc value and other projection doesn't have hit
+sbs_bbgem.tracker.${allsectors}.3d_ampcorr_minADC = 500 
 sbs_bbgem.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
 sbs_bbgem.tracker.${allsectors}.3d_maxmiss = 2 # 3D max miss
 sbs_bbgem.tracker.${allsectors}.proj_to_z0 = 0
@@ -160,6 +162,10 @@ sbs_bbgem.tracker.maxhits = 1000
 sbs_bbgem.tracker.maxclustsiz = 6
 sbs_bbgem.tracker.adc.min = 100
 sbs_bbgem.tracker.split.frac = 0.1
+sbs_bbgem.tracker.peakTimeMin = 30
+sbs_bbgem.tracker.peakTimeMax = 90
+sbs_bbgem.tracker.minPeakADC = 100
+
 sbs_bbgem.tracker.maxsamp = 6
 sbs_bbgem.tracker.adc.sigma = 0.2
 sbs_bbgem.tracker.do_noise = 0
