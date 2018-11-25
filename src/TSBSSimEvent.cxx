@@ -87,13 +87,25 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 
 //-----------------------------------------------------------------------------
 TSBSECalCluster::TSBSECalCluster()
-  : fEnergy(0), fXPos(0), fYPos(0), fTime(0)
+  : fEnergy(0), fXPos(0), fYPos(0), fTime(0), fDetFlag(0)
 {
 }
 
 //-----------------------------------------------------------------------------
-TSBSECalCluster::TSBSECalCluster(double E, double X, double Y, double t)
-  : fEnergy(E), fXPos(X), fYPos(Y), fTime(t)
+TSBSECalCluster::TSBSECalCluster(double E, double X, double Y, double t, int flag)
+  : fEnergy(E), fXPos(X), fYPos(Y), fTime(t), fDetFlag(flag)
+{
+}
+
+//-----------------------------------------------------------------------------
+TSBSScintCluster::TSBSScintCluster()
+  : fPlane(0), fEnergy(0), fXPos(0), fYPos(0), fTime(0), fDetFlag(0)
+{
+}
+
+//-----------------------------------------------------------------------------
+TSBSScintCluster::TSBSScintCluster(int plane, double E, double X, double Y, double t, int flag)
+  : fPlane(plane), fEnergy(E), fXPos(X), fYPos(Y), fTime(t), fDetFlag(flag)
 {
 }
 
@@ -146,6 +158,7 @@ void TSBSSimEvent::Clear( Option_t* opt )
  
   if( sopt.Contains("all",TString::kIgnoreCase) ) {
     fECalClusters.clear();   
+    fScintClusters.clear();   
     if( fMCTracks ) {
       fMCTracks->Clear(opt);
     }
@@ -242,3 +255,4 @@ void TSBSSimEvent::Print( Option_t* opt ) const
 ClassImp(TSBSSimEvent)
 ClassImp(TSBSSimTrack)
 ClassImp(TSBSECalCluster)
+ClassImp(TSBSScintCluster)

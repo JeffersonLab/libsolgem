@@ -716,7 +716,6 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
   // of the signal data here, i.e. type == 1 and source == 0.
   // There is only ever one primary particle per event.
   if( best_primary >= 0 ) {
-
     Int_t nback = GetNBackTracks();
     assert( nback == 0 );
 
@@ -741,31 +740,197 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     if( fManager->DoCalo() ){// && trk->fNHits == 2*fManager->GetNChamber() ) {
 	double tempCaloX;
 	double tempCaloY;
+	Int_t flag;
+	double E;
+
+	double tempScintX;
+	double tempScintY;
+	Int_t tempPlane;
+	double kpx, kpy, kpz, kp, thetak, phik;
+	double ppx, ppy, ppz, pp, thetap, phip;
+	double x_S; 
+	double y_S;
+
+	//this is becoming very dirty... :/
+	const double Mp = 0.938272;
+	const double k0 = 11.0;
+	const double th_earm = 29.0*TMath::DegToRad();
+	const double z_earm[3] = {5.02, 4.48, 4.53};
+	double theta[3];
+	double phi[3];
+	
+	const double th_sbs = 16.9*TMath::DegToRad();
+	TVector3 pvect, pvect_SBS;
+	TVector3 SBS_zaxis( -sin(th_sbs), 0, cos(th_sbs) );
+	TVector3 SBS_xaxis(0,-1,0);
+	TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
+	
+	
 	for(Int_t i=0; i< simEvent->fECalClusters.size(); i++){
 	  const TSBSECalCluster& eCalHit = simEvent -> fECalClusters[i];
 	  tempCaloX = eCalHit.GetXPos();
 	  tempCaloY = eCalHit.GetYPos();
+	  flag = eCalHit.GetDetFlag();
 	  union FloatIntUnion {
 	    Float_t f;
 	    Int_t   i;
 	  } datx, daty;
 
 	  //cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
-	  datx.f = static_cast<Float_t>(tempCaloX);
-	  daty.f = static_cast<Float_t>(tempCaloY);
 	  Int_t crate, slot, chan;
-	  crate = 2;
-	  slot  = 0;
-	  chan  = 0;
-	  if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
-	    return HED_ERR;
+	  
+	  //Recalculate all kinematics... a bit dumb
+	  E = eCalHit.GetEnergy();
+	  if(flag==0){
+	    /*
+	      datx.f = static_cast<Float_t>(tempCaloX);
+	      daty.f = static_cast<Float_t>(tempCaloY);
+	      
+	      crate = 4;
+	      slot  = 0;
+	      chan  = 2;
+	      
+	      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	      return HED_ERR;
+	      }
+	      crate = 4;
+	      slot  = 0;
+	      chan  = 3;
+	      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	      return HED_ERR;
+	      }
+	    */
 	  }
-	  crate = 2;
-	  slot  = 1;
-	  chan  = 0;
-	  if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
-	    return HED_ERR;
+	  
+	  if(flag==10 && eCalHit.GetEnergy()>=fManager->GetCaloThreshold()){
+	    datx.f = static_cast<Float_t>(tempCaloX);
+	    daty.f = static_cast<Float_t>(tempCaloY);
+	    
+	    crate = 2;
+	    slot  = 0;
+	    chan  = 0;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
+	    crate = 2;
+	    slot  = 1;
+	    chan  = 0;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
 	  }
+	  
+	  if(flag==12 && eCalHit.GetEnergy()>=fManager->GetCaloThreshold()){
+	    /*
+	    thetak = 0; 
+	    phik = 0;
+	    //Step 1: 
+	    //Calculate theta and phi with ECal cluster
+	    kpx = z_earm[0]*sin(th_earm)+tempCaloY*cos(th_earm);
+	    kpy = -tempCaloX;
+	    kpz = z_earm[0]*cos(th_earm)-tempCaloY*sin(th_earm);
+	    
+	    kp = sqrt(kpx*kpx+kpy*kpy+kpz*kpz);
+	    thetak+= acos(kpz/kp);
+	    phik+= atan2(kpy, kpx);
+	    // theta[0] = kpz/kp;
+	    // phi[0] = atan2(kpy, kpx);
+	    // thetak+= theta[0];
+	    // phik+= phi[0];
+	    
+	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
+	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[i];
+	      tempScintX = SciHit.GetXPos();
+	      tempScintY = SciHit.GetYPos();
+	      tempPlane = SciHit.GetPlane();
+	      
+	      kpx = z_earm[tempPlane]*sin(th_earm)+tempScintY*cos(th_earm);
+	      kpy = -tempScintX;
+	      kpz = z_earm[tempPlane]*cos(th_earm)-tempScintY*sin(th_earm);
+	      thetak+= acos(kpz/kp);
+	      phik+= atan2(kpy, kpx);
+	      // theta[tempPlane] = kpz/kp;
+	      // phi[tempPlane] = atan2(kpy, kpx);
+	      // thetak+= theta[tempPlane];
+	      // phik+= phi[tempPlane];
+	    }
+	    thetak/3;
+	    phik/3;
+	    
+	    phip = phik+TMath::Pi();
+	    kp = k0*Mp/(k0*(1-cos(thetak))+Mp);
+	    pp = sqrt(pow(k0-kp+Mp, 2)-Mp*Mp);
+	    thetap = asin(kp*sin(thetak)/pp);
+	    //K, we have everything... and then ? :S
+	    pvect = TVector3(pp*sin(thetap)*cos(phip), pp*sin(thetap)*sin(phip), pp*cos(thetap));
+	    pvect_SBS = TVector3( pvect.Dot(SBS_xaxis), pvect.Dot(SBS_yaxis), pvect.Dot(SBS_zaxis) );
+	    
+	    xptar = pvect_SBS.X()/pvect_SBS.Z();
+	    yptar = pvect_SBS.Y()/pvect_SBS.Z();
+	    //xtar and ytar are assumed to be 0... don't quite have much choice, but +-20cm at 16.9deg is "only" 5cm
+	    
+	    //x_S = xptar*A+yptar*B;
+	    */
+	    x_S = 0.0337-tempCaloX*0.4377;//Ad hoc parameters (probably still much better than above)
+	    y_S = (0.0838-x_S*tempCaloY/tempCaloX)/0.879;
+	    datx.f = static_cast<Float_t>(x_S);
+	    daty.f = static_cast<Float_t>(y_S);
+	    crate = 4;
+	    slot  = 0;
+	    chan  = 0;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
+	    crate = 4;
+	    slot  = 0;
+	    chan  = 1;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
+	    /*
+	    //Recalculate all kinematics... a bit dumb??? =>yes...
+	    E = eCalHit.GetEnergy();
+	    if(E<fManager->GetCaloThreshold())return HED_ERR;
+	    kpx = 5.02*sin(0.506)+tempCaloY*cos(0.506);
+	    kpy = -tempCaloX;
+	    kpz = 5.02*cos(0.506)-tempCaloY*sin(0.506);
+	    
+	    kp = sqrt(kpx*kpx+kpy*kpy+kpz*kpz);
+	    kpx*= E/kp;
+	    kpy*= E/kp;
+	    kpz*= E/kp;
+	    kp = E;
+	    
+	    pp = 11.0-kp;
+	    thetap = asin(kp/pp*sin(acos(kpz/kp)));
+	    phip = atan2(-kpy, -kpx);
+	    
+	    ppx = pp*cos(thetap);
+	    ppy = pp*cos(thetap);
+	    ppz = pp*cos(thetap);
+	    
+	    alpha = atan2(ppx,ppz);
+	    tanbeta = ppy/sqrt(ppx*ppx+ppz*ppz);
+	    //Double_t v = vz + vx*ppx/ppz;
+	    
+	    y_S = (3.448)*tan(alpha-16.9);
+	    x_S = -(3.448)*tanbeta/cos(alpha-16.9);
+	    //cout << x_S << " " << y_S << endl;	    
+	    */ 
+	  }
+	  /*
+	  switch(flag){
+	  case(0):
+	    break;
+	  case(10):
+	    break;
+	  case(12):
+	    break;
+	  default:
+	    break;
+	  }
+	  */
+	  
 	}
 	/*The previous predicting method below seems to be quite off from the reconstructed
 	  ECal position and projected position from the MCTrack, thus switching to reconstructed 

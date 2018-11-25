@@ -117,8 +117,6 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
         { 0 }
     };
     
-
-
     int err = LoadDB( input, request,  prefix);
     if( err ) {cout<<"Load DB error"<<endl;exit(2);} 
    

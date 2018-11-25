@@ -2,7 +2,6 @@
 #include "TSBSDBManager.h"
 //#include "g4sbs_types.h"
 #include "gemc_types.h"
-#include "TRandom3.h"
 #include "fstream"
 
 using namespace std;
@@ -23,7 +22,7 @@ TSBSGeant4File::TSBSGeant4File(const char *f) : fFile(0), fSource(0) {
   SetFilename(f);
   fManager = TSBSDBManager::GetInstance();
   //InitMiscParam(filedbpath);
-  
+  fR = new TRandom3(0);
   //cout << " Gas data file container: -> " << &gasdatafilename << " <- " << endl;
   //cout << " Gas data file name: -> " << gasdatafilename.c_str() << " <- " << endl;
   //ReadGasData(gasdatafilename.c_str());
@@ -94,6 +93,7 @@ void TSBSGeant4File::ReadGasData(const char* filename){
 TSBSGeant4File::~TSBSGeant4File() {
   Clear();
   delete fFile;
+  delete fR;
 }
 
 void TSBSGeant4File::SetFilename( const char *f ){
@@ -229,66 +229,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
   double pmax = 0.0;
   std::vector<int> trid_hits;
   double gen_data_temp_max[9];
+  int MID = 0; 
 
-  //variables for clustering
-  TRandom3* R = new TRandom3(0);
-  const double Npe_Edep_PS = 1.550e3;
-  const double sigma_Npe_Edep_PS = 1.58e2;
-  const double Npe_Edep_SH = 2.335e3;
-  const double sigma_Npe_Edep_SH = 1.47e2;
-  const int clustercrown_size = 2;
-  const double BBECalBlock_size = 0.085;
-  const double Npe_Edep_ECAL = 5.38e2;//>1.0GeV
-  const double sigma_Npe_Edep_ECAL = 2.5e1;//dummy value ftm
-  double edep_cal = 0;
-  double npe = 0;
-  
-  //Variables for BBPS/SH
-  double Edep_PS = 0;
-  double Edep_SH = 0;
-  
-  double Edep_PS_max = 0;
-  double Edep_SH_max = 0;
-  double EdepXmax = 0;
-  double EdepYmax = 0;
-  
-  double E_rec = 0;
-  double X_rec = 0;
-  double Y_rec = 0;
-  double E_rec_SH = 0;
-  
-  //variables for GEp ECal
-  int i_ch;
-  double Edep_Max;
-  double Edep_tot_ECal;
-  double x_pos, y_pos;
-  //double x_pos_max, y_pos_max;
-  int N_blocks_added;
-
-  
-  std::vector<double> bbps_edep;
-  //std::vector<double> bbps_xcell;
-  std::vector<double> bbps_ycell;
-  std::vector<double> bbsh_edep;
-  std::vector<double> bbsh_xcell;
-  std::vector<double> bbsh_ycell;
-  
-  std::vector<double> E_blocks;
-  std::vector<double> x_blocks;
-  std::vector<double> y_blocks;
-  
-  std::vector<double> E_eprim_clus;
-  std::vector<double> x_eprim_clus;
-  std::vector<double> y_eprim_clus;
-  
-  E_blocks.clear();
-  x_blocks.clear();
-  y_blocks.clear();
-  
-  E_eprim_clus.clear();
-  x_eprim_clus.clear();
-  y_eprim_clus.clear();
-  
   switch(fManager->Getg4sbsDetectorType()){
 
   case(1)://BB GEMs
@@ -507,99 +449,9 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       n_gen++;
     }
     
+    if(fManager->DoCalo())
+      GetBBECalCluster();
     
-      
-    // ---------------------------------
-    // Add calorimeter clustering here.
-    // ---------------------------------
-    bbps_edep.clear();
-    bbps_ycell.clear();
-    bbsh_edep.clear();
-    bbsh_xcell.clear();
-    bbsh_ycell.clear();
-    //first, loop on PS hits
-    for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){
-      // evaluate energy deposit including smearing from the photoelectron yield:
-      // convert energy deposit in pe yield with Npe_Edep_PS conversion coefficiency, 
-      // and smearing sigma_Npe_Edep_PS. 
-      // Then reconvert into enegry deposit using Npe_Edep_PS
-      edep_cal = fTree->Earm_BBPSTF1_hit_sumedep->at(i);
-      npe = R->Gaus(Npe_Edep_PS*edep_cal, sigma_Npe_Edep_PS*edep_cal);
-      //Npe_fEdep_PS(R, fTree->Earm_BBPSTF1_hit_sumedep->at(i));
-      edep_cal = npe/Npe_Edep_PS;
-      //Edep_fNpe_PS(npe);
-      Edep_PS+= edep_cal;
-	
-      // if edep is the maximal energy deposit, store it in the "max" variables
-      if(edep_cal>Edep_PS_max){
-	Edep_PS_max = edep_cal;
-	EdepYmax = fTree->Earm_BBPSTF1_hit_ycell->at(i);
-      }
-	
-      // record all smeared energy deposits no matter what, + photon coordinates 
-      bbps_edep.push_back(edep_cal);
-      // X coordinates (in calorimeter) are not relevant for PS.
-      //bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
-      bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
-    }
-    
-    //then, loop on SH hits
-    // same story as for PS, except we also store X coordinates
-    for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
-      edep_cal = fTree->Earm_BBSHTF1_hit_sumedep->at(i);
-      npe = R->Gaus(Npe_Edep_SH*edep_cal, sigma_Npe_Edep_SH*edep_cal);
-      //Npe_fEdep_SH(R, fTree->Earm_BBSHTF1_hit_sumedep->at(i));
-      edep_cal = npe/Npe_Edep_SH;
-      //Edep_fNpe_SH(npe);
-      Edep_SH+= edep_cal;
-	
-      if(edep_cal>Edep_SH_max){
-	Edep_SH_max = edep_cal;
-	EdepXmax = fTree->Earm_BBSHTF1_hit_xcell->at(i);
-	if(Edep_SH_max>Edep_PS_max){
-	  EdepYmax = fTree->Earm_BBSHTF1_hit_ycell->at(i);
-	}
-      }
-	
-      bbsh_edep.push_back(edep_cal);
-      bbsh_xcell.push_back(fTree->Earm_BBSHTF1_hit_xcell->at(i));
-      bbsh_ycell.push_back(fTree->Earm_BBSHTF1_hit_ycell->at(i));
-    }
-      
-    // calculate reconstructed energy: 5x5 blocks around the max.
-    for(size_t l = 0; l<bbps_edep.size(); l++){
-      if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
-	E_rec+= bbps_edep[l];
-	//X_rec+= bbps_edep[l]*(-1)*bbps_ycell[l];
-      }
-    }
-      
-    // calculate reconstructed energy: 5x5 blocks around the max.
-    for(size_t l = 0; l<bbsh_edep.size(); l++){
-      if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
-	 fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
-	E_rec+= bbsh_edep[l];
-	E_rec_SH+= bbsh_edep[l];
-	//transforming calo coordinates as stored in g4sbs output to transport coordinates.
-	X_rec+= bbsh_edep[l]*(-1)*bbsh_ycell[l];
-	Y_rec+= bbsh_edep[l]*bbsh_xcell[l];
-      }
-    }
-      
-    // calculate reconstructed position: 
-    // mean of position of all cluster blocks weighted with energy deposit.
-    //X_rec = X_rec/E_rec;
-    X_rec = X_rec/E_rec_SH;
-    Y_rec = Y_rec/E_rec_SH;
-    //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
-
-    //hardcode threshold for the moment, will add in the DB later.
-    if(E_rec>fManager->GetCaloThreshold()){
-      fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
-    }
-    // -------------------------------
-    // end: calorimeter reconstruction
-    // -------------------------------
       
     /*
     // Rescue ngen data here...
@@ -628,7 +480,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 
       int pid = fTree->Harm_SBSGEM_hit_pid->at(i);
       int trid = fTree->Harm_SBSGEM_hit_trid->at(i);
-      int type = fTree->Harm_SBSGEM_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int type = fTree->Harm_SBSGEM_hit_mid->at(i)+fSource+1;//=1 if primary, >1 if secondary...
       int plane = fTree->Harm_SBSGEM_hit_plane->at(i)-1;
       int edep = fTree->Harm_SBSGEM_hit_edep->at(i)*1.0e3;
       int tmin = fTree->Harm_SBSGEM_hit_tmin->at(i);
@@ -832,7 +684,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       int det_id = 3;
       int pid = fTree->Harm_FT_hit_pid->at(i);
       int trid = fTree->Harm_FT_hit_trid->at(i);
-      int type = fTree->Harm_FT_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int type = fTree->Harm_FT_hit_mid->at(i)+fSource+1;//=1 if primary, >1 if secondary...
       int plane = fTree->Harm_FT_hit_plane->at(i)-1;
       double edep = fTree->Harm_FT_hit_edep->at(i)*1.0e3;
       double tmin = fTree->Harm_FT_hit_tmin->at(i);
@@ -1109,129 +961,11 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     }
     */
     
-    E_rec = 0;
-    X_rec = 0;
-    Y_rec = 0;
-    
-    Edep_tot_ECal = 0;
-    
-    
-    // ---------------------------------
-    // Add GEp ECal clustering here.
-    // ---------------------------------
-    if(fTree->Earm_ECalTF1_hit_nhits){
-      for(int i = 0; i<fTree->Earm_ECalTF1_hit_nhits; i++){	
-	edep_cal = fTree->Earm_ECalTF1_hit_sumedep->at(i);
-	npe = R->Gaus(Npe_Edep_ECAL*edep_cal, sigma_Npe_Edep_ECAL*edep_cal);
-	edep_cal = npe/Npe_Edep_ECAL;
-	//if(fTree->Earm_ECalTF1_hit_sumedep()){
-	i_ch = fTree->Earm_ECalTF1_hit_cell->at(i);
-	//Edep = fTree->Earm_ECAL_hit_NumPhotoelectrons->at(i)/Npe_Edep_ECAL;
-	x_pos = fTree->Earm_ECalTF1_hit_xcell->at(i);
-	y_pos = fTree->Earm_ECalTF1_hit_ycell->at(i);
-	
-	Edep_tot_ECal+= edep_cal;//Edep;
-	
-	//cout << Edep << " " << Edep_Max << endl;
-	
-	if(edep_cal>Edep_Max){
-	  Edep_Max = edep_cal;
-	  // row_edepmax = fTree->Earm_ECAL_hit_row->at(i);
-	  // col_edepmax = fTree->Earm_ECAL_hit_col->at(i);
-	  // x_pos_max = x_pos;
-	  // y_pos_max = y_pos;
-	  
-	  // E_blocks;
-	  // x_blocks;
-	  // y_blocks;
-	  if(E_eprim_clus.size()>0){
-	    E_blocks.push_back(E_eprim_clus[0]);
-	    x_blocks.push_back(x_eprim_clus[0]);
-	    y_blocks.push_back(y_eprim_clus[0]);
-	    
-	    E_eprim_clus.clear();
-	    x_eprim_clus.clear();
-	    y_eprim_clus.clear();
-	    // 	E_pos_blocks.insert(std::pair< E_pos_eprime[0].first, std::pair< E_pos_eprime[0].second.first, E_pos_eprime[0].second.second > >);
-	    // 	E_pos_eprime.clear();
-	  }
-	  E_eprim_clus.push_back(edep_cal);
-	  x_eprim_clus.push_back(x_pos);
-	  y_eprim_clus.push_back(y_pos);
-	  //   E_pos_eprime.insert(std::pair< Edep, std::pair< x_pos, y_pos > >);
-	}else{
-	  E_blocks.push_back(edep_cal);
-	  x_blocks.push_back(x_pos);
-	  y_blocks.push_back(y_pos);
-	  //   E_pos_blocks.insert(std::pair< Edep, make_pair< x_pos, y_pos > >);
-	}
-	//
-      }//end loop on hits
-      
-      if(Edep_tot_ECal>fManager->GetCaloThreshold()){
-	//cout << "E_eprim_clus[0] : " << E_eprim_clus[0] << " x_eprim_clus[0] : " << x_eprim_clus[0] << " y_eprim_clus[0] : " << y_eprim_clus[0] << endl;
-	N_blocks_added = 1;
-	//sanity check
-	if(E_blocks.size()==x_blocks.size() && x_blocks.size()==y_blocks.size() &&
-	   E_eprim_clus.size()==x_eprim_clus.size() && x_eprim_clus.size()==y_eprim_clus.size()){
-	  while(N_blocks_added>0){
-	    N_blocks_added = 0;
-	    //cout << "E_blocks size " << E_blocks.size() << endl;
-	    for(int i = E_blocks.size()-1; i>=0; i--){
-	      for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
-		//cout << "i = " << i << ", i_ = " << i_ << endl;
-		if(sqrt(pow(x_blocks[i]-x_eprim_clus[i_], 2)+pow(y_blocks[i]-y_eprim_clus[i_], 2)) < 0.0525){
-		  E_eprim_clus.push_back(E_blocks[i]);
-		  x_eprim_clus.push_back(x_blocks[i]);
-		  y_eprim_clus.push_back(y_blocks[i]);
-		  
-		  E_blocks.erase(E_blocks.begin()+i);
-		  x_blocks.erase(x_blocks.begin()+i);
-		  y_blocks.erase(y_blocks.begin()+i);
-		  N_blocks_added++;
-		  if(i>=E_blocks.size()){
-		    if(i>0){
-		      i--;
-		    }else{
-		      break;
-		    }
-		  }
-		  //cout << "transfering block: i = " << i << ", i_ = " << i_ << endl;
-		}
-	      }//end loop cluster blocks
-	    }//end loop all blocks
-	    // cout << "E_blocks new size " << E_blocks.size() 
-	    //  	 << ", N blocks 'transfered' to clusters " << N_blocks_added << endl;
-	  }//end while 
-	}
-	
-	for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
-	  E_rec+= E_eprim_clus[i_];
-	  X_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
-	  Y_rec+= y_eprim_clus[i_]*E_eprim_clus[i_];
-	  
-	  //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
-	}
-	X_rec = X_rec/E_rec;
-	Y_rec = Y_rec/E_rec;
-	
-	//cout << "E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
-	/**/
-	if(E_rec>fManager->GetCaloThreshold()){
-	  fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec));
-	}
-      }//end if...
+    if(fManager->DoCalo()){
+      GetHCalCluster();
+      GetGEpECalCluster();
     }
-    // -------------------------------
-    // end: calorimeter reconstruction
-    // -------------------------------
-    E_blocks.clear();
-    x_blocks.clear();
-    y_blocks.clear();
     
-    E_eprim_clus.clear();
-    x_eprim_clus.clear();
-    y_eprim_clus.clear();
     
     break;// end case(3)
     
@@ -1240,12 +974,48 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     // This block is not well commented, 
     // as it is very similar to the previous block of instructions
     // where Forward Tracker data are unfolded.
+    MID = 0; 
+    if(fSource==0 && n_gen==0 && fTree->Harm_FPP1_Track_ntracks>0){
+      if(fTree->Harm_FPP1_Track_PID->at(0)==2212){
+	
+	TVector3 trackOrigin = TVector3(fTree->Harm_FPP1_Track_X->at(0)*1.0e3, // in mm
+					fTree->Harm_FPP1_Track_Y->at(0)*1.0e3, // in mm
+					0);
+	double pz = fTree->Harm_FPP1_Track_P->at(0) / sqrt(1 + pow(fTree->Harm_FPP1_Track_Xp->at(0),2) + pow(fTree->Harm_FPP1_Track_Yp->at(0),2));
+	TVector3 Mom = TVector3(pz * fTree->Harm_FPP1_Track_Xp->at(0),
+				pz * fTree->Harm_FPP1_Track_Yp->at(0),
+				pz);
+	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
+	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+	
+	MID = fTree->Harm_FPP1_Track_MID->at(0);
+	gen_data_temp[0] = fTree->Harm_FPP1_Track_TID->at(0);
+	gen_data_temp[1] = fTree->Harm_FPP1_Track_PID->at(0);
+	for(int k = 0; k<3; k++){
+	  gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
+	  gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
+	  gen_data_temp[k+9] = trackVertexMom[k];//momentum at target in global axis    in GeV
+	  gen_data_temp[k+12]= trackVertex[k];//vertex in global axis,                  in m
+	}
+	gen_data_temp[8] = weight;
+	
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	
+	int jdd=0;
+	for(; jdd<15; jdd++){
+	  fg4sbsGenData[n_gen]->SetData(jdd, gen_data_temp[jdd]);
+	}
+	n_gen++;
+      }
+    }
+    
     for(int i = 0; i<fTree->Harm_FPP1_hit_nhits; i++){
       int det_id = 4;
 
       int pid = fTree->Harm_FPP1_hit_pid->at(i);
       int trid = fTree->Harm_FPP1_hit_trid->at(i);
-      int type = fTree->Harm_FPP1_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
+      int type = fTree->Harm_FPP1_hit_mid->at(i)+fSource+1;//=1 if primary, >1 if secondary...
+      if(fTree->Harm_FPP1_hit_mid->at(i)==MID && trid==gen_data_temp[0])type = fSource+1;
       int plane = fTree->Harm_FPP1_hit_plane->at(i)-1;
       double edep = fTree->Harm_FPP1_hit_edep->at(i)*1.0e3;
       double tmin = fTree->Harm_FPP1_hit_tmin->at(i);
@@ -1285,35 +1055,6 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		      // in mm
 		      +7.685);// in mm
 
-      /* // see comment lines 138-141 of TSBSGeant4File.h
-      X_in = TVector3((fTree->Harm_FPP1_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
-		      fTree->Harm_FPP1_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FPP1_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
-		       fManager->GetD0(plane, sector))*1.0e3);// in mm
-      
-      X_out = TVector3(X_in.X()+3.0*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
-		       X_in.Y()+3.0*fTree->Harm_FPP1_hit_typ->at(i), // in mm
-		       -1.6825);// in mm
-      
-      X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP1_hit_txp->at(i), // in mm 
-		      X_in.Y()+9.185*fTree->Harm_FPP1_hit_typ->at(i), // in mm 
-		      4.5025);// in mm      
-       
-      if(d_flag>1)cout << "FPP1: momentum: " << fTree->Harm_FPP1_hit_p->at(i) << " < ? " << feMom.back() << endl;
-      if(fabs(fTree->Harm_FPP1_hit_pid->at(i))==11 && fTree->Harm_FPP1_hit_p->at(i)<=feMom.back()){
-	eRangeSlope = sqrt(pow(fTree->Harm_FPP1_hit_txp->at(i), 2)+pow(fTree->Harm_FPP1_hit_typ->at(i), 2))*3.0e-3;//m
-	eRangeGas = FindGasRange(fTree->Harm_FPP1_hit_p->at(i));//m
-	if(d_flag>1)cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
-       	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(X_in.X()+3.0*fTree->Harm_FPP1_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_FPP1_hit_typ->at(i)*eRangeGas/eRangeSlope);
-	  
-	  X_RO.SetX(X_out.X());
-	  X_RO.SetY(X_out.Y());
-	  if(d_flag>1)cout << "Coucou ! FPP1 " << endl;
-       	}
-      }
-      */
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 	if(d_flag>0){
@@ -1370,64 +1111,6 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
       n_hits++;
       
-      /*
-      //Filling gen_data temporary array...
-      gen_data_temp[0] = trid;
-      gen_data_temp[1] = pid;
-      for(int k = 0; k<3; k++){
-	gen_data_temp[k+2] = Mom[k];
-	gen_data_temp[k+5] = Vtx[k];
-      }
-      gen_data_temp[8] = weight;
-      
-      //store information to rescue, if necessary, the generated info
-      if(fTree->Harm_FPP1_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
-	pmax = fTree->Harm_FPP1_hit_p->at(i);
-	for(int k = 0; k<9; k++){
-	  gen_data_temp_max[k] = gen_data_temp[k];
-	}
-      }
-      
-      // ... to copy it in the actual g4sbsGenData structure.
-      // only store signal, primary MC tracks
-      if(fSource==0 && n_gen==0 && type==1){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-      }
-      */
-      
-      /*else{// this determines if the track is new or not
-	newtrk = true; 
-	for(int z = n_gen-1; z>=0; z--){
-	dupli = true;
-	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	dupli=false;
-	}else{
-	for(int j = 5; j<8; j++){
-	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-	dupli=false;
-	break;
-	}
-	}
-	}
-	if(dupli){
-	newtrk = false;
-	break;
-	}
-	}
-	
-	if(newtrk){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-	}
-	}
-      */
       if(d_flag>1){
 	cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP1: X_global : " 
 	     << fTree->Harm_FPP1_hit_xg->at(i) << ", " 
@@ -1462,22 +1145,56 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
 	cout << endl;
       } //DEBUG 
-      
-      if(fSource==0 && n_gen==0 && fTree->Harm_FPP1_Track_ntracks>0  && fTree->Harm_FPP1_Track_PID->at(0)==2212){
-	
-	TVector3 trackOrigin = TVector3(fTree->Harm_FPP1_Track_X->at(0)*1.0e3, // in mm
-					fTree->Harm_FPP1_Track_Y->at(0)*1.0e3, // in mm
+    }
+    
+    
+    
+    if(fManager->DoCalo()){
+      GetHCalCluster();
+      GetGEpECalCluster();
+    }
+    /*
+    // Rescue ngen data here...
+    // ngen data is rescued if: 
+    // * the file read is signal; 
+    // * there is no gen data stored already; 
+    // * and there are at least 3 hits associated to the rescued particle
+    if(fSource==0 && n_gen==0 && n_hits>=3){
+      int n_hits_max = 0;
+      for(UInt_t k = 0; k<trid_hits.size(); k++){
+	if(gen_data_temp_max[0]==trid_hits[k])n_hits_max++;
+      }
+      if(n_hits_max>=3){
+	fg4sbsGenData.push_back(new g4sbsgendata());
+	for(int j = 0; j<9; j++){
+	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
+	}
+	n_gen++;
+      }
+    }
+    */
+    break;// end case(4)
+  case(5):
+    //Loop on the Focal Plane Polarimeter 1 hits: detectors 0 to 4
+    // This block is not well commented, 
+    // as it is very similar to the previous block of instructions
+    // where Forward Tracker data are unfolded.
+    MID = 0; 
+    if(fSource==0 && n_gen==0 && fTree->Harm_FPP2_Track_ntracks>0){
+      if(fTree->Harm_FPP2_Track_PID->at(0)==2212){
+	TVector3 trackOrigin = TVector3(fTree->Harm_FPP2_Track_X->at(0)*1.0e3, // in mm
+					fTree->Harm_FPP2_Track_Y->at(0)*1.0e3, // in mm
 					0);
-	double pz = fTree->Harm_FPP1_Track_P->at(0) / sqrt(1 + pow(fTree->Harm_FPP1_Track_Xp->at(0),2) + pow(fTree->Harm_FPP1_Track_Yp->at(0),2));
-	TVector3 Mom = TVector3(pz * fTree->Harm_FPP1_Track_Xp->at(0),
-				pz * fTree->Harm_FPP1_Track_Yp->at(0),
+	double pz = fTree->Harm_FPP2_Track_P->at(0) / sqrt(1 + pow(fTree->Harm_FPP2_Track_Xp->at(0),2) + pow(fTree->Harm_FPP2_Track_Yp->at(0),2));
+	TVector3 Mom = TVector3(pz * fTree->Harm_FPP2_Track_Xp->at(0),
+				pz * fTree->Harm_FPP2_Track_Yp->at(0),
 				pz);
 	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
 	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
 	
-	
-	gen_data_temp[0] = fTree->Harm_FPP1_Track_TID->at(0);
-	gen_data_temp[1] = fTree->Harm_FPP1_Track_PID->at(0);
+	MID = fTree->Harm_FPP1_Track_MID->at(0);
+	gen_data_temp[0] = fTree->Harm_FPP2_Track_TID->at(0);
+	gen_data_temp[1] = fTree->Harm_FPP2_Track_PID->at(0);
 	for(int k = 0; k<3; k++){
 	  gen_data_temp[k+2] = Mom[k];  //average momentum in tracker                in GeV
 	  gen_data_temp[k+5] = trackOrigin[k];//interception at focal plane          in mm
@@ -1494,28 +1211,28 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	}
 	n_gen++;
       }
-      
     }
     
-    //Loop on the Focal Plane Polarimeter 2 hits: detectors 5 to 9
-    // This block is not well commented, 
-    // as it is very similar to the previous block of instructions
-    // where Forward Tracker data are unfolded.
-    if(d_flag>0)cout << "read FPP2" << endl;
     for(int i = 0; i<fTree->Harm_FPP2_hit_nhits; i++){
       int det_id = 4;
 
       int pid = fTree->Harm_FPP2_hit_pid->at(i);
       int trid = fTree->Harm_FPP2_hit_trid->at(i);
-      int type = fTree->Harm_FPP2_hit_mid->at(i)+1;//=1 if primary, >1 if secondary...
-      int plane = fManager->GetNChamber()/2+fTree->Harm_FPP2_hit_plane->at(i)-1;
+      int type = fTree->Harm_FPP2_hit_mid->at(i)+fSource+1;//=1 if primary, >1 if secondary...
+      if(fTree->Harm_FPP2_hit_mid->at(i)==MID && trid==gen_data_temp[0])type = fSource+1;
+      int plane = fTree->Harm_FPP2_hit_plane->at(i)-1;
       double edep = fTree->Harm_FPP2_hit_edep->at(i)*1.0e3;
       double tmin = fTree->Harm_FPP2_hit_tmin->at(i);
       double tmax = fTree->Harm_FPP2_hit_tmax->at(i);
+      
+      if(d_flag>1)cout << plane << " " << fTree->Harm_FPP2_hit_tx->at(i) << endl; 
+      
       module = fManager->GetModuleIDFromPos(plane, fTree->Harm_FPP2_hit_tx->at(i));
+
+      if(d_flag>1)cout << plane << ",  " << sector << ",  " << fTree->Harm_FPP2_hit_tx->at(i) << endl; 
       
       trid_hits.push_back(trid);
-
+      
       double pz = sqrt( pow(fTree->Harm_FPP2_hit_p->at(i), 2)/
 		 ( pow(fTree->Harm_FPP2_hit_txp->at(i), 2) + 
 		   pow(fTree->Harm_FPP2_hit_typ->at(i), 2) + 1.0) );
@@ -1542,52 +1259,23 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 		      // in mm
 		      +7.685);// in mm
 
-      /* // see comment lines 138-141 of TSBSGeant4File.h
-      X_in = TVector3((fTree->Harm_FPP2_hit_tx->at(i)-fManager->GetXOffset(plane, sector))*1.0e3, // in mm
-		      fTree->Harm_FPP2_hit_ty->at(i)*1.0e3, // in mm
-		      (fTree->Harm_FPP2_hit_z->at(i)+fManager->Getg4sbsZSpecOffset()-
-		       fManager->GetD0(plane, sector))*1.0e3);// in mm
-      
-      X_out = TVector3(X_in.X()+3.0*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
-		       X_in.Y()+3.0*fTree->Harm_FPP2_hit_typ->at(i), // in mm
-		       -1.6825);// in mm
-      
-      X_RO = TVector3(X_in.X()+9.185*fTree->Harm_FPP2_hit_txp->at(i), // in mm 
-		      X_in.Y()+9.185*fTree->Harm_FPP2_hit_typ->at(i), // in mm 
-		      4.5025);// in mm      
-      
-      if(fabs(fTree->Harm_FPP2_hit_pid->at(i))==11 && fTree->Harm_FPP2_hit_p->at(i)<=feMom.back()){
-	eRangeSlope = sqrt(pow(fTree->Harm_FPP2_hit_txp->at(i), 2)+pow(fTree->Harm_FPP2_hit_typ->at(i), 2))*3.0e-3;//m
-	eRangeGas = FindGasRange(fTree->Harm_FPP2_hit_p->at(i));//m
-	//cout << "range: " << eRangeGas << " < ? "  << eRangeSlope << endl;
-       	if(eRangeSlope>eRangeGas){
-       	  X_out.SetX(X_in.X()+3.0*fTree->Harm_FPP2_hit_txp->at(i)*eRangeGas/eRangeSlope);
-	  X_out.SetY(X_in.Y()+3.0*fTree->Harm_FPP2_hit_typ->at(i)*eRangeGas/eRangeSlope);
-	  
-	  X_RO.SetX(X_out.X());
-	  X_RO.SetY(X_out.Y());
-       	}
-      }
-      */
       
       if(fabs(X_out.X())>=fManager->GetDX(plane, sector)*5.0e2){
 	if(d_flag>0){
-	  cout << "Warning: Evt " << fEvNum << ", hit " 
-	       << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	  cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	       << ": X_out.X " << X_out.X() << " outside FPP2 plane " << plane << " sector " << sector;
 	} //D_FLAG
 	double temp = fabs(X_out.X());
 	X_out[0]*=fManager->GetDX(plane, sector)*5.0e2/temp;
 	if(d_flag>0){
-	  cout  << "; set at limit: " << X_out.X() << " mm " << endl;
+	  cout << "; set at limit: " << X_out.X() << " mm " << endl;
 	  cout << "(X_in.X = " << X_in.X() << ",  " << fTree->Harm_FPP2_hit_tx->at(i)*1.0e3 << " mm)" << endl;
 	} //D_FLAG
 	X_RO.SetX(X_out.X());
       }
       if(fabs(X_out.Y())>=fManager->GetDY(plane, sector)*5.0e2){
 	if(d_flag>0){
-	  cout << "Warning: Evt " << fEvNum << ", hit " 
-	       << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i 
+	  cout << "Warning: Evt " << fEvNum << ", hit " << fTree->Harm_FT_hit_nhits+i 
 	       << ": X_out.Y " << X_out.Y() << " outside FPP2 plane " << plane << " sector " << sector;
 	} //D_FLAG
 	double temp = fabs(X_out.Y());
@@ -1598,11 +1286,11 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	} //D_FLAG
 	X_RO.SetY(X_out.Y());
       }
-
+      
       TVector3 Vtx = TVector3(fTree->Harm_FPP2_hit_vx->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP2_hit_vy->at(i)*1.0e3, // in mm
 		     fTree->Harm_FPP2_hit_vz->at(i)*1.0e3);// in mm
-
+      
       hit_data_temp[0] = (double)plane;
       hit_data_temp[1] = edep;
       hit_data_temp[8] = tmin;
@@ -1621,77 +1309,20 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
       
       fg4sbsHitData.push_back(new g4sbshitdata(det_id, 24));
-      
+
       for(int j = 0; j<24; j++){
 	fg4sbsHitData[n_hits]->SetData(j, hit_data_temp[j]);
       }
       n_hits++;
-
-      /*
-      //Filling gen_data temporary array...
-      gen_data_temp[0] = trid;
-      gen_data_temp[1] = pid;
-      for(int k = 0; k<3; k++){
-	gen_data_temp[k+2] = Mom[k];
-	gen_data_temp[k+5] = Vtx[k];
-      }
-      gen_data_temp[8] = weight;
       
-      //store information to rescue, if necessary, the generated info
-      if(fTree->Harm_FPP2_hit_p->at(i)>pmax && pid==fManager->GetSigPID(0)){
-	pmax = fTree->Harm_FPP2_hit_p->at(i);
-	for(int k = 0; k<9; k++){
-	  gen_data_temp_max[k] = gen_data_temp[k];
-	}
-      }
-      
-      // ... to copy it in the actual g4sbsGenData structure.
-      // only store signal, primary MC tracks
-      if(fSource==0 && n_gen==0 && type==1){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	  fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-	}
-      */
-      /*else{// this determines if the track is new or not
-	newtrk = true; 
-	for(int z = n_gen-1; z>=0; z--){
-	dupli = true;
-	if(fg4sbsGenData[z]->GetData(1)!=gen_data_temp[1]){
-	dupli=false;
-	}else{
-	for(int j = 5; j<8; j++){
-	if(fg4sbsGenData[z]->GetData(j)!=gen_data_temp[j]){
-	dupli=false;
-	break;
-	}
-	}
-	}
-	if(dupli){
-	newtrk = false;
-	break;
-	}
-	}
-	
-	if(newtrk){
-	fg4sbsGenData.push_back(new g4sbsgendata());
-	for(int j = 0; j<9; j++){
-	fg4sbsGenData[n_gen]->SetData(j, gen_data_temp[j]);
-	}
-	n_gen++;
-	}
-	}
-      */
       if(d_flag>1){
-	cout << "Hit number: " << fTree->Harm_FPP1_hit_nhits+fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
+	cout << "Hit number: " << fTree->Harm_FT_hit_nhits+i << " FPP2: X_global : " 
 	     << fTree->Harm_FPP2_hit_xg->at(i) << ", " 
 	     << fTree->Harm_FPP2_hit_yg->at(i) << ", " 
 	     << fTree->Harm_FPP2_hit_zg->at(i) << endl;
 	cout << "detector ID: " << det_id << ", plane: " << plane << endl
 	     << "particle ID: " << pid << ", type (1, primary, >1 secondary): " << type << endl
-	     << "energy deposit (eV): " << edep << endl;
+	     << "energy deposit (MeV): " << edep << endl;
 	cout << "Momentum (MeV): ";
 	for(int k = 0; k<3; k++){
 	  cout << Mom[k] << ", ";
@@ -1717,9 +1348,14 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 	  cout << Vtx[k] << ", ";
 	}
 	cout << endl;
-      } //DEBUG          
+      } //DEBUG 
+            
     }
     
+    if(fManager->DoCalo()){
+      GetGEpECalCluster();
+      GetHCalCluster();
+    }
     /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
@@ -1740,12 +1376,666 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
       }
     }
     */
-    break;// end case(4)
-      
+    break;// end case(5)
+    
+    
    }//end switch(fManager->Getg4sbsDetectorType)
     
-  delete R;
+  //delete R;
   return 1;
+}
+
+void TSBSGeant4File::GetBBECalCluster(){
+  const double Npe_Edep_PS = 1.550e3;
+  const double sigma_Npe_Edep_PS = 1.58e2;
+  const double Npe_Edep_SH = 2.335e3;
+  const double sigma_Npe_Edep_SH = 1.47e2;
+  const int clustercrown_size = 2;
+  const double BBECalBlock_size = 0.085;
+  
+  double edep_cal = 0;
+  double npe = 0;
+
+  double E_rec = 0;
+  double X_rec = 0;
+  double Y_rec = 0;
+  double E_rec_SH = 0;
+  
+  //Variables for BBPS/SH
+  double Edep_PS = 0;
+  double Edep_SH = 0;
+  
+  double Edep_PS_max = 0;
+  double Edep_SH_max = 0;
+  double EdepXmax = 0;
+  double EdepYmax = 0;
+  
+  std::vector<double> bbps_edep;
+  //std::vector<double> bbps_xcell;
+  std::vector<double> bbps_ycell;
+  std::vector<double> bbsh_edep;
+  std::vector<double> bbsh_xcell;
+  std::vector<double> bbsh_ycell;
+
+  // ---------------------------------
+  // Add calorimeter clustering here.
+  // ---------------------------------
+  bbps_edep.clear();
+  bbps_ycell.clear();
+  bbsh_edep.clear();
+  bbsh_xcell.clear();
+  bbsh_ycell.clear();
+  //first, loop on PS hits
+  for(Int_t i = 0; i<fTree->Earm_BBPSTF1_hit_nhits; i++){
+    // evaluate energy deposit including smearing from the photoelectron yield:
+    // convert energy deposit in pe yield with Npe_Edep_PS conversion coefficiency, 
+    // and smearing sigma_Npe_Edep_PS. 
+    // Then reconvert into enegry deposit using Npe_Edep_PS
+    edep_cal = fTree->Earm_BBPSTF1_hit_sumedep->at(i);
+    npe = fR->Gaus(Npe_Edep_PS*edep_cal, sigma_Npe_Edep_PS*edep_cal);
+    //Npe_fEdep_PS(R, fTree->Earm_BBPSTF1_hit_sumedep->at(i));
+    edep_cal = npe/Npe_Edep_PS;
+    //Edep_fNpe_PS(npe);
+    Edep_PS+= edep_cal;
+    
+    // if edep is the maximal energy deposit, store it in the "max" variables
+    if(edep_cal>Edep_PS_max){
+      Edep_PS_max = edep_cal;
+      EdepYmax = fTree->Earm_BBPSTF1_hit_ycell->at(i);
+    }
+    
+    // record all smeared energy deposits no matter what, + photon coordinates 
+    bbps_edep.push_back(edep_cal);
+    // X coordinates (in calorimeter) are not relevant for PS.
+    //bbps_xcell.push_back(fTree->Earm_BBPSTF1_hit_xcell->at(i));
+    bbps_ycell.push_back(fTree->Earm_BBPSTF1_hit_ycell->at(i));
+  }
+  
+  //then, loop on SH hits
+  // same story as for PS, except we also store X coordinates
+  for(Int_t i = 0; i<fTree->Earm_BBSHTF1_hit_nhits; i++){
+    edep_cal = fTree->Earm_BBSHTF1_hit_sumedep->at(i);
+    npe = fR->Gaus(Npe_Edep_SH*edep_cal, sigma_Npe_Edep_SH*edep_cal);
+    //Npe_fEdep_SH(R, fTree->Earm_BBSHTF1_hit_sumedep->at(i));
+    edep_cal = npe/Npe_Edep_SH;
+    //Edep_fNpe_SH(npe);
+    Edep_SH+= edep_cal;
+    
+    if(edep_cal>Edep_SH_max){
+      Edep_SH_max = edep_cal;
+      EdepXmax = fTree->Earm_BBSHTF1_hit_xcell->at(i);
+      if(Edep_SH_max>Edep_PS_max){
+	EdepYmax = fTree->Earm_BBSHTF1_hit_ycell->at(i);
+      }
+    }
+    
+    bbsh_edep.push_back(edep_cal);
+    bbsh_xcell.push_back(fTree->Earm_BBSHTF1_hit_xcell->at(i));
+    bbsh_ycell.push_back(fTree->Earm_BBSHTF1_hit_ycell->at(i));
+  }
+  
+  // calculate reconstructed energy: 5x5 blocks around the max.
+  for(size_t l = 0; l<bbps_edep.size(); l++){
+    if(fabs(bbps_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
+      E_rec+= bbps_edep[l];
+      //X_rec+= bbps_edep[l]*(-1)*bbps_ycell[l];
+    }
+  }
+  
+  // calculate reconstructed energy: 5x5 blocks around the max.
+  for(size_t l = 0; l<bbsh_edep.size(); l++){
+    if(fabs(bbsh_xcell[l]-EdepXmax)<=BBECalBlock_size*clustercrown_size+1.0e-2 &&
+       fabs(bbsh_ycell[l]-EdepYmax)<=BBECalBlock_size*clustercrown_size+1.0e-2){
+      E_rec+= bbsh_edep[l];
+      E_rec_SH+= bbsh_edep[l];
+      //transforming calo coordinates as stored in g4sbs output to transport coordinates.
+      X_rec+= bbsh_edep[l]*(-1)*bbsh_ycell[l];
+      Y_rec+= bbsh_edep[l]*bbsh_xcell[l];
+    }
+  }
+  
+  // calculate reconstructed position: 
+  // mean of position of all cluster blocks weighted with energy deposit.
+  //X_rec = X_rec/E_rec;
+  X_rec = X_rec/E_rec_SH;
+  Y_rec = Y_rec/E_rec_SH;
+  //TSBSECalCluster clus(E_rec, X_rec, Y_rec);
+  
+  //hardcode threshold for the moment, will add in the DB later.
+  if(E_rec>fManager->GetCaloThreshold()){
+    fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec, 0, 10));
+  }
+  // -------------------------------
+  // end: calorimeter reconstruction
+  // -------------------------------
+}
+
+void TSBSGeant4File::GetGEpECalCluster(){
+  const double Npe_Edep_ECAL = 5.38e2;//>1.0GeV
+  const double Npe_Edep_CDET = 5.634e3;//>1.0GeV
+  const double npe_thr = 3.0;
+  const double GEpECalBlock_size = 0.042;//m
+  const double GEpCDetSlat_size = 0.005;//m
+  
+  double edep_cal = 0;
+  double npe = 0;
+  
+  double E_rec = 0;
+  double X_rec = 0;
+  double Y_rec = 0;
+
+  int i_ch = 0;
+  double Edep_Max = 0;
+  double Edep_tot_ECal = 0;
+  double x_pos, y_pos;
+  //double x_pos_max, y_pos_max;
+  int N_blocks_added = 0;
+  
+  std::vector<double> E_blocks;
+  std::vector<double> x_blocks;
+  std::vector<double> y_blocks;
+  
+  std::vector<double> E_eprim_clus;
+  std::vector<double> x_eprim_clus;
+  std::vector<double> y_eprim_clus;
+  
+  E_blocks.clear();
+  x_blocks.clear();
+  y_blocks.clear();
+  
+  E_eprim_clus.clear();
+  x_eprim_clus.clear();
+  y_eprim_clus.clear();
+  // ---------------------------------
+  // Add GEp ECal clustering here.
+  // ---------------------------------
+  for(int i = 0; i<fTree->Earm_ECalTF1_hit_nhits; i++){	
+    edep_cal = fTree->Earm_ECalTF1_hit_sumedep->at(i);
+    npe = fR->Poisson(Npe_Edep_ECAL*edep_cal);
+    if(npe<npe_thr)continue;
+    edep_cal = npe/Npe_Edep_ECAL;
+    //if(fTree->Earm_ECalTF1_hit_sumedep()){
+    i_ch = fTree->Earm_ECalTF1_hit_cell->at(i);
+    //Edep = fTree->Earm_ECAL_hit_NumPhotoelectrons->at(i)/Npe_Edep_ECAL;
+    x_pos = fTree->Earm_ECalTF1_hit_xcell->at(i);
+    y_pos = fTree->Earm_ECalTF1_hit_ycell->at(i);
+    
+    Edep_tot_ECal+= edep_cal;//Edep;
+    
+    //cout << Edep << " " << Edep_Max << endl;
+    
+    if(edep_cal>Edep_Max){
+      Edep_Max = edep_cal;
+      // row_edepmax = fTree->Earm_ECAL_hit_row->at(i);
+      // col_edepmax = fTree->Earm_ECAL_hit_col->at(i);
+      // x_pos_max = x_pos;
+      // y_pos_max = y_pos;
+	  
+      // E_blocks;
+      // x_blocks;
+      // y_blocks;
+      if(E_eprim_clus.size()>0){
+	E_blocks.push_back(E_eprim_clus[0]);
+	x_blocks.push_back(x_eprim_clus[0]);
+	y_blocks.push_back(y_eprim_clus[0]);
+	
+	E_eprim_clus.clear();
+	x_eprim_clus.clear();
+	y_eprim_clus.clear();
+	// 	E_pos_blocks.insert(std::pair< E_pos_eprime[0].first, std::pair< E_pos_eprime[0].second.first, E_pos_eprime[0].second.second > >);
+	// 	E_pos_eprime.clear();
+      }
+      E_eprim_clus.push_back(edep_cal);
+      x_eprim_clus.push_back(x_pos);
+      y_eprim_clus.push_back(y_pos);
+      //   E_pos_eprime.insert(std::pair< Edep, std::pair< x_pos, y_pos > >);
+    }else{
+      E_blocks.push_back(edep_cal);
+      x_blocks.push_back(x_pos);
+      y_blocks.push_back(y_pos);
+      //   E_pos_blocks.insert(std::pair< Edep, make_pair< x_pos, y_pos > >);
+    }
+    //
+  }//end loop on hits
+  
+  if(Edep_tot_ECal<fManager->GetCaloThreshold())return;
+    //cout << "E_eprim_clus[0] : " << E_eprim_clus[0] << " x_eprim_clus[0] : " << x_eprim_clus[0] << " y_eprim_clus[0] : " << y_eprim_clus[0] << endl;
+  N_blocks_added = 1;
+  //sanity check
+  if(E_blocks.size()==x_blocks.size() && x_blocks.size()==y_blocks.size() &&
+     E_eprim_clus.size()==x_eprim_clus.size() && x_eprim_clus.size()==y_eprim_clus.size()){
+    while(N_blocks_added>0){
+      N_blocks_added = 0;
+      //cout << "E_blocks size " << E_blocks.size() << endl;
+      for(int i = E_blocks.size()-1; i>=0; i--){
+	for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+	  //cout << "i = " << i << ", i_ = " << i_ << endl;
+	  if(sqrt(pow(x_blocks[i]-x_eprim_clus[i_], 2)+pow(y_blocks[i]-y_eprim_clus[i_], 2)) < GEpECalBlock_size*1.1){
+	    E_eprim_clus.push_back(E_blocks[i]);
+	    x_eprim_clus.push_back(x_blocks[i]);
+	    y_eprim_clus.push_back(y_blocks[i]);
+	    
+	    E_blocks.erase(E_blocks.begin()+i);
+	    x_blocks.erase(x_blocks.begin()+i);
+	    y_blocks.erase(y_blocks.begin()+i);
+	    N_blocks_added++;
+	    if(i>=E_blocks.size()){
+	      if(i>0){
+		i--;
+	      }else{
+		break;
+	      }
+	    }
+	    //cout << "transfering block: i = " << i << ", i_ = " << i_ << endl;
+	  }
+	}//end loop cluster blocks
+      }//end loop all blocks
+      // cout << "E_blocks new size " << E_blocks.size() 
+      //  	 << ", N blocks 'transfered' to clusters " << N_blocks_added << endl;
+    }//end while 
+  }
+  
+  for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+    E_rec+= E_eprim_clus[i_];
+    X_rec+= (-1)*y_eprim_clus[i_]*E_eprim_clus[i_];
+    Y_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+    
+    //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
+  }
+  X_rec = X_rec/E_rec;
+  Y_rec = Y_rec/E_rec;
+  
+  //cout << "E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
+  /**/
+  if(E_rec>fManager->GetCaloThreshold()){
+    fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec, 0, 12));
+  }
+  // -------------------------------
+  // end: GEp ECal reconstruction
+  // -------------------------------
+  E_blocks.clear();
+  x_blocks.clear();
+  y_blocks.clear();
+  
+  E_eprim_clus.clear();
+  x_eprim_clus.clear();
+  y_eprim_clus.clear();
+  
+  Edep_Max = 0;
+  double Edep_Max_plane2 = 0;
+  E_rec = 0;
+  X_rec = 0;
+  Y_rec = 0;
+
+  std::vector<double> E_blocks_plane2;
+  std::vector<double> x_blocks_plane2;
+  std::vector<double> y_blocks_plane2;
+  
+  std::vector<double> E_eprim_clus_plane2;
+  std::vector<double> x_eprim_clus_plane2;
+  std::vector<double> y_eprim_clus_plane2;
+  //
+  for(int i = 0; i<fTree->Earm_CDET_Scint_hit_nhits; i++){
+    edep_cal = fTree->Earm_CDET_Scint_hit_sumedep->at(i);
+    npe = fR->Poisson(Npe_Edep_CDET*edep_cal);
+    if(npe<npe_thr)continue;
+    edep_cal = npe/Npe_Edep_CDET;
+    
+    x_pos = fTree->Earm_CDET_Scint_hit_xcell->at(i)+0.255*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1)+
+      fR->Gaus(fTree->Earm_CDET_Scint_hit_xhit->at(i)*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1), 0.04);
+    //because the modules with col==1 are rotated by pi along y axis
+    y_pos = fTree->Earm_CDET_Scint_hit_ycell->at(i);
+
+    switch(fTree->Earm_CDET_Scint_hit_plane->at(i)){
+    case(1):
+      if(edep_cal>Edep_Max){
+	Edep_Max = edep_cal;
+	// row_edepmax = fTree->Earm_ECAL_hit_row->at(i);
+	
+	if(E_eprim_clus.size()>0){
+	  E_blocks.push_back(E_eprim_clus[0]);
+	  x_blocks.push_back(x_eprim_clus[0]);
+	  y_blocks.push_back(y_eprim_clus[0]);
+	  
+	  E_eprim_clus.clear();
+	  x_eprim_clus.clear();
+	  y_eprim_clus.clear();
+	  // 	E_pos_blocks.insert(std::pair< E_pos_eprime[0].first, std::pair< E_pos_eprime[0].second.first, E_pos_eprime[0].second.second > >);
+	  // 	E_pos_eprime.clear();
+	}
+	E_eprim_clus.push_back(edep_cal);
+	x_eprim_clus.push_back(x_pos);
+	y_eprim_clus.push_back(y_pos);
+      }else{
+	E_blocks.push_back(edep_cal);
+	x_blocks.push_back(x_pos);
+	y_blocks.push_back(y_pos);
+	//   E_pos_blocks.insert(std::pair< Edep, make_pair< x_pos, y_pos > >);
+      }
+      break;
+    case(2):
+      if(edep_cal>Edep_Max_plane2){
+	Edep_Max_plane2 = edep_cal;
+	// row_edepmax = fTree->Earm_ECAL_hit_row->at(i);
+	
+	if(E_eprim_clus_plane2.size()>0){
+	  E_blocks_plane2.push_back(E_eprim_clus_plane2[0]);
+	  x_blocks_plane2.push_back(x_eprim_clus_plane2[0]);
+	  y_blocks_plane2.push_back(y_eprim_clus_plane2[0]);
+	  
+	  E_eprim_clus_plane2.clear();
+	  x_eprim_clus_plane2.clear();
+	  y_eprim_clus_plane2.clear();
+	  // 	E_pos_blocks.insert(std::pair< E_pos_eprime[0].first, std::pair< E_pos_eprime[0].second.first, E_pos_eprime[0].second.second > >);
+	  // 	E_pos_eprime.clear();
+	}
+	E_eprim_clus_plane2.push_back(edep_cal);
+	x_eprim_clus_plane2.push_back(x_pos);
+	y_eprim_clus_plane2.push_back(y_pos);
+      }else{
+	E_blocks_plane2.push_back(edep_cal);
+	x_blocks_plane2.push_back(x_pos);
+	y_blocks_plane2.push_back(y_pos);
+	//   E_pos_blocks.insert(std::pair< Edep, make_pair< x_pos, y_pos > >);
+      }
+      break;
+    }//end switch
+  }
+  //clustering on CDet plane 1
+  N_blocks_added = 1;
+  //sanity check
+  if(E_blocks.size()==x_blocks.size() && x_blocks.size()==y_blocks.size() &&
+     E_eprim_clus.size()==x_eprim_clus.size() && x_eprim_clus.size()==y_eprim_clus.size()){
+    while(N_blocks_added>0){
+      N_blocks_added = 0;
+      //cout << "E_blocks size " << E_blocks.size() << endl;
+      for(int i = E_blocks.size()-1; i>=0; i--){
+	for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+	  //cout << "i = " << i << ", i_ = " << i_ << endl;
+	  if(sqrt(pow(x_blocks[i]-x_eprim_clus[i_], 2)+pow(y_blocks[i]-y_eprim_clus[i_], 2)) < GEpCDetSlat_size*1.1){
+	    E_eprim_clus.push_back(E_blocks[i]);
+	    x_eprim_clus.push_back(x_blocks[i]);
+	    y_eprim_clus.push_back(y_blocks[i]);
+	    
+	    E_blocks.erase(E_blocks.begin()+i);
+	    x_blocks.erase(x_blocks.begin()+i);
+	    y_blocks.erase(y_blocks.begin()+i);
+	    N_blocks_added++;
+	    if(i>=E_blocks.size()){
+	      if(i>0){
+		i--;
+	      }else{
+		break;
+	      }
+	    }
+	    //cout << "transfering block: i = " << i << ", i_ = " << i_ << endl;
+	  }
+	}//end loop cluster blocks
+      }//end loop all blocks
+      // cout << "E_blocks new size " << E_blocks.size() 
+      //  	 << ", N blocks 'transfered' to clusters " << N_blocks_added << endl;
+    }//end while 
+  }
+  
+  for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+    E_rec+= E_eprim_clus[i_];
+    X_rec+= (-1)*y_eprim_clus[i_]*E_eprim_clus[i_];
+    Y_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+    
+    //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
+  }
+  X_rec = X_rec/E_rec;
+  Y_rec = Y_rec/E_rec;
+  
+  fScintClusters.push_back(new TSBSScintCluster(1, E_rec, X_rec, Y_rec, 0, 31));
+  
+  E_blocks.clear();
+  x_blocks.clear();
+  y_blocks.clear();
+  
+  E_eprim_clus.clear();
+  x_eprim_clus.clear();
+  y_eprim_clus.clear();
+  
+  E_rec = 0;
+  X_rec = 0;
+  Y_rec = 0;
+  
+  //clustering on CDet plane 2
+  N_blocks_added = 1;
+  if(E_blocks_plane2.size()==x_blocks_plane2.size() && x_blocks_plane2.size()==y_blocks_plane2.size() &&
+     E_eprim_clus_plane2.size()==x_eprim_clus_plane2.size() && x_eprim_clus_plane2.size()==y_eprim_clus_plane2.size()){
+    while(N_blocks_added>0){
+      N_blocks_added = 0;
+      //cout << "E_blocks size " << E_blocks.size() << endl;
+      for(int i = E_blocks_plane2.size()-1; i>=0; i--){
+	for(int i_ = 0; i_<E_eprim_clus_plane2.size(); i_++){
+	  //cout << "i = " << i << ", i_ = " << i_ << endl;
+	  if(sqrt(pow(x_blocks_plane2[i]-x_eprim_clus_plane2[i_], 2)+pow(y_blocks_plane2[i]-y_eprim_clus_plane2[i_], 2)) < GEpCDetSlat_size*1.1){
+	    E_eprim_clus_plane2.push_back(E_blocks_plane2[i]);
+	    x_eprim_clus_plane2.push_back(x_blocks_plane2[i]);
+	    y_eprim_clus_plane2.push_back(y_blocks_plane2[i]);
+	    
+	    E_blocks_plane2.erase(E_blocks_plane2.begin()+i);
+	    x_blocks_plane2.erase(x_blocks_plane2.begin()+i);
+	    y_blocks_plane2.erase(y_blocks_plane2.begin()+i);
+	    N_blocks_added++;
+	    if(i>=E_blocks_plane2.size()){
+	      if(i>0){
+		i--;
+	      }else{
+		break;
+	      }
+	    }
+	    //cout << "transfering block: i = " << i << ", i_ = " << i_ << endl;
+	  }
+	}//end loop cluster blocks
+      }//end loop all blocks
+      // cout << "E_blocks new size " << E_blocks.size() 
+      //  	 << ", N blocks 'transfered' to clusters " << N_blocks_added << endl;
+    }//end while 
+  }
+  
+  for(int i_ = 0; i_<E_eprim_clus_plane2.size(); i_++){
+    E_rec+= E_eprim_clus_plane2[i_];
+    X_rec+= (-1)*y_eprim_clus_plane2[i_]*E_eprim_clus_plane2[i_];
+    Y_rec+= x_eprim_clus_plane2[i_]*E_eprim_clus_plane2[i_];
+    
+    //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
+  }
+  X_rec = X_rec/E_rec;
+  Y_rec = Y_rec/E_rec;
+
+  fScintClusters.push_back(new TSBSScintCluster(2, E_rec, X_rec, Y_rec, 0, 31));
+  
+  E_blocks_plane2.clear();
+  x_blocks_plane2.clear();
+  y_blocks_plane2.clear();
+  
+  E_eprim_clus_plane2.clear();
+  x_eprim_clus_plane2.clear();
+  y_eprim_clus_plane2.clear();
+  // -------------------------------
+  // end: GEp CDet reconstruction
+  // -------------------------------
+
+}
+
+void TSBSGeant4File::GetHCalCluster(){
+  const double HCalSamplingFact = 10.69;
+  const double Npe_Edep_HCAL = 5.0e3;//>1.0GeV
+  const double HCalBlock_size = 0.152;
+  const double npe_thr = 3.0;
+  const int clustercrown_size = 2;
+  
+  double edep_cal = 0;
+  double npe = 0;
+  
+  double E_rec = 0;
+  double X_rec = 0;
+  double Y_rec = 0;
+
+  int i_ch = 0;
+  double Edep_Max = 0;
+  double Edep_tot_HCal = 0;
+  double x_pos, y_pos;
+  //double x_pos_max, y_pos_max;
+  int N_blocks_added = 0;
+  
+  std::vector<double> E_blocks;
+  std::vector<double> x_blocks;
+  std::vector<double> y_blocks;
+  
+  std::vector<double> E_eprim_clus;
+  std::vector<double> x_eprim_clus;
+  std::vector<double> y_eprim_clus;
+  
+  E_blocks.clear();
+  x_blocks.clear();
+  y_blocks.clear();
+  
+  E_eprim_clus.clear();
+  x_eprim_clus.clear();
+  y_eprim_clus.clear();
+  // ---------------------------------
+  // Add HCal clustering here.
+  // ---------------------------------
+  if(fTree->Harm_HCalScint_hit_nhits){
+    for(int i = 0; i<fTree->Harm_HCalScint_hit_nhits; i++){	
+      edep_cal = fTree->Harm_HCalScint_hit_sumedep->at(i);
+      npe = fR->Poisson(Npe_Edep_HCAL*edep_cal);
+      if(npe<npe_thr)continue;
+      edep_cal = npe/Npe_Edep_HCAL;
+      //if(fTree->Harm_HCalScint_hit_sumedep()){
+      i_ch = fTree->Harm_HCalScint_hit_cell->at(i);
+      //Edep = fTree->Earm_ECAL_hit_NumPhotoelectrons->at(i)/Npe_Edep_ECAL;
+      x_pos = fTree->Harm_HCalScint_hit_xcell->at(i);
+      y_pos = fTree->Harm_HCalScint_hit_ycell->at(i);
+	
+      Edep_tot_HCal+= edep_cal;//Edep;
+	
+      //cout << Edep << " " << Edep_Max << endl;
+	
+      if(edep_cal>Edep_Max){
+	Edep_Max = edep_cal;
+	// row_edepmax = fTree->Earm_ECAL_hit_row->at(i);
+	// col_edepmax = fTree->Earm_ECAL_hit_col->at(i);
+	// x_pos_max = x_pos;
+	// y_pos_max = y_pos;
+	  
+	// E_blocks;
+	// x_blocks;
+	// y_blocks;
+	if(E_eprim_clus.size()>0){
+	  E_blocks.push_back(E_eprim_clus[0]);
+	  x_blocks.push_back(x_eprim_clus[0]);
+	  y_blocks.push_back(y_eprim_clus[0]);
+	    
+	  E_eprim_clus.clear();
+	  x_eprim_clus.clear();
+	  y_eprim_clus.clear();
+	  // 	E_pos_blocks.insert(std::pair< E_pos_eprime[0].first, std::pair< E_pos_eprime[0].second.first, E_pos_eprime[0].second.second > >);
+	  // 	E_pos_eprime.clear();
+	}
+	E_eprim_clus.push_back(edep_cal);
+	x_eprim_clus.push_back(x_pos);
+	y_eprim_clus.push_back(y_pos);
+	//   E_pos_eprime.insert(std::pair< Edep, std::pair< x_pos, y_pos > >);
+      }else{
+	E_blocks.push_back(edep_cal);
+	x_blocks.push_back(x_pos);
+	y_blocks.push_back(y_pos);
+	//   E_pos_blocks.insert(std::pair< Edep, make_pair< x_pos, y_pos > >);
+      }
+      //
+    }//end loop on hits
+    
+    if(Edep_tot_HCal>0.01){
+      /*
+      for(int i = E_blocks.size()-1; i>=0; i--){
+	//for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+	//cout << "i = " << i << ", i_ = " << i_ << endl;
+	//if(sqrt(pow(x_blocks[i]-x_eprim_clus[i_], 2)+pow(y_blocks[i]-y_eprim_clus[i_], 2)) < HCalBlock_size*1.1){
+	if(fabs(x_blocks[i]-x_eprim_clus[0])<=HCalBlock_size*clustercrown_size+1.0e-2 &&
+	   fabs(y_blocks[i]-y_eprim_clus[0])<=HCalBlock_size*clustercrown_size+1.0e-2){
+	  E_eprim_clus.push_back(E_blocks[i]);
+	  x_eprim_clus.push_back(x_blocks[i]);
+	  y_eprim_clus.push_back(y_blocks[i]);
+	  
+	  E_blocks.erase(E_blocks.begin()+i);
+	  x_blocks.erase(x_blocks.begin()+i);
+	  y_blocks.erase(y_blocks.begin()+i);
+	}//end loop cluster blocks
+      }
+      */
+      
+      //cout << "E_eprim_clus[0] : " << E_eprim_clus[0] << " x_eprim_clus[0] : " << x_eprim_clus[0] << " y_eprim_clus[0] : " << y_eprim_clus[0] << endl;
+      for(int i = E_blocks.size()-1; i>=0; i--){
+        for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+	  N_blocks_added = 1;
+	  //sanity check
+	  if(E_blocks.size()==x_blocks.size() && x_blocks.size()==y_blocks.size() &&
+	     E_eprim_clus.size()==x_eprim_clus.size() && x_eprim_clus.size()==y_eprim_clus.size()){
+	    while(N_blocks_added>0){
+	      N_blocks_added = 0;
+	      //cout << "E_blocks size " << E_blocks.size() << endl;
+	      for(int i = E_blocks.size()-1; i>=0; i--){
+		for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+		  //cout << "i = " << i << ", i_ = " << i_ << endl;
+		  if(sqrt(pow(x_blocks[i]-x_eprim_clus[i_], 2)+pow(y_blocks[i]-y_eprim_clus[i_], 2)) < HCalBlock_size*1.5){//1.1
+		    E_eprim_clus.push_back(E_blocks[i]);
+		    x_eprim_clus.push_back(x_blocks[i]);
+		    y_eprim_clus.push_back(y_blocks[i]);
+	
+		    E_blocks.erase(E_blocks.begin()+i);
+		    x_blocks.erase(x_blocks.begin()+i);
+		    y_blocks.erase(y_blocks.begin()+i);
+		    N_blocks_added++;
+		    if(i>=E_blocks.size()){
+		      if(i>0){
+			i--;
+		      }else{
+			break;
+		      }
+		    }
+		    //cout << "transfering block: i = " << i << ", i_ = " << i_ << endl;
+		  }
+		}//end loop cluster blocks
+	      }//end loop all blocks
+	      // cout << "E_blocks new size " << E_blocks.size() 
+	      //  	 << ", N blocks 'transfered' to clusters " << N_blocks_added << endl;
+	    }//end while 
+	  }
+	}
+      }
+      
+      for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
+	E_rec+= E_eprim_clus[i_];
+	X_rec+= (-1)*y_eprim_clus[i_]*E_eprim_clus[i_];
+	Y_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+	
+	//cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
+      }
+      X_rec = X_rec/E_rec;
+      Y_rec = Y_rec/E_rec;
+      //E_rec*= HCalSamplingFact;
+      //cout << "E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
+
+      //if(E_rec>fManager->GetCaloThreshold()){
+      fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec, 0, 0));
+      //}
+    }//end if...
+  }
+  // -------------------------------
+  // end: HCal reconstruction
+  // -------------------------------
+  E_blocks.clear();
+  x_blocks.clear();
+  y_blocks.clear();
+    
+  E_eprim_clus.clear();
+  x_eprim_clus.clear();
+  y_eprim_clus.clear();
 }
 
 
@@ -1770,6 +2060,7 @@ void TSBSGeant4File::Clear(){
   fg4sbsGenData.clear();
   
   fECalClusters.clear();
+  fScintClusters.clear();
   
 #if D_FLAG>1
   fprintf(stderr, "%s %s line %d: Hits deleted\n",

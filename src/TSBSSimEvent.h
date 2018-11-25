@@ -70,28 +70,64 @@ public:
 //
 class TSBSECalCluster : public TObject {
  public:
-  TSBSECalCluster(double E, double X, double Y, double t = 0);
+  TSBSECalCluster(double E, double X, double Y, double t = 0, int detflag = 10);
   TSBSECalCluster();
   ~TSBSECalCluster(){};
   
-  double GetEnergy(){return fEnergy;};
-  double GetXPos() const {return fXPos;};
-  double GetYPos() const {return fYPos;};
-  double GetTime(){return fTime;};
+  const double GetEnergy() const {return fEnergy;};
+  const double GetXPos() const {return fXPos;};
+  const double GetYPos() const {return fYPos;};
+  const double GetTime() const {return fTime;};
+  const Int_t  GetDetFlag() const {return fDetFlag;};
   
   void SetEnergy(double E){fEnergy = E;};
   void SetXPos(double X){fXPos = X;};
   void SetYPos(double Y){fYPos = Y;};
   void SetTime(double t){fTime = t;};
-   
+  void SetDetFlag(int flag){fDetFlag = flag;};
+  
  private:
   Double_t fEnergy;
   Double_t fXPos;// in transport coordinates
   Double_t fYPos;// in transport coordinates
   Double_t fTime;
+  Int_t fDetFlag;//mmm... 
   
-  ClassDef(TSBSECalCluster,1)  // A MC physics track in SBS
+  ClassDef(TSBSECalCluster,2)  // A MC physics track in SBS
 };
+
+class TSBSScintCluster : public TSBSECalCluster {
+ public:
+  TSBSScintCluster(int plane, double E, double X, double Y, double t = 0, int detflag = 10);
+  TSBSScintCluster();
+  ~TSBSScintCluster(){};
+  
+  const Int_t  GetPlane() const {return fPlane;};
+  const double GetEnergy() const {return fEnergy;};
+  const double GetXPos() const {return fXPos;};
+  const double GetYPos() const {return fYPos;};
+  const double GetTime() const {return fTime;};
+  const Int_t  GetDetFlag() const {return fDetFlag;};
+  
+  void SetPlane(int plane){fPlane = plane;};
+  void SetEnergy(double E){fEnergy = E;};
+  void SetXPos(double X){fXPos = X;};
+  void SetYPos(double Y){fYPos = Y;};
+  void SetTime(double t){fTime = t;};
+  void SetDetFlag(int flag){fDetFlag = flag;};
+  
+ private:
+  Int_t fPlane;
+  Double_t fEnergy;
+  Double_t fXPos;// in transport coordinates
+  Double_t fYPos;// in transport coordinates
+  Double_t fTime;
+  Int_t fDetFlag;//mmm... 
+  
+  ClassDef(TSBSScintCluster,1)  // A MC physics track in SBS
+};
+
+
 
 //-----------------------------------------------------------------------------
 // Kludgy hardcoded parameters necessary because I can't get ROOT to allocate
@@ -186,6 +222,7 @@ public:
   std::vector<DigiGEMStrip> fGEMStrips; // Digitized strip amplitudes of the GEMs
   
   std::vector<TSBSECalCluster> fECalClusters; // ECal clusters
+  std::vector<TSBSScintCluster> fScintClusters; // Scint clusters
   
   ClassDef(TSBSSimEvent, 5) // Simulated data for one event
 };

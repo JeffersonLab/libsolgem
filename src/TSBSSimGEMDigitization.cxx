@@ -1139,7 +1139,24 @@ TSBSSimGEMDigitization::SetTreeEvent (const TSBSGEMSimHitData& tsgd,
     fEvent->fECalClusters.push_back(*clus);
     delete clus;
   }
-  //cout<<"nloop: "<<f.GetNGen()<<"   ntracks: "<<fEvent->GetNtracks()<<endl;
+  
+  for( UInt_t i=0; i<f.GetSciClusterSize(); i++ ) {
+    TSBSScintCluster* clus = f.GetSciCluster(i);
+    
+    double Time = 0.0;
+    if(tsgd.GetSource()==0){
+      // if signal, by definition the cluster timing determines the trigger time
+      Time = fTrnd.Gaus(0,fTriggerJitter);
+    }else{
+      //fTrnd.
+      Time = fTrnd.Uniform(-50.0, 50.0)+fTrnd.Gaus(0,fTriggerJitter);
+      //We assume a Gate width of +- 50 ns for the time being
+    }
+    clus->SetTime(Time);
+    fEvent->fScintClusters.push_back(*clus);
+    delete clus;
+  }
+   //cout<<"nloop: "<<f.GetNGen()<<"   ntracks: "<<fEvent->GetNtracks()<<endl;
   //getchar();
   // FIXED: one GenData per event: signal, primary particle
   if( f.GetNGen() > 0 )

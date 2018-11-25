@@ -12,6 +12,7 @@
 #include "g4sbs_tree.h"
 #include "TSBSGEMSimHitData.h"
 #include "TSBSSimEvent.h"
+#include "TRandom3.h"
 
 class TSBSDBManager;
 
@@ -128,10 +129,20 @@ class TSBSGeant4File {
   void GetGEMData(TSBSGEMSimHitData* gd);
   
   //double FindGasRange(double p); // NB: See comment lines 138-141
+  //NB: *this is a complete kludge for an emergency*
+  // we (I) should migrate to libsbsdig once for all after that
+  void GetBBECalCluster();
+  void GetGEpECalCluster();
+  void GetGEpCDetCluster();
+  void GetHCalCluster();
   
   UInt_t GetClusterSize() const {return fECalClusters.size();};
   void AddCluster(TSBSECalCluster* clus){fECalClusters.push_back(clus);};
   TSBSECalCluster* GetCluster(int i) const {return fECalClusters.at(i);};
+  
+  UInt_t GetSciClusterSize() const {return fScintClusters.size();};
+  void AddSciCluster(TSBSScintCluster* clus){fScintClusters.push_back(clus);};
+  TSBSScintCluster* GetSciCluster(int i) const {return fScintClusters.at(i);};
   
  private:
   // Members
@@ -152,12 +163,15 @@ class TSBSGeant4File {
   // in the g4sbs out put
   /* vector<double> feMom; */
   /* vector<double> fgasErange; */
+
+  TRandom3* fR;
   
   //hit data arrays
   std::vector<g4sbshitdata *> fg4sbsHitData;
   std::vector<g4sbsgendata *> fg4sbsGenData;
   
   std::vector<TSBSECalCluster *> fECalClusters; // ECal clusters
+  std::vector<TSBSScintCluster *> fScintClusters; // ECal clusters
   
   unsigned int fEvNum;// global event incrementer
 
