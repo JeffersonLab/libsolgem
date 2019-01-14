@@ -838,7 +838,8 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    // thetak+= theta[0];
 	    // phik+= phi[0];
 	    
-	    //cout << "ECal only: theta = " << thetak << ", phi = " << phik << endl;
+	    /*
+	    cout << "ECal only: theta = " << thetak << ", phi = " << phik << endl;
 	    
 	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[i];
@@ -859,17 +860,17 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      // phi[tempPlane] = atan2(kpy, kpx);
 	      // thetak+= theta[tempPlane];
 	      // phik+= phi[tempPlane];
-	      //cout << "+ " << j+1 << "th CDet hit: theta = " << thetak/(j+1) << ", phi = " << phik/(j+1) << endl;
+	      cout << "+ " << j+1 << "th CDet hit: theta = " << thetak/(j+1) << ", phi = " << phik/(j+1) << endl;
 	    }
 	    thetak/3;
 	    phik/3;
-	    
+	    */
 	    x_S = (-0.1276+2.0962*phik)+(0.2981-2.1788*phik)*thetak-9.6682e-03;
 	    y_S = (-0.7928+0.4558*phik+1.5512*phik*phik)+(1.5709-0.8181*phik+1.5512*phik*phik)*thetak-4.5423e-3;
 
 	    // if(TMath::IsNaN(x_S)||TMath::IsNaN(y_S))
-	    //   cout << "x_S = " << x_S << ", y_S = " << x_S 
-	    // 	   << ", theta = " << thetak << ", phi = " << phik << endl; 
+	    cout << "x_S = " << x_S << ", y_S = " << x_S 
+		 << ", theta = " << thetak << ", phi = " << phik << endl; 
 // x(#phi_{e}, #theta_{e}) = (-0.1276+2.0962*#phi_{e})+(0.2981+-2.1788*#phi_{e})*#theta_{e}
 // y(#phi_{e}, #theta_{e}) = (-0.7928+0.4558*#phi_{e}+1.5512*#phi_{e}^{2})+(1.5709+-0.8181*#phi_{e}+1.5512*#phi_{e}^{2})*#theta
 	    /*	    

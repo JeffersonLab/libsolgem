@@ -9,7 +9,7 @@ sbs_ft.tracker.${allsectors}.MCdata = 1
 # Plane configuration. One string of the all plane names.
 
 #sbs_ft.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6
-sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y #ecal.x ecal.y 
+sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y ecal.x ecal.y 
 #hcal.x hcal.y 
 
 # Strip angles: angles of the normal to the strips, pointing
