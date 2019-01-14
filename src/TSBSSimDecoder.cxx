@@ -821,7 +821,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	  }
 	  
 	  if(flag==12 && eCalHit.GetEnergy()>=fManager->GetCaloThreshold()){
-	    /*
+    	    
 	    thetak = 0; 
 	    phik = 0;
 	    //Step 1: 
@@ -838,11 +838,17 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    // thetak+= theta[0];
 	    // phik+= phi[0];
 	    
+	    //cout << "ECal only: theta = " << thetak << ", phi = " << phik << endl;
+	    
 	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[i];
+	      if(SciHit.GetDetFlag()!=31 || SciHit.GetEnergy()<=0)return HED_ERR;
+	      //kill the event if we don't have two properly reconstructed CDet hits.
 	      tempScintX = SciHit.GetXPos();
 	      tempScintY = SciHit.GetYPos();
 	      tempPlane = SciHit.GetPlane();
+	      //cout << " X_CDet " << tempScintX << ", Y_CDet " << tempScintY << endl;
+	      //cout << " Erec ? " << SciHit.GetEnergy() << endl;
 	      
 	      kpx = z_earm[tempPlane]*sin(th_earm)+tempScintY*cos(th_earm);
 	      kpy = -tempScintX;
@@ -853,10 +859,20 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      // phi[tempPlane] = atan2(kpy, kpx);
 	      // thetak+= theta[tempPlane];
 	      // phik+= phi[tempPlane];
+	      //cout << "+ " << j+1 << "th CDet hit: theta = " << thetak/(j+1) << ", phi = " << phik/(j+1) << endl;
 	    }
 	    thetak/3;
 	    phik/3;
 	    
+	    x_S = (-0.1276+2.0962*phik)+(0.2981-2.1788*phik)*thetak-9.6682e-03;
+	    y_S = (-0.7928+0.4558*phik+1.5512*phik*phik)+(1.5709-0.8181*phik+1.5512*phik*phik)*thetak-4.5423e-3;
+
+	    // if(TMath::IsNaN(x_S)||TMath::IsNaN(y_S))
+	    //   cout << "x_S = " << x_S << ", y_S = " << x_S 
+	    // 	   << ", theta = " << thetak << ", phi = " << phik << endl; 
+// x(#phi_{e}, #theta_{e}) = (-0.1276+2.0962*#phi_{e})+(0.2981+-2.1788*#phi_{e})*#theta_{e}
+// y(#phi_{e}, #theta_{e}) = (-0.7928+0.4558*#phi_{e}+1.5512*#phi_{e}^{2})+(1.5709+-0.8181*#phi_{e}+1.5512*#phi_{e}^{2})*#theta
+	    /*	    
 	    phip = phik+TMath::Pi();
 	    kp = k0*Mp/(k0*(1-cos(thetak))+Mp);
 	    pp = sqrt(pow(k0-kp+Mp, 2)-Mp*Mp);
@@ -871,8 +887,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    
 	    //x_S = xptar*A+yptar*B;
 	    */
-	    x_S = 0.0337-tempCaloX*0.4377;//Ad hoc parameters (probably still much better than above)
-	    y_S = (0.0838-x_S*tempCaloY/tempCaloX)/0.879;
+	    
+	    //x_S = 0.0337-tempCaloX*0.4377;//Ad hoc parameters (probably still much better than above)
+	    //y_S = (0.0838-x_S*tempCaloY/tempCaloX)/0.879;
 	    datx.f = static_cast<Float_t>(x_S);
 	    daty.f = static_cast<Float_t>(y_S);
 	    crate = 4;

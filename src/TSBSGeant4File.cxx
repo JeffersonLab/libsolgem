@@ -962,8 +962,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     */
     
     if(fManager->DoCalo()){
-      GetHCalCluster();
       GetGEpECalCluster();
+      //GetHCalCluster();
     }
     
     
@@ -1149,10 +1149,10 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     
     
     
-    if(fManager->DoCalo()){
-      GetHCalCluster();
-      GetGEpECalCluster();
-    }
+    //if(fManager->DoCalo()){
+      //GetHCalCluster();
+      //GetGEpECalCluster();
+    //}
     /*
     // Rescue ngen data here...
     // ngen data is rescued if: 
@@ -1353,8 +1353,8 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
     }
     
     if(fManager->DoCalo()){
-      GetGEpECalCluster();
       GetHCalCluster();
+      //GetGEpECalCluster();   
     }
     /*
     // Rescue ngen data here...

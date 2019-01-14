@@ -9,7 +9,8 @@ sbs_ft.tracker.${allsectors}.MCdata = 1
 # Plane configuration. One string of the all plane names.
 
 #sbs_ft.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6
-sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y
+sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y #ecal.x ecal.y 
+#hcal.x hcal.y 
 
 # Strip angles: angles of the normal to the strips, pointing
 # along the direction of increasing strip number.
@@ -25,7 +26,8 @@ sbs_ft.tracker.${allsectors}.y.angle = 90
 #
 sbs_ft.tracker.${allsectors}.cratemap = \
                    0     0       29      6425   2048 \
-                   1     0        5      6425   2048
+                   1     0        5      6425   2048 \
+                   4     0        3      6425   2048
 
 # GEM detector maps
 # 3 sectors * 6 planes * 2 readout coordinates = 36 detectors
@@ -83,6 +85,16 @@ sbs_ft.tracker.1.6.y.detmap = \
                 1  1  0 1023 0 \
                 1  3  0 1023 1 \
                 1  5  0 1023 2
+
+sbs_ft.tracker.1.ecal.x.detmap = \
+                4  0  0 0 0 
+sbs_ft.tracker.1.ecal.y.detmap = \
+                4  0  1 1 0 
+
+#sbs_ft.tracker.1.hcal.x.detmap = \
+#                4  0  2 2 0 
+#sbs_ft.tracker.1.hcal.y.detmap = \
+#                4  0  3 3 0 
 
 #-----------------------------------------------------------------
 #  X offset of the sectors (in transport coordinates)
@@ -143,7 +155,7 @@ sbs_ft.tracker.${allsectors}.proj_to_z0 = 0
 #-----------------------------------------------------------------
 
 sbs_ft.tracker.${allsectors}.maxmiss = 3
-sbs_ft.tracker.${allsectors}.maxpat = 150000
+sbs_ft.tracker.${allsectors}.maxpat = 10000000
 sbs_ft.tracker.${allsectors}.chi2_conflevel = 1e-06
 sbs_ft.tracker.${allsectors}.disable_chi2 = 0
 
@@ -177,6 +189,58 @@ sbs_ft.tracker.commonmode_groupsize = 128
 #-----------------------------------------------------------------
 
 #new plane module
+
+sbs_ft.tracker.1.ecal.x.dummy = 1
+sbs_ft.tracker.1.ecal.x.xp.res = 0.025
+sbs_ft.tracker.1.ecal.x.description = x ecal
+sbs_ft.tracker.1.ecal.x.nstrips = 64 // fake
+sbs_ft.tracker.1.ecal.x.partner = ecal.y
+sbs_ft.tracker.1.ecal.x.type = x
+sbs_ft.tracker.1.ecal.x.strip.pos = -0.768
+sbs_ft.tracker.1.ecal.x.d0 = 1.819555 #between first and second plane
+sbs_ft.tracker.1.ecal.x.dx = 1.536
+sbs_ft.tracker.1.ecal.x.dy = 0.4096
+sbs_ft.tracker.1.ecal.x.dz = 0.001
+sbs_ft.tracker.1.ecal.x.strip.pitch = 0.024
+
+sbs_ft.tracker.1.ecal.y.dummy = 1
+sbs_ft.tracker.1.ecal.y.xp.res = 0.055
+sbs_ft.tracker.1.ecal.y.description = y ecal
+sbs_ft.tracker.1.ecal.y.nstrips = 16 // fake
+sbs_ft.tracker.1.ecal.y.partner = ecal.x
+sbs_ft.tracker.1.ecal.y.type = y
+sbs_ft.tracker.1.ecal.y.strip.pos = -0.2048
+sbs_ft.tracker.1.ecal.y.d0 = 1.819555 #between first and second plane
+sbs_ft.tracker.1.ecal.y.dx = 1.536
+sbs_ft.tracker.1.ecal.y.dy = 0.4096
+sbs_ft.tracker.1.ecal.y.dz = 0.001
+sbs_ft.tracker.1.ecal.y.strip.pitch = 0.0256
+
+#sbs_ft.tracker.1.hcal.x.dummy = 1
+#sbs_ft.tracker.1.hcal.x.xp.res = 0.29 #in meters... yes...
+#sbs_ft.tracker.1.hcal.x.description = x hcal
+#sbs_ft.tracker.1.hcal.x.nstrips = 48 // fake
+#sbs_ft.tracker.1.hcal.x.partner = hcal.y
+#sbs_ft.tracker.1.hcal.x.type = x
+#sbs_ft.tracker.1.hcal.x.strip.pos = -1.824
+#sbs_ft.tracker.1.hcal.x.d0 = 5.9 #
+#sbs_ft.tracker.1.hcal.x.dx = 3.648
+#sbs_ft.tracker.1.hcal.x.dy = 1.824
+#sbs_ft.tracker.1.hcal.x.dz = 0.001
+#sbs_ft.tracker.1.hcal.x.strip.pitch = 0.076
+
+#sbs_ft.tracker.1.hcal.y.dummy = 1
+#sbs_ft.tracker.1.hcal.y.xp.res = 0.14 #in meters... yes...
+#sbs_ft.tracker.1.hcal.y.description = y hcal
+#sbs_ft.tracker.1.hcal.y.nstrips = 24 // fake
+#sbs_ft.tracker.1.hcal.y.partner = hcal.x
+#sbs_ft.tracker.1.hcal.y.type = y
+#sbs_ft.tracker.1.hcal.y.strip.pos = -0.912
+#sbs_ft.tracker.1.hcal.y.d0 = 5.9 #
+#sbs_ft.tracker.1.hcal.y.dx = 3.648
+#sbs_ft.tracker.1.hcal.y.dy = 1.824
+#sbs_ft.tracker.1.hcal.y.dz = 0.001
+#sbs_ft.tracker.1.hcal.y.strip.pitch = 0.076
 
 sbs_ft.tracker.1.1.x.description = x module 1 in plane 1
 sbs_ft.tracker.1.1.x.nstrips = 3840
