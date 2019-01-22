@@ -917,7 +917,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 			      pz * fTree->Harm_FT_Track_Yp->at(0),
 			      pz);
       TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
-      TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+      TVector3 trackVertexMom = TVector3(fTree->ev_npx, fTree->ev_npy, fTree->ev_npz);
       
       
       gen_data_temp[0] = fTree->Harm_FT_Track_TID->at(0);
@@ -986,7 +986,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 				pz * fTree->Harm_FPP1_Track_Yp->at(0),
 				pz);
 	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
-	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+	TVector3 trackVertexMom = TVector3(fTree->ev_npx, fTree->ev_npy, fTree->ev_npz);
 	
 	MID = fTree->Harm_FPP1_Track_MID->at(0);
 	gen_data_temp[0] = fTree->Harm_FPP1_Track_TID->at(0);
@@ -1190,7 +1190,7 @@ Int_t TSBSGeant4File::ReadNextEvent(int d_flag){
 				pz * fTree->Harm_FPP2_Track_Yp->at(0),
 				pz);
 	TVector3 trackVertex = TVector3(fTree->ev_vx, fTree->ev_vy, fTree->ev_vz);
-	TVector3 trackVertexMom = TVector3(fTree->ev_epx, fTree->ev_epy, fTree->ev_epz);
+	TVector3 trackVertexMom = TVector3(fTree->ev_npx, fTree->ev_npy, fTree->ev_npz);
 	
 	MID = fTree->Harm_FPP1_Track_MID->at(0);
 	gen_data_temp[0] = fTree->Harm_FPP2_Track_TID->at(0);
@@ -1682,7 +1682,7 @@ void TSBSGeant4File::GetGEpECalCluster(){
     edep_cal = npe/Npe_Edep_CDET;
     
     x_pos = fTree->Earm_CDET_Scint_hit_xcell->at(i)+0.255*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1)+
-      fR->Gaus(fTree->Earm_CDET_Scint_hit_xhit->at(i)*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1), 0.04);
+    fR->Gaus(fTree->Earm_CDET_Scint_hit_xhit->at(i)*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1), 0.0);
     //because the modules with col==1 are rotated by pi along y axis
     y_pos = fTree->Earm_CDET_Scint_hit_ycell->at(i);
 

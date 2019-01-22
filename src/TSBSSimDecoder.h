@@ -196,7 +196,7 @@ protected:
 #else
   Int_t DoLoadEvent( const Int_t* evbuffer );
 #endif
-
+  
   // void  StripToROC( Int_t s_plane, Int_t s_sector, Int_t s_proj, Int_t s_chan,
   //		    Int_t& crate, Int_t& slot, Int_t& chan ) const;
   Int_t StripFromROC( Int_t crate, Int_t slot, Int_t chan ) const;

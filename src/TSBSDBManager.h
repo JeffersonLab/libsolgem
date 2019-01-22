@@ -61,6 +61,11 @@ public:
     double    GetCaloRes() const           { return fgCaloRes;            }
     int       DoCalo() const               { return fgDoCalo;             }
 
+    //For Optics;
+    double    GetOrderOptics() const { return fOrderOptics; }
+    double    GetNOpticsTerms() const { return fNOpticsTerms; }
+    double    GetOpticsCoeff(int, int);
+    
     void     SetZ0( Double_t z0 ) { fgZ0 = z0; }
     // Support for calorimeter emulation. Static functions to allow script access
     void     EmulateCalorimeter( Bool_t f = true ) { fgDoCalo = f; }
@@ -140,6 +145,13 @@ protected:
     
     std::vector<int>    fSigPID;
     std::vector<int>    fSigTID;
+
+    //for optics;
+    int fOrderOptics;
+    int fNOpticsTerms;
+    std::string fOpticsFile;
+    std::map< int, std::vector<double> > fOpticsCoeff;
+    void LoadOptics();
     
     /* vector<double> fChamberZ; */
     std::map< int, std::vector<GeoInfo> > fGeoInfo;

@@ -19,6 +19,7 @@ TSBSDBManager::TSBSDBManager()
     fChanPerSlot(2048), fModulesPerReadOut(1), fModulesPerChamber(1), fChambersPerCrate(1),
     fg4sbsDetectorType(0), fg4sbsZSpecOffset(0),
     fCaloThr(0), fgCaloZ(0), fgCaloRes(0), fgDoCalo(0), fgZ0(0),
+    fOrderOptics(0), 
     fErrID(-999), fErrVal(-999.)
 {
 }
@@ -108,6 +109,8 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
 	{"calo_z",              &fgCaloZ              , kDouble, 0, 1},
 	{"calo_res",            &fgCaloRes            , kDouble, 0, 1},
 	{"docalo",              &fgDoCalo             , kInt,    0, 1},
+	{"order_optics",        &fOrderOptics         , kInt,    0, 1},
+	{"opticsfile",          &fOpticsFile          , kString, 0, 1},
         { 0 }
     };
     int pid, tid;
@@ -119,7 +122,13 @@ void TSBSDBManager::LoadGeneralInfo(const string& fileName)
     
     int err = LoadDB( input, request,  prefix);
     if( err ) {cout<<"Load DB error"<<endl;exit(2);} 
-   
+    
+    if(fOrderOptics>0){
+      cout << "optics activated with order " << fOrderOptics << endl;
+      cout << "reading optics file " << fOpticsFile.c_str() << endl;
+      LoadOptics();
+    }
+    
     if(fNGEMPlane!=(int)NModule->size()) {
       cout<<"Check consistency of number of GEM Planes"<<endl;
       exit(2);
@@ -287,7 +296,15 @@ int TSBSDBManager::LoadDB( ifstream& inp, DBRequest* request, const string& pref
             ((std::vector<Int_t>*)item->var)->push_back(tempval);
 	  }
   	  break;
-  
+        case kString:
+	  sv >> *((std::string*)item->var);
+	  break;
+	  // while(1){
+	  //   if(!sv.good()) break;
+	  //   sv >> tempval;
+          //   ((std::vector<Int_t>*)item->var)->push_back(tempval);
+	  // }
+  	  break;
         default:
           return 1;
         break;
@@ -425,9 +442,66 @@ double TSBSDBManager::GetPosFromModuleStrip(int iproj, int iplane,
   return pos;
 }
 
+void TSBSDBManager::LoadOptics()
+{
+  ifstream in(fOpticsFile.c_str());
+  int N, i, j, k, l, m;
+  double cxfp, cyfp, cxpfp, cypfp;
+  std::vector<double> Cxfp, Cyfp, Cxpfp, Cypfp;
+  Cxfp.clear();
+  Cyfp.clear();
+  Cxpfp.clear();
+  Cypfp.clear();
+  std::vector<double> I_idx, J_idx, K_idx, L_idx, M_idx;
+  I_idx.clear();
+  J_idx.clear();
+  K_idx.clear();
+  L_idx.clear();
+  M_idx.clear();
+  
+  fOpticsCoeff[0] = Cxfp;
+  fOpticsCoeff[1] = Cyfp;
+  fOpticsCoeff[2] = Cxpfp;
+  fOpticsCoeff[3] = Cypfp;
+  fOpticsCoeff[4] = I_idx;
+  fOpticsCoeff[5] = J_idx;
+  fOpticsCoeff[6] = K_idx;
+  fOpticsCoeff[7] = L_idx;
+  fOpticsCoeff[8] = M_idx;
+  
+  TString currentline;
+  currentline.ReadLine(in);
+  in >> fNOpticsTerms;
+  //cout << "fNOpticsTerms = " << fNOpticsTerms << endl;
+  for(int i_ = 0;i_<3;i_++){
+    currentline.ReadLine(in);
+  }
+  for(int i_ = 0; i_<fNOpticsTerms; i_++){
+    in >> cxfp >> cyfp >> cxpfp >> cypfp >> m >> l >> k >> j >> i;
+    
+    //cout << " i_ = " << i_ << " : " << cxfp << " " << cyfp << " " << cxpfp << " " << cypfp << " " << i << " " << j << " " << k << " " << l << " " << m << endl;
+    //while( currentline.ReadLine(infile) ){
+    //if( !currentline.BeginsWith("#") ){
+    //}
+    fOpticsCoeff[0].push_back(cxfp);
+    fOpticsCoeff[1].push_back(cyfp);
+    fOpticsCoeff[2].push_back(cxpfp);
+    fOpticsCoeff[3].push_back(cypfp);
+    fOpticsCoeff[4].push_back((double)i);
+    fOpticsCoeff[5].push_back((double)j);
+    fOpticsCoeff[6].push_back((double)k);
+    fOpticsCoeff[7].push_back((double)l);
+    fOpticsCoeff[8].push_back((double)m);
+  }
+  
+}
 
-
-
-
-
-
+double TSBSDBManager::GetOpticsCoeff(int i, int j){
+  //cout << "Optics coeff size " << fOpticsCoeff.size() << endl;
+  if(fOpticsCoeff[i].size()>j){
+    return fOpticsCoeff[i].at(j);
+  }else{
+    printf("WARNING: trying to read optics term %d > size of optics coeff array = %lu\n",j,fOpticsCoeff[i].size());
+    return 1.e38;
+  }
+}

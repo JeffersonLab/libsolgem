@@ -27,3 +27,5 @@ generalinfo.calo_z = 1.600000
 generalinfo.calo_res = 0.010000
 generalinfo.docalo = 1
 generalinfo.z0 = 1.835510
+generalinfo.order_optics = 4
+generalinfo.opticsfile = SBS_optics_fitresult_forward_optics_coeff.txt
