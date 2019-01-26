@@ -191,7 +191,7 @@ sbs_ft.tracker.commonmode_groupsize = 128
 #new plane module
 
 sbs_ft.tracker.1.ecal.x.dummy = 1
-sbs_ft.tracker.1.ecal.x.xp.res = 0.025
+sbs_ft.tracker.1.ecal.x.xp.res = 0.015
 sbs_ft.tracker.1.ecal.x.description = x ecal
 sbs_ft.tracker.1.ecal.x.nstrips = 64 // fake
 sbs_ft.tracker.1.ecal.x.partner = ecal.y
@@ -204,7 +204,7 @@ sbs_ft.tracker.1.ecal.x.dz = 0.001
 sbs_ft.tracker.1.ecal.x.strip.pitch = 0.024
 
 sbs_ft.tracker.1.ecal.y.dummy = 1
-sbs_ft.tracker.1.ecal.y.xp.res = 0.055
+sbs_ft.tracker.1.ecal.y.xp.res = 0.0025
 sbs_ft.tracker.1.ecal.y.description = y ecal
 sbs_ft.tracker.1.ecal.y.nstrips = 16 // fake
 sbs_ft.tracker.1.ecal.y.partner = ecal.x

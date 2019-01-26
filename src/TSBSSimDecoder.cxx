@@ -759,7 +759,8 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	const double Mp = 0.938272;
 	const double k0 = 11.0;
 	const double th_earm = 29.0*TMath::DegToRad();
-	const double z_earm[3] = {5.02, 4.48, 4.53};
+	const double z_earm[3] = {4.72, 4.08, 4.13};
+	//{5.02, 4.08, 4.13};
 	//double theta[3];
 	//double phi[3];
 	
@@ -831,37 +832,20 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	  }
 	  
 	  if(flag==12 && E>=fManager->GetCaloThreshold()){
+	    //cout << "Event "<< simEvent->fEvtID << endl;
+	    
     	    xfp = yfp = xpfp = ypfp = 0;
 	    x_C_ = y_C_ = L_C_ = 0;
 	    p0_ = p1_ = p1_den_ = 0;
 	    thetak = phik = 0;
 
-	    cout << " X_ECal " << tempCaloX << ", Y_ECal " << tempCaloY << endl;
+	    //cout << " X_ECal " << tempCaloX << ", Y_ECal " << tempCaloY << endl;
 	    
-	    //temp//x_C[0] = tempCaloY;
-	    //temp//x_C_+= tempCaloY;
-	    //temp//y_C_+= -tempCaloX;
-	    //temp//L_C_+= z_earm[0];
+	    x_C[0] = tempCaloY;
+	    x_C_+= tempCaloY;
+	    y_C_+= -tempCaloX;
+	    L_C_+= z_earm[0];
 	    
-	    /*
-	    //Step 1: 
-	    //Calculate theta and phi with ECal cluster
-	    
-	    kpx = z_earm[0]*sin(th_earm)+tempCaloY*cos(th_earm);
-	    kpy = -tempCaloX;
-	    kpz = z_earm[0]*cos(th_earm)-tempCaloY*sin(th_earm);
-	    
-	    kp = sqrt(kpx*kpx+kpy*kpy+kpz*kpz);
-	    thetak+= acos(kpz/kp);
-	    phik+= atan2(kpy, kpx);
-	    */
-	    // theta[0] = kpz/kp;
-	    // phi[0] = atan2(kpy, kpx);
-	    // thetak+= theta[0];
-	    // phik+= phi[0];
-	    
-	    //cout << "ECal only: theta = " << thetak << ", phi = " << phik << endl;
-	    	    
 	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[j];
 	      if(SciHit.GetDetFlag()!=31 || SciHit.GetEnergy()<=0)return HED_ERR;
@@ -869,77 +853,52 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      tempScintX = SciHit.GetXPos();
 	      tempScintY = SciHit.GetYPos();
 	      tempPlane = SciHit.GetPlane();
-	      cout << "j " << j << " Plane " << tempPlane << " X_CDet " << tempScintX << ", Y_CDet " << tempScintY << endl;
+	      //cout << "j " << j << " Plane " << tempPlane << " X_CDet " << tempScintX << ", Y_CDet " << tempScintY << endl;
 	      //cout << " Erec ? " << SciHit.GetEnergy() << endl;
 	      
 	      x_C[tempPlane] = tempScintY;
 	      x_C_+= tempScintY;
 	      y_C_+= -tempScintX;
 	      L_C_+= z_earm[tempPlane];
-	      
-	      /*
-	      kpx = z_earm[tempPlane]*sin(th_earm)+tempScintY*cos(th_earm);
-	      kpy = -tempScintX;
-	      kpz = z_earm[tempPlane]*cos(th_earm)-tempScintY*sin(th_earm);
-	      thetak+= acos(kpz/kp);
-	      phik+= atan2(kpy, kpx);
-	      */
-	      // theta[tempPlane] = kpz/kp;
-	      // phi[tempPlane] = atan2(kpy, kpx);
-	      // thetak+= theta[tempPlane];
-	      // phik+= phi[tempPlane];
-	      //cout << "+ " << j+1 << "th CDet hit: theta = " << thetak/(j+1) << ", phi = " << phik/(j+1) << endl;
 	    }
-	    //temp//x_C_/=3.0;
-	    //temp//y_C_/=3.0;
-	    //temp//L_C_/=3.0;
-	    x_C_/=2.0;
-	    y_C_/=2.0;
-	    L_C_/=2.0;
+	    x_C_/=3.0;
+	    y_C_/=3.0;
+	    L_C_/=3.0;
 	    
-	    cout << " x_C_ = " <<  x_C_ << ", y_C_ " << y_C_ << ", L_C_ = " << L_C_ << endl;
+	    //cout << " x_C_ = " <<  x_C_ << ", y_C_ " << y_C_ << ", L_C_ = " << L_C_ << endl;
 	    p1_ = p1_den_ = 0;
-	    //temp//for(int j = 0; j<3; j++){
-	    for(int j = 1; j<3; j++){
+	    for(int j = 0; j<3; j++){
 	      p1_+= (x_C[j]-x_C_)*(z_earm[j]-L_C_);
 	      p1_den_+= (z_earm[j]-L_C_)*(z_earm[j]-L_C_);
 	      
-	      cout << " (x_C[j]-x_C_) " << (x_C[j]-x_C_) << " (z_earm[j]-L_C_) " << (z_earm[j]-L_C_) 
-		   << " p1_num_ " << p1_/(j+1) << " p1_den_ " << p1_den_/(j+1) 
-		   << " p1_ " << p1_/p1_den_ << endl;
+	      //cout << " (x_C[j]-x_C_) " << (x_C[j]-x_C_) << " (z_earm[j]-L_C_) " << (z_earm[j]-L_C_) 
+	      //<< " p1_num_ " << p1_/(j+1) << " p1_den_ " << p1_den_/(j+1) 
+	      //<< " p1_ " << p1_/p1_den_ << endl;
 	    }
 	    p1_/=p1_den_;
 	    p0_ = x_C_-p1_*L_C_;
 	    
-	    cout << "p1_ = " << p1_ << ", p0_ = " << p0_ << endl;
+	    //cout << "p1_ = " << p1_ << ", p0_ = " << p0_ << endl;
 	    
 	    alpha = atan(p1_)+th_earm;
-	    vz = p0_*sin(th_earm)+ p0_*cos(th_earm)*tan(TMath::PiOver2()-alpha);
-
-	    cout << "alpha = " << alpha << ", vz = " << vz << endl;
+	    //vz = -p0_*(sin(th_earm)+cos(th_earm)/tan(alpha));
+	    vz = trk->vertex_target.Z();
+	    //cout << "alpha = " << alpha << "  :  " 
+	    //<< atan( ( L_C_*sin(th_earm)+x_C_*cos(th_earm) ) / ( L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz-trk->vertex_target.Z() ) ) << endl;
+	    //cout << alpha-atan( ( L_C_*sin(th_earm)+x_C_*cos(th_earm) ) / ( L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz-trk->vertex_target.Z() ) ) << endl;
+	    //cout << " vz = " << vz << "  :  " << trk->vertex_target.Z() << endl;
+	    //cout << vz-trk->vertex_target.Z() << endl;
 	    
 	    kpx = L_C_*sin(th_earm)+x_C_*cos(th_earm);
 	    kpy = y_C_;
 	    kpz = L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz;
 	    kp = sqrt(kpx*kpx+kpy*kpy+kpz*kpz);
 	    
-	    cout << " kpx " << kpx << " kpy " << kpy << " kpz " << kpz << endl;
+	    //cout << " kpx " << kpx << " kpy " << kpy << " kpz " << kpz << endl;
+	    //cout << " alpha (re) = " << atan(kpx/kpz) << endl;
 	    
-	    thetak = kpz/kp;
+	    thetak = acos(kpz/kp);
 	    phik = atan2(kpy, kpx);
-	    
-	    //thetak = thetak/3;
-	    //phik = phik/3;
-	    /**/
-	    
-	    //x_S = (-0.1276+2.0962*phik)+(0.2981-2.1788*phik)*thetak-9.6682e-03;
-	    //y_S = (-0.7928+0.4558*phik+1.5512*phik*phik)+(1.5709-0.8181*phik-2.3698*phik*phik)*thetak-4.5423e-3;
-
-	    // if(TMath::IsNaN(x_S)||TMath::IsNaN(y_S))
-	    // cout << "x_S = " << x_S << ", y_S = " << x_S 
-	    // cout << ", theta = " << thetak << ", phi = " << phik << endl; 
-// x(#phi_{e}, #theta_{e}) = (-0.1276+2.0962*#phi_{e})+(0.2981+-2.1788*#phi_{e})*#theta_{e}
-// y(#phi_{e}, #theta_{e}) = (-0.7928+0.4558*#phi_{e}+1.5512*#phi_{e}^{2})+(1.5709+-0.8181*#phi_{e}+1.5512*#phi_{e}^{2})*#theta
 	    
 	    phip = phik+TMath::Pi();
 	    kp = k0*Mp/(k0*(1-cos(thetak))+Mp);
@@ -957,22 +916,22 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
 	    xtar = 0;
 
-	    cout << "electron: k = " << kp << " GeV, theta " << thetak << ", phi " << phik << endl;
-	    cout << "proton: k = " << pp << " GeV, theta " << thetap << ", phi " << phip << endl;
-	    cout << "proton X-check: " 
-		 << (2*Mp*k0*(Mp+k0)*cos(thetap))/(Mp*Mp+2*Mp*k0+pow(k0*sin(thetap),2)) << endl;
-	    cout << "pvect_SBS:" << endl;
-	    pvect_SBS.Print();
-	    cout << "vertex: z = " << vz << ", vertex_SBS:" << endl;
-	    vertex_SBS.Print();
+	    // cout << "electron: k = " << kp << " GeV, theta " << thetak << ", phi " << phik << endl;
+	    // cout << "proton: k = " << pp << " GeV, theta " << thetap << ", phi " << phip << endl;
+	    // cout << "proton X-check: " 
+	    // 	 << (2*Mp*k0*(Mp+k0)*cos(thetap))/(Mp*Mp+2*Mp*k0+pow(k0*sin(thetap),2)) << endl;
+	    // cout << "pvect_SBS:" << endl;
+	    // pvect_SBS.Print();
+	    // cout << "vertex: z = " << vz << ", vertex_SBS:" << endl;
+	    // vertex_SBS.Print();
 	    
-	    cout << "xptar " << xptar << " yptar " << yptar << " ytar " << ytar << " xtar " << xtar << endl;
+	    // cout << "xptar " << xptar << " yptar " << yptar << " ytar " << ytar << " 1/p " << 1.0/pp << " xtar " << xtar << endl;
 	    
 	    
 	    //xtar assumed to be 0... 
 	    //Calculate the optics
 	    for( int i_par=0; i_par<fManager->GetNOpticsTerms(); i_par++ ){
-	      // cout << fManager->GetOpticsCoeff(0, i_par) << " "
+	      // cout << i_par << " " << fManager->GetOpticsCoeff(0, i_par) << " "
 	      // 	   << fManager->GetOpticsCoeff(1, i_par) << " "
 	      // 	   << fManager->GetOpticsCoeff(2, i_par) << " "
 	      // 	   << fManager->GetOpticsCoeff(3, i_par) << " "
@@ -980,13 +939,14 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      // 	   << fManager->GetOpticsCoeff(7, i_par) << " "
 	      // 	   << fManager->GetOpticsCoeff(6, i_par) << " "
 	      // 	   << fManager->GetOpticsCoeff(5, i_par) << " "
-	      // 	   << fManager->GetOpticsCoeff(4, i_par) << endl;
+	      // 	   << fManager->GetOpticsCoeff(4, i_par) << " ";
 	      fterm = 
 		pow(xptar,fManager->GetOpticsCoeff(8, i_par))*
 		pow(yptar,fManager->GetOpticsCoeff(7, i_par))*
 		pow(ytar,fManager->GetOpticsCoeff(6, i_par))*
 		pow(1.0/pp,fManager->GetOpticsCoeff(5, i_par))*
 		pow(xtar,fManager->GetOpticsCoeff(4, i_par));
+	      //cout << fterm << endl;
 	      
 	      xfp += fterm * fManager->GetOpticsCoeff(0, i_par);//b_xfp
 	      yfp += fterm * fManager->GetOpticsCoeff(1, i_par);//b_yfp;
@@ -994,14 +954,16 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      ypfp += fterm * fManager->GetOpticsCoeff(3, i_par);//b_ypfp;
 	    }
 	    
-	    cout << "xfp " << xfp << ", yfp " << yfp << ", xpfp " << xpfp << ", ypfp " << ypfp << endl;
+	    //cout << "xfp " << xfp << " yfp " << yfp << " xpfp " << xpfp << " ypfp " << ypfp << endl;
 	    
 	    
-	    //x_S = xfp-xpfp*0.015955;
-	    //y_S = yfp-ypfp*0.015955;
+	    x_S = xfp-xpfp*0.015955;
+	    y_S = yfp-ypfp*0.015955;
 	    
-	    x_S = 0.0337-tempCaloX*0.4377;//Ad hoc parameters (probably still much better than above)
-	    y_S = (0.0838-x_S*tempCaloY/tempCaloX)/0.879;
+	    //cout << "x_S = " << x_S << ", y_S = " << y_S << endl;
+	    
+	    //x_S = 0.0337-tempCaloX*0.4377;//Ad hoc parameters (probably still much better than above)
+	    // y_S = (0.0838-x_S*tempCaloY/tempCaloX)/0.879;
 	    datx.f = static_cast<Float_t>(x_S);
 	    daty.f = static_cast<Float_t>(y_S);
 	    crate = 4;

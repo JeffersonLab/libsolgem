@@ -1550,6 +1550,11 @@ void TSBSGeant4File::GetGEpECalCluster(){
   // Add GEp ECal clustering here.
   // ---------------------------------
   for(int i = 0; i<fTree->Earm_ECalTF1_hit_nhits; i++){	
+    // cout << " i " << i << " ECal: edep = " << fTree->Earm_ECalTF1_hit_sumedep->at(i) 
+    // 	 << " X = " << fTree->Earm_ECalTF1_hit_xcell->at(i) 
+    // 	 << " Y = " << fTree->Earm_ECalTF1_hit_ycell->at(i) 
+    // 	 << endl;
+    
     edep_cal = fTree->Earm_ECalTF1_hit_sumedep->at(i);
     npe = fR->Poisson(Npe_Edep_ECAL*edep_cal);
     if(npe<npe_thr)continue;
@@ -1645,8 +1650,7 @@ void TSBSGeant4File::GetGEpECalCluster(){
   X_rec = X_rec/E_rec;
   Y_rec = Y_rec/E_rec;
   
-  //cout << "E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
-  /**/
+  //cout << "ECal: E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
   if(E_rec>fManager->GetCaloThreshold()){
     fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec, 0, 12));
   }
@@ -1676,6 +1680,12 @@ void TSBSGeant4File::GetGEpECalCluster(){
   std::vector<double> y_eprim_clus_plane2;
   //
   for(int i = 0; i<fTree->Earm_CDET_Scint_hit_nhits; i++){
+    // cout << " i " << i << " CDet: plane = " << fTree->Earm_CDET_Scint_hit_plane->at(i) 
+    // 	 << " edep = " << fTree->Earm_CDET_Scint_hit_sumedep->at(i) 
+    // 	 << " X = " << fTree->Earm_CDET_Scint_hit_xcell->at(i)+0.255*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1)+fTree->Earm_CDET_Scint_hit_xhit->at(i)*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1)
+    // 	 << " Y = " << fTree->Earm_CDET_Scint_hit_ycell->at(i) 
+    // 	 << endl;
+    
     edep_cal = fTree->Earm_CDET_Scint_hit_sumedep->at(i);
     npe = fR->Poisson(Npe_Edep_CDET*edep_cal);
     if(npe<npe_thr)continue;
@@ -1787,6 +1797,7 @@ void TSBSGeant4File::GetGEpECalCluster(){
   X_rec = X_rec/E_rec;
   Y_rec = Y_rec/E_rec;
   
+  //cout << "CDet plane 1: E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
   fScintClusters.push_back(new TSBSScintCluster(1, E_rec, X_rec, Y_rec, 0, 31));
   
   E_blocks.clear();
@@ -1846,6 +1857,7 @@ void TSBSGeant4File::GetGEpECalCluster(){
   X_rec = X_rec/E_rec;
   Y_rec = Y_rec/E_rec;
 
+  //cout << "CDet plane 2: E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
   fScintClusters.push_back(new TSBSScintCluster(2, E_rec, X_rec, Y_rec, 0, 31));
   
   E_blocks_plane2.clear();
