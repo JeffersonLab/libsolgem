@@ -70,26 +70,32 @@ public:
 //
 class TSBSECalCluster : public TObject {
  public:
-  TSBSECalCluster(double E, double X, double Y, double t = 0, int detflag = 10);
+  TSBSECalCluster(double E, double Xpos, double Ypos, double t = 0, int detflag = 10, double Xmax = 0, double Ymax = 0);
   TSBSECalCluster();
   ~TSBSECalCluster(){};
   
   const double GetEnergy() const {return fEnergy;};
   const double GetXPos() const {return fXPos;};
   const double GetYPos() const {return fYPos;};
+  const double GetXMax() const {return fXMax;};
+  const double GetYMax() const {return fYMax;};
   const double GetTime() const {return fTime;};
   const Int_t  GetDetFlag() const {return fDetFlag;};
   
   void SetEnergy(double E){fEnergy = E;};
   void SetXPos(double X){fXPos = X;};
   void SetYPos(double Y){fYPos = Y;};
+  void SetXMax(double X){fXMax = X;};
+  void SetYMax(double Y){fYMax = Y;};
   void SetTime(double t){fTime = t;};
   void SetDetFlag(int flag){fDetFlag = flag;};
   
- private:
+ protected:
   Double_t fEnergy;
   Double_t fXPos;// in transport coordinates
   Double_t fYPos;// in transport coordinates
+  Double_t fXMax;// in transport coordinates
+  Double_t fYMax;// in transport coordinates
   Double_t fTime;
   Int_t fDetFlag;//mmm... 
   
@@ -98,31 +104,16 @@ class TSBSECalCluster : public TObject {
 
 class TSBSScintCluster : public TSBSECalCluster {
  public:
-  TSBSScintCluster(int plane, double E, double X, double Y, double t = 0, int detflag = 10);
+  TSBSScintCluster(int plane, double E, double Xpos, double Ypos, double t = 0, int detflag = 30, double Xmax = 0, double Ymax = 0);
   TSBSScintCluster();
   ~TSBSScintCluster(){};
   
   const Int_t  GetPlane() const {return fPlane;};
-  const double GetEnergy() const {return fEnergy;};
-  const double GetXPos() const {return fXPos;};
-  const double GetYPos() const {return fYPos;};
-  const double GetTime() const {return fTime;};
-  const Int_t  GetDetFlag() const {return fDetFlag;};
   
   void SetPlane(int plane){fPlane = plane;};
-  void SetEnergy(double E){fEnergy = E;};
-  void SetXPos(double X){fXPos = X;};
-  void SetYPos(double Y){fYPos = Y;};
-  void SetTime(double t){fTime = t;};
-  void SetDetFlag(int flag){fDetFlag = flag;};
   
  private:
   Int_t fPlane;
-  Double_t fEnergy;
-  Double_t fXPos;// in transport coordinates
-  Double_t fYPos;// in transport coordinates
-  Double_t fTime;
-  Int_t fDetFlag;//mmm... 
   
   ClassDef(TSBSScintCluster,1)  // A MC physics track in SBS
 };

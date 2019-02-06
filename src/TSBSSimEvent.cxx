@@ -87,25 +87,23 @@ Double_t TSBSSimTrack::RcFitPhiDir() const
 
 //-----------------------------------------------------------------------------
 TSBSECalCluster::TSBSECalCluster()
-  : fEnergy(0), fXPos(0), fYPos(0), fTime(0), fDetFlag(0)
+  : fEnergy(0), fXPos(0), fYPos(0), fXMax(0), fYMax(0), fTime(0), fDetFlag(0)
 {
 }
 
 //-----------------------------------------------------------------------------
-TSBSECalCluster::TSBSECalCluster(double E, double X, double Y, double t, int flag)
-  : fEnergy(E), fXPos(X), fYPos(Y), fTime(t), fDetFlag(flag)
+TSBSECalCluster::TSBSECalCluster(double E, double Xpos, double Ypos, double t, int flag, double Xmax, double Ymax)
+  : fEnergy(E), fXPos(Xpos), fYPos(Ypos), fXMax(Xmax), fYMax(Ymax), fTime(t), fDetFlag(flag)
 {
 }
 
 //-----------------------------------------------------------------------------
-TSBSScintCluster::TSBSScintCluster()
-  : fPlane(0), fEnergy(0), fXPos(0), fYPos(0), fTime(0), fDetFlag(0)
+TSBSScintCluster::TSBSScintCluster() : TSBSECalCluster(), fPlane(0)
 {
 }
 
 //-----------------------------------------------------------------------------
-TSBSScintCluster::TSBSScintCluster(int plane, double E, double X, double Y, double t, int flag)
-  : fPlane(plane), fEnergy(E), fXPos(X), fYPos(Y), fTime(t), fDetFlag(flag)
+TSBSScintCluster::TSBSScintCluster(int plane, double E, double Xpos, double Ypos, double t, int flag, double Xmax, double Ymax) : TSBSECalCluster(E, Xpos, Ypos, t, flag, Xmax, Ymax), fPlane(plane)
 {
 }
 

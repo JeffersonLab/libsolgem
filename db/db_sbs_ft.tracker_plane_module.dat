@@ -9,7 +9,7 @@ sbs_ft.tracker.${allsectors}.MCdata = 1
 # Plane configuration. One string of the all plane names.
 
 #sbs_ft.tracker.${allsectors}.planeconfig = x1 y1 x2 y2 x3 y3 x4 y4 x5 y5 x6 y6
-sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y ecal.x ecal.y 
+sbs_ft.tracker.${allsectors}.planeconfig = 1.x 1.y 2.x 2.y 3.x 3.y 4.x 4.y 5.x 5.y 6.x 6.y ecal_ft.x ecal_ft.y ecal_bk.x ecal_bk.y 
 #hcal.x hcal.y 
 
 # Strip angles: angles of the normal to the strips, pointing
@@ -86,10 +86,15 @@ sbs_ft.tracker.1.6.y.detmap = \
                 1  3  0 1023 1 \
                 1  5  0 1023 2
 
-sbs_ft.tracker.1.ecal.x.detmap = \
+sbs_ft.tracker.1.ecal_ft.x.detmap = \
                 4  0  0 0 0 
-sbs_ft.tracker.1.ecal.y.detmap = \
+sbs_ft.tracker.1.ecal_ft.y.detmap = \
                 4  0  1 1 0 
+
+sbs_ft.tracker.1.ecal_bk.x.detmap = \
+                4  0  2 2 0 
+sbs_ft.tracker.1.ecal_bk.y.detmap = \
+                4  0  3 3 0 
 
 #sbs_ft.tracker.1.hcal.x.detmap = \
 #                4  0  2 2 0 
@@ -190,31 +195,31 @@ sbs_ft.tracker.commonmode_groupsize = 128
 
 #new plane module
 
-sbs_ft.tracker.1.ecal.x.dummy = 1
-sbs_ft.tracker.1.ecal.x.xp.res = 0.015
-sbs_ft.tracker.1.ecal.x.description = x ecal
-sbs_ft.tracker.1.ecal.x.nstrips = 64 // fake
-sbs_ft.tracker.1.ecal.x.partner = ecal.y
-sbs_ft.tracker.1.ecal.x.type = x
-sbs_ft.tracker.1.ecal.x.strip.pos = -0.768
-sbs_ft.tracker.1.ecal.x.d0 = 1.819555 #between first and second plane
-sbs_ft.tracker.1.ecal.x.dx = 1.536
-sbs_ft.tracker.1.ecal.x.dy = 0.4096
-sbs_ft.tracker.1.ecal.x.dz = 0.001
-sbs_ft.tracker.1.ecal.x.strip.pitch = 0.024
+sbs_ft.tracker.1.ecal_ft.x.dummy = 1
+sbs_ft.tracker.1.ecal_ft.x.xp.res = 0.01 #0.017 #0.015 #
+sbs_ft.tracker.1.ecal_ft.x.description = x ecal_ft
+sbs_ft.tracker.1.ecal_ft.x.nstrips = 64 // fake
+sbs_ft.tracker.1.ecal_ft.x.partner = ecal_ft.y
+sbs_ft.tracker.1.ecal_ft.x.type = x
+sbs_ft.tracker.1.ecal_ft.x.strip.pos = -0.768
+sbs_ft.tracker.1.ecal_ft.x.d0 = 1.819555 #between first and second plane
+sbs_ft.tracker.1.ecal_ft.x.dx = 1.536
+sbs_ft.tracker.1.ecal_ft.x.dy = 0.4096
+sbs_ft.tracker.1.ecal_ft.x.dz = 0.001
+sbs_ft.tracker.1.ecal_ft.x.strip.pitch = 0.024
 
-sbs_ft.tracker.1.ecal.y.dummy = 1
-sbs_ft.tracker.1.ecal.y.xp.res = 0.0025
-sbs_ft.tracker.1.ecal.y.description = y ecal
-sbs_ft.tracker.1.ecal.y.nstrips = 16 // fake
-sbs_ft.tracker.1.ecal.y.partner = ecal.x
-sbs_ft.tracker.1.ecal.y.type = y
-sbs_ft.tracker.1.ecal.y.strip.pos = -0.2048
-sbs_ft.tracker.1.ecal.y.d0 = 1.819555 #between first and second plane
-sbs_ft.tracker.1.ecal.y.dx = 1.536
-sbs_ft.tracker.1.ecal.y.dy = 0.4096
-sbs_ft.tracker.1.ecal.y.dz = 0.001
-sbs_ft.tracker.1.ecal.y.strip.pitch = 0.0256
+sbs_ft.tracker.1.ecal_ft.y.dummy = 1
+sbs_ft.tracker.1.ecal_ft.y.xp.res = 0.015 #0.050 #0.0025 #
+sbs_ft.tracker.1.ecal_ft.y.description = y ecal_ft
+sbs_ft.tracker.1.ecal_ft.y.nstrips = 16 // fake
+sbs_ft.tracker.1.ecal_ft.y.partner = ecal_ft.x
+sbs_ft.tracker.1.ecal_ft.y.type = y
+sbs_ft.tracker.1.ecal_ft.y.strip.pos = -0.2048
+sbs_ft.tracker.1.ecal_ft.y.d0 = 1.819555 #between first and second plane
+sbs_ft.tracker.1.ecal_ft.y.dx = 1.536
+sbs_ft.tracker.1.ecal_ft.y.dy = 0.4096
+sbs_ft.tracker.1.ecal_ft.y.dz = 0.001
+sbs_ft.tracker.1.ecal_ft.y.strip.pitch = 0.0256
 
 #sbs_ft.tracker.1.hcal.x.dummy = 1
 #sbs_ft.tracker.1.hcal.x.xp.res = 0.29 #in meters... yes...
@@ -424,3 +429,29 @@ sbs_ft.tracker.1.6.y.nmodule = 3
 sbs_ft.tracker.1.6.y.1.offset = 0. 
 sbs_ft.tracker.1.6.y.2.offset = 0.
 sbs_ft.tracker.1.6.y.3.offset = 0.
+
+sbs_ft.tracker.1.ecal_bk.x.dummy = 1
+sbs_ft.tracker.1.ecal_bk.x.xp.res = 0.01 #0.017 #0.015 #
+sbs_ft.tracker.1.ecal_bk.x.description = x ecal_bk
+sbs_ft.tracker.1.ecal_bk.x.nstrips = 64 // fake
+sbs_ft.tracker.1.ecal_bk.x.partner = ecal_bk.y
+sbs_ft.tracker.1.ecal_bk.x.type = x
+sbs_ft.tracker.1.ecal_bk.x.strip.pos = -0.768
+sbs_ft.tracker.1.ecal_bk.x.d0 = 2.301465 #between first and second plane
+sbs_ft.tracker.1.ecal_bk.x.dx = 1.920 # make plane larger not to cut on the acceptance artificially
+sbs_ft.tracker.1.ecal_bk.x.dy = 0.512 # see line above
+sbs_ft.tracker.1.ecal_bk.x.dz = 0.001
+sbs_ft.tracker.1.ecal_bk.x.strip.pitch = 0.024
+
+sbs_ft.tracker.1.ecal_bk.y.dummy = 1
+sbs_ft.tracker.1.ecal_bk.y.xp.res = 0.015 # 0.050 #0.0025 #
+sbs_ft.tracker.1.ecal_bk.y.description = y ecal_bk
+sbs_ft.tracker.1.ecal_bk.y.nstrips = 16 // fake
+sbs_ft.tracker.1.ecal_bk.y.partner = ecal_bk.x
+sbs_ft.tracker.1.ecal_bk.y.type = y
+sbs_ft.tracker.1.ecal_bk.y.strip.pos = -0.2048
+sbs_ft.tracker.1.ecal_bk.y.d0 = 2.301465 #between first and second plane
+sbs_ft.tracker.1.ecal_bk.y.dx = 1.920 # make plane larger not to cut on the acceptance artificially
+sbs_ft.tracker.1.ecal_bk.y.dy = 0.512 # see line above
+sbs_ft.tracker.1.ecal_bk.y.dz = 0.001
+sbs_ft.tracker.1.ecal_bk.y.strip.pitch = 0.0256

@@ -1523,6 +1523,8 @@ void TSBSGeant4File::GetGEpECalCluster(){
   double E_rec = 0;
   double X_rec = 0;
   double Y_rec = 0;
+  double X_max = 0;
+  double Y_max = 0;
 
   int i_ch = 0;
   double Edep_Max = 0;
@@ -1603,6 +1605,11 @@ void TSBSGeant4File::GetGEpECalCluster(){
     //
   }//end loop on hits
   
+  if(x_eprim_clus.size()==1 && y_eprim_clus.size()==1){
+    X_max = x_eprim_clus[0];
+    Y_max = y_eprim_clus[0];
+  }
+  
   if(Edep_tot_ECal<fManager->GetCaloThreshold())return;
     //cout << "E_eprim_clus[0] : " << E_eprim_clus[0] << " x_eprim_clus[0] : " << x_eprim_clus[0] << " y_eprim_clus[0] : " << y_eprim_clus[0] << endl;
   N_blocks_added = 1;
@@ -1642,8 +1649,9 @@ void TSBSGeant4File::GetGEpECalCluster(){
   
   for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
     E_rec+= E_eprim_clus[i_];
-    X_rec+= (-1)*y_eprim_clus[i_]*E_eprim_clus[i_];
-    Y_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+    //not stored anymore in transport coordinates. Not relevant for GEp ECal since it would mean reconverting to the other coordinate system, etc.
+    X_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+    Y_rec+= y_eprim_clus[i_]*E_eprim_clus[i_];
     
     //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
   }
@@ -1652,7 +1660,7 @@ void TSBSGeant4File::GetGEpECalCluster(){
   
   //cout << "ECal: E_rec : " << E_rec << " X_rec : " << X_rec << " Y_rec : " << Y_rec << endl; 
   if(E_rec>fManager->GetCaloThreshold()){
-    fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec, 0, 12));
+    fECalClusters.push_back(new TSBSECalCluster(E_rec, X_rec, Y_rec, 0, 12, X_max, Y_max));
   }
   // -------------------------------
   // end: GEp ECal reconstruction
@@ -1691,8 +1699,8 @@ void TSBSGeant4File::GetGEpECalCluster(){
     if(npe<npe_thr)continue;
     edep_cal = npe/Npe_Edep_CDET;
     
-    x_pos = fTree->Earm_CDET_Scint_hit_xcell->at(i)+0.255*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1)+
-    fR->Gaus(fTree->Earm_CDET_Scint_hit_xhit->at(i)*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1), 0.0);
+    x_pos = fTree->Earm_CDET_Scint_hit_xcell->at(i)+0.255*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1);
+    //+fR->Gaus(fTree->Earm_CDET_Scint_hit_xhit->at(i)*pow(-1, fTree->Earm_CDET_Scint_hit_col->at(i)-1), 0.0);
     //because the modules with col==1 are rotated by pi along y axis
     y_pos = fTree->Earm_CDET_Scint_hit_ycell->at(i);
 
@@ -1789,8 +1797,8 @@ void TSBSGeant4File::GetGEpECalCluster(){
   
   for(int i_ = 0; i_<E_eprim_clus.size(); i_++){
     E_rec+= E_eprim_clus[i_];
-    X_rec+= (-1)*y_eprim_clus[i_]*E_eprim_clus[i_];
-    Y_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+    X_rec+= x_eprim_clus[i_]*E_eprim_clus[i_];
+    Y_rec+= y_eprim_clus[i_]*E_eprim_clus[i_];
     
     //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
   }

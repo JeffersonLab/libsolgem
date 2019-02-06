@@ -23,7 +23,9 @@
 #include "TSystem.h"
 #include "TMath.h"
 #include "TDatabasePDG.h"
-#include "TRandom.h"
+#include "TRandom3.h"
+#include "TVectorD.h"
+#include "TMatrixD.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -37,6 +39,7 @@ using namespace Podd;
 //EFuchey: 2016/12/10: it is necessary to declare the TSBSDBManager as a static instance here 
 // (and not make it a member) because it is used by functions whic are defined as "static inline".
 static TSBSDBManager* fManager = TSBSDBManager::GetInstance();
+static TRandom3* Rdec = new TRandom3(0);
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
 enum EProjType { kUPlane = 0, kVPlane =1, kXPlane = 2, kYPlane = 3};
@@ -47,6 +50,32 @@ typedef vector<int>::size_type vsiz_t;
 //  to the database to allow client to understand the generated detector maps.
 // FIXME: The number 30 is hardcoded in dbconvert
 static const Int_t SIM_MAXSLOT = TMath::Min(Decoder::MAXSLOT,30);
+
+// Hard coded stuff for the time being...
+// what we will need is to switch all that stuff to SBS-offline anyway
+static const double Mp = 0.938272; //GeV
+static const double Lx_scint_CDET = 0.51; //m
+static const double Ly_scint_CDET = 0.005; //5 mm
+static const double mu_p = 2.793; // nuclear magneton
+static const double PI = TMath::Pi();
+static const double SBS_tracker_pitch=5.0*PI/180.0; //5 degrees
+
+static const double ECAL_phe_per_GeV=300.0;
+static const double ECAL_max_cell_size = 0.042; //meters
+static const double X0_ECAL = 0.0274; //radiation length
+static const double Ec_ECAL = 0.015; //GeV
+static const double yoff_ECAL = 0.0077; //meters, average y deflection in SBS fringe field, to be SUBTRACTED from recconstructed shower coordinate!
+static const double sigx_ECAL = 0.008; //meters, shower x coordinate resolution
+static const double sigy_ECAL = 0.006; //meters, shower y coordinate resolution
+static const double Ltgt = 0.4; //meters
+static const double sigy_CDET = 0.003;
+
+// Bin width for vertex z "filtering": 
+static const double vz_bin_width = 3.0*0.0064;
+static const double vz_scan_stepsize = 0.3;
+
+static const double dE_E_MPV = 0.13; //Most probable electron energy loss before reaching ECAL:
+
 
 //-----------------------------------------------------------------------------
 TSBSSimDecoder::TSBSSimDecoder()
@@ -64,6 +93,10 @@ TSBSSimDecoder::TSBSSimDecoder()
   for (int i=0; i<fManager->GetNSigParticle(); i++){
     fSignalInfo.push_back(SignalInfo(fManager->GetSigPID(i),
                                      fManager->GetSigTID(i)));
+  }
+  if(fManager->Getg4sbsDetectorType()==3){
+    if(load_shower_profiles("ECAL_shower_profiles.txt"))
+      cout << "ECal shower profiles successfully loaded" << endl;
   }
 }
 
@@ -742,21 +775,26 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	double tempCaloY;
 	Int_t flag;
 	double E;
-
+	double x_S, y_S;
+	
+	//all the stuff for ECal analysis
+	double xmom, ymom;
+	double xmax, ymax;
+	double xf, yf;
+	
 	double tempScintX;
 	double tempScintY;
 	Int_t tempPlane;
 	double kpx, kpy, kpz, kp, thetak, phik;
 	double //ppx, ppy, ppz, 
 	  pp, thetap, phip;
-	
+		
 	double xtar, ytar, xptar, yptar;
 	double fterm;
 	double xfp, yfp, xpfp, ypfp;
-	double x_S, y_S;
+	double x_S_2, y_S_2;
 
 	//this is becoming very dirty... :/
-	const double Mp = 0.938272;
 	const double k0 = 11.0;
 	const double th_earm = 29.0*TMath::DegToRad();
 	const double z_earm[3] = {4.72, 4.08, 4.13};
@@ -764,10 +802,11 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	//double theta[3];
 	//double phi[3];
 	
-	double x_C[3]; 
-	double x_C_, y_C_, L_C_;
-	double p0_, p1_, p1_den_;
-	double alpha, vz;
+	//double x_C[3]; 
+	//double x_C_, y_C_, L_C_;
+	//double p0_, p1_, p1_den_;
+	//double alpha, vz;
+	double vz;
 	
 	const double th_sbs = 16.9*TMath::DegToRad();
 	TVector3 pvect, pvect_SBS;
@@ -779,14 +818,15 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	
 	for(Int_t i=0; i< simEvent->fECalClusters.size(); i++){
 	  const TSBSECalCluster& eCalHit = simEvent -> fECalClusters[i];
+	  // TODO: correct for correlations between "projected" and reconstructed cluster position
 	  tempCaloX = eCalHit.GetXPos();
 	  tempCaloY = eCalHit.GetYPos();
 	  flag = eCalHit.GetDetFlag();
 	  union FloatIntUnion {
 	    Float_t f;
 	    Int_t   i;
-	  } datx, daty;
-
+	  } datx, daty, datx_2, daty_2;
+	  
 	  //cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
 	  Int_t crate, slot, chan;
 	  
@@ -835,37 +875,54 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    //cout << "Event "<< simEvent->fEvtID << endl;
 	    
     	    xfp = yfp = xpfp = ypfp = 0;
-	    x_C_ = y_C_ = L_C_ = 0;
-	    p0_ = p1_ = p1_den_ = 0;
+	    //x_C_ = y_C_ = L_C_ = 0;
+	    //p0_ = p1_ = p1_den_ = 0;
 	    thetak = phik = 0;
 
 	    //cout << " X_ECal " << tempCaloX << ", Y_ECal " << tempCaloY << endl;
 	    
-	    x_C[0] = tempCaloY;
-	    x_C_+= tempCaloY;
-	    y_C_+= -tempCaloX;
-	    L_C_+= z_earm[0];
+	    //dumb stuff due to the fact that ECal info is stored in transport coordinates 
+	    // perhaps I should stop that 
+	    xmom = (tempCaloY - (*(T->Earm_ECalTF1_hit_xcell))[hitlist_clust[iclust][0]])/ECAL_max_cell_size;
+	    
+	    //x_C[0] = tempCaloY;
+	    //x_C_= tempCaloY;
+	    //y_C_+= -tempCaloX;
+	    //L_C_+= z_earm[0];
+	    
+	    vz = 0;
+	    //vz = trk->vertex_target.Z();
+	    
+	    calc_shower_coordinates( xmom, ymom, xmax, ymax, Eclust[iclust], ECALdist, xcorrected, ycorrected, xf, yf );
+	    
+	    kpx = z_earm[0]*sin(th_earm)+tempCaloY*cos(th_earm);
+	    kpy = -tempCaloX;
+	    kpz = z_earm[0]*cos(th_earm)-tempCaloY*sin(th_earm)-vz;
 	    
 	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[j];
 	      if(SciHit.GetDetFlag()!=31 || SciHit.GetEnergy()<=0)return HED_ERR;
 	      //kill the event if we don't have two properly reconstructed CDet hits.
 	      tempScintX = SciHit.GetXPos();
-	      tempScintY = SciHit.GetYPos();
+	      //tempScintY = SciHit.GetYPos();
 	      tempPlane = SciHit.GetPlane();
 	      //cout << "j " << j << " Plane " << tempPlane << " X_CDet " << tempScintX << ", Y_CDet " << tempScintY << endl;
 	      //cout << " Erec ? " << SciHit.GetEnergy() << endl;
 	      
-	      x_C[tempPlane] = tempScintY;
-	      x_C_+= tempScintY;
-	      y_C_+= -tempScintX;
-	      L_C_+= z_earm[tempPlane];
+	      kpy+= -tempScintX*z_earm[0]/z_earm[i];// project CDet hit to ECal plane: less dumb...
+	      
+	      //x_C[tempPlane] = tempScintY;
+	      //x_C_+= tempScintY;
+	      //y_C_+= -tempScintX;
+	      //L_C_+= z_earm[tempPlane];
 	    }
-	    x_C_/=3.0;
-	    y_C_/=3.0;
-	    L_C_/=3.0;
+	    //x_C_/=3.0;
+	    //y_C_/=3.0;
+	    //L_C_/=3.0;
+	    kpy/=3.0;//each CDet hit has weight 3, ECal hit has weight 1.
 	    
 	    //cout << " x_C_ = " <<  x_C_ << ", y_C_ " << y_C_ << ", L_C_ = " << L_C_ << endl;
+	    /*
 	    p1_ = p1_den_ = 0;
 	    for(int j = 0; j<3; j++){
 	      p1_+= (x_C[j]-x_C_)*(z_earm[j]-L_C_);
@@ -877,21 +934,20 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    }
 	    p1_/=p1_den_;
 	    p0_ = x_C_-p1_*L_C_;
-	    
 	    //cout << "p1_ = " << p1_ << ", p0_ = " << p0_ << endl;
 	    
 	    alpha = atan(p1_)+th_earm;
-	    //vz = -p0_*(sin(th_earm)+cos(th_earm)/tan(alpha));
-	    vz = trk->vertex_target.Z();
+	    vz = -p0_*(sin(th_earm)+cos(th_earm)/tan(alpha));
+	    */
 	    //cout << "alpha = " << alpha << "  :  " 
 	    //<< atan( ( L_C_*sin(th_earm)+x_C_*cos(th_earm) ) / ( L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz-trk->vertex_target.Z() ) ) << endl;
 	    //cout << alpha-atan( ( L_C_*sin(th_earm)+x_C_*cos(th_earm) ) / ( L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz-trk->vertex_target.Z() ) ) << endl;
 	    //cout << " vz = " << vz << "  :  " << trk->vertex_target.Z() << endl;
 	    //cout << vz-trk->vertex_target.Z() << endl;
 	    
-	    kpx = L_C_*sin(th_earm)+x_C_*cos(th_earm);
-	    kpy = y_C_;
-	    kpz = L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz;
+	    // kpx = L_C_*sin(th_earm)+x_C_*cos(th_earm);
+	    // kpy = y_C_;
+	    // kpz = L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz;
 	    kp = sqrt(kpx*kpx+kpy*kpy+kpz*kpz);
 	    
 	    //cout << " kpx " << kpx << " kpy " << kpy << " kpz " << kpz << endl;
@@ -957,8 +1013,8 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    //cout << "xfp " << xfp << " yfp " << yfp << " xpfp " << xpfp << " ypfp " << ypfp << endl;
 	    
 	    
-	    x_S = xfp-xpfp*0.015955;
-	    y_S = yfp-ypfp*0.015955;
+	    x_S = xfp;//x_S = xfp-0.015955*xpfp;
+	    y_S = yfp;//y_S = yfp-0.015955*ypfp;
 	    
 	    //cout << "x_S = " << x_S << ", y_S = " << y_S << endl;
 	    
@@ -978,6 +1034,25 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx.i,daty.i) == SD_ERR ){
 	      return HED_ERR;
 	    }
+	    
+	    x_S_2 = xfp+0.48191*xpfp;
+	    y_S_2 = yfp+0.48191*ypfp;
+	    
+	    datx_2.f = static_cast<Float_t>(x_S_2);
+	    daty_2.f = static_cast<Float_t>(y_S_2);
+	    crate = 4;
+	    slot  = 0;
+	    chan  = 2;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx_2.i,daty_2.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
+	    crate = 4;
+	    slot  = 0;
+	    chan  = 3;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx_2.i,daty_2.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
+	    
 	    /*
 	    //Recalculate all kinematics... a bit dumb??? =>yes...
 	    E = eCalHit.GetEnergy();
@@ -1160,6 +1235,564 @@ void TSBSSimBackTrack::Print( const Option_t* ) const
   cout << "  Momentum  = ";  fMomentum.Print();
   cout << "  Hitpos    = ";  fHitpos.Print();
   cout << "  HitBits   = " << fHitBits << endl;
+}
+
+//-----------------------------------------------------------------------------
+// stuff for ECal analysis
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+void TSBSSimDecoder::Calc_Shower_Coordinates( double xmom, double ymom, double xmax, double ymax, double Eclust, double Rcal, double &xclust, double &yclust, double &xf, double &yf ){
+
+  //calculate longitudinal depth of max. shower energy deposition
+  double tmax = TMath::Max(0.0, X0_ECAL * (log( Eclust/Ec_ECAL ) - 0.5) );
+
+  int binx = int( (100.0*xmax-profx_xmin)/(profx_xmax-profx_xmin)*profx_nbins );
+
+  shower_profile_t proftemp;
+  if( binx >= 0 && binx < profx_nbins ){
+    proftemp = profx[binx];
+  } else {
+    proftemp = profxdefault;
+  }
+  
+  int binxmom = int( (xmom - proftemp.xmin)/(proftemp.xmax-proftemp.xmin) * proftemp.nbins_mom );
+
+  //set some sensible default value:
+  xclust = xmax + xmom*ECAL_max_cell_size; 
+  
+  //do linear interpolation within the bin:
+  if( binxmom < 0 ){
+    xclust = xmax - 0.5 * ECAL_max_cell_size;
+    //xf = -0.5*ECAL_max_cell_size;
+  } else if( binxmom < proftemp.nbins_mom ){
+    double binwidth = (proftemp.xmax-proftemp.xmin)/double(proftemp.nbins_mom);
+    double flo = proftemp.frac[binxmom];
+    double fhi = proftemp.frac[binxmom+1];
+    
+    double xlo = proftemp.xmin + binxmom * binwidth;
+    //double xhi = xlo + binwidth;
+    //linear interpolation within the bin:
+    double f = flo + (fhi-flo) * (xmom-xlo)/binwidth;
+    xclust = xmax + (f - 0.5)*ECAL_max_cell_size;
+
+    // xf = xclust-xmax;
+    //cout << "xmom, binxmom, f = " << xmom << ", " << binxmom << ", " << f << endl;
+  } else {
+    xclust = xmax + 0.5 * ECAL_max_cell_size;
+    
+  }
+
+  //before incident-angle correction, record x position within cell:
+  xf = xclust-xmax;
+  
+  int biny = int( (100.0*ymax-profy_ymin)/(profy_ymax-profy_ymin)*profy_nbins );
+
+  if( biny >= 0 && biny < profy_nbins ){
+    proftemp = profy[biny];
+  } else {
+    proftemp = profydefault;
+  }
+
+  int binymom = int( (ymom - proftemp.xmin)/(proftemp.xmax-proftemp.xmin) * proftemp.nbins_mom );
+
+  yclust = ymax + ymom*ECAL_max_cell_size;
+
+  if( binymom < 0 ){
+    yclust = ymax - 0.5 * ECAL_max_cell_size;
+  } else if( binymom < proftemp.nbins_mom ){
+    double binwidth = (proftemp.xmax-proftemp.xmin)/double(proftemp.nbins_mom);
+    double flo = proftemp.frac[binymom];
+    double fhi = proftemp.frac[binymom+1];
+    
+    double ylo = proftemp.xmin + binymom * binwidth;
+    //double xhi = xlo + binwidth;
+    //linear interpolation within the bin:
+    double f = flo + (fhi-flo) * (ymom-ylo)/binwidth;
+    yclust = ymax + (f - 0.5)*ECAL_max_cell_size;
+
+    //cout << "ymom, biny, binymom, f = " << ymom << ", " << biny << "," <<  binymom << ", " << f << endl;
+  } else {
+    yclust = ymax + 0.5 * ECAL_max_cell_size;
+  }
+
+  yf = yclust-ymax;
+  
+  //Apply incident-angle correction under the assumption that track starts at (x,y,z) = (0,0,0)
+  double xptemp = xclust/Rcal;
+  double yptemp = yclust/Rcal;
+
+  double dz = tmax / sqrt(1.0 + pow(xptemp,2) + pow(yptemp,2) );
+
+  xclust -= dz * xptemp;
+  yclust -= dz * yptemp;
+  
+  return;
+}
+
+
+bool TSBSSimDecoder::load_shower_profiles( const char *filename ){
+  ifstream fshower(filename);
+
+  TString currentfile;
+  
+  currentfile.ReadFile( fshower );
+  
+  //Now the whole file is loaded into the TString:
+
+  int istart, istop, length;
+
+  std::istringstream sstream_temp;
+  
+  TString stemp,substrtemp;
+  stemp = "ECAL_shower_profile_x_default";
+
+  //Read to the next newline character:
+  istart = currentfile.Index(stemp);
+  istop = currentfile.Index( '\n', istart ); 
+
+  if( istop < 0 ) istop = currentfile.Length()-1;
+  
+  substrtemp = TString(currentfile(istart,istop-istart));
+
+  //cout << "'" << substrtemp << "'" << endl;
+
+  substrtemp.ReplaceAll(stemp,"");
+
+  //cout << "'" << substrtemp << "'" << endl;
+
+  sstream_temp = std::istringstream(substrtemp.Data());
+
+  //extract number of bins and min and max moment value for default x profile:
+  sstream_temp >> profxdefault.nbins_mom >> profxdefault.xmin >> profxdefault.xmax;
+
+  istart = istop;
+  istop = currentfile.Index( "ECAL_shower_profile", istart ); //returns position of next header
+
+  if( istop < 0 ) istop = currentfile.Length()-1;
+  
+  //Grab profile data:
+  substrtemp = TString(currentfile(istart+1,istop-istart-1));
+
+  //cout << "'" << substrtemp << "'" << endl;
+  //for( int bin=0; bin<=profxdefault.nbins_mom; bin++ ){
+  sstream_temp = std::istringstream(substrtemp.Data());
+
+  profxdefault.frac.resize(profxdefault.nbins_mom+1);
+
+  //extract bin contents from profile data:
+  for( int bin=0; bin<=profxdefault.nbins_mom; bin++ ){
+    sstream_temp >> profxdefault.frac[bin];
+    //cout << "bin, frac = " << bin << ", " << profxdefault.frac[bin] << endl;
+  }
+
+  //Do the same for the default y profile:
+  stemp = "ECAL_shower_profile_y_default";
+
+  
+  
+  istart = currentfile.Index(stemp);
+  istop = currentfile.Index( '\n', istart ); 
+
+  if( istop < 0 ) istop = currentfile.Length()-1;
+  
+  substrtemp = TString(currentfile(istart,istop-istart));
+
+  //cout << "'" << substrtemp << "'" << endl;
+
+  substrtemp.ReplaceAll(stemp,"");
+
+  //cout << "'" << substrtemp << "'" << endl;
+
+  sstream_temp = std::istringstream(substrtemp.Data());
+
+  sstream_temp >> profydefault.nbins_mom >> profydefault.xmin >> profydefault.xmax;
+
+  istart = istop;
+  istop = currentfile.Index( "ECAL_shower_profile", istart ); //returns position of next header
+
+  if( istop < 0 ) istop = currentfile.Length()-1;
+  
+  substrtemp = TString(currentfile(istart+1,istop-istart-1));
+
+  //cout << "'" << substrtemp << "'" << endl;
+  //for( int bin=0; bin<=profxdefault.nbins_mom; bin++ ){
+  sstream_temp = std::istringstream(substrtemp.Data());
+
+  profydefault.frac.resize(profydefault.nbins_mom+1);
+    
+  for( int bin=0; bin<=profydefault.nbins_mom; bin++ ){
+    sstream_temp >> profydefault.frac[bin];
+    //cout << "bin, frac = " << bin << ", " << profxdefault.frac[bin] << endl;
+  }
+
+  //Now read x-dependent x profiles and y-dependent y profiles:
+  stemp = "ECAL_shower_profiles_x";
+
+  istart = currentfile.Index( stemp );
+  istop = currentfile.Index('\n',istart);
+
+  if( istop < 0 ) istop = currentfile.Length()-1;
+  
+  substrtemp = TString(currentfile(istart,istop-istart));
+
+  substrtemp.ReplaceAll(stemp,"");
+
+  sstream_temp = std::istringstream(substrtemp.Data());
+
+  sstream_temp >> profx_nbins >> profx_xmin >> profx_xmax;
+
+  profx.resize( profx_nbins );
+  
+  for( int xbin=0; xbin<profx_nbins; xbin++ ){
+    stemp.Form("ECAL_shower_profile_x_bin %d",xbin+1);
+    istart = currentfile.Index(stemp);
+    istop = currentfile.Index('\n',istart);
+
+    if( istop < 0 ) istop = currentfile.Length()-1;
+    
+    substrtemp = TString(currentfile(istart,istop-istart));
+    substrtemp.ReplaceAll(stemp,"");
+
+    sstream_temp = std::istringstream(substrtemp.Data());
+
+    sstream_temp >> profx[xbin].nbins_mom >> profx[xbin].xmin >> profx[xbin].xmax;
+
+    istart = istop;
+    istop = currentfile.Index("ECAL",istart);
+
+    if( istop < 0 ) istop = currentfile.Length()-1;
+    
+    substrtemp = TString(currentfile(istart+1,istop-istart-1));
+
+    sstream_temp = std::istringstream(substrtemp.Data());
+
+    profx[xbin].frac.resize(profx[xbin].nbins_mom+1);
+
+    for( int bin=0; bin<=profx[xbin].nbins_mom; bin++ ){
+      sstream_temp >> profx[xbin].frac[bin];
+
+      //cout << "xbin, bin, frac = " << xbin << ", " << bin << ", " << profx[xbin].frac[bin] << endl;
+    }
+  }
+
+  ///y-dependent y profiles:
+  stemp = "ECAL_shower_profiles_y";
+
+  istart = currentfile.Index( stemp );
+  istop = currentfile.Index('\n',istart);
+
+  if( istop < 0 ) istop = currentfile.Length()-1;
+  
+  substrtemp = TString(currentfile(istart,istop-istart));
+
+  substrtemp.ReplaceAll(stemp,"");
+
+  sstream_temp = std::istringstream(substrtemp.Data());
+
+  sstream_temp >> profy_nbins >> profy_ymin >> profy_ymax;
+
+  profy.resize( profy_nbins );
+  
+  for( int ybin=0; ybin<profy_nbins; ybin++ ){
+    stemp.Form("ECAL_shower_profile_y_bin %d",ybin+1);
+    istart = currentfile.Index(stemp);
+    istop = currentfile.Index('\n',istart);
+
+    if( istop < 0 ) istop = currentfile.Length()-1;
+    
+    substrtemp = TString(currentfile(istart,istop-istart));
+    substrtemp.ReplaceAll(stemp,"");
+
+    sstream_temp = std::istringstream(substrtemp.Data());
+
+    sstream_temp >> profy[ybin].nbins_mom >> profy[ybin].xmin >> profy[ybin].xmax;
+
+    istart = istop;
+    istop = currentfile.Index("ECAL",istart);
+
+    //cout << "ybin, istop = " << ybin << ", " << istop << endl;
+
+    if( istop < 0 ) istop = currentfile.Length()-1;
+    
+    substrtemp = TString(currentfile(istart+1,istop-istart-1));
+
+    sstream_temp = std::istringstream(substrtemp.Data());
+
+    profy[ybin].frac.resize(profy[ybin].nbins_mom+1);
+
+    for( int bin=0; bin<=profy[ybin].nbins_mom; bin++ ){
+      sstream_temp >> profy[ybin].frac[bin];
+
+      //cout << "ybin, bin, frac = " << ybin << ", " << bin << ", " << profy[ybin].frac[bin] << endl;
+    }
+  }
+  
+  return true;
+}
+
+/*
+void SBS_tgt_reconstruct( double xfp, double yfp, double xpfp, double ypfp, double xtar, double &xptar, double &yptar, double &ytar, double &p ){
+  double sum_xptar=0.0;
+  double sum_yptar=0.0;
+  double sum_ytar=0.0;
+  double sum_ptheta=0.0;
+
+  for( int i=0; i<nterms_optics; i++ ){
+    double term = pow(xfp,Cexpon[i][0]) * pow(yfp,Cexpon[i][1]) * pow(xpfp,Cexpon[i][2])
+      * pow(ypfp,Cexpon[i][3])*pow(xtar,Cexpon[i][4]);
+    sum_xptar += Cxptar[i]*term;
+    sum_yptar += Cyptar[i]*term;
+    sum_ytar += Cytar[i]*term;
+    sum_ptheta += Cpthetabend[i]*term;
+  }
+
+  TVector3 zaxis_FP(-sin(SBS_tracker_pitch),0,cos(SBS_tracker_pitch));
+  TVector3 yaxis_FP(0,1,0);
+  TVector3 xaxis_FP = yaxis_FP.Cross(zaxis_FP).Unit();
+
+  TVector3 nhat_fp(xpfp,ypfp,1.0);
+  nhat_fp = nhat_fp.Unit();
+
+  TVector3 nhat_fp_global = nhat_fp.X() * xaxis_FP + nhat_fp.Y() * yaxis_FP + nhat_fp.Z() * zaxis_FP;
+  TVector3 nhat_tgt(xptar,yptar,1.0);
+  nhat_tgt = nhat_tgt.Unit();
+
+  double thetabend = acos( nhat_fp_global.Dot( nhat_tgt ) );
+
+  p = sum_ptheta/thetabend;
+
+  xptar = sum_xptar;
+  yptar = sum_yptar;
+  ytar = sum_ytar;
+}
+
+void SBS_fp_reconstruct( double xtar, double ytar, double xptar, double yptar, double p, double &xfp, double &yfp, double &xpfp, double &ypfp ){
+  double sum_xfp = 0.0;
+  double sum_yfp = 0.0;
+  double sum_xpfp = 0.0;
+  double sum_ypfp = 0.0;
+
+  for( int i=0; i<nterms_foptics; i++ ){
+    double term = pow(xptar, Cfexpon[i][0]) * pow(yptar,Cfexpon[i][1]) * pow(ytar,Cfexpon[i][2]) * pow(1.0/p,Cfexpon[i][3]) * pow(xtar, Cfexpon[i][4] );
+    sum_xfp += Cxfp[i]*term;
+    sum_yfp += Cyfp[i]*term;
+    sum_xpfp += Cxpfp[i]*term;
+    sum_ypfp += Cypfp[i]*term;
+  }
+  xfp = sum_xfp;
+  yfp = sum_yfp;
+  xpfp = sum_xpfp;
+  ypfp = sum_ypfp;
+}
+
+void find_ECAL_clusters( gep_tree_with_spin *T, int &nclust, vector<double> &xclust, vector<double> &yclust, vector<double> &Eclust, vector<int> &nhitclust, vector<vector<int> > &hitlist_clust ){ //This method is only intended to group ECAL hits together in clusters and do "crude" coordinate reconstuction (shower center-of-gravity)
+
+  nclust = 0;
+  xclust.clear();
+  yclust.clear();
+  Eclust.clear();
+  nhitclust.clear();
+  //nxclust.clear();
+  //nyclust.clear();
+  hitlist_clust.clear();
+
+  double Eclustmin = 0.5*T->ev_ep; //50% of elastic
+
+  bool foundclust = false;
+
+  int nhitstot = T->Earm_ECalTF1_hit_nhits;
+
+  //cout << "ECAL cluster finding, nhits = " << nhitstot << endl;
+
+  set<int> unused_hits;
+  //vector<bool> hitused(nhitstot);
+  vector<double> Ehit_recon(nhitstot);
+  
+  for( int hit=0; hit<nhitstot; hit++ ){
+    //hitused[hit] = false;
+    unused_hits.insert(hit);
+
+    double Etemp = (*(T->Earm_ECalTF1_hit_sumedep))[hit];
+    double nphemean = Etemp*ECAL_phe_per_GeV;
+    
+    double nphe = random_generator->PoissonD(nphemean);
+
+    Ehit_recon[hit] = nphe/ECAL_phe_per_GeV;
+
+    //cout << "(ihit, Etrue, Erecon)=(" << hit << ", " << Etemp << ", " << Ehit_recon[hit] << ")" << endl;
+    
+  }
+  
+  //repeat cluster search until no new clusters found:
+  do {
+    foundclust = false;
+    //Step 1: loop over all unused hits; find maximum.
+    double Ehitmax = 0.0;
+    int ihitmax = -1; //position in hit array of hit with largest energy.
+
+    for( set<int>::iterator hit=unused_hits.begin(); hit != unused_hits.end(); ++hit ){
+      int ihit = *hit;
+
+      double Ehit = Ehit_recon[ihit];
+
+      ihitmax = Ehit > Ehitmax ? ihit : ihitmax;
+      Ehitmax = Ehit > Ehitmax ? Ehit : Ehitmax;
+      
+    }
+
+    //cout << "(ihitmax, Ehitmax)=(" << ihitmax << ", " << Ehitmax << ")" << endl;
+
+    if( ihitmax < 0 ) {
+      foundclust = false;
+    } else { //found a new maximum: start a cluster around this maximum
+      //unused_hits.erase( ihitmax );
+
+      int ncellclust_temp = 1;
+      vector<int> hitlist_temp;
+      hitlist_temp.push_back( ihitmax );
+
+      double sum_logE = log(Ehitmax);
+      double Eclust_temp = Ehitmax;
+      double xclust_temp = (*(T->Earm_ECalTF1_hit_xcell))[ihitmax]*Ehitmax;
+      double yclust_temp = (*(T->Earm_ECalTF1_hit_ycell))[ihitmax]*Ehitmax;
+      //int nxclust_temp = 1;
+      //int nyclust_temp = 1;
+      
+      int icelltemp = 0;
+      //Next, we want a do while loop over all hits in the cluster to add "nearest neighbors"
+      while ( icelltemp < hitlist_temp.size() ) {
+
+	// unused_hits.erase( hitlist_temp[icelltemp] );
+	// at the beginning of each iteration of finding nearest-neighbors, mark all hits
+	// associated with this cluster as used, starting with icelltemp
+	// everything preceding icelltemp should have already been removed!
+	for( int jhit=icelltemp; jhit<hitlist_temp.size(); jhit++ ){
+	  unused_hits.erase( hitlist_temp[jhit] ); 
+	}
+	//grab information about the current cell:
+	int rowtemp = (*(T->Earm_ECalTF1_hit_row))[hitlist_temp[icelltemp]];
+	int coltemp = (*(T->Earm_ECalTF1_hit_col))[hitlist_temp[icelltemp]];
+	double xcelltemp = (*(T->Earm_ECalTF1_hit_xcell))[hitlist_temp[icelltemp]];
+	double ycelltemp = (*(T->Earm_ECalTF1_hit_ycell))[hitlist_temp[icelltemp]];
+	double Ecelltemp = Ehit_recon[hitlist_temp[icelltemp]];
+	//loop over the list of unused hits, adding any nearest-neighbor hits found:
+	//note that when we start this loop, the central maximum of the cluster has already been removed from the
+	//set of unused hits!
+
+	//Do NOT modify the set while iterating through it!
+	for( set<int>::iterator hit=unused_hits.begin(); hit != unused_hits.end(); ++hit ){
+	  int ihit = *hit;
+
+	  //check for same row and column +/- 1, or row +/- 1 and (x - xcell)
+
+	  double xhit = (*(T->Earm_ECalTF1_hit_xcell))[ihit];
+	  double yhit = (*(T->Earm_ECalTF1_hit_ycell))[ihit];
+	  double Ehit = Ehit_recon[ihit];
+
+	  if( pow(xhit-xcelltemp,2)+pow(yhit-ycelltemp,2)<=pow(1.5*ECAL_max_cell_size,2) ){ //nearest-neighbor:
+	    hitlist_temp.push_back( ihit );
+	    xclust_temp += xhit*Ehit;
+	    yclust_temp += yhit*Ehit;
+	    Eclust_temp += Ehit;
+	    sum_logE += log(Ehit);
+	  }
+	}
+
+	icelltemp++; //after first iteration, which always happens, icelltemp = 1.
+	// if any nearest-neighbors were found, hitlist_temp.size() > 1
+	// we keep looping over all hits in the list of hits added to this cluster until
+	// no more unused nearest-neighbor hits are found!
+	// As long as at least one new nearest neighbor was found, we keep going!
+	// As soon as we don't find any new neighbors, the condition below fails and we exit the loop!
+	
+      } 
+
+      //Add this cluster to the output arrays:
+
+      if( Eclust_temp >= Eclustmin ){
+      
+	xclust.push_back( xclust_temp/Eclust_temp );
+	yclust.push_back( yclust_temp/Eclust_temp );
+	Eclust.push_back( Eclust_temp );
+	nhitclust.push_back( hitlist_temp.size() );
+	hitlist_clust.push_back( hitlist_temp );
+      
+	foundclust = true;
+
+	// cout << "found cluster E, x, y = " << Eclust_temp << ", " << xclust_temp/Eclust_temp
+	//      << ", " << yclust_temp/Eclust_temp << endl;
+      }
+    }
+  } while( foundclust );
+  
+  nclust = xclust.size();
+
+}
+*/
+
+//-----------------------------------------------------------------------------
+void TSBSSimDecoder::Fit_3D_Track( vector<double> xpoints, vector<double> ypoints, vector<double> zpoints, vector<double> wx, vector<double> wy,
+		   double &X, double &Y, double &Xp, double &Yp ){
+
+  //Setting up the matrices for the fit:
+  
+  TMatrixD A(4,4);
+  TVectorD b(4);
+
+  for( int i=0; i<4; i++ ){
+    for( int j=0; j<4; j++ ){
+      A(i,j) = 0.0;
+    }
+    b(i) = 0.0;
+  }
+
+  int npoints = xpoints.size();
+
+  if( npoints<2 ) return;
+
+  int ndf=0;
+
+  //For a 3D fit to a straight-line:
+  // chi^2 = sum_i wxi * (xi- (X + Xp*zi))^2 + wyi*(y - (Y+Yp*zi))^2
+  // dchi^2/dX = -2 * (xi - (X+Xp*zi))* wxi = 0
+  // dchi^2/dY = -2 * (yi - (Y+Yp*zi))* wyi = 0
+  // dchi^2/dXp = -2 * (xi - (X+Xp*zi))*zi * wxi = 0
+  // dchi^2/dYp = -2 * (yi - (Y+Yp*zi))*zi * wyi = 0
+  for( int i=0; i<npoints; i++ ){
+    b(0) += wx[i]*xpoints[i];
+    b(1) += wy[i]*ypoints[i];
+    b(2) += wx[i]*xpoints[i]*zpoints[i];
+    b(3) += wy[i]*ypoints[i]*zpoints[i];
+
+    A(0,0) += wx[i];
+    A(0,1) += 0.0;
+    A(0,2) += wx[i]*zpoints[i];
+    A(0,3) += 0.0;
+
+    A(1,0) += 0.0;
+    A(1,1) += wy[i];
+    A(1,2) += 0.0;
+    A(1,3) += wy[i]*zpoints[i];
+
+    A(2,0) += wx[i]*zpoints[i];
+    A(2,1) += 0.0;
+    A(2,2) += wx[i]*pow(zpoints[i],2);
+    A(2,3) += 0.0;
+
+    A(3,0) += 0.0;
+    A(3,1) += wy[i]*zpoints[i];
+    A(3,2) += 0.0;
+    A(3,3) += wy[i]*pow(zpoints[i],2);
+    
+  }
+
+  TVectorD solution = A.Invert() * b;
+
+  X = solution(0);
+  Y = solution(1);
+  Xp = solution(2);
+  Yp = solution(3);
 }
 
 //-----------------------------------------------------------------------------

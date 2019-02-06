@@ -11,6 +11,7 @@
 #include "TSBSSimEvent.h"
 #include "ha_compiledata.h"
 #include <cassert>
+#include <vector>
 #include <map>
 #include "TSBSDBManager.h"
 
@@ -184,6 +185,7 @@ class TSBSSimDecoder : public Podd::SimDecoder {
   static Int_t GetMAXSLOT() { return MAXSLOT; }
 #endif
 
+
 protected:
   typedef std::map<Int_t,Int_t> StripMap_t;
 
@@ -203,6 +205,34 @@ protected:
   // Int_t MakeROCKey( Int_t crate, Int_t slot, Int_t chan ) const;
   
   std::vector<SignalInfo> fSignalInfo;
+
+// all the following stuff is for the ECal cluster correction
+
+
+public:
+  struct shower_profile_t {
+    int nbins_mom;
+    double xmin;
+    double xmax;
+    std::vector<double> frac;
+  };
+
+  
+private: 
+  
+  shower_profile_t profxdefault;
+  shower_profile_t profydefault;
+
+  int profx_nbins;
+  int profy_nbins;
+  double profx_xmin,profx_xmax;
+  double profy_ymin,profy_ymax;
+  std::vector<shower_profile_t> profx;
+  std::vector<shower_profile_t> profy;
+  
+  void Calc_Shower_Coordinates(double xmom, double ymom, double xmax, double ymax, double Eclust, double Rcal, double &xclust, double &yclust, double &xf, double &yf);
+  void Fit_3D_Track( std::vector<double> xpoints, std::vector<double> ypoints, std::vector<double> zpoints, std::vector<double> wx, std::vector<double> wy, double &X, double &Y, double &Xp, double &Yp );
+  bool load_shower_profiles( const char *filename );
   
   ClassDef(TSBSSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };
