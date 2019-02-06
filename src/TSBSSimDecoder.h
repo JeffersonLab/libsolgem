@@ -230,9 +230,11 @@ private:
   std::vector<shower_profile_t> profx;
   std::vector<shower_profile_t> profy;
   
-  void Calc_Shower_Coordinates(double xmom, double ymom, double xmax, double ymax, double Eclust, double Rcal, double &xclust, double &yclust, double &xf, double &yf);
+  void Calc_Shower_Coordinates(double xmom, double ymom, double xmax, double ymax, double Eclust, double Rcal, double &xclust, double &yclust);//, double &xf, double &yf
   void Fit_3D_Track( std::vector<double> xpoints, std::vector<double> ypoints, std::vector<double> zpoints, std::vector<double> wx, std::vector<double> wy, double &X, double &Y, double &Xp, double &Yp );
   bool load_shower_profiles( const char *filename );
+  double find_vertex_bin(double vz_true);
+  
   
   ClassDef(TSBSSimDecoder,0) // Decoder for simulated SoLID spectrometer data
 };

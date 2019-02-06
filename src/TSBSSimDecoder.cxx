@@ -71,6 +71,7 @@ static const double Ltgt = 0.4; //meters
 static const double sigy_CDET = 0.003;
 
 // Bin width for vertex z "filtering": 
+static const double sig_vz = 0.0064;//in m
 static const double vz_bin_width = 3.0*0.0064;
 static const double vz_scan_stepsize = 0.3;
 
@@ -780,7 +781,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	//all the stuff for ECal analysis
 	double xmom, ymom;
 	double xmax, ymax;
-	double xf, yf;
+	double xECal, yECal;
 	
 	double tempScintX;
 	double tempScintY;
@@ -794,27 +795,42 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	double xfp, yfp, xpfp, ypfp;
 	double x_S_2, y_S_2;
 
+	vector<double> xfinal,yfinal,zfinal,wxfinal,wyfinal;
+	double eX, eY, eXp, eYp;
+	
+	double vz;
+	
 	//this is becoming very dirty... :/
 	const double k0 = 11.0;
 	const double th_earm = 29.0*TMath::DegToRad();
-	const double z_earm[3] = {4.72, 4.08, 4.13};
+	const double z_earm[3] = {4.5, 4.08, 4.13};
 	//{5.02, 4.08, 4.13};
 	//double theta[3];
 	//double phi[3];
+	TVector3 ECAL_zaxis(sin(th_earm),0,cos(th_earm));
+	TVector3 ECAL_yaxis(0,1,0);
+	TVector3 ECAL_xaxis = ECAL_yaxis.Cross(ECAL_zaxis).Unit();
+
+	TVector3 ehat_final_ECAL;
+	TVector3 ehat_final_global;
 	
 	//double x_C[3]; 
 	//double x_C_, y_C_, L_C_;
 	//double p0_, p1_, p1_den_;
 	//double alpha, vz;
-	double vz;
 	
 	const double th_sbs = 16.9*TMath::DegToRad();
 	TVector3 pvect, pvect_SBS;
-	TVector3 vertex, vertex_SBS;
+	TVector3 vertex, vertex_SBS, vertex_ECAL;
 	TVector3 SBS_zaxis( -sin(th_sbs), 0, cos(th_sbs) );
 	TVector3 SBS_xaxis(0,-1,0);
 	TVector3 SBS_yaxis = (SBS_zaxis.Cross(SBS_xaxis)).Unit();
 	
+	TVector3 sigvtx_global(0.001,0.001,0.007);
+	
+	TVector3 sigvtx_ECAL( sigvtx_global.Dot( ECAL_xaxis ),
+			      sigvtx_global.Dot( ECAL_yaxis ),
+			      sigvtx_global.Dot( ECAL_zaxis ) );
 	
 	for(Int_t i=0; i< simEvent->fECalClusters.size(); i++){
 	  const TSBSECalCluster& eCalHit = simEvent -> fECalClusters[i];
@@ -883,78 +899,73 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    
 	    //dumb stuff due to the fact that ECal info is stored in transport coordinates 
 	    // perhaps I should stop that 
-	    xmom = (tempCaloY - (*(T->Earm_ECalTF1_hit_xcell))[hitlist_clust[iclust][0]])/ECAL_max_cell_size;
+	    xmom = (tempCaloX -  eCalHit.GetXMax())/ECAL_max_cell_size;
+	    ymom = (tempCaloY -  eCalHit.GetYMax())/ECAL_max_cell_size;
 	    
 	    //x_C[0] = tempCaloY;
 	    //x_C_= tempCaloY;
 	    //y_C_+= -tempCaloX;
 	    //L_C_+= z_earm[0];
 	    
-	    vz = 0;
-	    //vz = trk->vertex_target.Z();
+	    //vz = 0;
+	    vz = trk->vertex_target.Z();//
+	    //vz = find_vertex_bin(trk->vertex_target.Z());//
+	    vertex = TVector3(0.0, 0.0, vz);
 	    
-	    calc_shower_coordinates( xmom, ymom, xmax, ymax, Eclust[iclust], ECALdist, xcorrected, ycorrected, xf, yf );
+	    vertex_ECAL = TVector3( vertex.Dot(ECAL_xaxis),
+				    vertex.Dot(ECAL_yaxis),
+				    vertex.Dot(ECAL_zaxis) );
 	    
-	    kpx = z_earm[0]*sin(th_earm)+tempCaloY*cos(th_earm);
-	    kpy = -tempCaloX;
-	    kpz = z_earm[0]*cos(th_earm)-tempCaloY*sin(th_earm)-vz;
+	    xfinal.push_back( vertex_ECAL.X() );
+	    yfinal.push_back( vertex_ECAL.Y() );
+	    zfinal.push_back( vertex_ECAL.Z() );
+	    
+	    Calc_Shower_Coordinates( xmom, ymom, xmax, ymax, E, z_earm[0], xECal, yECal);
+	    
 	    
 	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[j];
 	      if(SciHit.GetDetFlag()!=31 || SciHit.GetEnergy()<=0)return HED_ERR;
 	      //kill the event if we don't have two properly reconstructed CDet hits.
-	      tempScintX = SciHit.GetXPos();
+	      //tempScintX = SciHit.GetXPos();
 	      //tempScintY = SciHit.GetYPos();
-	      tempPlane = SciHit.GetPlane();
-	      //cout << "j " << j << " Plane " << tempPlane << " X_CDet " << tempScintX << ", Y_CDet " << tempScintY << endl;
-	      //cout << " Erec ? " << SciHit.GetEnergy() << endl;
+	      //tempPlane = SciHit.GetPlane();
 	      
-	      kpy+= -tempScintX*z_earm[0]/z_earm[i];// project CDet hit to ECal plane: less dumb...
+	      xfinal.push_back( SciHit.GetXPos() );
+	      yfinal.push_back( SciHit.GetYPos() - yoff_ECAL );
+	      zfinal.push_back( z_earm[SciHit.GetPlane()] );
 	      
-	      //x_C[tempPlane] = tempScintY;
-	      //x_C_+= tempScintY;
-	      //y_C_+= -tempScintX;
-	      //L_C_+= z_earm[tempPlane];
+	      wxfinal.push_back( pow( Lx_scint_CDET, -2 ) );
+	      wyfinal.push_back( pow( sigy_CDET, -2 ) );
 	    }
-	    //x_C_/=3.0;
-	    //y_C_/=3.0;
-	    //L_C_/=3.0;
-	    kpy/=3.0;//each CDet hit has weight 3, ECal hit has weight 1.
+	    xfinal.push_back( xECal );
+	    yfinal.push_back( yECal - yoff_ECAL );
+	    zfinal.push_back( z_earm[0] );
 	    
-	    //cout << " x_C_ = " <<  x_C_ << ", y_C_ " << y_C_ << ", L_C_ = " << L_C_ << endl;
-	    /*
-	    p1_ = p1_den_ = 0;
-	    for(int j = 0; j<3; j++){
-	      p1_+= (x_C[j]-x_C_)*(z_earm[j]-L_C_);
-	      p1_den_+= (z_earm[j]-L_C_)*(z_earm[j]-L_C_);
-	      
-	      //cout << " (x_C[j]-x_C_) " << (x_C[j]-x_C_) << " (z_earm[j]-L_C_) " << (z_earm[j]-L_C_) 
-	      //<< " p1_num_ " << p1_/(j+1) << " p1_den_ " << p1_den_/(j+1) 
-	      //<< " p1_ " << p1_/p1_den_ << endl;
-	    }
-	    p1_/=p1_den_;
-	    p0_ = x_C_-p1_*L_C_;
-	    //cout << "p1_ = " << p1_ << ", p0_ = " << p0_ << endl;
+	    wxfinal.push_back( pow( sigx_ECAL, -2 ) );
+	    wyfinal.push_back( pow( sigy_ECAL, -2 ) );
 	    
-	    alpha = atan(p1_)+th_earm;
-	    vz = -p0_*(sin(th_earm)+cos(th_earm)/tan(alpha));
-	    */
-	    //cout << "alpha = " << alpha << "  :  " 
-	    //<< atan( ( L_C_*sin(th_earm)+x_C_*cos(th_earm) ) / ( L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz-trk->vertex_target.Z() ) ) << endl;
-	    //cout << alpha-atan( ( L_C_*sin(th_earm)+x_C_*cos(th_earm) ) / ( L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz-trk->vertex_target.Z() ) ) << endl;
-	    //cout << " vz = " << vz << "  :  " << trk->vertex_target.Z() << endl;
-	    //cout << vz-trk->vertex_target.Z() << endl;
+	    Fit_3D_Track( xfinal, yfinal, zfinal, wxfinal, wyfinal,
+			  eX, eY, eXp, eYp );
 	    
-	    // kpx = L_C_*sin(th_earm)+x_C_*cos(th_earm);
-	    // kpy = y_C_;
-	    // kpz = L_C_*cos(th_earm)-x_C_*sin(th_earm)-vz;
-	    kp = sqrt(kpx*kpx+kpy*kpy+kpz*kpz);
 	    
-	    //cout << " kpx " << kpx << " kpy " << kpy << " kpz " << kpz << endl;
-	    //cout << " alpha (re) = " << atan(kpx/kpz) << endl;
+	    ehat_final_ECAL = TVector3( eXp, eYp, 1.0 );
+	    ehat_final_ECAL = ehat_final_ECAL.Unit();
 	    
-	    thetak = acos(kpz/kp);
-	    phik = atan2(kpy, kpx);
+	    ehat_final_global =
+	      ehat_final_ECAL.X() * ECAL_xaxis +
+	      ehat_final_ECAL.Y() * ECAL_yaxis +
+	      ehat_final_ECAL.Z() * ECAL_zaxis;
+	    
+	    thetak = acos( ehat_final_global.Z() );
+	    phik = atan2( ehat_final_global.Y(), ehat_final_global.X() );
+	    
+	    // double Eprime_etheta_recon = Ebeam / (1.0 + Ebeam/Mp*(1.-cos(etheta_recon)));
+	    // double nu_etheta_recon = Ebeam - Eprime_etheta_recon;
+	    
+	    // double pp_etheta_recon = sqrt(pow(nu_etheta_recon,2) + 2.*Mp*nu_etheta_recon);
+	    
+	    // double ptheta_etheta_recon = acos( (Ebeam-Eprime_etheta_recon*cos(etheta_recon))/pp_etheta_recon);
 	    
 	    phip = phik+TMath::Pi();
 	    kp = k0*Mp/(k0*(1-cos(thetak))+Mp);
@@ -966,7 +977,6 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
 	    xptar = pvect_SBS.X()/pvect_SBS.Z();
 	    yptar = pvect_SBS.Y()/pvect_SBS.Z();
-	    vertex = TVector3(0.0, 0.0, vz);
 	    vertex_SBS = TVector3( vertex.Dot(SBS_xaxis), vertex.Dot(SBS_yaxis), vertex.Dot(SBS_zaxis) );
 	    ytar = vertex_SBS.Y() - yptar * vertex_SBS.Z();
 
@@ -1242,8 +1252,8 @@ void TSBSSimBackTrack::Print( const Option_t* ) const
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-void TSBSSimDecoder::Calc_Shower_Coordinates( double xmom, double ymom, double xmax, double ymax, double Eclust, double Rcal, double &xclust, double &yclust, double &xf, double &yf ){
-
+void TSBSSimDecoder::Calc_Shower_Coordinates( double xmom, double ymom, double xmax, double ymax, double Eclust, double Rcal, double &xclust, double &yclust )//, double &xf, double &yf
+{
   //calculate longitudinal depth of max. shower energy deposition
   double tmax = TMath::Max(0.0, X0_ECAL * (log( Eclust/Ec_ECAL ) - 0.5) );
 
@@ -1284,7 +1294,7 @@ void TSBSSimDecoder::Calc_Shower_Coordinates( double xmom, double ymom, double x
   }
 
   //before incident-angle correction, record x position within cell:
-  xf = xclust-xmax;
+  //xf = xclust-xmax;
   
   int biny = int( (100.0*ymax-profy_ymin)/(profy_ymax-profy_ymin)*profy_nbins );
 
@@ -1316,7 +1326,7 @@ void TSBSSimDecoder::Calc_Shower_Coordinates( double xmom, double ymom, double x
     yclust = ymax + 0.5 * ECAL_max_cell_size;
   }
 
-  yf = yclust-ymax;
+  //yf = yclust-ymax;
   
   //Apply incident-angle correction under the assumption that track starts at (x,y,z) = (0,0,0)
   double xptemp = xclust/Rcal;
@@ -1793,6 +1803,16 @@ void TSBSSimDecoder::Fit_3D_Track( vector<double> xpoints, vector<double> ypoint
   Y = solution(1);
   Xp = solution(2);
   Yp = solution(3);
+}
+
+double TSBSSimDecoder::find_vertex_bin(double vz_true)
+{
+  int Ntgtbins = TMath::CeilNint(Ltgt/vz_bin_width);
+  double minbin = -vz_bin_width*Ntgtbins/2.0;
+  for(int i = 0; i<Ntgtbins; i++){
+    if( minbin+i*vz_bin_width<=vz_true && vz_true<=minbin+(i+1)*vz_bin_width )
+      return(minbin+(i+0.5)*vz_bin_width);
+  }
 }
 
 //-----------------------------------------------------------------------------
