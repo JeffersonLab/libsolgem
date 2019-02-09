@@ -23,7 +23,7 @@
 #include "TSystem.h"
 #include "TMath.h"
 #include "TDatabasePDG.h"
-#include "TRandom3.h"
+//#include "TRandom3.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
 
@@ -39,7 +39,7 @@ using namespace Podd;
 //EFuchey: 2016/12/10: it is necessary to declare the TSBSDBManager as a static instance here 
 // (and not make it a member) because it is used by functions whic are defined as "static inline".
 static TSBSDBManager* fManager = TSBSDBManager::GetInstance();
-static TRandom3* Rdec = new TRandom3(0);
+//static TRandom3* Rdec = new TRandom3(0);
 static const Int_t kPrimaryType = 1, kPrimarySource = 0;
 // Projection types must match the definitions in TreeSearch
 enum EProjType { kUPlane = 0, kVPlane =1, kXPlane = 2, kYPlane = 3};
@@ -95,7 +95,8 @@ TSBSSimDecoder::TSBSSimDecoder()
     fSignalInfo.push_back(SignalInfo(fManager->GetSigPID(i),
                                      fManager->GetSigTID(i)));
   }
-  if(fManager->Getg4sbsDetectorType()==3){
+  if(fManager->Getg4sbsDetectorType()==3 && fManager->DoCalo()){
+    cout << "Det type = " << fManager->Getg4sbsDetectorType() << " and manager = " << fManager->DoCalo() << endl;
     if(load_shower_profiles("ECAL_shower_profiles.txt"))
       cout << "ECal shower profiles successfully loaded" << endl;
   }
@@ -780,15 +781,17 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	
 	//all the stuff for ECal analysis
 	double xmom, ymom;
-	double xmax, ymax;
 	double xECal, yECal;
 	
-	double tempScintX;
-	double tempScintY;
-	Int_t tempPlane;
-	double kpx, kpy, kpz, kp, thetak, phik;
-	double //ppx, ppy, ppz, 
-	  pp, thetap, phip;
+	//double tempScintX;
+	//double tempScintY;
+	//Int_t tempPlane;
+	double kpx_xc, kpy_xc, kpz_xc;
+	double  kp, thetak, phik;
+	double  kp_xc, thetak_xc, phik_xc;
+	double  pp_xc, thetap_xc, phip_xc;
+	//double ppx, ppy, ppz;
+	double pp, thetap, phip;
 		
 	double xtar, ytar, xptar, yptar;
 	double fterm;
@@ -814,11 +817,6 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	TVector3 ehat_final_ECAL;
 	TVector3 ehat_final_global;
 	
-	//double x_C[3]; 
-	//double x_C_, y_C_, L_C_;
-	//double p0_, p1_, p1_den_;
-	//double alpha, vz;
-	
 	const double th_sbs = 16.9*TMath::DegToRad();
 	TVector3 pvect, pvect_SBS;
 	TVector3 vertex, vertex_SBS, vertex_ECAL;
@@ -832,7 +830,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 			      sigvtx_global.Dot( ECAL_yaxis ),
 			      sigvtx_global.Dot( ECAL_zaxis ) );
 	
-	for(Int_t i=0; i< simEvent->fECalClusters.size(); i++){
+	for(UInt_t i=0; i< simEvent->fECalClusters.size(); i++){
 	  const TSBSECalCluster& eCalHit = simEvent -> fECalClusters[i];
 	  // TODO: correct for correlations between "projected" and reconstructed cluster position
 	  tempCaloX = eCalHit.GetXPos();
@@ -891,26 +889,45 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    //cout << "Event "<< simEvent->fEvtID << endl;
 	    
     	    xfp = yfp = xpfp = ypfp = 0;
-	    //x_C_ = y_C_ = L_C_ = 0;
-	    //p0_ = p1_ = p1_den_ = 0;
 	    thetak = phik = 0;
 
-	    //cout << " X_ECal " << tempCaloX << ", Y_ECal " << tempCaloY << endl;
 	    
-	    //dumb stuff due to the fact that ECal info is stored in transport coordinates 
-	    // perhaps I should stop that 
 	    xmom = (tempCaloX -  eCalHit.GetXMax())/ECAL_max_cell_size;
 	    ymom = (tempCaloY -  eCalHit.GetYMax())/ECAL_max_cell_size;
 	    
-	    //x_C[0] = tempCaloY;
-	    //x_C_= tempCaloY;
-	    //y_C_+= -tempCaloX;
-	    //L_C_+= z_earm[0];
+	    Calc_Shower_Coordinates( xmom, ymom, eCalHit.GetXMax(), eCalHit.GetYMax(), E, z_earm[0], xECal, yECal);
+	    //test pour voir...
+	    // if(simEvent->fEvtID==2){
+	    //   xECal = -0.0898902;
+	    //   yECal = -0.666955;
+	    // }
+	    // if(simEvent->fEvtID==7){
+	    //   xECal = 0.292138;
+	    //   yECal = 0.371915;
+	    // }
+	    
+	    /*
+	    cout << "Event " <<  simEvent->fEvtID << ": " << endl;
+	    cout << " X_rec " << tempCaloX << " X_max " << eCalHit.GetXMax() << ", Y_rec " << tempCaloY << ", Y_max " << eCalHit.GetYMax() << endl;
+	    cout << " X_mom " << xmom << " X_ECal " << xECal << ", Y_mom " << ymom << ", Y_ECal " << yECal << endl;
+	    */
 	    
 	    //vz = 0;
-	    vz = trk->vertex_target.Z();//
-	    //vz = find_vertex_bin(trk->vertex_target.Z());//
+	    //vz = trk->vertex_target.Z();//
+	    vz = find_vertex_bin(trk->vertex_target.Z());//
 	    vertex = TVector3(0.0, 0.0, vz);
+	    
+	    kpx_xc = z_earm[0]*sin(th_earm)+xECal*cos(th_earm);
+	    kpy_xc = yECal - yoff_ECAL;
+	    kpz_xc = vz+z_earm[0]*cos(th_earm)-xECal*sin(th_earm);
+	    kp_xc = sqrt(kpx_xc*kpx_xc+kpy_xc*kpy_xc+kpz_xc*kpz_xc);
+	    
+	    thetak_xc = acos(kpz_xc/kp_xc);
+	    phik_xc = atan2(kpy_xc, kpx_xc);
+	    
+	    kp_xc = k0*Mp/(k0*(1-cos(thetak_xc))+Mp);
+	    pp_xc = sqrt(pow(k0-kp_xc+Mp, 2)-Mp*Mp);
+	    thetap_xc = asin(kp_xc*sin(thetak_xc)/pp_xc);
 	    
 	    vertex_ECAL = TVector3( vertex.Dot(ECAL_xaxis),
 				    vertex.Dot(ECAL_yaxis),
@@ -920,16 +937,17 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    yfinal.push_back( vertex_ECAL.Y() );
 	    zfinal.push_back( vertex_ECAL.Z() );
 	    
-	    Calc_Shower_Coordinates( xmom, ymom, xmax, ymax, E, z_earm[0], xECal, yECal);
+	    wxfinal.push_back( pow( sigvtx_ECAL.X(), -2 ) );
+	    wyfinal.push_back( pow( sigvtx_ECAL.Y(), -2 ) );
 	    
-	    
-	    for(Int_t j=0; j< simEvent->fScintClusters.size(); j++){
+	    for(UInt_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[j];
 	      if(SciHit.GetDetFlag()!=31 || SciHit.GetEnergy()<=0)return HED_ERR;
 	      //kill the event if we don't have two properly reconstructed CDet hits.
 	      //tempScintX = SciHit.GetXPos();
 	      //tempScintY = SciHit.GetYPos();
 	      //tempPlane = SciHit.GetPlane();
+	      //cout << "CDet plane " << SciHit.GetPlane() << ": X = " << SciHit.GetXPos() << ", Y = " << SciHit.GetYPos() << endl;
 	      
 	      xfinal.push_back( SciHit.GetXPos() );
 	      yfinal.push_back( SciHit.GetYPos() - yoff_ECAL );
@@ -956,7 +974,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      ehat_final_ECAL.X() * ECAL_xaxis +
 	      ehat_final_ECAL.Y() * ECAL_yaxis +
 	      ehat_final_ECAL.Z() * ECAL_zaxis;
-	    
+			    
+			    
+			    
 	    thetak = acos( ehat_final_global.Z() );
 	    phik = atan2( ehat_final_global.Y(), ehat_final_global.X() );
 	    
@@ -971,7 +991,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    kp = k0*Mp/(k0*(1-cos(thetak))+Mp);
 	    pp = sqrt(pow(k0-kp+Mp, 2)-Mp*Mp);
 	    thetap = asin(kp*sin(thetak)/pp);
-	    //K, we have everything... and then ? :S
+	    
 	    pvect = TVector3(pp*sin(thetap)*cos(phip), pp*sin(thetap)*sin(phip), pp*cos(thetap));
 	    pvect_SBS = TVector3( pvect.Dot(SBS_xaxis), pvect.Dot(SBS_yaxis), pvect.Dot(SBS_zaxis) );
 
@@ -981,18 +1001,24 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    ytar = vertex_SBS.Y() - yptar * vertex_SBS.Z();
 
 	    xtar = 0;
-
-	    // cout << "electron: k = " << kp << " GeV, theta " << thetak << ", phi " << phik << endl;
-	    // cout << "proton: k = " << pp << " GeV, theta " << thetap << ", phi " << phip << endl;
-	    // cout << "proton X-check: " 
-	    // 	 << (2*Mp*k0*(Mp+k0)*cos(thetap))/(Mp*Mp+2*Mp*k0+pow(k0*sin(thetap),2)) << endl;
-	    // cout << "pvect_SBS:" << endl;
-	    // pvect_SBS.Print();
-	    // cout << "vertex: z = " << vz << ", vertex_SBS:" << endl;
-	    // vertex_SBS.Print();
 	    
-	    // cout << "xptar " << xptar << " yptar " << yptar << " ytar " << ytar << " 1/p " << 1.0/pp << " xtar " << xtar << endl;
+	    /*
+	    cout << "electron: k = " << kp << " GeV, theta " << thetak << ", phi " << phik << endl;
+	    cout << "electron X-check: k = " << kp_xc << " GeV, theta " << thetak_xc << ", phi " << phik_xc << endl;
+	    cout << "proton X-check: k = " << pp_xc << " GeV, theta " << thetap_xc << ", phi " << phip_xc << endl;
+	    	    
+	    cout << "xptar " << xptar << " yptar " << yptar << " ytar " << ytar << " 1/p " << 1.0/pp << " xtar " << xtar << endl;
 	    
+	    cout << "MC proton vector at target: " << endl;
+	    trk->momentum_target.Print();
+	    cout << "reconstructed proton vector at target: " << endl;
+	    pvect.Print();
+	    
+	    cout << "MC proton vector in spectrometer: " << endl;
+	    trk->fMomentum.Print();
+	    cout << "reconstructed proton vector in spectrometer: " << endl;
+	    pvect_SBS.Print();
+	    */
 	    
 	    //xtar assumed to be 0... 
 	    //Calculate the optics
@@ -1020,7 +1046,13 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      ypfp += fterm * fManager->GetOpticsCoeff(3, i_par);//b_ypfp;
 	    }
 	    
-	    //cout << "xfp " << xfp << " yfp " << yfp << " xpfp " << xpfp << " ypfp " << ypfp << endl;
+	    /*
+	    cout << "xfp_true " << trk->fOrigin.X()*1.e-3+1.819555*trk->fMomentum.X()/trk->fMomentum.Z()  
+		 << " yfp_true " << trk->fOrigin.Y()*1.e-3+1.819555*trk->fMomentum.Y()/trk->fMomentum.Z()
+		 << " xpfp_true " << trk->fMomentum.X()/trk->fMomentum.Z() 
+		 << " ypfp_true " << trk->fMomentum.Y()/trk->fMomentum.Z() << endl;
+	    cout << "xfp_rec " << xfp << " yfp_rec " << yfp << " xpfp_rec " << xpfp << " ypfp_rec " << ypfp << endl;
+	    */
 	    
 	    
 	    x_S = xfp;//x_S = xfp-0.015955*xpfp;
@@ -1813,6 +1845,8 @@ double TSBSSimDecoder::find_vertex_bin(double vz_true)
     if( minbin+i*vz_bin_width<=vz_true && vz_true<=minbin+(i+1)*vz_bin_width )
       return(minbin+(i+0.5)*vz_bin_width);
   }
+  cout << "haven't found a vertex bin for value " << vz_true << endl;
+  return vz_true;
 }
 
 //-----------------------------------------------------------------------------

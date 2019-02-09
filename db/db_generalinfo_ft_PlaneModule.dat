@@ -22,7 +22,7 @@ generalinfo.signal1.tid = 2
 generalinfo.g4sbs_detectortype = 3
 generalinfo.g4sbs_z_specoffset = 1.7886925
 
-generalinfo.calo_thr = 3.0 # GeV
+generalinfo.calo_thr = 2.5 # GeV
 generalinfo.calo_z = 1.600000
 generalinfo.calo_res = 0.010000
 generalinfo.docalo = 1

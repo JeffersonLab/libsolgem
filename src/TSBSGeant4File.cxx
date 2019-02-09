@@ -1857,8 +1857,8 @@ void TSBSGeant4File::GetGEpECalCluster(){
   
   for(int i_ = 0; i_<E_eprim_clus_plane2.size(); i_++){
     E_rec+= E_eprim_clus_plane2[i_];
-    X_rec+= (-1)*y_eprim_clus_plane2[i_]*E_eprim_clus_plane2[i_];
-    Y_rec+= x_eprim_clus_plane2[i_]*E_eprim_clus_plane2[i_];
+    X_rec+= x_eprim_clus_plane2[i_]*E_eprim_clus_plane2[i_];
+    Y_rec+= y_eprim_clus_plane2[i_]*E_eprim_clus_plane2[i_];
     
     //cout << " seed " << i_ << ", Edep = " << E_eprim_clus[i_] << ", x = " << x_eprim_clus[i_] << ", y = " << y_eprim_clus[i_] << endl;
   }
