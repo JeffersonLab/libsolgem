@@ -618,28 +618,37 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 
   Int_t itrack = 0;
 
+  double E_evt = 0;//-2*fManager->GetCaloThreshold();
+  //
+  //if(fManager->DoCalo()){
+  //E_evt = 0;
+  if(simEvent->fECalClusters.size()>0){
+    const TSBSECalCluster& eCalHit = simEvent -> fECalClusters[0];
+    E_evt = eCalHit.GetEnergy();
+  }
+  
+  if(fManager->DoCalo() && fabs(E_evt)<fManager->GetCaloThreshold())return HED_ERR;
+
   for( Int_t i = 0; i < tracks->GetLast()+1; i++ ) {
     TSBSSimTrack* trk = static_cast<TSBSSimTrack*>(tracks->UncheckedAt(i));
-
+    
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(fManager->GetCaloZ()-0.8) + trk->fOrigin.Y()/1000;
     //cout<<"MC trk projected calo position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
-
+    
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(1.3-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(1.3-0.8) + trk->fOrigin.Y()/1000;
     //cout<<"MC trk projected 4th  GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
-
+    
     trkProjCaloX = trk->fMomentum.X()/trk->P()*(2.33-0.8) + trk->fOrigin.X()/1000;
     trkProjCaloY = trk->fMomentum.Y()/trk->P()*(2.33-0.8) + trk->fOrigin.Y()/1000;
     //cout<<"MC trk projected last GEM plane position: "<<trkProjCaloX<<" : "<<trkProjCaloY<<endl;
     
-   new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
-   if(i==0)itrack = trk->fNumber;//even better
+    new( (*fMCTracks)[i] ) TSBSSimTrack(*trk);
+    if(i==0)itrack = trk->fNumber;//even better
   }
   assert( GetNMCTracks() > 0 );
   
-  
-
 
 
 
@@ -937,8 +946,10 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    yfinal.push_back( vertex_ECAL.Y() );
 	    zfinal.push_back( vertex_ECAL.Z() );
 	    
-	    wxfinal.push_back( pow( sigvtx_ECAL.X(), -2 ) );
-	    wyfinal.push_back( pow( sigvtx_ECAL.Y(), -2 ) );
+	    // wxfinal.push_back( pow( sigvtx_ECAL.X(), -2 ) );
+	    // wyfinal.push_back( pow( sigvtx_ECAL.Y(), -2 ) );
+	    wxfinal.push_back( pow( 0.001, -2 ) );
+	    wyfinal.push_back( pow( 0.001, -2 ) );
 	    
 	    for(UInt_t j=0; j< simEvent->fScintClusters.size(); j++){
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[j];
@@ -1054,10 +1065,12 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    cout << "xfp_rec " << xfp << " yfp_rec " << yfp << " xpfp_rec " << xpfp << " ypfp_rec " << ypfp << endl;
 	    */
 	    
-	    
 	    x_S = xfp;//x_S = xfp-0.015955*xpfp;
 	    y_S = yfp;//y_S = yfp-0.015955*ypfp;
 	    
+	    //filouterie... pour voir...
+	    // x_S+= -0.003;
+	    // y_S+= -0.003;
 	    //cout << "x_S = " << x_S << ", y_S = " << y_S << endl;
 	    
 	    //x_S = 0.0337-tempCaloX*0.4377;//Ad hoc parameters (probably still much better than above)
@@ -1079,6 +1092,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	    
 	    x_S_2 = xfp+0.48191*xpfp;
 	    y_S_2 = yfp+0.48191*ypfp;
+	    //filouterie... pour voir...
+	    // x_S_2+= -0.003;
+	    // y_S_2+= -0.003;
 	    
 	    datx_2.f = static_cast<Float_t>(x_S_2);
 	    daty_2.f = static_cast<Float_t>(y_S_2);

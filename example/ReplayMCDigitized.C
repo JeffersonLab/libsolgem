@@ -1,4 +1,6 @@
 #if !defined(__CLING__) || defined(__ROOTCLING__)
+#include <iostream>
+#include <string>
 #include "TSystem.h"
 #include "TDatime.h"
 #include "TSBSGeant4File.h"
@@ -37,9 +39,10 @@
 // #include <iostream>
 
 // #endif
+using namespace std;
 
 void ReplayMCDigitized(const char* filename = "digitized", 
-		       const char* detsuffix = "bbgem",//detector suffix: 
+		       const char* detsuffix = "ft",//detector suffix: 
 		       //"bbgem" for BigBite spectrometer (GMn, GEn, SIDIS);
 		       //"FT" for Front Tracker spectrometer (GEp);
 		       //"FPP" for Focal Plane Polarimeters (GEp).
@@ -62,13 +65,13 @@ void ReplayMCDigitized(const char* filename = "digitized",
   string bg = "nobkgd";
   if(bkgd)bg = "bkgd";
   
-  /* gSystem->AddDynamicPath("${LIBSBSGEM}");
+  gSystem->AddDynamicPath("${LIBSBSGEM}");
   gSystem->AddDynamicPath("${TREESEARCH}");
   gSystem->Load("../libsolgem.so");
   gSystem->Load("/home/efuchey/g4work/Tracking/TreeSearch/libTreeSearch.so");
   gSystem->Load("/home/efuchey/g4work/Tracking/TreeSearch/libTreeSearch-SBS.so");
   gSystem->Load("libMinuit");
-  */
+
   TSBSDBManager* manager = TSBSDBManager::GetInstance();
   manager->LoadGeneralInfo(Form("db_generalinfo_%s.dat", detsuffix));
   manager->LoadGeoInfo(Form("g4sbs_%s", detsuffix));
@@ -84,11 +87,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
   THaInterface::SetDecoder( TSBSSimDecoder::Class() );
   
   cout << "Reading " << detsuffix << endl;
-  THaApparatus* SBS_GEMdet = new SBS::SBSSpec( Form("sbs_%s",detsuffix), "SBS / BB GEMs", Nsect );
-
-  // SBS_GEMdet -> SetDebugAll(4);
-
-  //THaApparatus* SBS_GEMdet = new SBSSpec( Form("sbs_%s",detsuffix), "SBS / BB GEMs", Nsect );
+  THaApparatus* SBS_GEMdet = new SBS::SBSSpec( Form("sbs_%s",detsuffix), "SBS / FT", Nsect );
   gHaApps->Add( SBS_GEMdet );
   cout << "Just read " << detsuffix << endl;
 
@@ -101,7 +100,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
 
   THaAnalyzer* analyzer = new THaAnalyzer;
 
-  TString rootfile(Form("rootfiles/%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
+  TString rootfile(Form("%s_%s_%s", filename, detsuffix, bg.c_str())), infile0(Form("%s_%s_%s", filename, detsuffix, bg.c_str()));
   TString odeffile("sbssim.odef"), cutfile(Form("sbs_%ssim.cuts",detsuffix));
   rootfile.Append("_replayed_new.root");
   analyzer->EnableBenchmarks();
@@ -160,7 +159,7 @@ void ReplayMCDigitized(const char* filename = "digitized",
       cerr << "ERROR: cannot get tracker detector! z0 may be wrong" << endl;
       }
     */
-    //    manager->EmulateCalorimeter(false);
+    //manager->EmulateCalorimeter(false);
     
     // Process the runs
     Int_t ret = 0, ntotal = 0;
@@ -193,3 +192,16 @@ void ReplayMCDigitized(const char* filename = "digitized",
   if( !fail )
     new TFile(rootfile,"r");
 } 
+
+int main()
+{
+  const char* filename = "digitized";
+  const char* detsuffix = "ft";
+  bool bkgd = false;
+  Int_t nevent = -1;
+  Int_t nseg = 0;
+  bool do_cuts = true;
+  
+  ReplayMCDigitized(filename, detsuffix, bkgd, nevent, nseg, do_cuts);
+  return 0;
+};
