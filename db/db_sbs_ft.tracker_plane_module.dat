@@ -150,7 +150,7 @@ sbs_ft.tracker.${allsectors}.3d_disable_chi2 = 0
 sbs_ft.tracker.${allsectors}.3d_ampcorr_maxmiss = 4
 sbs_ft.tracker.${allsectors}.3d_ampcorr_nsigma = 0.3
 #skip adc matching if one plane one of the projection has hit less than this adc value and other projection doesn't have hit
-sbs_ft.tracker.${allsectors}.3d_ampcorr_minADC = 500 
+sbs_ft.tracker.${allsectors}.3d_ampcorr_minADC = 0 
 sbs_ft.tracker.${allsectors}.3d_chi2_conflevel = 1e-06
 sbs_ft.tracker.${allsectors}.3d_maxmiss = 4
 sbs_ft.tracker.${allsectors}.proj_to_z0 = 0
@@ -174,16 +174,16 @@ sbs_ft.tracker.maxhits = 1000
 sbs_ft.tracker.maxclustsiz = 6
 sbs_ft.tracker.adc.min = 100
 sbs_ft.tracker.split.frac = 0.1
-sbs_ft.tracker.peakTimeMin = 30
+sbs_ft.tracker.peakTimeMin = 30 
 sbs_ft.tracker.peakTimeMax = 90
-sbs_ft.tracker.minPeakADC = 40 #70 #100 #
+sbs_ft.tracker.minPeakADC = 70 #40 #
 
 sbs_ft.tracker.maxsamp = 6
 sbs_ft.tracker.adc.sigma = 0.2
 sbs_ft.tracker.do_noise = 0
 sbs_ft.tracker.check_pulse_shape = 0
 sbs_ft.tracker.pedestal_sigma = 2
-sbs_ft.tracker.tmp_pedestal_rms = 15
+sbs_ft.tracker.tmp_pedestal_rms = 20 #15 #
 sbs_ft.tracker.tmp_comm_range =200
 sbs_ft.tracker.do_histos = 1
 sbs_ft.tracker.commonmode_groupsize = 128
@@ -196,7 +196,7 @@ sbs_ft.tracker.commonmode_groupsize = 128
 #new plane module
 
 sbs_ft.tracker.1.ecal_ft.x.dummy = 1
-sbs_ft.tracker.1.ecal_ft.x.xp.res = 0.01 #0.0064 #
+sbs_ft.tracker.1.ecal_ft.x.xp.res = 0.0060 
 sbs_ft.tracker.1.ecal_ft.x.description = x ecal_ft
 sbs_ft.tracker.1.ecal_ft.x.nstrips = 240 // fake
 sbs_ft.tracker.1.ecal_ft.x.partner = ecal_ft.y
@@ -209,7 +209,7 @@ sbs_ft.tracker.1.ecal_ft.x.dz = 0.001
 sbs_ft.tracker.1.ecal_ft.x.strip.pitch = 0.024
 
 sbs_ft.tracker.1.ecal_ft.y.dummy = 1
-sbs_ft.tracker.1.ecal_ft.y.xp.res = 0.01 #0.0064 #
+sbs_ft.tracker.1.ecal_ft.y.xp.res = 0.0060 
 sbs_ft.tracker.1.ecal_ft.y.description = y ecal_ft
 sbs_ft.tracker.1.ecal_ft.y.nstrips = 64 // fake
 sbs_ft.tracker.1.ecal_ft.y.partner = ecal_ft.x
@@ -431,7 +431,7 @@ sbs_ft.tracker.1.6.y.2.offset = 0.
 sbs_ft.tracker.1.6.y.3.offset = 0.
 
 sbs_ft.tracker.1.ecal_bk.x.dummy = 1
-sbs_ft.tracker.1.ecal_bk.x.xp.res = 0.01 #0.0064 #
+sbs_ft.tracker.1.ecal_bk.x.xp.res = 0.0065 
 sbs_ft.tracker.1.ecal_bk.x.description = x ecal_bk
 sbs_ft.tracker.1.ecal_bk.x.nstrips = 300 // fake
 sbs_ft.tracker.1.ecal_bk.x.partner = ecal_bk.y
@@ -444,7 +444,7 @@ sbs_ft.tracker.1.ecal_bk.x.dz = 0.001
 sbs_ft.tracker.1.ecal_bk.x.strip.pitch = 0.024
 
 sbs_ft.tracker.1.ecal_bk.y.dummy = 1
-sbs_ft.tracker.1.ecal_bk.y.xp.res = 0.01 #0.0064 #
+sbs_ft.tracker.1.ecal_bk.y.xp.res = 0.0065 
 sbs_ft.tracker.1.ecal_bk.y.description = y ecal_bk
 sbs_ft.tracker.1.ecal_bk.y.nstrips = 80 // fake
 sbs_ft.tracker.1.ecal_bk.y.partner = ecal_bk.x

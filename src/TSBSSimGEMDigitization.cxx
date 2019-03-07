@@ -958,11 +958,13 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 						fADCoffset,
 						fADCgain,
 						fADCbits );
-#if DBG_AVA > 0
-	cout << "strip number " << j << ", sampling number " << b << ", t0 = " << t0 << endl
-	     << "pulse = " << pulse << ", (val - off)/gain = " 
-	     << (pulse-fADCoffset)/fADCgain << ", dadc = " << dadc << endl;
-#endif
+	//#if DBG_AVA > 0
+	if(ic==12 && ipl==1 && 585<=iL+j && iL+j<=590)
+	  cout << "Chamber " << ic << ", plane " << ipl << ", "
+	       << "strip number " << iL+j << ", sampling number " << b << ", t0 = " << t0 << endl
+	       << "pulse = " << pulse << ", (val - off)/gain = " 
+	       << (pulse-fADCoffset)/fADCgain << ", dadc = " << dadc << endl;
+	//#endif
 	fDADC[b] = dadc;
 	posflag += dadc;
 	//cout <<setw(6)<< dadc;
@@ -1325,6 +1327,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	    for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
 	      strip.fADC[ss] = GetADC(ich, ip, idx, ss);
 	      // cout << strip.fADC[ss] << " ";
+	      if(ich==12 && ip==1 && 585<=istrip && istrip<=590)cout << strip.fADC[ss] << " ";
 	       strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
 	      // cout << strip.fADC[ss] << " ";
 	      saturation = 4000;
@@ -1335,7 +1338,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	      //     if(sclust.size()!=0){
 	      //	 cout<<idx<<" "<<ss<<" "<<sclust.size()<<" == "<<strip.fClusterRatio[ss].GetSize()<<" == "<<GetStripClusters(ich, ip, idx).size()<<endl; getchar();
 	      //    }
-	    }//cout << endl;
+	    }if(ich==12 && ip==1 && 585<=istrip && istrip<=590)cout << endl;
 	    /*	    if(GetTotADC(ich, ip, idx)==0)
 	      {
 		cout<<"Type: "<<GetType(ich, ip, idx)<<" Charge: "<<GetCharge(ich, ip, idx)<<" Time: "
