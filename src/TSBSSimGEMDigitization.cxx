@@ -386,8 +386,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
   // Randomize the event time for background events
   Float_t event_time=0,time_zero=0;
   // Trigger time jitter, This should be a fixed value for different hits in a certain event.
-  Double_t trigger_jitter = fTrnd.Gaus(0,fTriggerJitter);
-  //fTrnd.Uniform(-fAPVTimeJitter/2, fAPVTimeJitter/2);
+  Double_t trigger_jitter = fTrnd.Gaus(0,fTriggerJitter)//;
+    +fTrnd.Uniform(-fAPVTimeJitter/2, fAPVTimeJitter/2);
 
   for (UInt_t ih = 0; ih < nh; ++ih) {  
     UInt_t igem = gdata.GetHitChamber (ih);
@@ -418,7 +418,8 @@ TSBSSimGEMDigitization::AdditiveDigitize (const TSBSGEMSimHitData& gdata, const 
       // For background data, uniformly randomize event time between
       // -fGateWidth to +75 ns (assuming 3 useful 25 ns samples).
       // Not using HitTime from simulation file but randomize HitTime to cycle use background files
-      event_time = fTrnd.Uniform((-fGateWidth+2*fEleSamplingPeriod), 8*fEleSamplingPeriod);
+      //event_time = fTrnd.Uniform((-fGateWidth+2*fEleSamplingPeriod), 8*fEleSamplingPeriod);
+      event_time = fTrnd.Uniform(-fGateWidth, 6*fEleSamplingPeriod);
     } else {
       // Signal events occur at t = 0, 
       event_time = gdata.GetHitTime(ih);
@@ -910,7 +911,7 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 	 << endl;
 #endif
 
-    virs[ipl] = new TSBSGEMHit(nx,fEleSamplingPoints);
+    virs[ipl] = new TSBSGEMHit(nstrips,fEleSamplingPoints);
     virs[ipl]->SetTime(t0);
     virs[ipl]->SetHitCharge(fRTotalCharge);
     
@@ -958,13 +959,13 @@ TSBSSimGEMDigitization::AvaModel(const Int_t ic,
 						fADCoffset,
 						fADCgain,
 						fADCbits );
-	//#if DBG_AVA > 0
+#if DBG_AVA > 0
 	if(ic==12 && ipl==1 && 585<=iL+j && iL+j<=590)
 	  cout << "Chamber " << ic << ", plane " << ipl << ", "
 	       << "strip number " << iL+j << ", sampling number " << b << ", t0 = " << t0 << endl
 	       << "pulse = " << pulse << ", (val - off)/gain = " 
 	       << (pulse-fADCoffset)/fADCgain << ", dadc = " << dadc << endl;
-	//#endif
+#endif
 	fDADC[b] = dadc;
 	posflag += dadc;
 	//cout <<setw(6)<< dadc;
@@ -1327,8 +1328,8 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	    for (UInt_t ss = 0; ss < strip.fNsamp; ++ss){
 	      strip.fADC[ss] = GetADC(ich, ip, idx, ss);
 	      // cout << strip.fADC[ss] << " ";
-	      if(ich==12 && ip==1 && 585<=istrip && istrip<=590)cout << strip.fADC[ss] << " ";
-	       strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
+	      //if(ich==12 && ip==1 && 585<=istrip && istrip<=590)cout << strip.fADC[ss] << " ";
+	      strip.fADC[ss] += fTrnd.Gaus(0, fPulseNoiseSigma);//allowing negative value, before implementing common mode;
 	      // cout << strip.fADC[ss] << " ";
 	      saturation = 4000;
 	      if(strip.fADC[ss]>saturation)strip.fADC[ss]=saturation;
@@ -1338,7 +1339,7 @@ TSBSSimGEMDigitization::SetTreeStrips()
 	      //     if(sclust.size()!=0){
 	      //	 cout<<idx<<" "<<ss<<" "<<sclust.size()<<" == "<<strip.fClusterRatio[ss].GetSize()<<" == "<<GetStripClusters(ich, ip, idx).size()<<endl; getchar();
 	      //    }
-	    }if(ich==12 && ip==1 && 585<=istrip && istrip<=590)cout << endl;
+	    }//if(ich==12 && ip==1 && 585<=istrip && istrip<=590)cout << endl;
 	    /*	    if(GetTotADC(ich, ip, idx)==0)
 	      {
 		cout<<"Type: "<<GetType(ich, ip, idx)<<" Charge: "<<GetCharge(ich, ip, idx)<<" Time: "

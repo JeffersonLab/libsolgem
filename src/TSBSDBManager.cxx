@@ -313,7 +313,7 @@ int TSBSDBManager::LoadDB( ifstream& inp, DBRequest* request, const string& pref
 	cerr << "Error converting key/value = " << key << "/" << val << endl;
 	return 1;
       }
-    } else {
+    } else if(!item->optional) {
       cerr << "key \"" << key << "\" not found" << endl;
       return 2;
     }
