@@ -792,9 +792,9 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	double xmom, ymom;
 	double xECal, yECal;
 	
-	//double tempScintX;
-	//double tempScintY;
-	//Int_t tempPlane;
+	double tempScintX;
+	double tempScintY;
+	Int_t tempPlane;
 	double kpx_xc, kpy_xc, kpz_xc;
 	double  kp, thetak, phik;
 	double  kp_xc, thetak_xc, phik_xc;
@@ -848,7 +848,7 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	  union FloatIntUnion {
 	    Float_t f;
 	    Int_t   i;
-	  } datx, daty, datx_2, daty_2;
+	  } datx, daty, datx_2, daty_2, datx_earm, daty_earm;
 	  
 	  //cout<<"Reconstructed ECal pos X: "<<tempCaloX<<"  Y: "<<tempCaloY<<endl;
 	  Int_t crate, slot, chan;
@@ -900,6 +900,21 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
     	    xfp = yfp = xpfp = ypfp = 0;
 	    thetak = phik = 0;
 
+	    datx_earm.f = static_cast<Float_t>(tempCaloX);
+	    daty_earm.f = static_cast<Float_t>(tempCaloY);
+	    
+	    crate = 4;
+	    slot  = 1;
+	    chan  = 0;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx_earm.i,daty_earm.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
+	    crate = 4;
+	    slot  = 1;
+	    chan  = 1;
+	    if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx_earm.i,daty_earm.i) == SD_ERR ){
+	      return HED_ERR;
+	    }
 	    
 	    xmom = (tempCaloX -  eCalHit.GetXMax())/ECAL_max_cell_size;
 	    ymom = (tempCaloY -  eCalHit.GetYMax())/ECAL_max_cell_size;
@@ -955,14 +970,29 @@ Int_t TSBSSimDecoder::DoLoadEvent(const Int_t* evbuffer )
 	      const TSBSScintCluster& SciHit = simEvent -> fScintClusters[j];
 	      if(SciHit.GetDetFlag()!=31 || SciHit.GetEnergy()<=0)return HED_ERR;
 	      //kill the event if we don't have two properly reconstructed CDet hits.
-	      //tempScintX = SciHit.GetXPos();
-	      //tempScintY = SciHit.GetYPos();
-	      //tempPlane = SciHit.GetPlane();
+	      tempScintX = SciHit.GetXPos();
+	      tempScintY = SciHit.GetYPos();
+	      tempPlane = SciHit.GetPlane();
 	      //cout << "CDet plane " << SciHit.GetPlane() << ": X = " << SciHit.GetXPos() << ", Y = " << SciHit.GetYPos() << endl;
+	      datx_earm.f = static_cast<Float_t>(tempScintX);
+	      daty_earm.f = static_cast<Float_t>(tempScintY);
+	      
+	      crate = 4;
+	      slot  = 1;
+	      chan  = 2*tempPlane;
+	      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx_earm.i,daty_earm.i) == SD_ERR ){
+		return HED_ERR;
+	      }
+	      crate = 4;
+	      slot  = 1;
+	      chan  = 2*tempPlane+1;
+	      if( crateslot[idx(crate,slot)]->loadData("adc",chan,datx_earm.i,daty_earm.i) == SD_ERR ){
+		return HED_ERR;
+	      }
 	      
 	      xfinal.push_back( SciHit.GetXPos() );
 	      yfinal.push_back( SciHit.GetYPos() - yoff_ECAL );
-	      zfinal.push_back( z_earm[SciHit.GetPlane()] );
+	      zfinal.push_back( z_earm[tempPlane] );
 	      
 	      wxfinal.push_back( pow( Lx_scint_CDET, -2 ) );
 	      wyfinal.push_back( pow( sigy_CDET, -2 ) );
