@@ -176,6 +176,17 @@ sbs_bbgem.tracker.tmp_comm_range =200
 sbs_bbgem.tracker.do_histos = 1
 sbs_bbgem.tracker.commonmode_groupsize = 128
 
+sbs_bbgem.tracker.clusopt = 0
+
+sbs_bbgem.tracker.samp_thr = 20
+sbs_bbgem.tracker.hisamp_thr = 75
+sbs_bbgem.tracker.centstp_thr = 300
+sbs_bbgem.tracker.n_shpeaksh_min = 3
+
+sbs_bbgem.tracker.timebin = 25.0
+sbs_bbgem.tracker.spreadhit = 0.0004
+sbs_bbgem.tracker.pulsetimecst = 56.0
+
 #-----------------------------------------------------------------
 #   Plane-specific data
 #   Detector maps are above
